@@ -1,0 +1,16 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "provider": {
+        "ptcider": {
+            "npm": "@ai-sdk/openai-compatible",
+            "options": {
+                "apiKey": "sk-152c874fb453d801-acc70c-76a78360",
+                "baseURL": "https://omishiway.up.railway.app/v1"
+            },
+            "models": {
+                "kmc/kimi-k2.6-thinking": { "name": "kmc/kimi-k2.6-thinking" },
+                "shin-7": { "name": "Shin 7" }
+            }
+        }
+    }
+}
