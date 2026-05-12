@@ -85,11 +85,12 @@ func NewDateTimeTool() Tool {
 }
 
 // NewWebSearchTool creates a stub web search tool.
+// For real web search, use the websearch package directly with a Provider.
 func NewWebSearchTool() Tool {
 	return Tool{
 		Metadata: ToolMetadata{
 			Name:        "web_search",
-			Description: "Search the web for information. (Stub implementation - returns placeholder results)",
+			Description: "Search the web for information. (Stub implementation - returns placeholder results). For real search, use websearch.Tool(provider) with a configured Provider.",
 			Parameters: json.RawMessage(`{
 				"type": "object",
 				"properties": {
