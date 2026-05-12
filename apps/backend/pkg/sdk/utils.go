@@ -6,10 +6,11 @@ import (
 )
 
 type envelope struct {
-	Success bool            `json:"success"`
-	Data    json.RawMessage `json:"data,omitempty"`
-	Error   string          `json:"error,omitempty"`
-	Meta    *PaginatedMeta  `json:"meta,omitempty"`
+	Success   bool            `json:"success"`
+	Data      json.RawMessage `json:"data,omitempty"`
+	Error     string          `json:"error,omitempty"`
+	Meta      *PaginatedMeta  `json:"meta,omitempty"`
+	RequestID string          `json:"requestId,omitempty"`
 }
 
 type PaginatedMeta struct {

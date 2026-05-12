@@ -6,6 +6,7 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useLogs } from "@/lib/api/hooks";
 import { getErrorMessage } from "@/lib/api/errors";
+import { getSDK } from "@/lib/api/sdk";
 import type { APILog } from "@/lib/api/sdk";
 
 export default function LogsClient() {
@@ -15,6 +16,7 @@ export default function LogsClient() {
   const limit = 20;
 
   const { data: logsData, isLoading, error } = useLogs(page, limit);
+  const sdk = getSDK();
 
   const allLogs = logsData?.data ?? [];
 
@@ -111,6 +113,9 @@ export default function LogsClient() {
             <div>
               <h3 className="text-sm font-medium text-red-400 mb-1">Error loading logs</h3>
               <p className="text-xs text-red-300/80">{getErrorMessage(error)}</p>
+              {sdk.lastRequestId() && (
+                <p className="text-xs text-red-400/60 mt-1 font-mono">Request ID: {sdk.lastRequestId()}</p>
+              )}
             </div>
           </div>
         )}

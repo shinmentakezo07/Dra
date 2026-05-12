@@ -10,7 +10,10 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "turbo run test",
+    "test:web": "cd apps/web && npm run test",
+    "test:backend": "cd apps/backend && make test"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

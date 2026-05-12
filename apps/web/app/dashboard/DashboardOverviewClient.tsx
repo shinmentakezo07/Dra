@@ -7,6 +7,7 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useAnalytics, useCredits, useKeys } from "@/lib/api/hooks";
+import { getSDK } from "@/lib/api/sdk";
 
 export default function DashboardOverviewClient() {
   const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useAnalytics();
@@ -14,6 +15,7 @@ export default function DashboardOverviewClient() {
   const { data: keys, isLoading: keysLoading } = useKeys();
 
   const loading = analyticsLoading || creditsLoading || keysLoading;
+  const sdk = getSDK();
   const error = analyticsError ? (analyticsError as Error).message : null;
 
   const summary = analytics?.summary ?? { totalRequests: 0, successRequests: 0, errorRequests: 0 };
@@ -73,6 +75,9 @@ export default function DashboardOverviewClient() {
             <div>
               <h3 className="text-sm font-medium text-red-400 mb-1">Error loading dashboard</h3>
               <p className="text-xs text-red-300/80">{error}</p>
+              {sdk.lastRequestId() && (
+                <p className="text-xs text-red-400/60 mt-1 font-mono">Request ID: {sdk.lastRequestId()}</p>
+              )}
             </div>
           </div>
         )}

@@ -284,7 +284,7 @@ describe("DraSDK", () => {
         json: async () => ({ success: false, error: "Rate limited" }),
       });
 
-      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000", retries: 0 });
       await expect(sdk.me()).rejects.toThrow(RateLimitError);
     });
 
@@ -306,6 +306,101 @@ describe("DraSDK", () => {
       configureSDK({ baseUrl: "http://test" });
       const sdk = getSDK();
       expect(sdk).toBeDefined();
+    });
+  });
+
+  describe("integration: request headers", () => {
+    it("extracts x-request-id and rate limit headers", async () => {
+      const headers = new Headers({
+        "content-type": "application/json",
+        "x-request-id": "req-test-001",
+        "x-ratelimit-limit": "100",
+        "x-ratelimit-remaining": "95",
+        "x-ratelimit-reset": "1700000000",
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers,
+        json: async () => ({ success: true, data: { status: "ok", version: "1.0.0" } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000", retries: 0 });
+      await sdk.health();
+      expect(sdk.lastRequestId()).toBe("req-test-001");
+      const rl = sdk.lastRateLimitInfo();
+      expect(rl.limit).toBe(100);
+      expect(rl.remaining).toBe(95);
+      expect(rl.reset).toBe(1700000000);
+    });
+
+    it("extracts headers on error responses", async () => {
+      const headers = new Headers({
+        "content-type": "application/json",
+        "x-request-id": "req-error-002",
+        "x-ratelimit-remaining": "0",
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        headers,
+        json: async () => ({ success: false, error: "Rate limited" }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000", retries: 0 });
+      await expect(sdk.me()).rejects.toThrow(RateLimitError);
+      expect(sdk.lastRequestId()).toBe("req-error-002");
+      expect(sdk.lastRateLimitInfo().remaining).toBe(0);
+    });
+  });
+
+  describe("integration: authenticated auth flow", () => {
+    it("login → me → api keys", async () => {
+      // Login
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json", "x-request-id": "login-1" }),
+        json: async () => ({
+          success: true,
+          data: { user: { id: "u1", name: "Alice", email: "alice@example.com", role: "user", createdAt: "2024-01-01" }, token: "jwt-test" },
+        }),
+      });
+      // Me
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json", "x-request-id": "me-1" }),
+        json: async () => ({
+          success: true,
+          data: { id: "u1", name: "Alice", email: "alice@example.com", role: "user", createdAt: "2024-01-01" },
+        }),
+      });
+      // List keys
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json", "x-request-id": "keys-1" }),
+        json: async () => ({
+          success: true,
+          data: [{ id: "k1", userId: "u1", name: "Production", key: "dra-test", createdAt: "2024-01-01" }],
+        }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000", apiKey: "test-key", retries: 0 });
+
+      const auth = await sdk.login({ email: "alice@example.com", password: "pass" });
+      expect(auth.user.email).toBe("alice@example.com");
+      expect(sdk.lastRequestId()).toBe("login-1");
+
+      const user = await sdk.me();
+      expect(user.email).toBe("alice@example.com");
+      expect(sdk.lastRequestId()).toBe("me-1");
+
+      const keys = await sdk.listKeys();
+      expect(keys).toHaveLength(1);
+      expect(keys[0].name).toBe("Production");
+      expect(sdk.lastRequestId()).toBe("keys-1");
     });
   });
 });

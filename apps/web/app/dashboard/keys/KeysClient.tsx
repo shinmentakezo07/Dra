@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Check, AlertCircle, Loader2 } from "lucide-react";
 import { useKeys, useCreateKey, useDeleteKey } from "@/lib/api/hooks";
 import { getErrorMessage } from "@/lib/api/errors";
+import { getSDK } from "@/lib/api/sdk";
 
 export default function KeysClient() {
   const { data: keys, isLoading, error } = useKeys();
@@ -16,6 +17,7 @@ export default function KeysClient() {
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
+  const sdk = getSDK();
 
   const toggleKeyVisibility = (keyId: string) => {
     setVisibleKeys((prev) => {
@@ -97,6 +99,9 @@ export default function KeysClient() {
             <div>
               <h3 className="text-sm font-medium text-red-400 mb-1">Error</h3>
               <p className="text-xs text-red-300/80">{errorMessage}</p>
+              {sdk.lastRequestId() && (
+                <p className="text-xs text-red-400/60 mt-1 font-mono">Request ID: {sdk.lastRequestId()}</p>
+              )}
             </div>
           </div>
         )}
