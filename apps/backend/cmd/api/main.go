@@ -17,7 +17,6 @@ import (
 	"dra-platform/backend/internal/handler"
 	appmiddleware "dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
-	"dra-platform/backend/internal/provider"
 	appredis "dra-platform/backend/internal/redis"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
@@ -122,41 +121,7 @@ func main() {
 		return nil
 	})
 
-	// --- Internal provider registry (for existing app endpoints) ---
-	registry := provider.NewRegistry()
-	cbConfigInternal := provider.DefaultCBConfig()
-	registerWithCB := func(p provider.Provider) {
-		registry.Register(provider.NewCircuitBreakerProvider(p, cbConfigInternal))
-	}
-	if cfg.NvidiaAPIKey != "" {
-		registerWithCB(provider.NewNVIDIAProviderWithOptions(cfg.NvidiaAPIKey, llmCache, llmWatcher))
-	}
-	if cfg.OpenAIAPIKey != "" {
-		registerWithCB(provider.NewOpenAIProviderWithOptions(cfg.OpenAIAPIKey, llmCache, llmWatcher))
-	}
-	if cfg.AnthropicAPIKey != "" {
-		registerWithCB(provider.NewAnthropicProviderWithOptions(cfg.AnthropicAPIKey, llmCache, llmWatcher))
-	}
-	if len(registry.Providers()) == 0 {
-		logger.Warn("no_ai_providers_configured")
-	}
-
-	// Wrap providers with fallback and balancer where multiple providers exist
-	providers := registry.Providers()
-	if len(providers) >= 2 {
-		if err := registry.WrapFallback("primary", providers[0], providers[1:]...); err != nil {
-			logger.Warn("fallback_wrap_failed", "error", err.Error())
-		} else {
-			logger.Info("fallback_provider_configured", "primary", providers[0])
-		}
-		if err := registry.WrapBalancer("balanced", providers...); err != nil {
-			logger.Warn("balancer_wrap_failed", "error", err.Error())
-		} else {
-			logger.Info("balanced_provider_configured", "providers", providers)
-		}
-	}
-
-	// --- pkg/llm provider registry (for OpenAI-compatible proxy) ---
+	// --- Unified pkg/llm provider registry ---
 	llmRegistry := llmprovider.NewRegistry()
 	cbConfig := circuitbreaker.DefaultConfig()
 
@@ -296,6 +261,9 @@ func main() {
 	}
 	logger.Info("model_router_configured", "strategy", cfg.RouterStrategy)
 
+	budgetRouter := router.NewBudgetRouter(llmRegistry)
+	logger.Info("budget_router_configured")
+
 	// A/B test router
 	var abRouter *router.ABRouter
 	if cfg.ABTestVariantA != "" && cfg.ABTestVariantB != "" {
@@ -329,7 +297,7 @@ func main() {
 	creditSvc.SetEmailSender(emailSender)
 	analyticsSvc := service.NewAnalyticsService(logRepo, userRepo, creditsRepo, keyRepo)
 	logSvc := service.NewLogService(logRepo)
-	providerSvc := service.NewProviderServiceWithFeatures(registry, llmCache, llmWatcher)
+	providerSvc := service.NewProviderServiceWithFeatures(llmRegistry, llmCache, llmWatcher)
 	webhookSvc := service.NewWebhookService(repository.NewWebhookRepo(database))
 	orgSvc := service.NewOrganizationService(repository.NewOrganizationRepo(database), userRepo)
 
@@ -347,6 +315,7 @@ func main() {
 	h.SetLLMRegistry(llmRegistry)
 	h.SetGuard(guard)
 	h.SetModelRouter(modelRouter)
+	h.SetBudgetRouter(budgetRouter)
 	h.SetDedupCache(dedupCache)
 	h.SetSemanticCache(semanticCache)
 	h.SetABRouter(abRouter)
@@ -570,6 +539,7 @@ func main() {
 		r.Delete("/api/admin/users/{id}", appmiddleware.RequireAdmin(h.AdminDeleteUser))
 		r.Get("/api/admin/stats", appmiddleware.RequireAdmin(h.AdminStats))
 		r.Get("/api/admin/circuit-breakers", appmiddleware.RequireAdmin(h.AdminCircuitBreakers))
+		r.Get("/api/admin/provider-health", appmiddleware.RequireAdmin(h.ProviderHealth))
 	})
 
 	// Metrics server

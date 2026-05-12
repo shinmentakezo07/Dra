@@ -2,48 +2,45 @@ package middleware
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
 	"net/http"
 	"time"
+
+	"dra-platform/backend/pkg/trace"
+	"github.com/google/uuid"
 )
 
-// TraceIDKey is the context key for trace IDs.
-type traceIDKey struct{}
-
-// TraceMiddleware injects a trace ID into each request.
+// TraceMiddleware injects a request ID into each request.
 func TraceMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		traceID := r.Header.Get("X-Trace-ID")
-		if traceID == "" {
-			traceID = generateTraceID()
+		reqID := r.Header.Get("X-Request-ID")
+		if reqID == "" {
+			reqID = r.Header.Get("X-Trace-ID")
 		}
-		ctx := WithTraceID(r.Context(), traceID)
-		w.Header().Set("X-Trace-ID", traceID)
+		if reqID == "" {
+			reqID = uuid.NewString()
+		}
+		ctx := trace.WithRequestID(r.Context(), reqID)
+		w.Header().Set("X-Request-ID", reqID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// WithTraceID attaches a trace ID to context.
+// WithTraceID attaches a trace ID to context (backward-compatible wrapper).
 func WithTraceID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, traceIDKey{}, id)
+	return trace.WithRequestID(ctx, id)
 }
 
-// GetTraceID retrieves the trace ID from context.
+// GetTraceID retrieves the trace ID from context (backward-compatible wrapper).
 func GetTraceID(ctx context.Context) string {
-	if id, ok := ctx.Value(traceIDKey{}).(string); ok {
-		return id
-	}
-	return ""
+	return trace.GetRequestID(ctx)
 }
 
 // Span represents a timed operation for tracing.
 type Span struct {
-	Name      string    `json:"name"`
-	TraceID   string    `json:"trace_id"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   *time.Time `json:"end_time,omitempty"`
+	Name      string            `json:"name"`
+	TraceID   string            `json:"trace_id"`
+	StartTime time.Time         `json:"start_time"`
+	EndTime   *time.Time        `json:"end_time,omitempty"`
 	Tags      map[string]string `json:"tags,omitempty"`
 }
 
@@ -51,7 +48,7 @@ type Span struct {
 func StartSpan(ctx context.Context, name string) *Span {
 	return &Span{
 		Name:      name,
-		TraceID:   GetTraceID(ctx),
+		TraceID:   trace.GetRequestID(ctx),
 		StartTime: time.Now(),
 		Tags:      make(map[string]string),
 	}
@@ -82,10 +79,4 @@ func (s *Span) Duration() time.Duration {
 // SpanFromRequest creates a span from an HTTP request.
 func SpanFromRequest(r *http.Request, name string) *Span {
 	return StartSpan(r.Context(), name)
-}
-
-func generateTraceID() string {
-	b := make([]byte, 8)
-	_, _ = rand.Read(b)
-	return hex.EncodeToString(b) + fmt.Sprintf("%x", time.Now().UnixNano())[:8]
 }

@@ -217,6 +217,20 @@ func (r *CreateWebhookRequest) Validate() *AppError {
 	return nil
 }
 
+type WebhookDelivery struct {
+	ID          string     `json:"id"`
+	WebhookID   string     `json:"webhookId"`
+	EventType   string     `json:"eventType"`
+	Payload     []byte     `json:"payload"`
+	StatusCode  *int       `json:"statusCode,omitempty"`
+	Error       string     `json:"error,omitempty"`
+	Attempts    int        `json:"attempts"`
+	MaxAttempts int        `json:"maxAttempts"`
+	DeliveredAt *time.Time `json:"deliveredAt,omitempty"`
+	NextRetryAt *time.Time `json:"nextRetryAt,omitempty"`
+	CreatedAt   time.Time  `json:"createdAt"`
+}
+
 type Organization struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"dra-platform/backend/internal/middleware"
+	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/pkg/response"
 	"dra-platform/backend/pkg/llm/embeddings"
 )

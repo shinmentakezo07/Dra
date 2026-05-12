@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"dra-platform/backend/internal/pkg/logger"
+	"dra-platform/backend/pkg/trace"
 )
 
 type logRecorder struct {
@@ -31,6 +32,7 @@ func RequestLogger(next http.Handler) http.Handler {
 			"duration_ms", time.Since(start).Milliseconds(),
 			"remote_addr", r.RemoteAddr,
 			"user_agent", r.UserAgent(),
+			"request_id", trace.GetRequestID(r.Context()),
 		)
 	})
 }

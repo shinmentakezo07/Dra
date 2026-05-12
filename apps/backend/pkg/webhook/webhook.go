@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -21,22 +23,23 @@ type Event struct {
 
 // Delivery represents a webhook delivery attempt.
 type Delivery struct {
-	ID        string    `json:"id"`
-	URL       string    `json:"url"`
-	Event     Event     `json:"event"`
-	Status    int       `json:"status"`
-	Error     string    `json:"error,omitempty"`
-	SentAt    time.Time `json:"sent_at"`
+	ID       string    `json:"id"`
+	URL      string    `json:"url"`
+	Event    Event     `json:"event"`
+	Status   int       `json:"status"`
+	Error    string    `json:"error,omitempty"`
+	Attempts int       `json:"attempts"`
+	SentAt   time.Time `json:"sent_at"`
 }
 
 // Config holds webhook configuration.
 type Config struct {
-	URL       string            `json:"url"`
-	Secret    string            `json:"secret"`
-	Events    []string          `json:"events"`
-	Headers   map[string]string `json:"headers,omitempty"`
-	RetryMax  int               `json:"retry_max"`
-	Timeout   time.Duration     `json:"timeout"`
+	URL      string            `json:"url"`
+	Secret   string            `json:"secret"`
+	Events   []string          `json:"events"`
+	Headers  map[string]string `json:"headers,omitempty"`
+	RetryMax int               `json:"retry_max"`
+	Timeout  time.Duration     `json:"timeout"`
 }
 
 // Dispatcher sends webhook events.
@@ -105,28 +108,49 @@ func (d *Dispatcher) Send(ctx context.Context, cfg Config, event Event) (*Delive
 	return delivery, nil
 }
 
-// SendWithRetry sends a webhook with retries.
+// SendWithRetry sends a webhook with exponential backoff retries.
 func (d *Dispatcher) SendWithRetry(ctx context.Context, cfg Config, event Event) (*Delivery, error) {
 	maxRetries := cfg.RetryMax
 	if maxRetries <= 0 {
 		maxRetries = 3
 	}
 
+	var lastDelivery *Delivery
 	var lastErr error
+
 	for i := 0; i <= maxRetries; i++ {
 		if i > 0 {
-			time.Sleep(time.Duration(i) * time.Second)
+			backoff := exponentialBackoff(i)
+			time.Sleep(backoff)
 		}
+
 		delivery, err := d.Send(ctx, cfg, event)
+		lastDelivery = delivery
 		if err == nil {
+			delivery.Attempts = i + 1
 			return delivery, nil
 		}
 		lastErr = err
+
 		if delivery != nil && delivery.Status >= 400 && delivery.Status < 500 {
-			break // Don't retry client errors
+			break
 		}
 	}
-	return nil, fmt.Errorf("webhook failed after %d retries: %w", maxRetries, lastErr)
+
+	if lastDelivery != nil {
+		lastDelivery.Attempts = maxRetries + 1
+	}
+	return lastDelivery, fmt.Errorf("webhook failed after %d retries: %w", maxRetries, lastErr)
+}
+
+func exponentialBackoff(attempt int) time.Duration {
+	base := math.Pow(2, float64(attempt))
+	jitter := rand.Float64() * 0.5 * base
+	duration := time.Duration((base + jitter) * float64(time.Second))
+	if duration > 60*time.Second {
+		duration = 60 * time.Second
+	}
+	return duration
 }
 
 func signPayload(payload []byte, secret string) string {

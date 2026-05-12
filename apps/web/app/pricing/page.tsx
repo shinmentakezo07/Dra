@@ -1,3 +1,5 @@
+"use cache";
+
 import { PricingHero } from "@/components/pricing/PricingHero";
 import { ModelShowcase } from "@/components/pricing/ModelShowcase";
 import { CostCalculator } from "@/components/pricing/CostCalculator";

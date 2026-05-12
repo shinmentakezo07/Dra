@@ -4,13 +4,16 @@
         "ptcider": {
             "npm": "@ai-sdk/openai-compatible",
             "options": {
-                "apiKey": "sk-152c874fb453d801-acc70c-76a78360",
-                "baseURL": "https://omishiway.up.railway.app/v1"
+                "apiKey": "123",
+                "baseURL": "https://yapa.up.railway.app/v1"
             },
             "models": {
-                "kmc/kimi-k2.6-thinking": { "name": "kmc/kimi-k2.6-thinking" },
-                "shin-7": { "name": "Shin 7" }
+                "qqw/deepseek-v4-flash-free": { "name": "qqw/deepseek-v4-flash-free" },
+                "deepseek-v4-flash-free": { "name": "deepseek-v4-flash-free" }
             }
         }
-    }
+    },
+    "plugin": [
+        "oh-my-openagent"
+    ]
 }

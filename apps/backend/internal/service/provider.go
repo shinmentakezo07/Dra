@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,7 +9,6 @@ import (
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/pkg/logger"
-	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/cache"
 	"dra-platform/backend/pkg/llm/pipeline"
@@ -20,7 +18,7 @@ import (
 
 // ProviderService handles LLM provider operations with SDK features.
 type ProviderService struct {
-	registry      *provider.Registry
+	registry      *llmprovider.Registry
 	cache         cache.Cache
 	watcher       *watcher.Watcher
 	pipeline      *pipeline.Pipeline
@@ -28,14 +26,14 @@ type ProviderService struct {
 }
 
 // NewProviderService creates a new provider service.
-func NewProviderService(registry *provider.Registry) *ProviderService {
+func NewProviderService(registry *llmprovider.Registry) *ProviderService {
 	s := &ProviderService{registry: registry}
 	s.setupPipeline()
 	return s
 }
 
 // NewProviderServiceWithFeatures creates a provider service with full SDK features.
-func NewProviderServiceWithFeatures(registry *provider.Registry, c cache.Cache, w *watcher.Watcher) *ProviderService {
+func NewProviderServiceWithFeatures(registry *llmprovider.Registry, c cache.Cache, w *watcher.Watcher) *ProviderService {
 	s := &ProviderService{
 		registry: registry,
 		cache:    c,
@@ -105,7 +103,7 @@ func (s *ProviderService) SetPipeline(p *pipeline.Pipeline) {
 	s.pipeline = p
 }
 
-func (s *ProviderService) ListModels(ctx context.Context) ([]provider.ModelInfo, *domain.AppError) {
+func (s *ProviderService) ListModels(ctx context.Context) ([]llm.ModelInfo, *domain.AppError) {
 	models, err := s.registry.AllModels(ctx)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to list models", err)
@@ -113,8 +111,8 @@ func (s *ProviderService) ListModels(ctx context.Context) ([]provider.ModelInfo,
 	return models, nil
 }
 
-func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*provider.ChatResponse, *domain.AppError) {
-	provName, modelID := provider.ParseModelID(req.Model)
+func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*llm.ChatResponse, *domain.AppError) {
+	provName, modelID := llm.ParseModelID(req.Model)
 	if provName == "" {
 		provName = "nvidia"
 		modelID = req.Model
@@ -125,8 +123,8 @@ func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*pr
 		return nil, domain.NewError(domain.ErrBadRequest, 400, fmt.Sprintf("unknown provider: %s", provName))
 	}
 
-	// Build unified LLM request for pipeline
 	llmReq := toLLMChatRequest(req)
+	llmReq.Model = modelID
 
 	// Run pre-processing pipeline
 	if s.pipeline != nil {
@@ -135,56 +133,27 @@ func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*pr
 		}
 	}
 
-	messages := make([]provider.Message, len(llmReq.Messages))
-	for i, m := range llmReq.Messages {
-		messages[i] = provider.Message{Role: string(m.Role), Content: m.Content}
-	}
-
-	chatReq := provider.ChatRequest{
-		Model:    modelID,
-		Messages: messages,
-		Stream:   false,
-		System:   llmReq.System,
-	}
-	if llmReq.MaxTokens != nil {
-		chatReq.MaxTokens = llmReq.MaxTokens
-	}
-	if llmReq.Temperature != nil {
-		chatReq.Temperature = llmReq.Temperature
-	}
-
-	resp, err := p.Chat(ctx, chatReq)
+	resp, err := p.Chat(ctx, llmReq)
 	if err != nil {
 		if s.watcher != nil {
 			s.watcher.Watch(ctx, err, provName, modelID, "")
 		}
-		if _, ok := err.(*provider.ErrProviderUnavailable); ok {
-			return nil, domain.NewError(domain.ErrServiceUnavailable, 503, fmt.Sprintf("%s provider unavailable", provName))
-		}
 		return nil, domain.Wrap(domain.ErrInternal, 500, "chat failed", err)
 	}
 
-	// Convert to unified response for pipeline
-	llmResp := fromProviderResponse(resp, req.Model, provName)
-
 	// Run post-processing pipeline
 	if s.pipeline != nil {
-		if err := s.pipeline.RunAfter(ctx, llmReq, llmResp); err != nil {
+		if err := s.pipeline.RunAfter(ctx, llmReq, resp); err != nil {
 			logger.Warn("pipeline_post_processing_failed", "error", err.Error())
 			// Don't fail the request on post-processing errors
 		}
 	}
 
-	// Apply pipeline modifications back to provider response
-	if len(llmResp.Choices) > 0 {
-		resp.Content = llmResp.Choices[0].Message.Content
-	}
-
 	return resp, nil
 }
 
-func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest) (<-chan provider.StreamChunk, *domain.AppError) {
-	provName, modelID := provider.ParseModelID(req.Model)
+func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest) (<-chan llm.StreamChunk, *domain.AppError) {
+	provName, modelID := llm.ParseModelID(req.Model)
 	if provName == "" {
 		provName = "nvidia"
 		modelID = req.Model
@@ -195,8 +164,8 @@ func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest
 		return nil, domain.NewError(domain.ErrBadRequest, 400, fmt.Sprintf("unknown provider: %s", provName))
 	}
 
-	// Build unified LLM request for pipeline
 	llmReq := toLLMChatRequest(req)
+	llmReq.Model = modelID
 
 	// Run pre-processing pipeline
 	if s.pipeline != nil {
@@ -205,31 +174,10 @@ func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest
 		}
 	}
 
-	messages := make([]provider.Message, len(llmReq.Messages))
-	for i, m := range llmReq.Messages {
-		messages[i] = provider.Message{Role: string(m.Role), Content: m.Content}
-	}
-
-	chatReq := provider.ChatRequest{
-		Model:    modelID,
-		Messages: messages,
-		Stream:   true,
-		System:   llmReq.System,
-	}
-	if llmReq.MaxTokens != nil {
-		chatReq.MaxTokens = llmReq.MaxTokens
-	}
-	if llmReq.Temperature != nil {
-		chatReq.Temperature = llmReq.Temperature
-	}
-
-	ch, err := p.ChatStream(ctx, chatReq)
+	ch, err := p.ChatStream(ctx, llmReq)
 	if err != nil {
 		if s.watcher != nil {
 			s.watcher.Watch(ctx, err, provName, modelID, "")
-		}
-		if _, ok := err.(*provider.ErrProviderUnavailable); ok {
-			return nil, domain.NewError(domain.ErrServiceUnavailable, 503, fmt.Sprintf("%s provider unavailable", provName))
 		}
 		return nil, domain.Wrap(domain.ErrInternal, 500, "chat stream failed", err)
 	}
@@ -238,8 +186,8 @@ func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest
 }
 
 // ChatWithThinking sends a chat request with thinking/reasoning enabled.
-func (s *ProviderService) ChatWithThinking(ctx context.Context, req domain.ChatRequest, budgetTokens int) (*provider.ChatResponse, *domain.AppError) {
-	provName, modelID := provider.ParseModelID(req.Model)
+func (s *ProviderService) ChatWithThinking(ctx context.Context, req domain.ChatRequest, budgetTokens int) (*llm.ChatResponse, *domain.AppError) {
+	provName, modelID := llm.ParseModelID(req.Model)
 	if provName == "" {
 		return nil, domain.NewError(domain.ErrBadRequest, 400, "model must include provider prefix for thinking")
 	}
@@ -250,7 +198,12 @@ func (s *ProviderService) ChatWithThinking(ctx context.Context, req domain.ChatR
 	}
 
 	llmReq := toLLMChatRequest(req)
+	llmReq.Model = modelID
 	llmReq.Thinking = &llm.ThinkingConfig{Enabled: true, BudgetTokens: budgetTokens}
+	if llmReq.MaxTokens == nil {
+		v := 8192
+		llmReq.MaxTokens = &v
+	}
 
 	if s.pipeline != nil {
 		if err := s.pipeline.RunBefore(ctx, llmReq); err != nil {
@@ -258,39 +211,23 @@ func (s *ProviderService) ChatWithThinking(ctx context.Context, req domain.ChatR
 		}
 	}
 
-	messages := make([]provider.Message, len(llmReq.Messages))
-	for i, m := range llmReq.Messages {
-		messages[i] = provider.Message{Role: string(m.Role), Content: m.Content}
-	}
-
-	chatReq := provider.ChatRequest{
-		Model:     modelID,
-		Messages:  messages,
-		Stream:    false,
-		System:    llmReq.System,
-		MaxTokens: func() *int { v := 8192; return &v }(),
-	}
-
-	resp, err := p.Chat(ctx, chatReq)
+	resp, err := p.Chat(ctx, llmReq)
 	if err != nil {
 		if s.watcher != nil {
 			s.watcher.Watch(ctx, err, provName, modelID, "")
 		}
-		if _, ok := err.(*provider.ErrProviderUnavailable); ok {
-			return nil, domain.NewError(domain.ErrServiceUnavailable, 503, fmt.Sprintf("%s provider unavailable", provName))
-		}
 		return nil, domain.Wrap(domain.ErrInternal, 500, "chat with thinking failed", err)
 	}
 
-	if budgetTokens > 0 {
-		resp.Content = fmt.Sprintf("<thinking budget=\"%d\">\n%s\n</thinking>", budgetTokens, resp.Content)
+	if budgetTokens > 0 && len(resp.Choices) > 0 {
+		resp.Choices[0].Message.Content = fmt.Sprintf("<thinking budget=\"%d\">\n%s\n</thinking>", budgetTokens, resp.Choices[0].Message.Content)
 	}
 
 	return resp, nil
 }
 
 func (s *ProviderService) ResolveProvider(modelID string) (string, string) {
-	return provider.ParseModelID(modelID)
+	return llm.ParseModelID(modelID)
 }
 
 func (s *ProviderService) EstimateTokens(modelID string, messages []domain.ChatMessage) (inputTokens, outputTokens int) {
@@ -298,7 +235,7 @@ func (s *ProviderService) EstimateTokens(modelID string, messages []domain.ChatM
 	for _, m := range messages {
 		totalChars += len(m.Content)
 	}
-	inputTokens = provider.CountTokens(strings.Repeat("x", totalChars))
+	inputTokens = llm.EstimateTokens(strings.Repeat("x", totalChars))
 	if inputTokens == 0 {
 		inputTokens = len(messages) * 50
 	}
@@ -319,7 +256,7 @@ func (s *ProviderService) ListProviderNames(ctx context.Context) []string {
 }
 
 func (s *ProviderService) ModelProvider(modelID string) (string, bool) {
-	prov, _ := provider.ParseModelID(modelID)
+	prov, _ := llm.ParseModelID(modelID)
 	if prov == "" {
 		return "", false
 	}
@@ -327,7 +264,7 @@ func (s *ProviderService) ModelProvider(modelID string) (string, bool) {
 	return prov, ok
 }
 
-func (s *ProviderService) FindModel(ctx context.Context, modelID string) (*provider.ModelInfo, *domain.AppError) {
+func (s *ProviderService) FindModel(ctx context.Context, modelID string) (*llm.ModelInfo, *domain.AppError) {
 	models, err := s.registry.AllModels(ctx)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to list models", err)
@@ -398,17 +335,6 @@ func (s *ProviderService) DefaultSystemPrompt() string {
 	return "You are Shinmen, a distinguished PhD in Computer Science and Information Technology with over 20 years of experience."
 }
 
-// FormatSSEChunk formats a chunk as a Server-Sent Event.
-func (s *ProviderService) FormatSSEChunk(content, finishReason string) string {
-	data, _ := json.Marshal(map[string]interface{}{
-		"choices": []map[string]interface{}{{
-			"delta": map[string]string{"content": content},
-			"finish_reason": finishReason,
-		}},
-	})
-	return fmt.Sprintf("data: %s\n\n", string(data))
-}
-
 // toLLMChatRequest converts a domain.ChatRequest to pkg/llm.ChatRequest.
 func toLLMChatRequest(req domain.ChatRequest) *llm.ChatRequest {
 	messages := make([]llm.Message, len(req.Messages))
@@ -422,20 +348,5 @@ func toLLMChatRequest(req domain.ChatRequest) *llm.ChatRequest {
 		Model:    req.Model,
 		Messages: messages,
 		System:   "You are Shinmen, a distinguished PhD in Computer Science and Information Technology with over 20 years of experience.",
-	}
-}
-
-// fromProviderResponse converts a provider.ChatResponse to pkg/llm.ChatResponse.
-func fromProviderResponse(resp *provider.ChatResponse, modelID, provName string) *llm.ChatResponse {
-	return &llm.ChatResponse{
-		Model:    modelID,
-		Provider: provName,
-		Choices: []llm.Choice{{
-			Message: llm.Message{Role: llm.RoleAssistant, Content: resp.Content},
-		}},
-		Usage: llm.Usage{
-			PromptTokens:     resp.InputTokens,
-			CompletionTokens: resp.OutputTokens,
-		},
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"dra-platform/backend/internal/domain"
-	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/pkg/llm"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
 )
@@ -201,7 +200,7 @@ func (s *ExperimentService) GetResults(experimentID string) ([]*ExperimentResult
 	return result, nil
 }
 
-func (s *ExperimentService) ChatWithVariant(ctx context.Context, experimentID string, req domain.ChatRequest) (*provider.ChatResponse, *domain.AppError) {
+func (s *ExperimentService) ChatWithVariant(ctx context.Context, experimentID string, req domain.ChatRequest) (*llm.ChatResponse, *domain.AppError) {
 	variant, err := s.SelectVariant(experimentID)
 	if err != nil {
 		return nil, domain.NewError(domain.ErrBadRequest, 400, err.Error())
@@ -214,7 +213,7 @@ func (s *ExperimentService) ChatWithVariant(ctx context.Context, experimentID st
 
 	tokens := 0
 	if resp != nil {
-		tokens = resp.InputTokens + resp.OutputTokens
+		tokens = resp.Usage.PromptTokens + resp.Usage.CompletionTokens
 	}
 	s.RecordResult(experimentID, variant.Name, latency, tokens, nil)
 	if appErr != nil {
@@ -224,7 +223,7 @@ func (s *ExperimentService) ChatWithVariant(ctx context.Context, experimentID st
 	return resp, appErr
 }
 
-func (s *ExperimentService) ChatStreamWithVariant(ctx context.Context, experimentID string, req domain.ChatRequest) (<-chan provider.StreamChunk, *domain.AppError) {
+func (s *ExperimentService) ChatStreamWithVariant(ctx context.Context, experimentID string, req domain.ChatRequest) (<-chan llm.StreamChunk, *domain.AppError) {
 	variant, err := s.SelectVariant(experimentID)
 	if err != nil {
 		return nil, domain.NewError(domain.ErrBadRequest, 400, err.Error())

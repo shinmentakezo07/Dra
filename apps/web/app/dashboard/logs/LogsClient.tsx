@@ -1,44 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Activity, Search, CheckCircle, XCircle, Clock, Zap, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { Activity, Search, Clock, Zap, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { getSDK, APILog, PaginatedResult } from "@/lib/api/sdk";
+import { useLogs } from "@/lib/api/hooks";
 import { getErrorMessage } from "@/lib/api/errors";
+import type { APILog } from "@/lib/api/sdk";
 
 export default function LogsClient() {
-  const [logsData, setLogsData] = useState<PaginatedResult<APILog> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "success" | "error">("all");
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const fetchLogs = async (targetPage = page) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getSDK().listLogs(targetPage, limit);
-      setLogsData(data);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    fetchLogs(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  const { data: logsData, isLoading, error } = useLogs(page, limit);
 
   const allLogs = logsData?.data ?? [];
 
@@ -55,7 +31,7 @@ export default function LogsClient() {
   const columns = [
     {
       header: "Timestamp",
-      accessor: "createdAt",
+      accessor: "createdAt" as const,
       width: "180px",
       render: (value: string) => (
         <div className="flex items-center gap-2 text-sm text-gray-400 font-mono">
@@ -66,7 +42,7 @@ export default function LogsClient() {
     },
     {
       header: "Model",
-      accessor: "model",
+      accessor: "model" as const,
       render: (value: string, row: APILog) => (
         <div>
           <div className="text-sm font-medium text-white">{value}</div>
@@ -76,7 +52,7 @@ export default function LogsClient() {
     },
     {
       header: "Tokens",
-      accessor: "inputTokens",
+      accessor: "inputTokens" as const,
       render: (value: number, row: APILog) => (
         <div className="text-sm font-mono text-gray-300">
           <span className="text-green-400">{value}</span>
@@ -87,14 +63,14 @@ export default function LogsClient() {
     },
     {
       header: "Cost",
-      accessor: "cost",
+      accessor: "cost" as const,
       render: (value: number) => (
         <div className="text-sm font-mono text-emerald-400">${(value / 100000).toFixed(4)}</div>
       ),
     },
     {
       header: "Latency",
-      accessor: "latency",
+      accessor: "latency" as const,
       render: (value: number) => (
         <div className="flex items-center gap-1 text-sm font-mono text-gray-300">
           <Zap className="w-3 h-3 text-yellow-500" />
@@ -104,7 +80,7 @@ export default function LogsClient() {
     },
     {
       header: "Status",
-      accessor: "status",
+      accessor: "status" as const,
       render: (value: string) => (
         <StatusBadge status={value === "success" ? "success" : "error"} label={value} size="sm" />
       ),
@@ -119,7 +95,6 @@ export default function LogsClient() {
   return (
     <div className="min-h-screen pt-6 pb-12 px-4 sm:px-6 lg:px-8 bg-[#050505]">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
@@ -130,18 +105,16 @@ export default function LogsClient() {
           <p className="text-gray-400">Monitor all API requests and responses in real-time</p>
         </div>
 
-        {/* Error Banner */}
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-medium text-red-400 mb-1">Error loading logs</h3>
-              <p className="text-xs text-red-300/80">{error}</p>
+              <p className="text-xs text-red-300/80">{getErrorMessage(error)}</p>
             </div>
           </div>
         )}
 
-        {/* Stats Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
             <div className="text-2xl font-bold text-white font-mono">{logsData?.total ?? 0}</div>
@@ -161,7 +134,6 @@ export default function LogsClient() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -208,18 +180,15 @@ export default function LogsClient() {
           </div>
         </div>
 
-        {/* Loading */}
-        {loading && (
+        {isLoading && (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         )}
 
-        {/* Logs Table */}
-        {!loading && <DataTable columns={columns} data={displayLogs} />}
+        {!isLoading && <DataTable columns={columns} data={displayLogs} />}
 
-        {/* Pagination */}
-        {!loading && logsData && totalPages > 1 && (
+        {!isLoading && logsData && totalPages > 1 && (
           <div className="mt-6 flex items-center justify-between">
             <div className="text-sm text-gray-500">
               Page {logsData.page} of {totalPages}
@@ -243,7 +212,7 @@ export default function LogsClient() {
           </div>
         )}
 
-        {!loading && displayLogs.length === 0 && (
+        {!isLoading && displayLogs.length === 0 && (
           <div className="text-center py-12 text-gray-500">No logs found matching your filters</div>
         )}
       </div>

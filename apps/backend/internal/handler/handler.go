@@ -15,7 +15,6 @@ import (
 	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/pkg/response"
-	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
 	"dra-platform/backend/pkg/llm"
@@ -49,6 +48,7 @@ type Handler struct {
 	notificationHub *NotificationHub
 	llmRegistry     *llmprovider.Registry
 	modelRouter     *router.Router
+	budgetRouter    *router.BudgetRouter
 	dedupCache      *cache.DedupCache
 	semanticCache   *cache.SemanticCache
 	abRouter        *router.ABRouter
@@ -73,6 +73,11 @@ func (h *Handler) SetLLMRegistry(r *llmprovider.Registry) {
 // SetModelRouter sets the intelligent model router.
 func (h *Handler) SetModelRouter(r *router.Router) {
 	h.modelRouter = r
+}
+
+// SetBudgetRouter sets the budget-aware model router.
+func (h *Handler) SetBudgetRouter(r *router.BudgetRouter) {
+	h.budgetRouter = r
 }
 
 // SetBatchService sets the batch service (used for late wiring in main).
@@ -115,18 +120,7 @@ func (h *Handler) ChatFnForBatch() func(ctx context.Context, req *llm.ChatReques
 		for i, m := range req.Messages {
 			domainReq.Messages[i] = domain.ChatMessage{Role: string(m.Role), Content: m.Content}
 		}
-		resp, err := h.providerSvc.Chat(ctx, domainReq)
-		if err != nil {
-			return nil, fmt.Errorf("batch chat: %w", err)
-		}
-		return &llm.ChatResponse{
-			Model:    resp.Model,
-			Provider: resp.Provider,
-			Choices: []llm.Choice{{
-				Message: llm.Message{Role: llm.RoleAssistant, Content: resp.Content},
-			}},
-			Usage: llm.Usage{PromptTokens: resp.InputTokens, CompletionTokens: resp.OutputTokens},
-		}, nil
+		return h.providerSvc.Chat(ctx, domainReq)
 	}
 }
 
@@ -653,12 +647,12 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 			if !more {
 				goto FINISH
 			}
-			if chunk.Content != "" {
-				outputBuf.WriteString(chunk.Content)
-				outputTokens += provider.CountTokens(chunk.Content)
+			if chunk.Delta.Content != "" {
+				outputBuf.WriteString(chunk.Delta.Content)
+				outputTokens += llm.EstimateTokens(chunk.Delta.Content)
 				data, _ := json.Marshal(map[string]interface{}{
 					"choices": []map[string]interface{}{{
-						"delta": map[string]string{"content": chunk.Content},
+						"delta": map[string]string{"content": chunk.Delta.Content},
 					}},
 				})
 				fmt.Fprintf(w, "data: %s\n\n", string(data))
@@ -666,7 +660,7 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 					flusher.Flush()
 				}
 			}
-			if chunk.FinishReason != "" {
+			if chunk.FinishReason != nil {
 				fmt.Fprintf(w, "data: [DONE]\n\n")
 				if ok {
 					flusher.Flush()
@@ -679,7 +673,7 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 	}
 
 FINISH:
-	inputTokens := provider.CountTokens(outputBuf.String()) // rough estimate for input
+	inputTokens := llm.EstimateTokens(outputBuf.String()) // rough estimate for input
 	if inputTokens == 0 {
 		inputTokens = len(req.Messages) * 50
 	}

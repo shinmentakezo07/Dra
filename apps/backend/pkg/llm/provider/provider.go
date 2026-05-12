@@ -14,6 +14,8 @@ import (
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/translator"
 	"dra-platform/backend/pkg/llm/watcher"
+	"dra-platform/backend/pkg/trace"
+	"github.com/sashabaranov/go-openai"
 )
 
 // BaseProvider provides common functionality for HTTP-based providers.
@@ -22,6 +24,7 @@ type BaseProvider struct {
 	apiKey     string
 	baseURL    string
 	client     *http.Client
+	openaiClient *openai.Client
 	translator translator.Translator
 	cache      llm.Cache
 	watcher    *watcher.Watcher
@@ -132,6 +135,9 @@ func (p *BaseProvider) doRequest(ctx context.Context, method, path string, body 
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
+	if reqID := trace.GetRequestID(ctx); reqID != "" {
+		req.Header.Set("X-Request-ID", reqID)
+	}
 
 	return p.client.Do(req)
 }
@@ -147,6 +153,11 @@ func NewOpenAIProvider(opts ...Option) *OpenAIProvider {
 	if base.baseURL == "" {
 		base.baseURL = "https://api.openai.com/v1"
 	}
+	if base.openaiClient == nil {
+		cfg := openai.DefaultConfig(base.apiKey)
+		cfg.BaseURL = base.baseURL
+		base.openaiClient = openai.NewClientWithConfig(cfg)
+	}
 	if base.translator == nil {
 		base.translator = translator.NewAnthropicToOpenAI()
 	}
@@ -154,126 +165,14 @@ func NewOpenAIProvider(opts ...Option) *OpenAIProvider {
 	return &OpenAIProvider{BaseProvider: base}
 }
 
-// Chat sends a chat completion request.
+// Chat sends a chat completion request via the OpenAI SDK.
 func (p *OpenAIProvider) Chat(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {
-	if p.apiKey == "" {
-		return nil, fmt.Errorf("openai: API key not configured")
-	}
-
-	// Check cache
-	if p.cache != nil {
-		key := llm.CacheKey(req)
-		if cached, err := p.cache.Get(ctx, key); err == nil && cached != nil {
-			return cached, nil
-		}
-	}
-
-	body, err := p.translator.TranslateRequest(req)
-	if err != nil {
-		return nil, fmt.Errorf("openai: translate request: %w", err)
-	}
-
-	bodyBytes, _ := json.Marshal(body)
-
-	resp, err := p.doRequest(ctx, "POST", "/chat/completions", bodyBytes, map[string]string{
-		"Authorization": "Bearer " + p.apiKey,
-	})
-	if err != nil {
-		if p.watcher != nil {
-			p.watcher.Watch(ctx, err, p.name, req.Model, "")
-		}
-		return nil, fmt.Errorf("openai: request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-
-	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("openai: HTTP %d: %s", resp.StatusCode, string(respBody))
-		if p.watcher != nil {
-			p.watcher.Watch(ctx, err, p.name, req.Model, "")
-		}
-		return nil, err
-	}
-
-	result, err := p.translator.TranslateResponse(respBody, req.Model, p.name)
-	if err != nil {
-		return nil, fmt.Errorf("openai: translate response: %w", err)
-	}
-
-	// Cache response
-	if p.cache != nil {
-		key := llm.CacheKey(req)
-		_ = p.cache.Set(ctx, key, result, 5*time.Minute)
-	}
-
-	return result, nil
+	return chatWithSDK(ctx, p.BaseProvider, req)
 }
 
-// ChatStream sends a streaming chat request.
+// ChatStream sends a streaming chat request via the OpenAI SDK.
 func (p *OpenAIProvider) ChatStream(ctx context.Context, req *llm.ChatRequest) (<-chan llm.StreamChunk, error) {
-	if p.apiKey == "" {
-		return nil, fmt.Errorf("openai: API key not configured")
-	}
-
-	body, err := p.translator.TranslateRequest(req)
-	if err != nil {
-		return nil, fmt.Errorf("openai: translate request: %w", err)
-	}
-	body["stream"] = true
-	bodyBytes, _ := json.Marshal(body)
-
-	resp, err := p.doRequest(ctx, "POST", "/chat/completions", bodyBytes, map[string]string{
-		"Authorization": "Bearer " + p.apiKey,
-		"Accept":        "text/event-stream",
-	})
-	if err != nil {
-		if p.watcher != nil {
-			p.watcher.Watch(ctx, err, p.name, req.Model, "")
-		}
-		return nil, fmt.Errorf("openai: request failed: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		err := fmt.Errorf("openai: HTTP %d: %s", resp.StatusCode, string(respBody))
-		if p.watcher != nil {
-			p.watcher.Watch(ctx, err, p.name, req.Model, "")
-		}
-		return nil, err
-	}
-
-	ch := make(chan llm.StreamChunk, 64)
-	go func() {
-		defer close(ch)
-		defer resp.Body.Close()
-
-		ReadSSE(resp.Body, func(line string) bool {
-			if !strings.HasPrefix(line, "data: ") {
-				return true
-			}
-			data := strings.TrimPrefix(line, "data: ")
-			if data == "[DONE]" {
-				return false
-			}
-			chunk, err := p.translator.TranslateStreamChunk([]byte(data), req.Model, p.name)
-			if err != nil {
-				return true
-			}
-			if chunk == nil {
-				return true
-			}
-			select {
-			case ch <- *chunk:
-			case <-ctx.Done():
-				return false
-			}
-			return true
-		})
-	}()
-
-	return ch, nil
+	return chatStreamWithSDK(ctx, p.BaseProvider, req)
 }
 
 // ListModels returns available models.
@@ -447,99 +346,25 @@ type GenericProvider struct {
 func NewGenericProvider(name, baseURL string, opts ...Option) *GenericProvider {
 	allOpts := append([]Option{WithBaseURL(baseURL)}, opts...)
 	base := newBaseProvider(name, allOpts...)
+	if base.openaiClient == nil {
+		cfg := openai.DefaultConfig(base.apiKey)
+		cfg.BaseURL = base.baseURL
+		base.openaiClient = openai.NewClientWithConfig(cfg)
+	}
 	if base.translator == nil {
 		base.translator = translator.NewAnthropicToOpenAI()
 	}
 	return &GenericProvider{BaseProvider: base}
 }
 
-// Chat sends a chat completion request.
+// Chat sends a chat completion request via the OpenAI SDK.
 func (p *GenericProvider) Chat(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {
-	if p.apiKey == "" {
-		return nil, fmt.Errorf("%s: API key not configured", p.name)
-	}
-
-	body, err := p.translator.TranslateRequest(req)
-	if err != nil {
-		return nil, fmt.Errorf("%s: translate request: %w", p.name, err)
-	}
-
-	bodyBytes, _ := json.Marshal(body)
-
-	resp, err := p.doRequest(ctx, "POST", "/chat/completions", bodyBytes, map[string]string{
-		"Authorization": "Bearer " + p.apiKey,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%s: request failed: %w", p.name, err)
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s: HTTP %d: %s", p.name, resp.StatusCode, string(respBody))
-	}
-
-	return p.translator.TranslateResponse(respBody, req.Model, p.name)
+	return chatWithSDK(ctx, p.BaseProvider, req)
 }
 
-// ChatStream sends a streaming chat request.
+// ChatStream sends a streaming chat request via the OpenAI SDK.
 func (p *GenericProvider) ChatStream(ctx context.Context, req *llm.ChatRequest) (<-chan llm.StreamChunk, error) {
-	if p.apiKey == "" {
-		return nil, fmt.Errorf("%s: API key not configured", p.name)
-	}
-
-	body, err := p.translator.TranslateRequest(req)
-	if err != nil {
-		return nil, fmt.Errorf("%s: translate request: %w", p.name, err)
-	}
-	body["stream"] = true
-	bodyBytes, _ := json.Marshal(body)
-
-	resp, err := p.doRequest(ctx, "POST", "/chat/completions", bodyBytes, map[string]string{
-		"Authorization": "Bearer " + p.apiKey,
-		"Accept":        "text/event-stream",
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%s: request failed: %w", p.name, err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		return nil, fmt.Errorf("%s: HTTP %d: %s", p.name, resp.StatusCode, string(respBody))
-	}
-
-	ch := make(chan llm.StreamChunk, 64)
-	go func() {
-		defer close(ch)
-		defer resp.Body.Close()
-
-		ReadSSE(resp.Body, func(line string) bool {
-			if !strings.HasPrefix(line, "data: ") {
-				return true
-			}
-			data := strings.TrimPrefix(line, "data: ")
-			if data == "[DONE]" {
-				return false
-			}
-			chunk, err := p.translator.TranslateStreamChunk([]byte(data), req.Model, p.name)
-			if err != nil {
-				return true
-			}
-			if chunk == nil {
-				return true
-			}
-			select {
-			case ch <- *chunk:
-			case <-ctx.Done():
-				return false
-			}
-			return true
-		})
-	}()
-
-	return ch, nil
+	return chatStreamWithSDK(ctx, p.BaseProvider, req)
 }
 
 // ListModels returns available models (static catalog if configured).

@@ -10,7 +10,6 @@ import (
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
-	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/embeddings"
 	"dra-platform/backend/pkg/llm/openai"
@@ -85,8 +84,32 @@ func (h *Handler) OpenAIChatCompletions(w http.ResponseWriter, r *http.Request) 
 		if estimatedCost < 100 {
 			estimatedCost = 100
 		}
-		if err := h.creditSvc.CheckBalance(r.Context(), userID, estimatedCost); err != nil {
-			writeOpenAIError(w, err.Status, "insufficient_quota", err.Message)
+
+		var balanceErr *domain.AppError
+		canAfford := true
+		if balanceErr = h.creditSvc.CheckBalance(r.Context(), userID, estimatedCost); balanceErr != nil {
+			canAfford = false
+			if h.budgetRouter != nil {
+				cheaperModel, routed := h.budgetRouter.FindAffordableModel(r.Context(), internalReq.Model, 0, estInput, estOutput)
+				if routed {
+					newCost := (estInput + estOutput) * 2
+					if newCost < 100 {
+						newCost = 100
+					}
+					if h.creditSvc.CheckBalance(r.Context(), userID, newCost) == nil {
+						span.SetTag("budget_routed", "true")
+						span.SetTag("budget_original_model", internalReq.Model)
+						span.SetTag("budget_cheaper_model", cheaperModel)
+						logger.Info("budget_router_downgrade", "user_id", userID, "from", internalReq.Model, "to", cheaperModel)
+						internalReq.Model = cheaperModel
+						canAfford = true
+					}
+				}
+			}
+		}
+
+		if !canAfford {
+			writeOpenAIError(w, balanceErr.Status, "insufficient_quota", balanceErr.Message)
 			return
 		}
 	}
@@ -119,13 +142,13 @@ func (h *Handler) handleOpenAINonStream(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	openaiResp := openai.FromProviderResponse(resp, req.Model)
+	openaiResp := openai.FromInternalResponse(resp)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(openaiResp)
 
 	if !isSandbox {
-		h.asyncLogAndDeduct(r.Context(), userID, apiKeyID, req.Model, resp.InputTokens, resp.OutputTokens)
+		h.asyncLogAndDeduct(r.Context(), userID, apiKeyID, req.Model, resp.Usage.PromptTokens, resp.Usage.CompletionTokens)
 	}
 }
 
@@ -165,17 +188,18 @@ func (h *Handler) handleOpenAIStream(w http.ResponseWriter, r *http.Request, req
 			if !more {
 				goto FINISH
 			}
-			if chunk.Content != "" {
-				outputBuf.WriteString(chunk.Content)
-				outputTokens += provider.CountTokens(chunk.Content)
-				openaiChunk := openai.FromProviderStreamChunk(chunk, req.Model)
+			if chunk.Delta.Content != "" {
+				outputBuf.WriteString(chunk.Delta.Content)
+				outputTokens += llm.EstimateTokens(chunk.Delta.Content)
+				c := chunk
+				openaiChunk := openai.FromInternalStreamChunk(&c)
 				data, _ := json.Marshal(openaiChunk)
 				fmt.Fprintf(w, "data: %s\n\n", data)
 				if ok {
 					flusher.Flush()
 				}
 			}
-			if chunk.FinishReason != "" {
+			if chunk.FinishReason != nil {
 				fmt.Fprintf(w, "data: [DONE]\n\n")
 				if ok {
 					flusher.Flush()
@@ -188,7 +212,7 @@ func (h *Handler) handleOpenAIStream(w http.ResponseWriter, r *http.Request, req
 	}
 
 FINISH:
-	inputTokens := provider.CountTokens(outputBuf.String())
+	inputTokens := llm.EstimateTokens(outputBuf.String())
 	if inputTokens == 0 {
 		inputTokens = len(req.Messages) * 50
 	}
@@ -322,7 +346,7 @@ func (h *Handler) OpenAIListModels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	openaiModels := openai.FromProviderModels(models)
+	openaiModels := openai.FromInternalModels(models)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(openaiModels)

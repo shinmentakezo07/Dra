@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/pkg/llm"
 )
 
@@ -184,50 +183,7 @@ func FromInternalStreamChunk(chunk *llm.StreamChunk) *ChatCompletionChunk {
 	}
 }
 
-func FromProviderResponse(resp *provider.ChatResponse, model string) *ChatCompletionResponse {
-	return &ChatCompletionResponse{
-		ID:      generateID(),
-		Object:  "chat.completion",
-		Created: time.Now().Unix(),
-		Model:   model,
-		Choices: []Choice{{
-			Index: 0,
-			Message: ChatMessage{
-				Role:    "assistant",
-				Content: resp.Content,
-			},
-			FinishReason: "stop",
-		}},
-		Usage: Usage{
-			PromptTokens:     resp.InputTokens,
-			CompletionTokens: resp.OutputTokens,
-			TotalTokens:      resp.InputTokens + resp.OutputTokens,
-		},
-	}
-}
-
-func FromProviderStreamChunk(chunk provider.StreamChunk, model string) *ChatCompletionChunk {
-	finishReason := ""
-	if chunk.FinishReason != "" {
-		finishReason = chunk.FinishReason
-	}
-
-	return &ChatCompletionChunk{
-		ID:      generateID(),
-		Object:  "chat.completion.chunk",
-		Created: time.Now().Unix(),
-		Model:   model,
-		Choices: []ChunkChoice{{
-			Index: 0,
-			Delta: ChatMessage{
-				Content: chunk.Content,
-			},
-			FinishReason: &finishReason,
-		}},
-	}
-}
-
-func FromProviderModels(models []provider.ModelInfo) *ModelListResponse {
+func FromInternalModels(models []llm.ModelInfo) *ModelListResponse {
 	data := make([]ModelInfo, len(models))
 	now := time.Now().Unix()
 	for i, m := range models {

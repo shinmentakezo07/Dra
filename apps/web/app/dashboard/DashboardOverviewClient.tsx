@@ -1,44 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Activity, Key, BarChart3, DollarSign, Zap, TrendingUp, ArrowRight, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { getSDK, AnalyticsData, UserCredits, APIKey } from "@/lib/api/sdk";
-import { getErrorMessage } from "@/lib/api/errors";
+import { useAnalytics, useCredits, useKeys } from "@/lib/api/hooks";
 
 export default function DashboardOverviewClient() {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [credits, setCredits] = useState<UserCredits | null>(null);
-  const [keys, setKeys] = useState<APIKey[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useAnalytics();
+  const { data: credits, isLoading: creditsLoading } = useCredits();
+  const { data: keys, isLoading: keysLoading } = useKeys();
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [analyticsData, creditsData, keysData] = await Promise.all([
-        getSDK().getAnalytics(),
-        getSDK().getCredits(),
-        getSDK().listKeys(),
-      ]);
-      setAnalytics(analyticsData);
-      setCredits(creditsData);
-      setKeys(keysData);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const loading = analyticsLoading || creditsLoading || keysLoading;
+  const error = analyticsError ? (analyticsError as Error).message : null;
 
   const summary = analytics?.summary ?? { totalRequests: 0, successRequests: 0, errorRequests: 0 };
   const recentLogs = analytics?.recentLogs ?? [];
@@ -54,7 +30,6 @@ export default function DashboardOverviewClient() {
     : "0.0";
   const creditsRemaining = credits?.balance ?? 0;
 
-  // Build hourly data from recent logs
   const hourlyMap = new Map<string, { requests: number; latency: number; count: number }>();
   recentLogs.forEach((log) => {
     const hour = new Date(log.createdAt).getHours();
@@ -74,7 +49,6 @@ export default function DashboardOverviewClient() {
     }))
     .sort((a, b) => a.time.localeCompare(b.time));
 
-  // Top models
   const totalModelRequests = modelBreakdown.reduce((sum, m) => sum + (m.count ?? 0), 0);
   const topModels = modelBreakdown
     .map((m) => ({
@@ -88,13 +62,11 @@ export default function DashboardOverviewClient() {
   return (
     <div className="min-h-screen pt-6 pb-12 px-4 sm:px-6 lg:px-8 bg-[#050505]">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
           <p className="text-gray-400">Monitor your API usage and performance</p>
         </div>
 
-        {/* Error Banner */}
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
@@ -105,7 +77,6 @@ export default function DashboardOverviewClient() {
           </div>
         )}
 
-        {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -114,7 +85,6 @@ export default function DashboardOverviewClient() {
 
         {!loading && (
           <>
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <MetricCard
                 title="Total Requests"
@@ -152,7 +122,6 @@ export default function DashboardOverviewClient() {
               />
             </div>
 
-            {/* Additional Metrics Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <MetricCard
                 title="Success Rate"
@@ -174,16 +143,14 @@ export default function DashboardOverviewClient() {
               />
               <MetricCard
                 title="Active API Keys"
-                value={keys.length.toString()}
+                value={(keys?.length ?? 0).toString()}
                 icon={Key}
                 iconColor="text-purple-400"
                 iconBg="bg-purple-500/10"
               />
             </div>
 
-            {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* Requests Chart */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -231,7 +198,6 @@ export default function DashboardOverviewClient() {
                 )}
               </motion.div>
 
-              {/* Latency Chart */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -275,7 +241,6 @@ export default function DashboardOverviewClient() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Recent Activity */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -332,7 +297,6 @@ export default function DashboardOverviewClient() {
                 </div>
               </motion.div>
 
-              {/* Top Models */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -378,7 +342,6 @@ export default function DashboardOverviewClient() {
               </motion.div>
             </div>
 
-            {/* Quick Actions */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

@@ -14,9 +14,9 @@ import (
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/handler"
 	"dra-platform/backend/internal/middleware"
-	"dra-platform/backend/internal/provider"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
+	llmprovider "dra-platform/backend/pkg/llm/provider"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
@@ -77,16 +77,16 @@ func NewTestServer() (*httptest.Server, *db.DB, error) {
 	txRepo := repository.NewTransactionRepo(database)
 	logRepo := repository.NewLogRepo(database)
 
-	registry := provider.NewRegistry()
-	registry.Register(provider.NewNVIDIAProvider(cfg.NvidiaAPIKey))
-	registry.Register(provider.NewOpenAIProvider(cfg.OpenAIAPIKey))
+	llmRegistry := llmprovider.NewRegistry()
+	llmRegistry.Register(llmprovider.NewGenericProvider("nvidia", "https://integrate.api.nvidia.com/v1", llmprovider.WithAPIKey(cfg.NvidiaAPIKey)))
+	llmRegistry.Register(llmprovider.NewOpenAIProvider(llmprovider.WithAPIKey(cfg.OpenAIAPIKey)))
 
 	userSvc := service.NewUserService(userRepo, cfg.AuthSecret)
 	keySvc := service.NewAPIKeyService(keyRepo)
 	creditSvc := service.NewCreditService(database, creditsRepo, txRepo, logRepo)
 	analyticsSvc := service.NewAnalyticsService(logRepo, userRepo, creditsRepo, keyRepo)
 	logSvc := service.NewLogService(logRepo)
-	providerSvc := service.NewProviderService(registry)
+	providerSvc := service.NewProviderService(llmRegistry)
 	webhookSvc := service.NewWebhookService(repository.NewWebhookRepo(database))
 	orgSvc := service.NewOrganizationService(repository.NewOrganizationRepo(database), userRepo)
 

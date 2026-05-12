@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/repository"
@@ -112,13 +114,13 @@ func (s *WebhookService) Dispatch(ctx context.Context, userID string, event webh
 			continue
 		}
 		cfg := webhook.Config{
-			URL:     w.URL,
-			Secret:  w.Secret,
-			Events:  w.Events,
-			Headers: w.Headers,
+			URL:      w.URL,
+			Secret:   w.Secret,
+			Events:   w.Events,
+			Headers:  w.Headers,
 			RetryMax: 3,
 		}
-		go func(c webhook.Config, e webhook.Event) {
+		go func(webhookID string, c webhook.Config, e webhook.Event) {
 			defer func() {
 				if r := recover(); r != nil {
 					// silently drop panics in webhook goroutines
@@ -126,11 +128,64 @@ func (s *WebhookService) Dispatch(ctx context.Context, userID string, event webh
 			}()
 			select {
 			case s.sem <- struct{}{}:
-				_ = s.dispatcher.SendWithRetry(ctx, c, e)
+				s.sendAndTrack(ctx, webhookID, c, e)
 				<-s.sem
 			case <-ctx.Done():
 				return
 			}
-		}(cfg, event)
+		}(w.ID, cfg, event)
 	}
+}
+
+func (s *WebhookService) sendAndTrack(ctx context.Context, webhookID string, cfg webhook.Config, event webhook.Event) {
+	payload, _ := json.Marshal(event)
+	delivery := &domain.WebhookDelivery{
+		ID:          domain.NewID(),
+		WebhookID:   webhookID,
+		EventType:   event.Type,
+		Payload:     payload,
+		Attempts:    0,
+		MaxAttempts: cfg.RetryMax,
+		CreatedAt:   time.Now(),
+	}
+
+	_ = s.repo.CreateDelivery(ctx, delivery)
+
+	result, err := s.dispatcher.SendWithRetry(ctx, cfg, event)
+
+	now := time.Now()
+	if result != nil {
+		delivery.Attempts = result.Attempts
+		delivery.StatusCode = &result.Status
+		if result.Status >= 200 && result.Status < 300 {
+			delivery.DeliveredAt = &now
+		}
+	}
+	if err != nil {
+		delivery.Error = err.Error()
+		if result != nil && result.Status >= 400 && result.Status < 500 {
+			// Client error: no retry
+		} else {
+			nextRetry := now.Add(time.Duration(delivery.Attempts+1) * time.Minute)
+			delivery.NextRetryAt = &nextRetry
+		}
+	}
+
+	_ = s.repo.UpdateDelivery(ctx, delivery)
+}
+
+// ListDeliveries returns delivery history for a webhook.
+func (s *WebhookService) ListDeliveries(ctx context.Context, userID, webhookID string) ([]domain.WebhookDelivery, *domain.AppError) {
+	w, err := s.repo.ByID(ctx, webhookID)
+	if err != nil {
+		return nil, domain.Wrap(domain.ErrInternal, 500, "database error", err)
+	}
+	if w == nil || w.UserID != userID {
+		return nil, domain.ErrWebhookNotFound
+	}
+	deliveries, err := s.repo.ListDeliveries(ctx, webhookID, 50)
+	if err != nil {
+		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to list deliveries", err)
+	}
+	return deliveries, nil
 }

@@ -1,38 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Check, AlertCircle, Loader2 } from "lucide-react";
-import { getSDK, APIKey } from "@/lib/api/sdk";
+import { useKeys, useCreateKey, useDeleteKey } from "@/lib/api/hooks";
 import { getErrorMessage } from "@/lib/api/errors";
 
 export default function KeysClient() {
-  const [keys, setKeys] = useState<APIKey[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: keys, isLoading, error } = useKeys();
+  const createKey = useCreateKey();
+  const deleteKey = useDeleteKey();
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
-  const [creating, setCreating] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
-
-  const fetchKeys = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getSDK().listKeys();
-      setKeys(data);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchKeys();
-  }, []);
 
   const toggleKeyVisibility = (keyId: string) => {
     setVisibleKeys((prev) => {
@@ -59,9 +42,7 @@ export default function KeysClient() {
   const handleCreateKey = async () => {
     if (!newKeyName.trim()) return;
     try {
-      setCreating(true);
-      const created = await getSDK().createKey({ name: newKeyName.trim() });
-      setKeys((prev) => [created, ...prev]);
+      const created = await createKey.mutateAsync({ name: newKeyName.trim() });
       setNewKeyName("");
       setShowCreateModal(false);
       if (created.key) {
@@ -70,21 +51,20 @@ export default function KeysClient() {
         setTimeout(() => setNewlyCreatedKey(null), 5000);
       }
     } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setCreating(false);
+      // Error handled by mutation state
     }
   };
 
   const handleDeleteKey = async (keyId: string) => {
     if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) return;
     try {
-      await getSDK().deleteKey(keyId);
-      setKeys((prev) => prev.filter((k) => k.id !== keyId));
+      await deleteKey.mutateAsync(keyId);
     } catch (err) {
-      setError(getErrorMessage(err));
+      // Error handled by mutation state
     }
   };
+
+  const errorMessage = error ? getErrorMessage(error) : createKey.error ? getErrorMessage(createKey.error) : deleteKey.error ? getErrorMessage(deleteKey.error) : null;
 
   return (
     <div className="min-h-screen pt-6 pb-12 px-4 sm:px-6 lg:px-8 bg-[#050505]">
@@ -111,12 +91,12 @@ export default function KeysClient() {
         </div>
 
         {/* Error Banner */}
-        {error && (
+        {errorMessage && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-medium text-red-400 mb-1">Error</h3>
-              <p className="text-xs text-red-300/80">{error}</p>
+              <p className="text-xs text-red-300/80">{errorMessage}</p>
             </div>
           </div>
         )}
@@ -133,17 +113,17 @@ export default function KeysClient() {
         </div>
 
         {/* Loading */}
-        {loading && (
+        {isLoading && (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         )}
 
         {/* API Keys List */}
-        {!loading && (
+        {!isLoading && (
           <div className="space-y-4">
             <AnimatePresence>
-              {keys.map((apiKey, index) => (
+              {keys?.map((apiKey, index) => (
                 <motion.div
                   key={apiKey.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -222,7 +202,7 @@ export default function KeysClient() {
           </div>
         )}
 
-        {!loading && keys.length === 0 && (
+        {!isLoading && keys?.length === 0 && (
           <div className="text-center py-12 bg-[#0A0A0A] border border-white/10 rounded-xl">
             <Key className="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 mb-4">No API keys yet</p>
@@ -280,10 +260,10 @@ export default function KeysClient() {
                 </button>
                 <button
                   onClick={handleCreateKey}
-                  disabled={!newKeyName.trim() || creating}
+                  disabled={!newKeyName.trim() || createKey.isPending}
                   className="flex-1 px-4 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  {creating && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {createKey.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Key
                 </button>
               </div>

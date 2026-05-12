@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
+	"dra-platform/backend/pkg/trace"
 )
 
 type Span struct {
@@ -25,7 +25,7 @@ type SpanEvent struct {
 }
 
 func StartSpan(ctx context.Context, name string) *Span {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	if traceID == "" {
 		traceID = generateTraceID()
 	}
@@ -83,7 +83,7 @@ func NewLogger(component string) *Logger {
 }
 
 func (l *Logger) Info(ctx context.Context, msg string, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", l.component, "trace_id", traceID, "msg", msg}
 	for _, attr := range attrs {
 		for k, v := range attr {
@@ -94,7 +94,7 @@ func (l *Logger) Info(ctx context.Context, msg string, attrs ...map[string]strin
 }
 
 func (l *Logger) Error(ctx context.Context, msg string, err error, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", l.component, "trace_id", traceID, "msg", msg, "error", err.Error()}
 	for _, attr := range attrs {
 		for k, v := range attr {
@@ -105,7 +105,7 @@ func (l *Logger) Error(ctx context.Context, msg string, err error, attrs ...map[
 }
 
 func (l *Logger) Warn(ctx context.Context, msg string, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", l.component, "trace_id", traceID, "msg", msg}
 	for _, attr := range attrs {
 		for k, v := range attr {

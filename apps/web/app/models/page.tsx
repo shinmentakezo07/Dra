@@ -1,3 +1,5 @@
+"use cache";
+
 import { ModelsExplorer } from "@/components/models/ModelsExplorer";
 
 export const metadata = {

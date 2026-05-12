@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"dra-platform/backend/internal/domain"
-	"dra-platform/backend/internal/provider"
+	"dra-platform/backend/pkg/llm"
 )
 
 type SandboxService struct {
@@ -21,7 +21,7 @@ func NewSandboxService(providerSvc *ProviderService, creditSvc *CreditService) *
 	}
 }
 
-func (s *SandboxService) Chat(ctx context.Context, req domain.ChatRequest, userID string) (*provider.ChatResponse, *domain.AppError) {
+func (s *SandboxService) Chat(ctx context.Context, req domain.ChatRequest, userID string) (*llm.ChatResponse, *domain.AppError) {
 	resp, err := s.providerSvc.Chat(ctx, req)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (s *SandboxService) Chat(ctx context.Context, req domain.ChatRequest, userI
 	return resp, nil
 }
 
-func (s *SandboxService) ChatStream(ctx context.Context, req domain.ChatRequest, userID string) (<-chan provider.StreamChunk, *domain.AppError) {
+func (s *SandboxService) ChatStream(ctx context.Context, req domain.ChatRequest, userID string) (<-chan llm.StreamChunk, *domain.AppError) {
 	ch, err := s.providerSvc.ChatStream(ctx, req)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (s *SandboxService) EstimateTokens(model string, messages []domain.ChatMess
 	return s.providerSvc.EstimateTokens(model, messages)
 }
 
-func (s *SandboxService) ListModels(ctx context.Context) ([]provider.ModelInfo, *domain.AppError) {
+func (s *SandboxService) ListModels(ctx context.Context) ([]llm.ModelInfo, *domain.AppError) {
 	return s.providerSvc.ListModels(ctx)
 }
 

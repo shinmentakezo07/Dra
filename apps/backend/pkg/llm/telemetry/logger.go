@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
+	"dra-platform/backend/pkg/trace"
 )
 
 type TelemetryLogger struct {
@@ -18,7 +18,7 @@ func NewTelemetryLogger(component string) *TelemetryLogger {
 }
 
 func (tl *TelemetryLogger) Info(ctx context.Context, msg string, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", tl.component, "trace_id", traceID, "msg", msg}
 	for _, attr := range attrs {
 		for k, v := range attr {
@@ -29,7 +29,7 @@ func (tl *TelemetryLogger) Info(ctx context.Context, msg string, attrs ...map[st
 }
 
 func (tl *TelemetryLogger) Error(ctx context.Context, msg string, err error, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", tl.component, "trace_id", traceID, "msg", msg, "error", err.Error()}
 	for _, attr := range attrs {
 		for k, v := range attr {
@@ -40,7 +40,7 @@ func (tl *TelemetryLogger) Error(ctx context.Context, msg string, err error, att
 }
 
 func (tl *TelemetryLogger) Warn(ctx context.Context, msg string, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", tl.component, "trace_id", traceID, "msg", msg}
 	for _, attr := range attrs {
 		for k, v := range attr {
@@ -51,7 +51,7 @@ func (tl *TelemetryLogger) Warn(ctx context.Context, msg string, attrs ...map[st
 }
 
 func (tl *TelemetryLogger) Debug(ctx context.Context, msg string, attrs ...map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	args := []interface{}{"component", tl.component, "trace_id", traceID, "msg", msg}
 	for _, attr := range attrs {
 		for k, v := range attr {
@@ -62,7 +62,7 @@ func (tl *TelemetryLogger) Debug(ctx context.Context, msg string, attrs ...map[s
 }
 
 func (tl *TelemetryLogger) RecordMetric(ctx context.Context, name string, value float64, attrs map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	logger.Info("telemetry_metric",
 		"component", tl.component,
 		"trace_id", traceID,
@@ -73,7 +73,7 @@ func (tl *TelemetryLogger) RecordMetric(ctx context.Context, name string, value 
 }
 
 func (tl *TelemetryLogger) RecordLatency(ctx context.Context, operation string, duration time.Duration, attrs map[string]string) {
-	traceID := middleware.GetTraceID(ctx)
+	traceID := trace.GetRequestID(ctx)
 	logger.Info("telemetry_latency",
 		"component", tl.component,
 		"trace_id", traceID,

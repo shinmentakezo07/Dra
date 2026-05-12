@@ -73,6 +73,44 @@ func (r *WebhookRepo) ToggleActive(ctx context.Context, userID, id string, activ
 	return err
 }
 
+func (r *WebhookRepo) CreateDelivery(ctx context.Context, d *domain.WebhookDelivery) error {
+	_, err := r.db.Pool.Exec(ctx,
+		`INSERT INTO webhook_deliveries (id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, delivered_at, next_retry_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		d.ID, d.WebhookID, d.EventType, d.Payload, d.StatusCode, d.Error, d.Attempts, d.MaxAttempts, d.DeliveredAt, d.NextRetryAt, d.CreatedAt)
+	return err
+}
+
+func (r *WebhookRepo) UpdateDelivery(ctx context.Context, d *domain.WebhookDelivery) error {
+	_, err := r.db.Pool.Exec(ctx,
+		`UPDATE webhook_deliveries SET status_code = $1, error = $2, attempts = $3, delivered_at = $4, next_retry_at = $5 WHERE id = $6`,
+		d.StatusCode, d.Error, d.Attempts, d.DeliveredAt, d.NextRetryAt, d.ID)
+	return err
+}
+
+func (r *WebhookRepo) ListDeliveries(ctx context.Context, webhookID string, limit int) ([]domain.WebhookDelivery, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	rows, err := r.db.Pool.Query(ctx,
+		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, delivered_at, next_retry_at, created_at
+		FROM webhook_deliveries WHERE webhook_id = $1 ORDER BY created_at DESC LIMIT $2`, webhookID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.WebhookDelivery
+	for rows.Next() {
+		d, err := scanDelivery(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *d)
+	}
+	return result, rows.Err()
+}
+
 type scanner interface {
 	Scan(dest ...interface{}) error
 }
@@ -90,4 +128,12 @@ func scanWebhook(row scanner) (*domain.Webhook, error) {
 		_ = json.Unmarshal(headersBytes, &w.Headers)
 	}
 	return &w, nil
+}
+
+func scanDelivery(row scanner) (*domain.WebhookDelivery, error) {
+	var d domain.WebhookDelivery
+	if err := row.Scan(&d.ID, &d.WebhookID, &d.EventType, &d.Payload, &d.StatusCode, &d.Error, &d.Attempts, &d.MaxAttempts, &d.DeliveredAt, &d.NextRetryAt, &d.CreatedAt); err != nil {
+		return nil, err
+	}
+	return &d, nil
 }
