@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/domain"
@@ -143,4 +144,60 @@ func (r *AdminFeaturesRepo) ListSSOConfigs(ctx context.Context) ([]domain.SSOCon
 		configs = append(configs, c)
 	}
 	return configs, nil
+}
+
+func (r *AdminFeaturesRepo) RedeemPromo(ctx context.Context, code, userID string) (*domain.PromoRedemption, int, error) {
+	tx, err := r.db.Pool.Begin(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var p domain.PromoCode
+	err = tx.QueryRow(ctx, `SELECT id,code,type,value,max_uses,current_uses,min_purchase,expires_at,is_active FROM promo_codes WHERE code=$1 FOR UPDATE`, code).
+		Scan(&p.ID, &p.Code, &p.Type, &p.Value, &p.MaxUses, &p.CurrentUses, &p.MinPurchase, &p.ExpiresAt, &p.IsActive)
+	if err != nil {
+		return nil, 0, fmt.Errorf("promo not found: %w", err)
+	}
+
+	if !p.IsActive {
+		return nil, 0, fmt.Errorf("promo code is inactive")
+	}
+	if p.ExpiresAt != nil && p.ExpiresAt.Before(time.Now()) {
+		return nil, 0, fmt.Errorf("promo code has expired")
+	}
+	if p.MaxUses > 0 && p.CurrentUses >= p.MaxUses {
+		return nil, 0, fmt.Errorf("promo code usage limit reached")
+	}
+
+	var existing int
+	_ = tx.QueryRow(ctx, `SELECT COUNT(*) FROM promo_redemptions WHERE promo_id=$1 AND user_id=$2`, p.ID, userID).Scan(&existing)
+	if existing > 0 {
+		return nil, 0, fmt.Errorf("promo code already redeemed by this user")
+	}
+
+	_, err = tx.Exec(ctx, `UPDATE promo_codes SET current_uses=current_uses+1 WHERE id=$1`, p.ID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("update promo uses: %w", err)
+	}
+
+	var redemption domain.PromoRedemption
+	err = tx.QueryRow(ctx,
+		`INSERT INTO promo_redemptions(promo_id,user_id,discount,credits_awarded) VALUES($1,$2,$3,$4) RETURNING id,promo_id,user_id,discount,credits_awarded,redeemed_at`,
+		p.ID, userID, p.Value, p.Value).
+		Scan(&redemption.ID, &redemption.PromoID, &redemption.UserID, &redemption.Discount, &redemption.CreditsAwarded, &redemption.RedeemedAt)
+	if err != nil {
+		return nil, 0, fmt.Errorf("create redemption: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, `INSERT INTO user_credits(user_id,balance,updated_at) VALUES($1,$2,NOW()) ON CONFLICT(user_id) DO UPDATE SET balance=user_credits.balance+$2,updated_at=NOW()`,
+		userID, p.Value)
+	if err != nil {
+		return nil, 0, fmt.Errorf("credit user: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, 0, fmt.Errorf("commit: %w", err)
+	}
+	return &redemption, p.Value, nil
 }

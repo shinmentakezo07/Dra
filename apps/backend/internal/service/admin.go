@@ -254,6 +254,10 @@ func (s *AdminService) GetPromoRedemptions(ctx context.Context, promoID string) 
 	return s.featuresRepo.GetPromoRedemptions(ctx, promoID)
 }
 
+func (s *AdminService) RedeemPromoCode(ctx context.Context, code, userID string) (*domain.PromoRedemption, int, error) {
+	return s.featuresRepo.RedeemPromo(ctx, code, userID)
+}
+
 func (s *AdminService) ListGroups(ctx context.Context) ([]domain.UserGroup, error) {
 	return s.featuresRepo.ListGroups(ctx)
 }

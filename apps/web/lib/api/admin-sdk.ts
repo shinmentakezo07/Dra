@@ -152,6 +152,10 @@ export class AdminSDK {
     return this.api.request<FeatureFlag>("POST", "/api/admin/feature-flags", data);
   }
 
+  async togglePromoStatus(id: string, isActive: boolean): Promise<void> {
+    await this.api.request<{ isActive: boolean }>("PUT", `/api/admin/promos/${id}/toggle`, { isActive });
+  }
+
   async toggleFeatureFlag(id: string, enabled: boolean): Promise<void> {
     await this.api.request<{ updated: boolean }>("PUT", `/api/admin/feature-flags/${id}`, { enabled });
   }

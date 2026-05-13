@@ -489,6 +489,7 @@ func main() {
 		r.Post("/api/credits/purchase", h.PurchaseCredits)
 		r.Get("/api/credits/budget", h.GetBudget)
 		r.Put("/api/credits/budget", h.SetBudget)
+		r.Post("/api/promos/redeem", h.RedeemPromoCode)
 
 		r.Get("/api/transactions", h.ListTransactions)
 		r.Get("/api/logs", h.ListLogs)
@@ -617,7 +618,8 @@ func main() {
 
 		// Promo codes
 		r.Get("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminListPromoCodes))
-		r.Post("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminCreatePromoCode))
+		r.Post("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminCreatePromoCodeWithRandom))
+		r.Put("/api/admin/promos/{id}/toggle", appmiddleware.RequireAdmin(h.AdminTogglePromoStatus))
 		r.Get("/api/admin/promos/{id}/redemptions", appmiddleware.RequireAdmin(h.AdminListPromoRedemptions))
 
 		// Groups

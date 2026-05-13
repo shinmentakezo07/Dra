@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Zap, Check } from "lucide-react";
+import { CreditCard, Zap, Check, Ticket, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const creditPackages = [
@@ -65,6 +65,9 @@ export default function BillingPage() {
         <p className="text-gray-400 text-sm">You are on the Pay-as-you-go plan. Purchase credits to use API features.</p>
       </section>
 
+      {/* Promo Code */}
+      <PromoCodeSection />
+
       {/* Credit Packages */}
       <section>
         <h2 className="text-lg font-semibold text-white mb-4">Purchase Credits</h2>
@@ -117,5 +120,70 @@ export default function BillingPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function PromoCodeSection() {
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleRedeem = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+    setStatus(null);
+    try {
+      const res = await fetch("/api/promos/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim().toUpperCase() }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setStatus({ type: "success", msg: `Redeemed! ${json.data.credits.toLocaleString()} credits added to your account.` });
+        setCode("");
+      } else {
+        setStatus({ type: "error", msg: json.error || "Invalid or expired promo code." });
+      }
+    } catch {
+      setStatus({ type: "error", msg: "Failed to redeem code. Try again." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="bg-[#0A0A0A] border border-white/10 rounded-xl p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Ticket className="w-5 h-5 text-purple-400" />
+        <h2 className="text-lg font-semibold text-white">Have a Promo Code?</h2>
+      </div>
+      <div className="flex gap-3">
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="ENTER CODE"
+          className="flex-1 max-w-xs bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white font-mono tracking-widest uppercase placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30"
+          onKeyDown={(e) => e.key === "Enter" && handleRedeem()}
+        />
+        <button
+          onClick={handleRedeem}
+          disabled={loading || !code.trim()}
+          className="px-5 py-2.5 bg-purple-500/10 text-purple-400 rounded-lg text-sm font-medium hover:bg-purple-500/20 ring-1 ring-purple-500/20 transition-all duration-200 disabled:opacity-30 flex items-center gap-2"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+          Redeem
+        </button>
+      </div>
+      {status && (
+        <div className={`mt-3 text-sm flex items-center gap-2 ${
+          status.type === "success" ? "text-green-400" : "text-red-400"
+        }`}>
+          {status.type === "success" ? <Check className="w-4 h-4" /> : null}
+          {status.msg}
+        </div>
+      )}
+    </section>
   );
 }
