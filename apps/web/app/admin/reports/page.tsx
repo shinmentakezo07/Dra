@@ -6,6 +6,7 @@ import { getAdminSDK } from '@/lib/api/admin-sdk'
 import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
 import type { ScheduledReport } from '@/types/admin'
 
+import AdminPageHeader from "../AdminPageHeader";
 export default function AdminReportsPage() {
   const { data: reports, isLoading, error } = useQuery<ScheduledReport[]>({
     queryKey: ['admin', 'reports'],

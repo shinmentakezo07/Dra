@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Loader2 } from "lucide-react";
 
+import AdminPageHeader from "../AdminPageHeader";
 const PRIORITY_STYLES: Record<string, string> = {
   info: "bg-blue-500/10 text-blue-400",
   warning: "bg-yellow-500/10 text-yellow-400",

@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChangelogEntry } from "@/types/admin";
 
+import AdminPageHeader from "../AdminPageHeader";
 const TYPE_STYLES: Record<string, string> = {
   new: "text-green-400 bg-green-500/10",
   change: "text-blue-400 bg-blue-500/10",

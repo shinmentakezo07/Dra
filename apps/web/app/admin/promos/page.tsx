@@ -7,6 +7,7 @@ import { Gift, RefreshCw, Check, X, Loader2, Copy, Tag } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PromoCode } from '@/types/admin'
 
+import AdminPageHeader from "../AdminPageHeader";
 function generateCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let code = ''

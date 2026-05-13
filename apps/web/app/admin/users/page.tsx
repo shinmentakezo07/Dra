@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type { AdminUserDetail } from "@/types/admin";
+import AdminPageHeader from "../AdminPageHeader";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All Status" },
@@ -155,22 +156,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-3xl font-bold text-white tracking-tight">Users</h1>
-          <span className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-blue-400/50 bg-blue-500/10 rounded-full border border-blue-500/30 px-3 py-1">
-            {total > 0 ? `${total} total` : "Management"}
-          </span>
-        </div>
-        <p className="text-sm text-white/30 font-mono tracking-wide">
-          {total > 0 ? `${total} user${total !== 1 ? "s" : ""} registered` : "Manage platform users"}
-        </p>
-      </motion.div>
+    <AdminPageHeader title="Users" subtitle={total > 0 ? `${total} user${total !== 1 ? 's' : ''} registered` : 'Manage platform users'} badge={total > 0 ? `${total} total` : undefined}>
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -376,7 +362,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
           )}
-        </motion.div>
+    </AdminPageHeader>
       )}
 
       {confirmDelete && (

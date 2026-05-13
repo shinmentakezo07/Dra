@@ -6,6 +6,7 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Loader2, Search, Check } from "lucide-react";
 import type { ModelRegistry, ModelAlias } from "@/types/admin";
 
+import AdminPageHeader from "../AdminPageHeader";
 const statusConfig: Record<string, { label: string; classes: string }> = {
   active: { label: "Active", classes: "bg-green-500/10 text-green-400 border border-green-500/20" },
   beta: { label: "Beta", classes: "bg-blue-500/10 text-blue-400 border border-blue-500/20" },

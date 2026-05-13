@@ -6,6 +6,7 @@ import { getAdminSDK } from '@/lib/api/admin-sdk'
 import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
 import type { IPListEntry, IPAccessLog } from '@/types/admin'
 
+import AdminPageHeader from "../AdminPageHeader";
 const TABS = ['IP Lists', 'Access Logs'] as const
 
 function ActionBadge({ action }: { action: string }) {

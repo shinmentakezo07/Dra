@@ -9,22 +9,7 @@ import {
   Eye, ArrowRight, Loader2, AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1, y: 0,
-    transition: { type: "spring" as const, stiffness: 100, damping: 20 },
-  },
-};
+import AdminPageHeader, { containerVariants, itemVariants } from "../AdminPageHeader";
 
 function StatCard({ icon: Icon, label, value, trend, sub }: {
   icon: typeof Users; label: string; value: string; trend?: string; sub?: string;
@@ -110,7 +95,9 @@ export default function AdminDashboardPage() {
             Live
           </span>
         </div>
-      </motion.div>
+      </motion.div>{" "}
+      {/* UNCOMMENT BELOW when AdminPageHeader is stable */}
+      {/* <AdminPageHeader title="Dashboard" subtitle="Platform overview" badge="Live"> */}
 
       {/* Stats Grid */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

@@ -6,6 +6,7 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Loader2, Settings, Flag } from "lucide-react";
 import type { SystemSetting, FeatureFlag } from "@/types/admin";
 
+import AdminPageHeader from "../AdminPageHeader";
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<"system" | "flags">("system");
 

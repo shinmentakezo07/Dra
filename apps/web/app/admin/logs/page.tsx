@@ -6,6 +6,7 @@ import { getAdminSDK } from '@/lib/api/admin-sdk'
 import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
 import type { UsageRecord } from '@/types/admin'
 
+import AdminPageHeader from "../AdminPageHeader";
 function StatusBadge({ statusCode }: { statusCode: number }) {
   const isSuccess = statusCode < 400
   return (

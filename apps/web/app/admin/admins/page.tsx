@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Loader2 } from "lucide-react";
 
+import AdminPageHeader from "../AdminPageHeader";
 export default function AdminAdminsPage() {
   const {
     data: admins,

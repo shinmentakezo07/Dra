@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import type { Provider, ProviderKey, ProviderStatus } from "@/types/admin";
+import AdminPageHeader from "../AdminPageHeader";
 import {
-  Server,
   Plus,
   Activity,
   ArrowUpDown,
@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface ProviderCardProps {
+import AdminPageHeader from "../AdminPageHeader";
   provider: Provider;
   onToggleStatus: (id: string, status: ProviderStatus) => void;
 }

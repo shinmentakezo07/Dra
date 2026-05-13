@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import type { AuditLog } from "@/types/admin";
 import type { PaginatedResult } from "@/lib/api/admin-sdk";
 
+import AdminPageHeader from "../AdminPageHeader";
 const severityConfig: Record<string, { bg: string; text: string }> = {
   info: { bg: "bg-blue-500/15", text: "text-blue-400" },
   warning: { bg: "bg-yellow-500/15", text: "text-yellow-400" },

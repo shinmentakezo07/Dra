@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAdminSDK } from '@/lib/api/admin-sdk'
 import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
+import AdminPageHeader from '../AdminPageHeader'
 
 interface CacheStats {
   entries: number

@@ -6,6 +6,7 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Loader2, DollarSign, CreditCard, History } from "lucide-react";
 import type { CreditAdjustment } from "@/types/admin";
 
+import AdminPageHeader from "../AdminPageHeader";
 export default function AdminBillingPage() {
   const queryClient = useQueryClient();
 

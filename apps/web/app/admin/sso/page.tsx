@@ -6,6 +6,7 @@ import { getAdminSDK } from '@/lib/api/admin-sdk'
 import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
 import type { SSOConfig } from '@/types/admin'
 
+import AdminPageHeader from "../AdminPageHeader";
 function maskClientId(clientId: string): string {
   if (clientId.length <= 8) return clientId.slice(0, 4) + '****'
   return clientId.slice(0, 8) + '****' + clientId.slice(-4)

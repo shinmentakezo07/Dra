@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import type { SuspiciousActivity } from "@/types/admin";
 import type { PaginatedResult } from "@/lib/api/admin-sdk";
 
+import AdminPageHeader from "../AdminPageHeader";
 const severityConfig: Record<string, { bg: string; text: string; label: string }> = {
   high: { bg: "bg-red-500/15", text: "text-red-400", label: "High" },
   medium: { bg: "bg-yellow-500/15", text: "text-yellow-400", label: "Medium" },
