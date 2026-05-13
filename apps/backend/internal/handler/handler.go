@@ -43,6 +43,7 @@ type Handler struct {
 	batchSvc        *service.BatchService
 	orgSvc          *service.OrganizationService
 	fileRepo        *repository.FileRepo
+	adminSvc       *service.AdminService
 	moderator       moderation.Moderator
 	guard           *guardrails.Guard
 	notificationHub *NotificationHub
@@ -85,7 +86,9 @@ func (h *Handler) SetBatchService(b *service.BatchService) {
 	h.batchSvc = b
 }
 
+
 // SetDedupCache sets the deduplication cache.
+
 func (h *Handler) SetDedupCache(d *cache.DedupCache) {
 	h.dedupCache = d
 }

@@ -14,6 +14,9 @@ npm run dev          # Start all apps in dev mode
 npm run build        # Build all apps
 npm run lint         # Lint all apps
 npm run format       # Prettier format
+npm run test         # Run all tests via turbo
+npm run test:web     # Frontend tests only
+npm run test:backend # Backend tests only
 ```
 
 ### Frontend (`apps/web/`)
@@ -34,10 +37,12 @@ make dev               # go run ./cmd/api
 make test              # go test -race -cover ./...
 make test-unit         # go test -v -short ./...
 make test-integration  # needs TEST_DATABASE_URL
-make test-coverage     # coverage report
+make test-coverage     # coverage report (text + HTML)
+make coverage-html     # go tool cover -html=coverage.out
 make vet               # go vet ./...
 make lint              # vet + staticcheck
 make fmt               # gofmt + goimports
+make clean             # rm api coverage.out coverage.html
 ```
 
 ### Full-stack dev
@@ -69,8 +74,8 @@ docs/            Implementation guides and design docs
 ```
 
 ### Test organization
-- **Go backend**: Tests co-located with source (`*_test.go`), plus `tests/integration/` for full integration tests. Run with `make test` (all) or `make test-unit` (short mode). `internal/handler/handler_test.go` and `pkg/llm/llm_test.go` are key entry points.
-- **Frontend**: Vitest tests in `tests/` directory. SDK tests in `tests/lib/api/`. Wiring verification in `tests/wiring-verification.test.ts`.
+- **Go backend**: Tests co-located with source (`*_test.go`), plus `tests/integration/` for full integration tests. Run with `make test` (all) or `make test-unit` (short mode). Integration tests use `internal/testutil.NewTestServer()` for test harness setup.
+- **Frontend**: Vitest tests in `tests/` or co-located `*.test.ts`/`*.spec.ts`. SDK tests in `tests/lib/api/`. Wiring verification in `tests/wiring-verification.test.ts` — enforces no mock data in dashboard.
 - **Coverage**: Run `make test-coverage` in backend, `npm run test -- --coverage` in frontend.
 
 ### Frontend (`apps/web/`)
@@ -87,9 +92,10 @@ docs/            Implementation guides and design docs
 
 ### Backend (`apps/backend/`)
 - **Chi router** (`go-chi/chi/v5`) — lightweight HTTP router with middleware chain.
-- **pgx v5** — PostgreSQL connection pool. Raw SQL in repositories.
+- **pgx v5** — PostgreSQL connection pool. Raw SQL in repositories (all parameterized).
 - **Domain layer** (`internal/domain/`): Shared models, typed errors, and enums used across all backend layers.
 - **Layered architecture**: `handler/` → `service/` → `repository/` + `domain/`
+- **Dual provider systems** (architecture note): There are two provider registries — `internal/provider/provider.go` (used by legacy handler endpoints) and `pkg/llm/provider/` (used by `/v1/*` OpenAI-compatible proxy). Adding a new LLM backend requires registering in both. `pkg/llm/provider/` is the canonical one for new work.
 - **LLM pipeline** (`pkg/llm/`): provider registry → model router → cache → guardrails → moderation → telemetry. Sub-packages:
   - `provider/` — Provider registry with OpenAI SDK, multi-key rotation, health checking, fallback/balancing
   - `translator/` — Format translation between Anthropic, OpenAI, and generic chat formats
@@ -125,31 +131,115 @@ docs/            Implementation guides and design docs
 Backend serves on `:8080`. Frontend proxies `/api/*` and `/v1/*` → `BACKEND_URL`.
 
 **Auth endpoints:**
-| Endpoint | Description |
-|----------|-------------|
-| `POST /api/auth/signup` | Register |
-| `POST /api/auth/login` | Login |
-| `GET /api/auth/me` | Get current user profile |
-| `PUT /api/auth/profile` | Update user profile |
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/signup` | Register |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/forgot-password` | Request password reset |
+| POST | `/api/auth/reset-password` | Reset password with token |
+| GET | `/api/auth/me` | Get current user profile |
+| PUT | `/api/auth/profile` | Update user profile |
+| PUT | `/api/auth/password` | Change password |
 
-**Core endpoints:**
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Health check |
-| `POST /api/chat` | Streaming chat (SSE) |
-| `GET /api/keys` | List API keys |
-| `POST /api/keys` | Create new API key |
-| `DELETE /api/keys/:id` | Delete API key |
-| `GET /api/credits` | Credit balance |
-| `GET /api/analytics` | Usage analytics |
-| `GET /api/logs` | Request logs |
-| `/v1/chat/completions` | OpenAI-compatible proxy |
+**Chat & AI:**
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/chat` | Streaming chat (SSE) |
+| POST | `/api/embeddings` | Generate embeddings |
+| POST | `/v1/chat/completions` | OpenAI-compatible proxy |
+| POST | `/v1/embeddings` | OpenAI-compatible embeddings |
+| GET | `/v1/models` | OpenAI-compatible model list |
+| GET | `/api/models` | List available models |
+
+**API Keys:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/keys` | List API keys |
+| POST | `/api/keys` | Create API key |
+| DELETE | `/api/keys/:id` | Delete API key |
+| POST | `/api/keys/:id/revoke` | Revoke API key |
+
+**Credits & Billing:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/credits` | Credit balance |
+| POST | `/api/credits/purchase` | Purchase credits |
+| GET | `/api/credits/budget` | Budget settings |
+| PUT | `/api/credits/budget` | Set budget limits |
+| GET | `/api/transactions` | Transaction history |
+
+**Usage & Logs:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/logs` | Request logs (paginated) |
+| GET | `/api/analytics` | Usage analytics |
+
+**Conversations:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/conversations` | List conversations |
+| POST | `/api/conversations` | Create conversation |
+| GET | `/api/conversations/{id}` | Get conversation |
+| DELETE | `/api/conversations/{id}` | Delete conversation |
+| POST | `/api/conversations/{id}/messages` | Add message |
+
+**Prompts:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/prompts` | List prompts |
+| POST | `/api/prompts` | Create prompt |
+| GET | `/api/prompts/{name}` | Get prompt |
+| POST | `/api/prompts/{name}/render` | Render prompt template |
+| DELETE | `/api/prompts/{name}` | Delete prompt |
+
+**Webhooks:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/webhooks` | List webhooks |
+| POST | `/api/webhooks` | Create webhook |
+| GET | `/api/webhooks/{id}` | Get webhook |
+| PUT | `/api/webhooks/{id}` | Update webhook |
+| DELETE | `/api/webhooks/{id}` | Delete webhook |
+
+**Organizations:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/organizations` | List orgs |
+| POST | `/api/organizations` | Create org |
+| GET | `/api/organizations/{id}` | Get org |
+| POST | `/api/organizations/{id}/invite` | Invite member |
+| DELETE | `/api/organizations/{id}/members/{userId}` | Remove member |
+| GET | `/api/organizations/{id}/members` | List members |
+| POST | `/api/invites/accept` | Accept invitation |
+
+**Batch & Files:**
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/batch` | Submit batch chat job |
+| GET | `/api/batch/{id}` | Get batch job status |
+| POST | `/api/files/upload` | Upload file |
+| GET | `/api/files` | List files |
+
+**Real-time:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/notifications/stream` | SSE notification stream |
 
 **Admin endpoints:**
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/admin/users` | List all users |
-| `DELETE /api/admin/users/:id` | Delete user account |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/admin/users` | List all users |
+| DELETE | `/api/admin/users/:id` | Delete user account |
+| GET | `/api/admin/stats` | Platform statistics |
+| GET | `/api/admin/circuit-breakers` | Circuit breaker status |
+| GET | `/api/admin/provider-health` | Provider health |
+
+**Other:**
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/validate` | Validate structured output |
+| POST | `/webhooks/stripe` | Stripe webhook (public, signature-verified) |
+| GET | `/health/providers` | LLM provider health summary |
 
 ### SDK duality
 Both Go SDK (`pkg/sdk/client.go`) and TypeScript SDK (`lib/api/sdk.ts`) must be kept in sync. They cover the same backend endpoints with matching types. When adding new endpoints, implement in Go backend → Go SDK → TypeScript SDK.
@@ -159,12 +249,27 @@ Both Go SDK (`pkg/sdk/client.go`) and TypeScript SDK (`lib/api/sdk.ts`) must be 
 docker-compose up -d    # Full stack: Postgres + frontend + backend
 ```
 
+## Mandatory: Skill & Rule Usage
+
+Before EVERY task, you MUST:
+1. Scan `~/.claude/skills/` for relevant skills and invoke matching ones via the Skill tool
+2. Review applicable rules from `~/.claude/rules/`
+3. See `.claude/rules/common/skill-usage.md` for the complete task-to-skill mapping table
+4. Do not skip — even for "simple" tasks
+
 ## Important notes
 - **Go 1.25** — use `slog` for logging, `context` for timeouts.
 - **Next.js 16 canary** — check `node_modules/next/dist/docs/` before writing new frontend code.
 - **Tailwind CSS v4** — uses `@tailwindcss/postcss`, not v3 config approach.
 - **No mock data** — dashboard fetches live data via SDK.
 - **Module path**: `dra-platform/backend` in all Go imports.
+- **AUTH_SECRET must be identical** between frontend and backend for HS256 JWT validation.
+- **`.npmrc` has `legacy-peer-deps=true`** — do not remove.
+- **Drizzle** uses `@neondatabase/serverless` driver (even for local Postgres).
+- **Backend auth methods**: JWT (`Authorization: Bearer`), session cookie (`authjs.session-token`), or `x-api-key` header.
+- **`tsconfig.json` excludes `db/seed*.ts` and `scripts/**/*`** from type checking (top-level await).
+- **`turbo.json` passes build env vars**: `DATABASE_URL`, `NEXTAUTH_SECRET`, `AUTH_SECRET`, `NEXTAUTH_URL`, `OPENAI_API_KEY`, `NVIDIA_API_KEY`, `BACKEND_URL`.
+- **Full API endpoint reference** with behavioral rules for AI agents is in `AGENTS.md` at repo root. Read it for the complete list (40+ endpoints) and operating constraints.
 
 ### Environment Variables
 

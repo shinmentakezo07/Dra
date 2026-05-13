@@ -2,11 +2,11 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, CheckCircle, ArrowRight, TrendingUp, Cpu, Sparkles, Zap, Star, Brain, Activity } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import { useRouter } from "next/navigation";
 import { ModelCard } from "./ModelCard";
-import openRouterModels from "../../app/models/openrouter-models-2026.json";
 import { getProviderLogo } from "@/lib/provider-logos";
+import type { OpenRouterModelData } from "@/types/model";
 
 interface Model {
     id: string;
@@ -92,13 +92,21 @@ const providerIcons: Record<string, React.ComponentType<{ className?: string }>>
     "xAI": Cpu,
 };
 
-export function ModelsExplorer() {
+interface ModelsExplorerProps {
+    initialModels: OpenRouterModelData[];
+}
+
+export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedProvider, setSelectedProvider] = useState("All");
 
+    const deferredQuery = useDeferredValue(searchQuery);
+    const deferredProvider = useDeferredValue(selectedProvider);
+    const isSearchStale = searchQuery !== deferredQuery;
+
     const models = useMemo(() => {
-        return (openRouterModels as any[]).map((model) => {
+        return initialModels.map((model) => {
             const providerId = getProviderFromId(model.id);
             const config = providerConfig[providerId] || {
                 icon: Cpu,
@@ -137,17 +145,17 @@ export function ModelsExplorer() {
 
     const filteredModels = useMemo(() => {
         return models.filter((model) => {
-            const q = searchQuery.toLowerCase();
+            const q = deferredQuery.toLowerCase();
             const matchesSearch =
                 model.name.toLowerCase().includes(q) ||
                 model.provider.toLowerCase().includes(q) ||
                 model.id.toLowerCase().includes(q);
             const matchesProvider =
-                selectedProvider === "All" ||
-                model.provider.toLowerCase().includes(selectedProvider.toLowerCase());
+                deferredProvider === "All" ||
+                model.provider.toLowerCase().includes(deferredProvider.toLowerCase());
             return matchesSearch && matchesProvider;
         });
-    }, [models, searchQuery, selectedProvider]);
+    }, [models, deferredQuery, deferredProvider]);
 
     const featuredModels = useMemo(() => {
         return models.filter((m) => m.popular).slice(0, 3);
@@ -228,13 +236,17 @@ export function ModelsExplorer() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-gray-600 font-mono text-sm"
                             />
-                            {searchQuery && (
+                            {(searchQuery || isSearchStale) && (
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="px-3 py-1.5 bg-blue-500/10 text-blue-400 text-xs font-mono font-bold rounded-lg border border-blue-500/20"
+                                    className={`px-3 py-1.5 text-xs font-mono font-bold rounded-lg border ${
+                                        isSearchStale
+                                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                            : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                    }`}
                                 >
-                                    {filteredModels.length}
+                                    {isSearchStale ? "..." : filteredModels.length}
                                 </motion.div>
                             )}
                         </div>

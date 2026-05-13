@@ -153,6 +153,23 @@ func RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			u := GetUser(r)
+			if u == nil {
+				response.Error(w, 401, "Authentication required")
+				return
+			}
+			if !u.IsAdmin() {
+				response.Error(w, 403, "Admin access required")
+				return
+			}
+			next(w, r)
+		}
+	}
+}
+
 func extractBearer(r *http.Request) string {
 	h := r.Header.Get("Authorization")
 	if h == "" {
