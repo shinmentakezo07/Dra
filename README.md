@@ -27,7 +27,7 @@
 ![License](https://img.shields.io/badge/License-MIT-10b981?style=flat-square)
 ![Node](https://img.shields.io/badge/Node-20+-3b82f6?style=flat-square&logo=node.js)
 ![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go)
-![Tests](https://img.shields.io/badge/Tests-Vitest-6d28d9?style=flat-square&logo=vitest)
+![Tests](https://img.shields.io/badge/Tests-Vitest+Go%20Test-6d28d9?style=flat-square)
 ![Database](https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?style=flat-square&logo=postgresql)
 
 <br/>
@@ -53,10 +53,10 @@
 <td width="50%" valign="top">
 
 ### 🌐 Unified AI Gateway
-**One endpoint for all models.** Switch between GPT-4, Claude-3, Gemini, Llama, Mistral, Grok, and 100+ others instantly — no code changes, no vendor lock-in. Our intelligent translator automatically converts between OpenAI, Anthropic, and generic formats.
+**One endpoint for all models.** Switch between GPT-4, Claude-3, Gemini, Llama, Mistral, Grok, and 100+ others instantly — no code changes, no vendor lock-in. Includes an OpenAI-compatible `/v1/chat/completions` proxy for drop-in replacement of existing OpenAI integrations.
 
 ### 💳 Credit-Based Billing
-**Pay per token, not per month.** Transparent micro-cent pricing with real-time balance tracking, detailed transaction history, and automatic cost deduction on every request. No subscriptions, no hidden fees.
+**Pay per token, not per month.** Transparent micro-cent pricing with real-time balance tracking, budget caps, detailed transaction history, Stripe payment integration, and automatic cost deduction on every request. No subscriptions, no hidden fees.
 
 ### 📊 Real-Time Analytics
 **Monitor everything.** Beautiful dashboards tracking requests, latency, costs, token usage, and model breakdowns with interactive Recharts visualizations. Time-range filtering (7d/30d/90d) and exportable reports.
@@ -68,10 +68,13 @@
 **Compare models side-by-side.** Interactive streaming chat interface with multi-model selection, persistent chat history, markdown rendering, code syntax highlighting, and real-time response rendering. Test prompts across providers simultaneously.
 
 ### 🔐 Enterprise Security
-**JWT + API Key dual auth.** Per-user rate limiting (sliding window), CORS protection, comprehensive request logging, admin controls with role-based access, and bcrypt password hashing. Session validation via NextAuth v5.
+**JWT + API Key dual auth.** Per-user rate limiting (sliding window + optional Redis), CORS protection, comprehensive request logging, admin controls with role-based access, bcrypt password hashing, and input validation. Session validation via NextAuth v5 with GitHub + Google OAuth.
 
 ### ⚡ Blazing Performance
-**Go backend + Next.js frontend.** Sub-50ms API responses, connection-pooled PostgreSQL (pgx), intelligent response caching, Docker-optimized multi-stage builds, and Turborepo-powered monorepo task pipeline.
+**Go backend + Next.js frontend.** Sub-50ms API responses, connection-pooled PostgreSQL (pgx v5), intelligent response caching with semantic dedup, circuit breakers for provider fault isolation, Docker-optimized multi-stage builds, and Turborepo-powered monorepo task pipeline.
+
+### 🔌 OpenAI-Compatible API
+**Drop-in replacement for OpenAI SDKs.** Use any OpenAI client library against Yapapa's `/v1/chat/completions`, `/v1/embeddings`, and `/v1/models` endpoints. No SDK changes needed — just swap the base URL.
 
 </td>
 </tr>
@@ -79,66 +82,59 @@
 
 ---
 
-## 🎬 Live Preview
-
-<div align="center">
-
-| 🏠 Landing Page | 🧪 AI Playground | 📊 Analytics Dashboard |
-|:---:|:---:|:---:|
-| *Cyberpunk hero with interactive terminal* | *Multi-model chat comparison* | *Real-time metrics & insights* |
-
-<br/>
-
-> 🎨 **Design Philosophy**: Dark-themed cyberpunk UI with glassmorphism effects, Framer Motion micro-interactions, GSAP scroll-triggered animations, and Tailwind CSS v4 utility-first styling. Lucide icons throughout.
-
-</div>
-
----
-
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           🌐 YAPAPA PLATFORM                                 │
-├─────────────────────────────────┬───────────────────────────────────────────┤
-│      🎨 Next.js 16 (Frontend)   │         ⚙️ Go Backend (API)               │
-│  ┌───────────────────────────┐  │  ┌─────────────┐  ┌──────────────────┐   │
-│  │  🏠 Landing Page          │  │  │  🔐 Auth    │  │  ⏱️ Rate Limit   │   │
-│  │  🧪 AI Playground         │◄─┼──┤  JWT +      │  │  (Sliding Window)│   │
-│  │  📊 Dashboard             │  │  │  API Key    │  └──────────────────┘   │
-│  │  🔑 API Key Manager       │  │  └──────┬──────┘                         │
-│  │  💳 Billing & Credits     │  │         │                                │
-│  │  📋 Request Logs          │  │  ┌──────┴──────────────────────┐         │
-│  │  👤 User Settings         │  │  │      🌐 Chi Router          │         │
-│  └───────────┬───────────────┘  │  └──────┬──────────────┬───────┘         │
-│              │                   │         │              │                 │
-│              ▼                   │  ┌──────┴───┐   ┌──────┴───┐             │
-│   ┌─────────────────────┐        │  │ API Keys │   │ 💬 Chat  │             │
-│   │  🐘 PostgreSQL 16   │◄───────┼──│ Credits  │   │ Proxy    │             │
-│   │  Drizzle ORM + pgx  │        │  │ Logs     │   │ (SSE)    │             │
-│   └─────────────────────┘        │  └──────────┘   └──────────┘             │
-│                                  │  ┌──────────────────────────┐             │
-│                                  │  │  🤖 LLM SDK (Go)         │             │
-│                                  │  │  • Multi-provider        │             │
-│                                  │  │  • Format translation    │             │
-│                                  │  │  • Response caching      │             │
-│                                  │  │  • Pipeline middleware   │             │
-│                                  │  └──────────────────────────┘             │
-└─────────────────────────────────┴───────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                           🌐 YAPAPA PLATFORM                                      │
+├──────────────────────────────────┬───────────────────────────────────────────────┤
+│      🎨 Next.js 16 (Frontend)    │          ⚙️ Go Backend (API)                  │
+│  ┌────────────────────────────┐  │  ┌──────────────┐  ┌───────────────────┐     │
+│  │  🏠 Landing Page           │  │  │  🔐 Auth     │  │  ⏱️ Rate Limit    │     │
+│  │  🧪 AI Playground          │  │  │  JWT +       │  │  (Sliding Window) │     │
+│  │  📊 Dashboard + Analytics  │◄─┼──┤  API Key     │  │  + Redis          │     │
+│  │  🔑 API Key Manager        │  │  └──────┬───────┘  └───────────────────┘     │
+│  │  💳 Billing & Credits      │  │         │                                    │
+│  │  📋 Request Logs           │  │  ┌──────┴─────────────────────────┐          │
+│  │  👤 User Settings          │  │  │      🌐 Chi Router (v5)        │          │
+│  │  🏢 Organizations          │  │  └──┬──────┬──────┬──────┬───────┘          │
+│  │  📡 Webhooks               │  │     │      │      │      │                  │
+│  │  💬 Conversations          │  │  ┌──┴──┐ ┌──┴──┐ ┌──┴──┐ ┌──┴──┐           │
+│  │  📁 Prompts & Files        │  │  │Auth │ │Keys │ │Chat │ │Orgs  │           │
+│  └───────────┬────────────────┘  │  └─────┘ │Creds│ │(SSE)│ └──────┘           │
+│              │                   │          │Logs │ └──┬──┘                    │
+│              ▼                   │          └─────┘    │                       │
+│   ┌────────────────────┐         │              ┌──────┴───────┐              │
+│   │  🐘 PostgreSQL 16  │◄────────┼──────────────┤  🤖 LLM SDK  │              │
+│   │  Drizzle ORM + pgx │         │              │  • Provider   │              │
+│   └────────────────────┘         │              │  • Translator │              │
+│                                  │              │  • Router     │              │
+│                                  │              │  • Cache      │              │
+│                                  │              │  • Guardrails │              │
+│                                  │              │  • Circuit    │              │
+│                                  │              │    Breaker    │              │
+│                                  │              │  • Telemetry  │              │
+│                                  │              └───────────────┘              │
+│                                  │  ┌──────────────────────────────────┐      │
+│                                  │  │  📤 Webhooks · 📡 SSE Events     │      │
+│                                  │  │  📦 Batch Jobs · 📁 File Uploads │      │
+│                                  │  │  📧 Email (SMTP) · 📊 Telemetry  │      │
+│                                  │  └──────────────────────────────────┘      │
+└──────────────────────────────────┴───────────────────────────────────────────┘
 ```
 
 ### Data Flow
 
 ```
-User Request → Chi Router → Auth Middleware → Rate Limiter → Handler
-                                                    ↓
-                              ┌─────────────────────┼─────────────────────┐
-                              ▼                     ▼                     ▼
-                         API Keys              Credits               Chat Proxy
-                              ↓                     ↓                     ↓
-                         PostgreSQL          PostgreSQL          LLM SDK → Providers
-                              ↓                     ↓                     ↓
-                         Drizzle ORM         Transaction Log      OpenAI / Anthropic
+User Request → Chi Router → Auth Middleware → Rate Limiter → CORS → Handler
+                                                                  ↓
+                          ┌─────────────────────┬─────────────────────┐
+                          ▼                     ▼                     ▼
+                     API Keys              Credits/Budget        Chat Proxy
+                          ↓                     ↓                     ↓
+                     PostgreSQL           PostgreSQL          LLM SDK Pipeline
+                          ↓                     ↓                     ↓
+                     Drizzle ORM         Stripe/Webhooks    Provider → Model → SSE
 ```
 
 ---
@@ -156,11 +152,13 @@ User Request → Chi Router → Auth Middleware → Rate Limiter → Handler
 | [Framer Motion](https://www.framer.com/motion/) | Animations & Gestures | 12.38.0 |
 | [GSAP](https://greensock.com/gsap/) | Advanced Scroll Animations | 3.15.0 |
 | [Recharts](https://recharts.org/) | Data Visualization | 3.8.1 |
-| [NextAuth.js v5](https://authjs.dev/) | Authentication | 5.0.0-beta |
-| [Drizzle ORM](https://orm.drizzle.team/) | Database ORM | 0.45.2 |
-| [Zod](https://zod.dev/) | Schema Validation | 4.4.3 |
-| [AI SDK](https://sdk.vercel.ai/) | AI/LLM Integration | 6.0.176 |
+| [NextAuth.js v5](https://authjs.dev/) | Authentication (Credentials + GitHub + Google OAuth) | 5.0.0-beta |
+| [Drizzle ORM](https://orm.drizzle.team/) | Database ORM + Migrations | 0.45.2 |
+| [Zod](https://zod.dev/) | Schema Validation | v4 |
+| [AI SDK](https://sdk.vercel.ai/) | AI/LLM Integration | 6.0.x |
+| [TanStack React Query](https://tanstack.com/query) | Server State Management | 5.71.0 |
 | [Lucide React](https://lucide.dev/) | Icon Library | 1.14.0 |
+| [CVA](https://cva.style/) | Component Variants | 0.7.1 |
 
 ### Backend
 
@@ -173,6 +171,8 @@ User Request → Chi Router → Auth Middleware → Rate Limiter → Handler
 | [bcrypt](https://golang.org/x/crypto) | Password Hashing | latest |
 | [Prometheus](https://prometheus.io/) | Metrics Collection | client_golang |
 | [Google UUID](https://github.com/google/uuid) | UUID Generation | v1.6.0 |
+| [slog](https://pkg.go.dev/log/slog) | Structured Logging (stdlib) | built-in |
+| [Staticcheck](https://staticcheck.io/) | Go Linter | latest |
 
 ### Infrastructure
 
@@ -180,9 +180,11 @@ User Request → Chi Router → Auth Middleware → Rate Limiter → Handler
 |:-----------|:--------|
 | [PostgreSQL](https://www.postgresql.org/) | Primary Database |
 | [Neon](https://neon.tech/) | Serverless PostgreSQL (optional) |
+| [Redis](https://redis.io/) | Optional caching + rate limiting |
 | [Docker](https://www.docker.com/) | Containerization |
 | [Docker Compose](https://docs.docker.com/compose/) | Multi-service Orchestration |
 | [Turborepo](https://turbo.build/) | Monorepo Task Runner |
+| [Railway](https://railway.app/) | Deployment Platform |
 
 ---
 
@@ -197,8 +199,8 @@ User Request → Chi Router → Auth Middleware → Rate Limiter → Handler
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/Shinmen007/DRA.git
-cd DRA
+git clone https://github.com/shinmentakezo07/owsiwa.git
+cd osiwa
 npm install
 ```
 
@@ -218,8 +220,11 @@ openssl rand -base64 32  # AUTH_SECRET
 openssl rand -base64 32  # NEXTAUTH_SECRET
 
 # AI Provider Keys (at least one required for chat functionality)
-NVIDIA_API_KEY=nvapi-your-key-here
 OPENAI_API_KEY=sk-your-key-here
+NVIDIA_API_KEY=nvapi-your-key-here
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+GROQ_API_KEY=gsk-your-key-here
+GEMINI_API_KEY=your-key-here
 ```
 
 ### 3. Start PostgreSQL
@@ -247,13 +252,16 @@ npm run dev
 | 🌐 Web App | [http://localhost:3000](http://localhost:3000) | Next.js frontend |
 | ⚙️ Backend API | [http://localhost:8080](http://localhost:8080) | Go API server |
 | 📚 API Docs | [http://localhost:3000/docs](http://localhost:3000/docs) | Interactive documentation |
+| 🧪 Playground | [http://localhost:3000/playground](http://localhost:3000/playground) | AI Playground |
+
+> **Pro tip**: Use `bash scripts/dev.sh` for a full-stack one-command setup — installs deps, starts Postgres, pushes schema, seeds the DB, and starts both servers.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-DRA/
+osiwa/
 ├── 📦 apps/
 │   ├── 🌐 web/                          # Next.js 16 Frontend
 │   │   ├── 📂 app/                      # App Router (RSC + Client Components)
@@ -269,23 +277,43 @@ DRA/
 │   │   │   ├── 💰 pricing/              # Credit plans & billing
 │   │   │   ├── 🔐 login/                # Authentication pages
 │   │   │   ├── 📝 signup/               # Registration
+│   │   │   ├── 🔑 forgot-password/      # Password recovery
 │   │   │   ├── 📚 docs/                 # API documentation
-│   │   │   └── api/                     # Next.js API routes & Server Actions
+│   │   │   ├── 📁 admin/                # Admin panel
+│   │   │   ├── 📁 models/               # Model browser
+│   │   │   ├── 📁 api/                  # Next.js API routes & Server Actions
+│   │   │   ├── 🛑 error.tsx             # Global error boundary
+│   │   │   ├── 👻 not-found.tsx         # 404 page
+│   │   │   ├── 🎨 globals.css           # Global styles + animations + Tailwind
+│   │   │   ├── 📐 layout.tsx            # Root layout
+│   │   │   └── 🔧 providers.tsx         # React Query + Session providers
 │   │   ├── 🗄️ db/
 │   │   │   ├── schema.ts                # Drizzle ORM schema definition
 │   │   │   ├── index.ts                 # Database connection (Neon/pg)
 │   │   │   └── seed.ts                  # Demo data seeder
 │   │   ├── 🧩 components/               # Shared & feature UI components
-│   │   │   ├── Hero.tsx                 # Animated landing hero
-│   │   │   ├── MainLayout.tsx           # App shell layout
+│   │   │   ├── ui/                      # Primitives (Button, Input, Modal, Card)
 │   │   │   ├── dashboard/               # Dashboard-specific components
 │   │   │   └── playground/              # Playground-specific components
 │   │   ├── 🔧 lib/
-│   │   │   ├── api/sdk.ts               # TypeScript SDK (full CRUD)
-│   │   │   ├── api/errors.ts            # Typed error handling
+│   │   │   ├── api/
+│   │   │   │   ├── sdk.ts               # TypeScript SDK (DraSDK — full CRUD)
+│   │   │   │   ├── admin-sdk.ts         # Admin SDK extensions
+│   │   │   │   ├── errors.ts            # Typed error handling
+│   │   │   │   ├── hooks.ts             # React Query hooks
+│   │   │   │   ├── types.ts             # Shared TypeScript types
+│   │   │   │   ├── proxy.ts             # Server-side proxy to Go backend
+│   │   │   │   ├── key-auth.ts          # API key auth utilities
+│   │   │   │   ├── rate-limit.ts        # Client-side rate limiting
+│   │   │   │   ├── require-auth.ts      # Auth guard utilities
+│   │   │   │   └── index.ts             # Public API barrel
 │   │   │   └── utils.ts                 # Utility functions (cn, etc.)
 │   │   ├── 🔐 auth.ts                   # NextAuth v5 configuration
-│   │   └── 🎨 globals.css               # Global styles + animations + Tailwind
+│   │   ├── 🔐 auth.config.ts            # Auth config (providers, callbacks)
+│   │   ├── 🪞 proxy.ts                  # NextAuth middleware + route protection
+│   │   └── 🧪 tests/                    # Vitest test suite
+│   │       ├── wiring-verification.test.ts  # Enforces no mock data in dashboard
+│   │       └── lib/api/                 # SDK + error tests
 │   │
 │   └── ⚙️ backend/                      # Go Backend Service
 │       ├── 🚀 cmd/api/                  # Application entrypoint
@@ -294,29 +322,52 @@ DRA/
 │       │   ├── config/                  # Environment configuration loader
 │       │   ├── db/                      # PostgreSQL connection pool (pgx)
 │       │   ├── domain/                  # Domain models & custom errors
-│       │   ├── handler/                 # HTTP route handlers (chi)
-│       │   ├── middleware/              # Auth, rate limit, CORS, logging
-│       │   ├── repository/              # Data access layer (raw SQL)
-│       │   ├── service/                 # Business logic layer
-│       │   └── pkg/                     # Internal packages
+│       │   ├── handler/                 # 21 HTTP route handlers (chi)
+│       │   ├── middleware/              # Auth, rate limit, CORS, logging, tracing, metrics
+│       │   ├── repository/              # Data access layer (raw SQL, parameterized)
+│       │   ├── service/                 # 15 business logic services
+│       │   ├── redis/                   # Optional Redis client
+│       │   └── pkg/                     # Shared internal packages
 │       │       ├── logger/              # Structured logging (slog)
 │       │       ├── response/            # Standardized HTTP response helpers
 │       │       └── token/               # JWT generation & validation
 │       ├── 📦 pkg/
 │       │   ├── sdk/                     # Go SDK client for external consumers
-│       │   └── llm/                     # LLM SDK system
-│       │       ├── sdk.go               # High-level facade
-│       │       ├── provider/            # Provider registry (OpenAI, Anthropic, Generic)
-│       │       ├── translator/          # Format translation (Anthropic ↔ OpenAI)
-│       │       ├── pipeline/            # Request/response middleware pipeline
-│       │       ├── cache/               # Response caching layer
-│       │       └── watcher/             # Error watching & retry logic
-│       └── 🧪 tests/                    # Integration tests
+│       │   ├── llm/                     # LLM SDK (16 subpackages)
+│       │   │   ├── sdk.go               # High-level facade
+│       │   │   ├── provider/            # Provider registry (OpenAI, Anthropic, Generic)
+│       │   │   ├── translator/          # Format translation (Anthropic ↔ OpenAI)
+│       │   │   ├── pipeline/            # Request/response middleware pipeline
+│       │   │   ├── router/              # Model-to-provider routing
+│       │   │   ├── cache/               # Response caching (TTL + semantic dedup)
+│       │   │   ├── guardrails/          # Input/output guardrail checks
+│       │   │   ├── moderation/          # Content moderation filtering
+│       │   │   ├── validator/           # Request validation
+│       │   │   ├── watcher/             # Error watching & retry logic
+│       │   │   ├── circuitbreaker/      # Provider fault isolation
+│       │   │   ├── telemetry/           # OpenTelemetry-style spans
+│       │   │   ├── tokens/              # Token counting & limits
+│       │   │   ├── context/             # Context window management
+│       │   │   ├── embeddings/          # Embedding generation
+│       │   │   ├── batch/               # Batch request processing
+│       │   │   ├── tools/               # Tool/function calling definitions
+│       │   │   └── openai/              # OpenAI-compatible request building
+│       │   ├── webhook/                 # Outbound webhook delivery with retry
+│       │   ├── email/                   # SMTP email sender
+│       │   ├── trace/                   # Distributed tracing
+│       │   └── llmsdk/                  # (legacy) LLM SDK wrapper
+│       ├── 📂 migrations/               # 7 raw SQL migrations (hand-applied)
+│       ├── 🧪 tests/                    # Integration tests
+│       ├── 📋 Makefile                  # Build, test, lint, coverage targets
+│       └── 🐋 Dockerfile                # Backend production build
 │
-├── 🐳 docker-compose.yml                # Full stack orchestration
-├── 🐋 Dockerfile                        # Next.js production build
+├── 🐳 docker-compose.yml                # Full stack (Postgres + Frontend + Backend)
+├── 🐋 Dockerfile                        # Frontend production build
 ├── ⚡ turbo.json                        # Monorepo task pipeline config
-└── 📦 package.json                      # Workspace root
+├── 📦 package.json                      # Workspace root
+├── 📜 AGENTS.md                         # Agent guide (architecture, endpoints, quirks)
+├── 📜 CLAUDE.md                         # Claude Code instructions
+└── 📂 docs/                             # Implementation guides & docs
 ```
 
 ---
@@ -328,35 +379,128 @@ DRA/
 | Method | Endpoint | Description |
 |:-------|:---------|:------------|
 | `GET` | `/health` | Backend health check |
+| `GET` | `/health/providers` | LLM provider health summary |
 | `GET` | `/api/models` | List available AI models |
+| `GET` | `/v1/models` | OpenAI-compatible model list |
 
-### 🔐 Authenticated Endpoints (JWT Cookie or `x-api-key` Header)
+### 🔐 Authenticated Endpoints (JWT Cookie, `Authorization` header, or `x-api-key`)
+
+#### Auth
 
 | Method | Endpoint | Description |
 |:-------|:---------|:------------|
 | `POST` | `/api/auth/signup` | User registration |
 | `POST` | `/api/auth/login` | User login |
+| `POST` | `/api/auth/forgot-password` | Request password reset |
+| `POST` | `/api/auth/reset-password` | Reset password with token |
 | `GET` | `/api/auth/me` | Get current user profile |
 | `PUT` | `/api/auth/profile` | Update user profile |
 | `PUT` | `/api/auth/password` | Change password |
+
+#### Chat & AI
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
 | `POST` | `/api/chat` | Stream AI completions (SSE) |
+| `POST` | `/api/embeddings` | Generate embeddings |
+| `POST` | `/v1/chat/completions` | OpenAI-compatible streaming proxy |
+| `POST` | `/v1/embeddings` | OpenAI-compatible embeddings |
+| `POST` | `/api/validate` | Validate structured output |
+
+#### API Keys
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
 | `GET` | `/api/keys` | List API keys |
 | `POST` | `/api/keys` | Create new API key |
 | `DELETE` | `/api/keys/:id` | Delete API key |
 | `POST` | `/api/keys/:id/revoke` | Revoke API key |
+
+#### Credits & Billing
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
 | `GET` | `/api/credits` | Get credit balance |
 | `POST` | `/api/credits/purchase` | Purchase credits |
+| `GET` | `/api/credits/budget` | Get budget settings |
+| `PUT` | `/api/credits/budget` | Set budget limits |
 | `GET` | `/api/transactions` | Transaction history |
-| `GET` | `/api/logs` | Request logs |
+| `POST` | `/webhooks/stripe` | Stripe webhook (public, signature-verified) |
+
+#### Conversations
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/conversations` | List conversations |
+| `POST` | `/api/conversations` | Create conversation |
+| `GET` | `/api/conversations/:id` | Get conversation |
+| `DELETE` | `/api/conversations/:id` | Delete conversation |
+| `POST` | `/api/conversations/:id/messages` | Add message to conversation |
+
+#### Prompts
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/prompts` | List prompts |
+| `POST` | `/api/prompts` | Create prompt |
+| `GET` | `/api/prompts/:name` | Get prompt by name |
+| `POST` | `/api/prompts/:name/render` | Render prompt template |
+| `DELETE` | `/api/prompts/:name` | Delete prompt |
+
+#### Webhooks
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/webhooks` | List webhooks |
+| `POST` | `/api/webhooks` | Create webhook |
+| `GET` | `/api/webhooks/:id` | Get webhook |
+| `PUT` | `/api/webhooks/:id` | Update webhook |
+| `DELETE` | `/api/webhooks/:id` | Delete webhook |
+
+#### Organizations
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/organizations` | List organizations |
+| `POST` | `/api/organizations` | Create organization |
+| `GET` | `/api/organizations/:id` | Get organization |
+| `POST` | `/api/organizations/:id/invite` | Invite member |
+| `DELETE` | `/api/organizations/:id/members/:userId` | Remove member |
+| `GET` | `/api/organizations/:id/members` | List members |
+| `POST` | `/api/invites/accept` | Accept invitation |
+
+#### Usage & Logs
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/logs` | Request logs (paginated) |
 | `GET` | `/api/analytics` | Usage analytics |
+
+#### Batch & Files
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `POST` | `/api/batch` | Submit batch chat job |
+| `GET` | `/api/batch/:id` | Get batch job status |
+| `POST` | `/api/files/upload` | Upload file |
+| `GET` | `/api/files` | List files |
+
+#### Real-Time
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/notifications/stream` | SSE notification stream |
 
 ### 👑 Admin Endpoints
 
 | Method | Endpoint | Description |
 |:-------|:---------|:------------|
 | `GET` | `/api/admin/users` | List all users |
-| `GET` | `/api/admin/stats` | Platform statistics |
 | `DELETE` | `/api/admin/users/:id` | Delete user account |
+| `GET` | `/api/admin/stats` | Platform statistics |
+| `GET` | `/api/admin/circuit-breakers` | Circuit breaker status |
+| `GET` | `/api/admin/provider-health` | Provider health |
+| `GET` | `/api/admin/settings` | Admin settings |
 
 ### Example: Streaming Chat (cURL)
 
@@ -389,6 +533,26 @@ for await (const chunk of stream) {
 }
 ```
 
+### Example: OpenAI-Compatible API (Drop-In Replacement)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://yapa.up.railway.app/v1",  # or http://localhost:8080/v1
+    api_key="your-yapapa-api-key"
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hello!"}],
+    stream=True
+)
+
+for chunk in response:
+    print(chunk.choices[0].delta.content or "", end="")
+```
+
 ### Example: Using API Key Authentication
 
 ```bash
@@ -406,27 +570,45 @@ curl http://localhost:8080/api/chat \
 ## 🗄️ Database Schema
 
 ```sql
--- Users
+-- Users (with role-based access)
 users (id, name, email, password, role, created_at)
 
 -- API Keys
 api_keys (id, user_id, name, key, last_used, created_at, revoked_at)
 
--- API Request Logs
+-- API Request Logs (detailed audit trail)
 api_logs (
   id, user_id, api_key_id, model, provider,
   input_tokens, output_tokens, cost, latency,
   status, error_message, created_at
 )
 
--- User Credits
-user_credits (id, user_id, balance, total_purchased, total_spent, updated_at)
+-- User Credits with Stripe integration
+user_credits (id, user_id, balance, total_purchased, total_spent, budget_limit, updated_at)
 
--- Credit Transactions
+-- Credit Transactions (with Stripe payment reference)
 credit_transactions (
   id, user_id, amount, type, description,
-  related_log_id, created_at
+  related_log_id, stripe_payment_id, created_at
 )
+
+-- Organizations / Team Workspaces
+organizations (id, name, owner_id, created_at)
+organization_members (org_id, user_id, role, joined_at)
+
+-- Conversations & Prompt History
+conversations (id, user_id, title, model, created_at, updated_at)
+messages (id, conversation_id, role, content, tokens, created_at)
+
+-- Webhook Configuration
+webhooks (id, user_id, url, events, secret, active, created_at)
+webhook_deliveries (id, webhook_id, event, payload, status, response_code, next_retry_at)
+
+-- File Uploads
+files (id, user_id, name, mime_type, size, storage_path, created_at)
+
+-- Password Reset Tokens
+password_resets (id, email, token, expires_at, used_at, created_at)
 ```
 
 ### Performance Indexes
@@ -450,33 +632,53 @@ All tables include optimized indexes for production performance:
 ### Root Workspace
 
 ```bash
-npm run dev        # Start all services in dev mode (Turborepo)
-npm run build      # Production build for all apps
-npm run lint       # Lint all packages
-npm run format     # Prettier format all files
+npm run dev           # Start all services in dev mode (Turborepo)
+npm run build         # Production build for all apps
+npm run lint          # Lint all packages
+npm run format        # Prettier format all files
+npm run test          # Run all tests via turbo
+npm run test:web      # Frontend tests only (Vitest)
+npm run test:backend  # Backend tests only (Go test)
 ```
 
 ### apps/web (Frontend)
 
 ```bash
-npm run dev        # Start Next.js dev server (port 3000)
-npm run build      # Production build
-npm run start      # Start production server
-npm run lint       # ESLint check
-npm run test       # Run Vitest test suite
-npm run test:watch # Run Vitest in watch mode
-npm run db:push    # Push Drizzle schema to database
-npm run db:seed    # Seed demo data
-npm run db:setup   # Push schema + seed (one command)
+npm run dev           # Start Next.js dev server (port 3000)
+npm run build         # Production build
+npm run start         # Start production server
+npm run lint          # ESLint check
+npm run test          # Run Vitest test suite
+npm run test:watch    # Run Vitest in watch mode
+npm run db:push       # Push Drizzle schema to database
+npm run db:seed       # Seed demo data
+npm run db:setup      # Push schema + seed (one command)
 ```
 
 ### apps/backend (Go API)
 
 ```bash
-go run ./cmd/api     # Start backend dev server (port 8080)
-go build ./cmd/api   # Compile binary
-go test ./...        # Run all tests
-docker build -t dra-backend .   # Build Docker image
+make build            # go build -o api ./cmd/api
+make dev              # go run ./cmd/api
+make run              # Build + run binary
+make test             # go test -race -cover ./...
+make test-race        # go test -race -v ./...
+make test-unit        # go test -v -short ./... (skips integration)
+make test-integration # Needs TEST_DATABASE_URL set
+make test-coverage    # Coverage report (text + HTML)
+make coverage-html    # Generate coverage.html
+make vet              # go vet ./...
+make lint             # vet + staticcheck
+make fmt              # gofmt + goimports
+make clean            # rm api coverage.out coverage.html
+make docker           # docker build -t dra-backend
+```
+
+### Full-Stack Scripts
+
+```bash
+bash scripts/dev.sh         # Full stack: deps → Postgres → schema → seed → servers
+bash scripts/smoke-test.sh  # Post-change wiring verification
 ```
 
 ---
@@ -491,21 +693,39 @@ docker-compose up -d
 ```
 
 This deploys the complete stack:
-- 🐘 **PostgreSQL 16** — Persistent volume for data
-- 🌐 **Next.js Frontend** — Port 3000
-- ⚙️ **Go Backend** — Port 8080
+- 🐘 **PostgreSQL 16** — Persistent volume, health check
+- 🌐 **Next.js Frontend** — Port 3000, production build
+- ⚙️ **Go Backend** — Port 8080, with all middleware
 
 ### Manual Docker Build
 
 ```bash
-# Frontend
+# Frontend (from repo root)
 docker build -t dra-web .
 docker run -p 3000:3000 --env-file apps/web/.env.local dra-web
 
-# Backend
+# Backend (from apps/backend)
 cd apps/backend
 docker build -t dra-backend .
 docker run -p 8080:8080 --env-file .env dra-backend
+```
+
+### Railway Deployment
+
+The platform is deployable to [Railway](https://railway.app/):
+
+```bash
+# Backend
+railway up --service backend --deploy
+
+# Frontend
+railway up --service web --deploy
+```
+
+The API is accessible at your Railway URL (e.g., `https://yapa.up.railway.app`). Use the OpenAI-compatible endpoint:
+
+```
+https://yapa.up.railway.app/v1/chat/completions
 ```
 
 ### Environment Variables
@@ -517,43 +737,38 @@ docker run -p 8080:8080 --env-file .env dra-backend
 | `NEXTAUTH_SECRET` | ✅ | NextAuth session secret | — |
 | `NEXTAUTH_URL` | ✅ | Public base URL | `http://localhost:3000` |
 | `BACKEND_URL` | ✅ | Go backend URL | `http://localhost:8080` |
-| `NVIDIA_API_KEY` | ❌ | NVIDIA NIM API key | `nvapi-...` |
 | `OPENAI_API_KEY` | ❌ | OpenAI API key | `sk-...` |
+| `NVIDIA_API_KEY` | ❌ | NVIDIA NIM API key | `nvapi-...` |
+| `ANTHROPIC_API_KEY` | ❌ | Anthropic API key | `sk-ant-...` |
+| `GROQ_API_KEY` | ❌ | Groq API key | `gsk-...` |
+| `GEMINI_API_KEY` | ❌ | Google Gemini API key | — |
 | `RATE_LIMIT_RPM` | ❌ | Rate limit (requests per minute) | `60` |
+| `STRIPE_SECRET_KEY` | ❌ | Stripe secret key | `sk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | ❌ | Stripe webhook signing secret | `whsec_...` |
+| `SMTP_HOST` | ❌ | SMTP server host | `smtp.sendgrid.net` |
+| `SMTP_USER` | ❌ | SMTP username | `apikey` |
+| `SMTP_PASS` | ❌ | SMTP password | — |
+| `REDIS_URL` | ❌ | Redis connection (for caching + rate limiting) | `redis://localhost:6379` |
 
 ---
 
-## 🎨 Design System
+## 🧠 Best Practices
 
-Yapapa uses a custom **cyberpunk-inspired design system** built on Tailwind CSS v4:
+### Development Workflow
 
-| Token | Value | Usage |
-|:------|:------|:------|
-| **Background** | `#050505`, `#0A0A0A` | Page backgrounds |
-| **Surface** | `rgba(15, 23, 42, 0.6)` | Cards, panels |
-| **Primary** | `#3b82f6` | Buttons, links, accents |
-| **Secondary** | `#8b5cf6` | Highlights, gradients |
-| **Success** | `#10b981` | Success states, positive trends |
-| **Typography** | Inter + Space Grotesk | Headings + body text |
+- **Branch naming**: `feature/description`, `fix/description`, `refactor/description`
+- **Commit style**: Conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
+- **Always run**: `make vet` + `make test` for backend, `npm run lint` + `npm run test` for frontend before committing
+- **No `as any` or `@ts-ignore`** in TypeScript — type properly or refactor
+- **No mock data** in dashboard components — all data comes from the SDK (`getSDK()`)
+- **Dual SDK sync**: When adding endpoints, update Go backend → Go SDK (`pkg/sdk/`) → TypeScript SDK (`lib/api/sdk.ts`)
 
-### Key CSS Utilities
+### Architecture Rules
 
-```css
-.glass-card      /* backdrop-blur-xl + subtle border + semi-transparent bg */
-.neon-text       /* Glowing text shadow with color accent */
-.text-gradient   /* Purple-to-pink gradient text */
-.mesh-gradient   /* Radial gradient mesh background */
-.animate-orbit   /* Rotating orbital animation */
-.animate-pulse-glow  /* Pulsing glow effect */
-```
-
-### Animation Stack
-
-| Library | Use Case |
-|:--------|:---------|
-| **Framer Motion** | Page transitions, component animations, gestures |
-| **GSAP + ScrollTrigger** | Scroll-triggered reveals, parallax effects |
-| **Tailwind Animate** | Utility animations (fade, slide, bounce) |
+- **Keep layers pure**: Handler → parse request/call service → write response. Service → business logic only (no `net/http`). Repository → data access only (raw SQL, all parameterized).
+- **Provider registration**: New LLM backends must register in BOTH `internal/provider/` (legacy) and `pkg/llm/provider/` (canonical).
+- **Sandbox mode**: Use `X-Sandbox: true` header for testing — skips quota, cost tracking, and logging.
+- **Migrations**: Hand-applied SQL only (no auto-migrator). Apply in order, one-time.
 
 ---
 
@@ -561,19 +776,26 @@ Yapapa uses a custom **cyberpunk-inspired design system** built on Tailwind CSS 
 
 | Status | Feature | Description |
 |:------:|:--------|:------------|
-| ✅ | Multi-provider AI gateway | OpenAI, Anthropic, generic provider support |
-| ✅ | Credit-based billing | Micro-cent pricing, balance tracking, transactions |
+| ✅ | Multi-provider AI gateway | OpenAI, Anthropic, NVIDIA NIM, Groq, Gemini — 100+ models |
+| ✅ | OpenAI-compatible API | Drop-in `/v1/chat/completions`, `/v1/embeddings`, `/v1/models` |
+| ✅ | Credit-based billing | Micro-cent pricing, balance tracking, Stripe payments |
 | ✅ | Real-time analytics | Usage charts, model breakdown, cost tracking |
 | ✅ | API key lifecycle | Create, revoke, track usage per key |
 | ✅ | Neural Playground | Multi-model chat comparison with streaming |
-| ✅ | Admin user management | User listing, stats, account deletion |
-| ✅ | LLM SDK | Go SDK with translator, pipeline, cache, watcher |
-| ⏳ | Organization / team workspaces | Multi-user team billing and shared keys |
-| ⏳ | Webhook event streaming | Real-time event notifications |
+| ✅ | Prompt management | Create, version, render prompt templates |
+| ✅ | Webhook system | Event-driven outbound webhooks with retry |
+| ✅ | Organization workspaces | Multi-user teams with role-based membership |
+| ✅ | Conversations & history | Persistent chat history with message management |
+| ✅ | Batch processing | Async batch job submission and status tracking |
+| ✅ | File uploads | File storage for prompt attachments |
+| ✅ | SSE notifications | Real-time server-sent events |
+| ✅ | LLM pipeline | Provider registry, router, translator, cache, guardrails, moderation, telemetry, circuit breakers |
+| ✅ | Admin management | User listing, stats, provider health, settings |
 | ⏳ | Fine-grained RBAC | Role-based permissions beyond admin/user |
 | ⏳ | Usage alerts & budget caps | Email/Slack alerts for spending thresholds |
 | ⏳ | Model fine-tuning interface | UI for custom model training |
 | ⏳ | Custom provider plugins | Plugin system for adding new AI providers |
+| ⏳ | Usage exports | CSV/PDF export of analytics and billing data |
 
 ---
 
@@ -583,16 +805,17 @@ We welcome contributions from the community! Here's how to get started:
 
 1. **Fork** the repository
 2. **Create** your feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+3. **Commit** your changes: `git commit -m 'feat: add amazing feature'`
 4. **Push** to the branch: `git push origin feature/amazing-feature`
 5. **Open** a Pull Request
 
 ### Development Guidelines
 
-- Follow the existing code style (Prettier + ESLint)
-- Write tests for new features (Vitest for frontend, Go test for backend)
-- Update documentation for API changes
-- Ensure Docker builds pass before submitting PR
+- Follow the existing code style (Prettier + ESLint for frontend, `gofmt` + `staticcheck` for backend)
+- Write tests for new features (Vitest for frontend, `go test -race` for backend)
+- Update both SDKs (Go + TypeScript) for API changes
+- Ensure `npm run build` + `make test` pass before submitting PR
+- Never use `as any` or `@ts-ignore` — maintain strict TypeScript coverage
 
 ---
 
@@ -609,10 +832,9 @@ This project is licensed under the [MIT License](LICENSE).
 <br/>
 
 <p align="center">
-  <a href="https://github.com/Shinmen007/DRA/stargazers">⭐ Star this repo</a> •
-  <a href="https://github.com/Shinmen007/DRA/issues">🐛 Report Bug</a> •
-  <a href="https://github.com/Shinmen007/DRA/issues">💡 Request Feature</a> •
-  <a href="https://github.com/Shinmen007/DRA/discussions">💬 Discussions</a>
+  <a href="https://github.com/shinmentakezo07/owsiwa/stargazers">⭐ Star this repo</a> •
+  <a href="https://github.com/shinmentakezo07/owsiwa/issues">🐛 Report Bug</a> •
+  <a href="https://github.com/shinmentakezo07/owsiwa/issues">💡 Request Feature</a>
 </p>
 
 <br/>
