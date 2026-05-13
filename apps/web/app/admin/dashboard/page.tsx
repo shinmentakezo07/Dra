@@ -1,270 +1,195 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
-import {
-  Users,
-  DollarSign,
-  Activity,
-  Server,
-  TrendingUp,
-  TrendingDown,
-  Loader2,
-  Eye,
-  Search,
-  Key,
-  AlertTriangle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { DashboardStats, AdminUserDetail } from "@/types/admin";
+import {
+  Users, DollarSign, Activity, Server, TrendingUp,
+  Eye, ArrowRight, Loader2, AlertTriangle,
+} from "lucide-react";
 import Link from "next/link";
 
-interface StatCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  trend?: "up" | "down";
-  trendLabel?: string;
-}
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
 
-function StatCard({ title, value, icon, trend, trendLabel }: StatCardProps) {
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1, y: 0,
+    transition: { type: "spring" as const, stiffness: 100, damping: 20 },
+  },
+};
+
+function StatCard({ icon: Icon, label, value, trend, sub }: {
+  icon: typeof Users; label: string; value: string; trend?: string; sub?: string;
+}) {
   return (
-    <div className="rounded-xl border border-white/5 bg-white/5 p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
-            {icon}
+    <motion.div
+      variants={itemVariants}
+      className="rounded-[24px] bg-black/40 backdrop-blur-xl border border-white/[0.05] p-6 relative overflow-hidden group"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center ring-1 ring-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+            <Icon className="w-6 h-6 text-blue-400" />
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-wider text-white/50">
-              {title}
-            </p>
-            <p className="text-2xl font-bold text-white">{value}</p>
-          </div>
-        </div>
-        {trend && (
-          <div
-            className={cn(
-              "flex items-center gap-1 text-xs",
-              trend === "up" ? "text-green-400" : "text-red-400",
-            )}
-          >
-            {trend === "up" ? (
-              <TrendingUp className="h-3 w-3" />
-            ) : (
-              <TrendingDown className="h-3 w-3" />
-            )}
-            {trendLabel && <span>{trendLabel}</span>}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function UsersTable({ users }: { users: AdminUserDetail[] }) {
-  return (
-    <div className="rounded-xl border border-white/5 bg-white/5 p-4">
-      <h3 className="mb-3 text-sm font-semibold text-white">Recent Users</h3>
-      <div className="overflow-hidden rounded-lg border border-white/5">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-white/5 bg-white/[0.02] text-xs uppercase tracking-wider text-white/40">
-              <th className="px-3 py-2 font-medium">Name</th>
-              <th className="px-3 py-2 font-medium">Email</th>
-              <th className="px-3 py-2 font-medium">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-white/5 last:border-0">
-                <td className="px-3 py-2 text-white">{user.name}</td>
-                <td className="px-3 py-2 text-white/60">{user.email}</td>
-                <td className="px-3 py-2">
-                  <span className="rounded-md bg-white/5 px-2 py-0.5 text-xs capitalize text-white/50">
-                    {user.role}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function ProviderHealth({ providers }: { providers: DashboardStats["providers"] }) {
-  const items = [
-    { label: "Healthy", count: providers.healthy, color: "text-green-400" },
-    { label: "Degraded", count: providers.degraded, color: "text-yellow-400" },
-    { label: "Down", count: providers.down, color: "text-red-400" },
-  ];
-
-  return (
-    <div className="rounded-xl border border-white/5 bg-white/5 p-4">
-      <h3 className="mb-3 text-sm font-semibold text-white">Provider Health</h3>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2">
-            <span className="text-sm text-white/70">{item.label}</span>
-            <span className={cn("text-sm font-semibold", item.color)}>
-              {item.count}
+          {trend && (
+            <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-green-400/70 bg-green-500/10 rounded-full px-2.5 py-1">
+              {trend}
             </span>
-          </div>
-        ))}
-        <div className="mt-3">
-          <div className="flex h-2 overflow-hidden rounded-full bg-white/5">
-            <div
-              className="h-full rounded-full bg-green-500 transition-all"
-              style={{ width: `${(providers.healthy / Math.max(providers.total, 1)) * 100}%` }}
-            />
-            <div
-              className="h-full rounded-full bg-yellow-500 transition-all"
-              style={{ width: `${(providers.degraded / Math.max(providers.total, 1)) * 100}%` }}
-            />
-            <div
-              className="h-full rounded-full bg-red-500 transition-all"
-              style={{ width: `${(providers.down / Math.max(providers.total, 1)) * 100}%` }}
-            />
-          </div>
+          )}
         </div>
+        <p className="text-3xl font-bold text-white tabular-nums tracking-tight">{value}</p>
+        <p className="text-xs font-mono font-bold tracking-widest uppercase text-blue-400/50 mt-1.5">{label}</p>
+        {sub && <p className="text-xs text-white/20 mt-0.5">{sub}</p>}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 export default function AdminDashboardPage() {
-  const {
-    data: stats,
-    isLoading: statsLoading,
-    error: statsError,
-    dataUpdatedAt: statsUpdatedAt,
-  } = useQuery<DashboardStats>({
+  const { data: stats, isLoading, error } = useQuery<DashboardStats>({
     queryKey: ["admin", "dashboard"],
     queryFn: () => getAdminSDK().getDashboard(),
     refetchInterval: 30000,
   });
 
-  const {
-    data: usersPage,
-    isLoading: usersLoading,
-  } = useQuery({
+  const { data: usersData } = useQuery({
     queryKey: ["admin", "users", "recent"],
     queryFn: () => getAdminSDK().listUsers({ limit: 5 }),
-    refetchInterval: 30000,
   });
 
-  if (statsLoading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
-  if (statsError || !stats) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2 text-red-400">
-          <AlertTriangle className="h-5 w-5" />
-          <span>
-            {statsError instanceof Error ? statsError.message : "Failed to load dashboard data"}
-          </span>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+          <p className="text-sm text-white/30 font-mono tracking-wider">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const lastUpdated = statsUpdatedAt
-    ? new Date(statsUpdatedAt).toLocaleTimeString()
-    : null;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex items-center gap-3 text-red-400/80">
+          <AlertTriangle className="w-5 h-5" />
+          <p className="text-sm">Failed to load dashboard data</p>
+        </div>
+      </div>
+    );
+  }
+
+  const s = stats!;
 
   return (
-    <div className="bg-[#050505] min-h-screen p-6">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-white/50">Platform overview</p>
-        </div>
-        {lastUpdated && (
-          <span className="text-xs text-white/30">Updated {lastUpdated}</span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Users"
-          value={stats.users.total.toLocaleString()}
-          icon={<Users className="h-5 w-5" />}
-          trend="up"
-          trendLabel={`+${stats.users.newToday} today`}
-        />
-        <StatCard
-          title="Requests Today"
-          value={stats.requests.totalToday.toLocaleString()}
-          icon={<Activity className="h-5 w-5" />}
-          trendLabel={`${stats.requests.avgLatencyMs}ms avg`}
-        />
-        <StatCard
-          title="Revenue Today"
-          value={`$${(stats.revenue.todayCents / 100).toFixed(2)}`}
-          icon={<DollarSign className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Active Providers"
-          value={`${stats.providers.healthy}/${stats.providers.total}`}
-          icon={<Server className="h-5 w-5" />}
-          trend={stats.providers.degraded > 0 ? "down" : "up"}
-          trendLabel={
-            stats.providers.degraded > 0
-              ? `${stats.providers.degraded} degraded`
-              : "all healthy"
-          }
-        />
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {usersLoading ? (
-          <div className="flex items-center justify-center rounded-xl border border-white/5 bg-white/5 p-4 min-h-[200px]">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants}>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+            <p className="text-sm text-white/30 mt-1 font-mono tracking-wide">
+              Platform overview · {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            </p>
           </div>
-        ) : (
-          <UsersTable users={usersPage?.data ?? []} />
-        )}
-        <ProviderHealth providers={stats.providers} />
-      </div>
+          <span className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-blue-400/50 bg-blue-500/10 rounded-full border border-blue-500/30 px-3 py-1.5">
+            Live
+          </span>
+        </div>
+      </motion.div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Link
-          href="/admin/users"
-          className="flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          <Users className="h-4 w-4" />
-          Manage Users
-        </Link>
-        <Link
-          href="/admin/providers"
-          className="flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          <Server className="h-4 w-4" />
-          View Providers
-        </Link>
-        <Link
-          href="/admin/models"
-          className="flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          <Search className="h-4 w-4" />
-          Browse Models
-        </Link>
-        <Link
-          href="/admin/billing"
-          className="flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          <DollarSign className="h-4 w-4" />
-          Billing
-        </Link>
+      {/* Stats Grid */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatCard icon={Users} label="Total Users" value={s.users.total.toLocaleString()} sub={`${s.users.newToday} new today`} />
+        <StatCard icon={Activity} label="Requests Today" value={s.requests.totalToday.toLocaleString()} sub={`${s.requests.avgLatencyMs.toFixed(0)}ms avg latency`} />
+        <StatCard icon={DollarSign} label="Revenue Today" value={`$${(s.revenue.todayCents / 100).toFixed(2)}`} sub={`$${(s.revenue.monthCents / 100).toFixed(2)} this month`} />
+        <StatCard icon={Server} label="Providers" value={`${s.providers.healthy}/${s.providers.total}`} sub={`${s.providers.degraded} degraded`} />
+      </motion.div>
+
+      {/* Recent Users + Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Recent Users */}
+        <motion.div variants={itemVariants} className="lg:col-span-2 rounded-[24px] bg-black/40 backdrop-blur-xl border border-white/[0.05] p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">Recent Users</h2>
+              <p className="text-xs text-white/20 mt-0.5 font-mono">Latest registered accounts</p>
+            </div>
+            <Link
+              href="/admin/users"
+              className="text-xs font-mono font-bold tracking-wider text-blue-400/60 hover:text-blue-400 transition-colors flex items-center gap-1.5"
+            >
+              View All <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="space-y-1">
+            {usersData?.data?.slice(0, 4).map((user: AdminUserDetail, i: number) => (
+              <motion.div
+                key={user.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0, transition: { delay: i * 0.05 } }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[14px] hover:bg-white/[0.02] transition-colors group"
+              >
+                <div className="w-8 h-8 rounded-[10px] bg-blue-500/10 flex items-center justify-center ring-1 ring-blue-500/10">
+                  <Users className="w-4 h-4 text-blue-400/70" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white/70 truncate font-medium">{user.name}</p>
+                  <p className="text-xs text-white/20 truncate">{user.email}</p>
+                </div>
+                <span className="text-[9px] font-mono font-bold tracking-wider uppercase text-white/20 bg-white/5 rounded-full px-2 py-0.5">
+                  {user.role}
+                </span>
+                <span className="text-[9px] font-mono text-white/20">
+                  {new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+              </motion.div>
+            ))}
+            {(!usersData?.data || usersData.data.length === 0) && (
+              <p className="text-sm text-white/20 text-center py-6">No users yet</p>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div variants={itemVariants} className="rounded-[24px] bg-black/40 backdrop-blur-xl border border-white/[0.05] p-6">
+          <h2 className="text-base font-bold text-white tracking-tight mb-5">Quick Actions</h2>
+          <div className="space-y-2">
+            {[
+              { href: "/admin/users", label: "Manage Users", icon: Users },
+              { href: "/admin/providers", label: "View Providers", icon: Server },
+              { href: "/admin/models", label: "Browse Models", icon: Activity },
+              { href: "/admin/billing", label: "Billing", icon: DollarSign },
+            ].map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[14px] hover:bg-white/[0.03] transition-all duration-200 group"
+              >
+                <div className="w-9 h-9 rounded-[10px] bg-blue-500/10 flex items-center justify-center ring-1 ring-blue-500/10 group-hover:scale-110 transition-transform duration-300">
+                  <action.icon className="w-4 h-4 text-blue-400/70 group-hover:text-blue-400" />
+                </div>
+                <span className="flex-1 text-sm text-white/50 group-hover:text-white/70 transition-colors font-medium">{action.label}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-white/10 group-hover:text-blue-400/50 transition-colors" />
+              </Link>
+            ))}
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
