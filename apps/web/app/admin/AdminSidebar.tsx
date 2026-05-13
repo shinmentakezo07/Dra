@@ -112,15 +112,21 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-white/[0.05] relative">
         {collapsed ? (
-          <span className="text-blue-400 font-bold text-lg mx-auto tracking-tight">A</span>
+          <div className="mx-auto relative w-9 h-9 flex items-center justify-center bg-black border border-blue-500/30 rounded-lg overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f610_1px,transparent_1px),linear-gradient(to_bottom,#3b82f610_1px,transparent_1px)] bg-[size:4px_4px]" />
+            <span className="relative z-10 text-blue-400 font-black text-xl italic drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]">P</span>
+          </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <span className="text-white font-bold text-sm">A</span>
+          <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10 flex items-center justify-center bg-black border border-blue-500/30 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f610_1px,transparent_1px),linear-gradient(to_bottom,#3b82f610_1px,transparent_1px)] bg-[size:4px_4px]" />
+              <span className="relative z-10 text-blue-400 font-black text-2xl italic drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]">P</span>
             </div>
             <div>
-              <span className="text-white font-semibold text-base tracking-tight">Admin</span>
-              <span className="block text-[10px] font-mono text-blue-400/60 tracking-widest uppercase">Control Panel</span>
+              <h1 className="text-xl font-black tracking-tighter text-white uppercase italic" style={{ textShadow: "2px 2px 0px rgba(59, 130, 246, 0.3)" }}>
+                YAPAPA
+              </h1>
+              <span className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase text-blue-400/50">Admin Panel</span>
             </div>
           </div>
         )}
