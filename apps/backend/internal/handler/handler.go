@@ -109,6 +109,11 @@ func (h *Handler) SetLLMCache(c cache.Cache) {
 	h.llmCache = c
 }
 
+// SetAdminService sets the admin service for admin panel endpoints.
+func (h *Handler) SetAdminService(s *service.AdminService) {
+	h.adminSvc = s
+}
+
 // SetEmailSender sets the email sender.
 func (h *Handler) SetEmailSender(s email.Sender) {
 	h.emailSender = s

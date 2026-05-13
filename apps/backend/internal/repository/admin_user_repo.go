@@ -37,7 +37,7 @@ func (r *AdminUserRepo) ListUsers(ctx context.Context, f domain.UserFilter) ([]d
 		return nil, 0, fmt.Errorf("count: %w", err)
 	}
 
-	q := fmt.Sprintf(`SELECT u.id,u.name,u.email,u.role,COALESCE(u.status,'active'),u.CreatedAt,u.last_login_at,COALESCE(u.last_login_ip,''),COALESCE(u.notes,''),COALESCE(u.tags,'{}') FROM users u %s ORDER BY u.CreatedAt DESC LIMIT $%d OFFSET $%d`, w, n, n+1)
+	q := fmt.Sprintf(`SELECT u.id,u.name,u.email,u.role,COALESCE(u.status,'active'),u.created_at,u.last_login_at,COALESCE(u.last_login_ip,''),COALESCE(u.notes,''),COALESCE(u.tags,'{}') FROM users u %s ORDER BY u.created_at DESC LIMIT $%d OFFSET $%d`, w, n, n+1)
 	rows, err := r.db.Pool.Query(ctx, q, append(args, f.Limit, offset)...)
 	if err != nil { return nil, 0, fmt.Errorf("query: %w", err) }
 	defer rows.Close()

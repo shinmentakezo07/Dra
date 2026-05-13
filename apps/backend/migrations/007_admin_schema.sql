@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS provider_key_usage_logs (
   id BIGSERIAL,
   key_id UUID NOT NULL REFERENCES provider_keys(id) ON DELETE CASCADE,
   provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
-  request_id TEXT NOT NULL UNIQUE,
+  request_id TEXT NOT NULL,
   user_id TEXT NOT NULL DEFAULT '',
   model TEXT NOT NULL DEFAULT '',
   tokens INT NOT NULL DEFAULT 0,
@@ -96,6 +96,8 @@ CREATE TABLE IF NOT EXISTS provider_key_usage_logs (
   cost INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 ) PARTITION BY RANGE (created_at);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_usage_request_id ON provider_key_usage_logs(request_id, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_pk_usage_key_id ON provider_key_usage_logs(key_id);
 CREATE INDEX IF NOT EXISTS idx_pk_usage_provider_id ON provider_key_usage_logs(provider_id);
@@ -167,12 +169,12 @@ CREATE INDEX IF NOT EXISTS idx_model_aliases_active ON model_aliases(is_active);
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS credit_adjustments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   amount INT NOT NULL,
   balance_before INT NOT NULL DEFAULT 0,
   balance_after INT NOT NULL DEFAULT 0,
   reason TEXT NOT NULL,
-  admin_id TEXT NOT NULL REFERENCES users(id),
+  admin_id UUID NOT NULL REFERENCES users(id),
   reference_id TEXT DEFAULT '',
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -187,7 +189,7 @@ CREATE TABLE IF NOT EXISTS usage_records (
   user_id TEXT NOT NULL,
   api_key_id TEXT DEFAULT '',
   provider_id UUID REFERENCES providers(id),
-  request_id TEXT NOT NULL UNIQUE,
+  request_id TEXT NOT NULL,
   model TEXT NOT NULL DEFAULT '',
   tokens INT NOT NULL DEFAULT 0,
   cost INT NOT NULL DEFAULT 0,
@@ -198,6 +200,7 @@ CREATE TABLE IF NOT EXISTS usage_records (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 ) PARTITION BY RANGE (created_at);
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_usage_records_request_id ON usage_records(request_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_usage_records_user ON usage_records(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_usage_records_provider ON usage_records(provider_id, created_at DESC);
 
@@ -276,11 +279,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action, created_a
 -- Admin Users
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS admin_users (
-  user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   role TEXT NOT NULL DEFAULT 'admin',
   permissions TEXT[] DEFAULT '{}',
   is_active BOOLEAN NOT NULL DEFAULT true,
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -361,8 +364,8 @@ CREATE INDEX IF NOT EXISTS idx_suspicious_reviewed ON suspicious_activities(revi
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS admin_impersonations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  admin_id TEXT NOT NULL REFERENCES users(id),
-  target_user_id TEXT NOT NULL REFERENCES users(id),
+  admin_id UUID NOT NULL REFERENCES users(id),
+  target_user_id UUID NOT NULL REFERENCES users(id),
   reason TEXT NOT NULL DEFAULT '',
   started_at TIMESTAMP NOT NULL DEFAULT NOW(),
   ended_at TIMESTAMP
@@ -382,7 +385,7 @@ CREATE TABLE IF NOT EXISTS announcements (
   ends_at TIMESTAMP,
   show_in_app BOOLEAN NOT NULL DEFAULT true,
   send_email BOOLEAN NOT NULL DEFAULT false,
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -400,7 +403,7 @@ CREATE TABLE IF NOT EXISTS promo_codes (
   min_purchase INT NOT NULL DEFAULT 0,
   expires_at TIMESTAMP,
   is_active BOOLEAN NOT NULL DEFAULT true,
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -412,7 +415,7 @@ CREATE INDEX IF NOT EXISTS idx_promo_codes_active ON promo_codes(is_active, expi
 CREATE TABLE IF NOT EXISTS promo_redemptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   promo_id UUID NOT NULL REFERENCES promo_codes(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   discount INT NOT NULL DEFAULT 0,
   credits_awarded INT NOT NULL DEFAULT 0,
   redeemed_at TIMESTAMP DEFAULT NOW()
@@ -446,14 +449,14 @@ CREATE TABLE IF NOT EXISTS user_groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL UNIQUE,
   description TEXT DEFAULT '',
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS user_group_members (
   group_id UUID NOT NULL REFERENCES user_groups(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   PRIMARY KEY (group_id, user_id)
 );
 
@@ -493,7 +496,7 @@ CREATE TABLE IF NOT EXISTS api_changelog (
   type TEXT NOT NULL,
   published_at TIMESTAMP,
   is_draft BOOLEAN NOT NULL DEFAULT true,
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -561,7 +564,7 @@ CREATE TABLE IF NOT EXISTS provider_ab_tests (
   status TEXT NOT NULL DEFAULT 'running',
   criteria JSONB DEFAULT '{}',
   winner UUID REFERENCES providers(id),
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -578,8 +581,8 @@ CREATE TABLE IF NOT EXISTS provider_sla (
 
 CREATE TABLE IF NOT EXISTS data_exports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL REFERENCES users(id),
-  requested_by TEXT NOT NULL REFERENCES users(id),
+  user_id UUID NOT NULL REFERENCES users(id),
+  requested_by UUID NOT NULL REFERENCES users(id),
   reason TEXT DEFAULT '',
   format TEXT NOT NULL DEFAULT 'json',
   status TEXT NOT NULL DEFAULT 'pending',
@@ -601,7 +604,7 @@ CREATE TABLE IF NOT EXISTS model_benchmarks (
   prompt_hash TEXT NOT NULL,
   prompt_text TEXT NOT NULL,
   results JSONB NOT NULL DEFAULT '{}',
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -634,7 +637,7 @@ CREATE TABLE IF NOT EXISTS webhook_tests (
   sample_payload JSONB DEFAULT '{}',
   target_url TEXT NOT NULL,
   response_status INT,
-  created_by TEXT NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -659,7 +662,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_ip TEXT DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
-ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_by TEXT REFERENCES users(id);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_by UUID REFERENCES users(id);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
 
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);

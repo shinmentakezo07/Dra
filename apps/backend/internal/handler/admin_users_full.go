@@ -109,7 +109,26 @@ func (h *Handler) AdminBulkSuspendUsers(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) AdminListAdminUsers(w http.ResponseWriter, r *http.Request) {
-	response.OK(w, []domain.AdminUser{})
+	rows, err := h.db.Pool.Query(r.Context(), `
+		SELECT au.user_id, au.role, au.permissions, COALESCE(au.is_active,true), 
+		       COALESCE(au.created_by::text,''), au.created_at, COALESCE(au.updated_at, au.created_at)
+		FROM admin_users au JOIN users u ON u.id = au.user_id
+		WHERE au.is_active = true ORDER BY au.created_at`)
+	if err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	defer rows.Close()
+	var admins []domain.AdminUser
+	for rows.Next() {
+		var a domain.AdminUser
+		if err := rows.Scan(&a.UserID, &a.Role, &a.Permissions, &a.IsActive,
+			&a.CreatedBy, &a.CreatedAt, &a.UpdatedAt); err != nil {
+			continue
+		}
+		admins = append(admins, a)
+	}
+	response.OK(w, admins)
 }
 
 func (h *Handler) AdminCreateAdminUser(w http.ResponseWriter, r *http.Request) {
@@ -121,10 +140,35 @@ func (h *Handler) AdminCreateAdminUser(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "Invalid body")
 		return
 	}
+	if req.UserID == "" {
+		response.Error(w, 400, "userId required")
+		return
+	}
+	if req.Role == "" {
+		req.Role = "admin"
+	}
+	_, err := h.db.Pool.Exec(r.Context(), `
+		INSERT INTO admin_users (user_id, role, permissions, is_active, created_by)
+		VALUES ($1, $2, '{}', true, $3) ON CONFLICT (user_id) DO UPDATE SET role=$2, is_active=true`,
+		req.UserID, req.Role, "")
+	if err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, map[string]string{"status": "created", "userId": req.UserID})
 }
 
 func (h *Handler) AdminRemoveAdmin(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	tag, err := h.db.Pool.Exec(r.Context(), `DELETE FROM admin_users WHERE user_id=$1`, id)
+	if err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	if tag.RowsAffected() == 0 {
+		response.Error(w, 404, "Admin not found")
+		return
+	}
 	response.OK(w, map[string]string{"status": "removed"})
 }
 

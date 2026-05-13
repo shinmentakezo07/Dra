@@ -301,6 +301,20 @@ func main() {
 	webhookSvc := service.NewWebhookService(repository.NewWebhookRepo(database))
 	orgSvc := service.NewOrganizationService(repository.NewOrganizationRepo(database), userRepo)
 
+	// Admin service
+	adminUserRepo := repository.NewAdminUserRepo(database)
+	adminProviderRepo := repository.NewAdminProviderRepo(database)
+	adminModelRepo := repository.NewAdminModelRepo(database)
+	adminBillingRepo := repository.NewAdminBillingRepo(database)
+	adminSettingsRepo := repository.NewAdminSettingsRepo(database)
+	adminAuditRepo := repository.NewAdminAuditRepo(database)
+	adminSecurityRepo := repository.NewAdminSecurityRepo(database)
+	adminFeaturesRepo := repository.NewAdminFeaturesRepo(database)
+	adminAuditSvc := service.NewAuditService(adminAuditRepo, 1000)
+	adminSvc := service.NewAdminService(adminUserRepo, adminProviderRepo, adminModelRepo,
+		adminBillingRepo, adminSettingsRepo, adminAuditRepo,
+		adminSecurityRepo, adminFeaturesRepo, adminAuditSvc)
+
 	// Stripe service
 	stripeRepo := repository.NewStripeRepo(database)
 	stripeSvc := service.NewStripeService(cfg.StripeSecretKey, cfg.StripeWebhookSecret, userRepo, creditsRepo, txRepo, stripeRepo)
@@ -320,6 +334,7 @@ func main() {
 	h.SetSemanticCache(semanticCache)
 	h.SetABRouter(abRouter)
 	h.SetLLMCache(llmCache)
+	h.SetAdminService(adminSvc)
 
 	// Batch service needs the handler's chat function; wire after handler creation
 	batchRepo := repository.NewBatchJobRepo(database)
@@ -447,11 +462,12 @@ func main() {
 		r.Post("/auth/reset-password", h.ResetPassword)
 	})
 
-	// OpenAI-compatible proxy routes (auth + quota enforced)
+	// OpenAI & Anthropic-compatible proxy routes (auth + quota enforced)
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
 		r.Use(quotaMW)
 		r.Post("/v1/chat/completions", h.OpenAIChatCompletions)
+		r.Post("/v1/messages", h.AnthropicMessages)
 		r.Post("/v1/embeddings", h.OpenAIEmbeddings)
 		r.Get("/v1/models", h.OpenAIListModels)
 	})
