@@ -319,6 +319,7 @@ func main() {
 	h.SetDedupCache(dedupCache)
 	h.SetSemanticCache(semanticCache)
 	h.SetABRouter(abRouter)
+	h.SetLLMCache(llmCache)
 
 	// Batch service needs the handler's chat function; wire after handler creation
 	batchRepo := repository.NewBatchJobRepo(database)
@@ -535,8 +536,104 @@ func main() {
 	// Admin routes
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
+
+		// Dashboard
+		r.Get("/api/admin/dashboard", appmiddleware.RequireAdmin(h.AdminUpdateDashboard))
+
+		// Users
 		r.Get("/api/admin/users", appmiddleware.RequireAdmin(h.AdminListUsers))
+		r.Get("/api/admin/users/{id}", appmiddleware.RequireAdmin(h.AdminGetUserDetail))
+		r.Put("/api/admin/users/{id}/status", appmiddleware.RequireAdmin(h.AdminUpdateUserStatus))
+		r.Put("/api/admin/users/{id}/role", appmiddleware.RequireAdmin(h.AdminUpdateUserRole))
 		r.Delete("/api/admin/users/{id}", appmiddleware.RequireAdmin(h.AdminDeleteUser))
+		r.Post("/api/admin/users/{id}/impersonate", appmiddleware.RequireAdmin(h.AdminStartImpersonation))
+		r.Post("/api/admin/impersonations/{id}/stop", appmiddleware.RequireAdmin(h.AdminStopImpersonation))
+		r.Post("/api/admin/users/bulk/suspend", appmiddleware.RequireAdmin(h.AdminBulkSuspendUsers))
+		r.Get("/api/admin/users/{id}/keys", appmiddleware.RequireAdmin(h.AdminListUserKeys))
+		r.Get("/api/admin/users/{id}/usage", appmiddleware.RequireAdmin(h.AdminListUserUsage))
+
+		// Providers
+		r.Get("/api/admin/providers", appmiddleware.RequireAdmin(h.AdminListProviders))
+		r.Post("/api/admin/providers", appmiddleware.RequireAdmin(h.AdminCreateProvider))
+		r.Get("/api/admin/providers/{id}", appmiddleware.RequireAdmin(h.AdminGetProvider))
+		r.Put("/api/admin/providers/{id}", appmiddleware.RequireAdmin(h.AdminUpdateProvider))
+		r.Put("/api/admin/providers/{id}/status", appmiddleware.RequireAdmin(h.AdminUpdateProviderStatus))
+		r.Get("/api/admin/providers/{id}/keys", appmiddleware.RequireAdmin(h.AdminListProviderKeys))
+		r.Post("/api/admin/providers/{id}/keys", appmiddleware.RequireAdmin(h.AdminAddProviderKey))
+		r.Delete("/api/admin/providers/{id}/keys/{keyId}", appmiddleware.RequireAdmin(h.AdminDeleteProviderKey))
+		r.Put("/api/admin/providers/{id}/keys/reorder", appmiddleware.RequireAdmin(h.AdminReorderProviderKeys))
+
+		// Models
+		r.Get("/api/admin/models", appmiddleware.RequireAdmin(h.AdminListModels))
+		r.Post("/api/admin/models", appmiddleware.RequireAdmin(h.AdminCreateModel))
+		r.Put("/api/admin/models/{id}/status", appmiddleware.RequireAdmin(h.AdminUpdateModelStatus))
+		r.Get("/api/admin/aliases", appmiddleware.RequireAdmin(h.AdminListAliases))
+		r.Post("/api/admin/aliases", appmiddleware.RequireAdmin(h.AdminCreateAlias))
+		r.Delete("/api/admin/aliases/{id}", appmiddleware.RequireAdmin(h.AdminDeleteAlias))
+
+		// Billing
+		r.Get("/api/admin/billing/summary", appmiddleware.RequireAdmin(h.AdminRevenueSummary))
+		r.Get("/api/admin/billing/transactions", appmiddleware.RequireAdmin(h.AdminListTransactions))
+		r.Post("/api/admin/billing/credits/adjust", appmiddleware.RequireAdmin(h.AdminAdjustCredits))
+		r.Get("/api/admin/billing/usage-daily", appmiddleware.RequireAdmin(h.AdminUsageDaily))
+
+		// Settings
+		r.Get("/api/admin/settings", appmiddleware.RequireAdmin(h.AdminListSettings))
+		r.Put("/api/admin/settings/{key}", appmiddleware.RequireAdmin(h.AdminUpdateSetting))
+		r.Get("/api/admin/feature-flags", appmiddleware.RequireAdmin(h.AdminListFeatureFlags))
+		r.Post("/api/admin/feature-flags", appmiddleware.RequireAdmin(h.AdminCreateFeatureFlag))
+		r.Put("/api/admin/feature-flags/{id}", appmiddleware.RequireAdmin(h.AdminToggleFeatureFlag))
+
+		// Security
+		r.Get("/api/admin/security/suspicious", appmiddleware.RequireAdmin(h.AdminListSuspicious))
+		r.Put("/api/admin/security/suspicious/{id}", appmiddleware.RequireAdmin(h.AdminReviewSuspicious))
+		r.Get("/api/admin/ip", appmiddleware.RequireAdmin(h.AdminListIPEntries))
+		r.Post("/api/admin/ip", appmiddleware.RequireAdmin(h.AdminAddIPEntry))
+		r.Delete("/api/admin/ip/{id}", appmiddleware.RequireAdmin(h.AdminRemoveIPEntry))
+		r.Get("/api/admin/logs/ip-access", appmiddleware.RequireAdmin(h.AdminListIPAccessLogs))
+
+		// Audit
+		r.Get("/api/admin/audit", appmiddleware.RequireAdmin(h.AdminListAuditLogs))
+
+		// Announcements
+		r.Get("/api/admin/announcements", appmiddleware.RequireAdmin(h.AdminListAnnouncements))
+		r.Post("/api/admin/announcements", appmiddleware.RequireAdmin(h.AdminCreateAnnouncement))
+
+		// Promo codes
+		r.Get("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminListPromoCodes))
+		r.Post("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminCreatePromoCode))
+		r.Get("/api/admin/promos/{id}/redemptions", appmiddleware.RequireAdmin(h.AdminListPromoRedemptions))
+
+		// Groups
+		r.Get("/api/admin/groups", appmiddleware.RequireAdmin(h.AdminListGroups))
+		r.Post("/api/admin/groups", appmiddleware.RequireAdmin(h.AdminCreateGroup))
+
+		// Reports & Changelog
+		r.Get("/api/admin/reports", appmiddleware.RequireAdmin(h.AdminListScheduledReports))
+		r.Get("/api/admin/changelog", appmiddleware.RequireAdmin(h.AdminListChangelog))
+		r.Post("/api/admin/changelog", appmiddleware.RequireAdmin(h.AdminCreateChangelog))
+		r.Post("/api/admin/changelog/{id}/publish", appmiddleware.RequireAdmin(h.AdminPublishChangelog))
+
+		// Admins
+		r.Get("/api/admin/admins", appmiddleware.RequireAdmin(h.AdminListAdminUsers))
+		r.Post("/api/admin/admins", appmiddleware.RequireAdmin(h.AdminCreateAdminUser))
+		r.Delete("/api/admin/admins/{id}", appmiddleware.RequireAdmin(h.AdminRemoveAdmin))
+
+		// SSO
+		r.Get("/api/admin/sso", appmiddleware.RequireAdmin(h.AdminListSSOConfigs))
+
+		// Cost Intelligence
+		r.Get("/api/admin/cost/optimizations", appmiddleware.RequireAdmin(h.AdminListOptimizations))
+		r.Get("/api/admin/cost/forecast", appmiddleware.RequireAdmin(h.AdminGetForecast))
+		r.Get("/api/admin/cost/breakdown", appmiddleware.RequireAdmin(h.AdminCostBreakdown))
+
+		// Operations
+		r.Get("/api/admin/cache/stats", appmiddleware.RequireAdmin(h.AdminCacheStats))
+		r.Post("/api/admin/cache/clear", appmiddleware.RequireAdmin(h.AdminClearCache))
+		r.Get("/api/admin/webhooks/logs", appmiddleware.RequireAdmin(h.AdminListWebhookLogs))
+		r.Post("/api/admin/webhooks/{id}/retry", appmiddleware.RequireAdmin(h.AdminRetryWebhook))
+
+		// Existing
 		r.Get("/api/admin/stats", appmiddleware.RequireAdmin(h.AdminStats))
 		r.Get("/api/admin/circuit-breakers", appmiddleware.RequireAdmin(h.AdminCircuitBreakers))
 		r.Get("/api/admin/provider-health", appmiddleware.RequireAdmin(h.ProviderHealth))

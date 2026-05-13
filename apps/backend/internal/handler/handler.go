@@ -52,6 +52,7 @@ type Handler struct {
 	budgetRouter    *router.BudgetRouter
 	dedupCache      *cache.DedupCache
 	semanticCache   *cache.SemanticCache
+	llmCache        cache.Cache
 	abRouter        *router.ABRouter
 	emailSender     email.Sender
 	stripeSvc       *service.StripeService
@@ -101,6 +102,11 @@ func (h *Handler) SetSemanticCache(s *cache.SemanticCache) {
 // SetABRouter sets the A/B test router.
 func (h *Handler) SetABRouter(ab *router.ABRouter) {
 	h.abRouter = ab
+}
+
+// SetLLMCache sets the LLM response cache.
+func (h *Handler) SetLLMCache(c cache.Cache) {
+	h.llmCache = c
 }
 
 // SetEmailSender sets the email sender.
@@ -730,30 +736,6 @@ FINISH:
 }
 
 // Admin
-func (h *Handler) AdminListUsers(w http.ResponseWriter, r *http.Request) {
-	page, limit := parsePagination(r)
-	users, total, err := h.userSvc.List(r.Context(), page, limit)
-	if err != nil {
-		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
-		return
-	}
-	response.Paginated(w, users, total, page, limit)
-}
-
-func (h *Handler) AdminDeleteUser(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" { id = r.URL.Query().Get("id") }
-	if id == "" {
-		response.Error(w, 400, "ID required")
-		return
-	}
-	if err := h.userSvc.Delete(r.Context(), id); err != nil {
-		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
-		return
-	}
-	response.OK(w, map[string]bool{"deleted": true})
-}
-
 func (h *Handler) AdminStats(w http.ResponseWriter, r *http.Request) {
 	stats, err := h.analyticsSvc.PlatformStats(r.Context())
 	if err != nil {
