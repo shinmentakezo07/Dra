@@ -57,15 +57,15 @@ Run from `apps/backend/` — Makefile handles Go binary path.
 
 `AUTH_SECRET` must match frontend. Module path: `dra-platform/backend`.
 
-## Dual provider systems
+## `/v1/messages` (Anthropic-compatible proxy)
 
-**Important**: Two provider registries exist — `internal/provider/` (legacy handler endpoints) and `pkg/llm/provider/` (OpenAI-compatible `/v1/*` proxy). New LLM backends must register in BOTH. The `pkg/llm/provider/` is canonical.
+The backend serves `POST /v1/messages` via `internal/handler/anthropic_messages.go`. Accepts Anthropic SDK format, translates to internal `llm.ChatRequest`, and returns Anthropic-format responses. Streaming uses Anthropic SSE events (`message_start`, `content_block_delta`, `message_delta`, `message_stop`). The `pkg/llm/anthropic/` package handles request/response schema and format conversion. Reuses the same auth/quota/billing pipeline as the OpenAI proxy.
 
 ## External packages
 
 | Package | Purpose |
 |---------|---------|
-| `pkg/llm/` | LLM SDK (provider registry, router, cache, pipeline, translator, tools) |
+| `pkg/llm/` | LLM SDK (provider registry, router, cache, pipeline, translator, tools, anthropic format) |
 | `pkg/sdk/` | Typed Go client — mirrors TypeScript SDK |
 | `pkg/email/` | SMTP email sender |
 | `pkg/webhook/` | Outbound webhook delivery with retry |
