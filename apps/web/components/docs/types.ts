@@ -5,3 +5,5 @@ export interface NavItem {
   label: string;
   icon: ElementType;
 }
+
+export type TipVariant = "tip" | "warning" | "critical";
