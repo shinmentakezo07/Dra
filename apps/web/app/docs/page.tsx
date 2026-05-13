@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
   Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, ArrowRight, Book,
+  BarChart3, Lock, Terminal, ArrowRight, Book, Users, Webhook,
 } from "lucide-react";
 
 const containerVariants = {
@@ -35,8 +35,10 @@ const sections = [
   { id: "prompts", label: "Prompt Templates", icon: FileText, desc: "Reusable prompt templates." },
   { id: "batch", label: "Batch API", icon: Layers, desc: "Process multiple requests at once." },
   { id: "files", label: "File Upload", icon: UploadCloud, desc: "Upload images for vision models." },
+  { id: "webhooks", label: "Webhooks", icon: Webhook, desc: "Event-driven outbound webhook delivery." },
   { id: "rate-limits", label: "Rate Limits", icon: Shield, desc: "Usage limits and throttling." },
   { id: "error-handling", label: "Error Handling", icon: AlertTriangle, desc: "Error codes and responses." },
+  { id: "organizations", label: "Organizations", icon: Users, desc: "Multi-user organization management." },
   { id: "models", label: "Available Models", icon: Cpu, desc: "Supported providers and models." },
   { id: "pricing", label: "Pricing & Credits", icon: TrendingUp, desc: "Credit system and costs." },
   { id: "dashboard", label: "Dashboard", icon: BarChart3, desc: "Usage analytics and monitoring." },

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Book, Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
   Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, Search, Menu, X,
+  BarChart3, Lock, Terminal, Search, Menu, Users, Webhook, X,
 } from "lucide-react";
 import { ScrollProgress } from "@/components/docs/ScrollProgress";
 import { SearchModal } from "@/components/docs/SearchModal";
@@ -22,8 +22,10 @@ const navItems: NavItem[] = [
   { id: "prompts", label: "Prompt Templates", icon: FileText },
   { id: "batch", label: "Batch API", icon: Layers },
   { id: "files", label: "File Upload", icon: UploadCloud },
+  { id: "webhooks", label: "Webhooks", icon: Webhook },
   { id: "rate-limits", label: "Rate Limits", icon: Shield },
   { id: "error-handling", label: "Error Handling", icon: AlertTriangle },
+  { id: "organizations", label: "Organizations", icon: Users },
   { id: "models", label: "Available Models", icon: Cpu },
   { id: "pricing", label: "Pricing & Credits", icon: TrendingUp },
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },

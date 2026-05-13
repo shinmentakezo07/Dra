@@ -46,6 +46,52 @@ export default function AuthPage() {
   }'`}
           />
         </div>
+
+        <div className="mt-10">
+          <h3 className="text-white font-semibold mb-3">OAuth Login</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Users can authenticate via OAuth providers. The OAuth endpoint creates or links a user account and returns a session token.
+          </p>
+          <CodeBlock
+            code={`curl ${BASE_URL}/auth/oauth \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "email": "user@example.com",
+    "name": "User Name",
+    "provider": "google"
+  }'`}
+          />
+        </div>
+
+        <div className="mt-10">
+          <h3 className="text-white font-semibold mb-3">Forgot / Reset Password</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Users can request a password reset email and complete the reset with a token. The token is sent via email when SMTP is configured.
+          </p>
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+              <h4 className="text-white font-semibold text-sm mb-2">Request Reset</h4>
+              <p className="text-xs text-muted-foreground mb-2">POST /auth/forgot-password - sends reset link to email</p>
+              <CodeBlock
+                language="json"
+                code={`{
+  "email": "user@example.com"
+}`}
+              />
+            </div>
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+              <h4 className="text-white font-semibold text-sm mb-2">Complete Reset</h4>
+              <p className="text-xs text-muted-foreground mb-2">POST /auth/reset-password - reset password with token</p>
+              <CodeBlock
+                language="json"
+                code={`{
+  "token": "reset-token-from-email",
+  "newPassword": "new-secure-password"
+}`}
+              />
+            </div>
+          </div>
+        </div>
       </Section>
     </motion.div>
   );
