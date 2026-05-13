@@ -336,7 +336,7 @@ export default function AdminUsersPage() {
                 </button>
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                   const pg = i + 1
-  return (<>
+  return (
                     <button
                       key={pg}
                       onClick={() => setPage(pg)}
