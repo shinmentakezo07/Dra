@@ -101,7 +101,7 @@ export default function OrganizationsPage() {
           <ol className="space-y-3 text-sm text-muted-foreground">
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 text-[10px] font-bold font-mono">1</span>
-              <span>Admin calls <code className="text-white/60">POST /api/organizations/{id}/invite</code> with the invitee&apos;s email and role.</span>
+              <span>Admin calls <code className="text-white/60">POST /api/organizations/{'{id}'}/invite</code> with the invitee&apos;s email and role.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 text-[10px] font-bold font-mono">2</span>
