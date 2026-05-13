@@ -10,7 +10,11 @@ import (
 )
 
 // ToInternalRequest converts an Anthropic MessageRequest to the unified llm.ChatRequest.
+// Returns a zero-valued request on nil input to prevent panics.
 func ToInternalRequest(req *MessageRequest) *llm.ChatRequest {
+	if req == nil {
+		return &llm.ChatRequest{}
+	}
 	internal := &llm.ChatRequest{
 		Model:       req.Model,
 		Stream:      req.Stream,
@@ -25,9 +29,11 @@ func ToInternalRequest(req *MessageRequest) *llm.ChatRequest {
 	if len(req.StopSequences) > 0 {
 		internal.StopSequences = req.StopSequences
 	}
-	internal.Messages = make([]llm.Message, len(req.Messages))
-	for i, m := range req.Messages {
-		internal.Messages[i] = toInternalMessage(m)
+	if len(req.Messages) > 0 {
+		internal.Messages = make([]llm.Message, len(req.Messages))
+		for i, m := range req.Messages {
+			internal.Messages[i] = toInternalMessage(m)
+		}
 	}
 	if len(req.Tools) > 0 {
 		internal.Tools = make([]llm.ToolDefinition, len(req.Tools))
@@ -151,7 +157,17 @@ func contentBlockFromMap(b map[string]interface{}) llm.ContentBlock {
 }
 
 // FromInternalResponse converts an internal llm.ChatResponse to an Anthropic MessageResponse.
+// Returns nil on nil input to prevent panics.
 func FromInternalResponse(resp *llm.ChatResponse) *MessageResponse {
+	if resp == nil {
+		return &MessageResponse{
+			ID:   GenerateID(),
+			Type: "message",
+			Role: "assistant",
+			Content: []ResponseBlock{{Type: "text", Text: ""}},
+		}
+	}
+
 	blocks := make([]ResponseBlock, 0)
 
 	for _, c := range resp.Choices {
@@ -248,10 +264,38 @@ func anthropicStopReason(fr llm.FinishReason) string {
 	}
 }
 
+// StreamingState tracks the last emitted content block type for proper event sequencing.
+type StreamingState struct {
+	HasTextBlock     bool
+	HasThinkingBlock bool
+}
+
 // FromInternalStreamChunk converts a unified stream chunk to Anthropic SSE events.
 // A single internal chunk may produce multiple Anthropic events (text + thinking + finish).
-func FromInternalStreamChunk(chunk *llm.StreamChunk) []StreamEvent {
+// The state parameter tracks which content blocks have been started to correctly emit
+// content_block_start / content_block_stop boundaries.
+// Returns empty slice on nil chunk to prevent panics.
+func FromInternalStreamChunk(chunk *llm.StreamChunk, state *StreamingState) []StreamEvent {
+	if chunk == nil {
+		return nil
+	}
+	if state == nil {
+		state = &StreamingState{}
+	}
 	var events []StreamEvent
+
+	// content_block_start for text if not started yet and we have content
+	if chunk.Delta.Content != "" && !state.HasTextBlock {
+		events = append(events, StreamEvent{
+			Type:  "content_block_start",
+			Index: chunk.Index,
+			ContentBlock: &ResponseBlock{
+				Type: "text",
+				Text: "",
+			},
+		})
+		state.HasTextBlock = true
+	}
 
 	if chunk.Delta.Content != "" {
 		events = append(events, StreamEvent{
@@ -262,6 +306,19 @@ func FromInternalStreamChunk(chunk *llm.StreamChunk) []StreamEvent {
 				Text: chunk.Delta.Content,
 			},
 		})
+	}
+
+	// content_block_start for thinking if not started yet
+	if chunk.Thinking != "" && !state.HasThinkingBlock {
+		events = append(events, StreamEvent{
+			Type:  "content_block_start",
+			Index: chunk.Index,
+			ContentBlock: &ResponseBlock{
+				Type:     "thinking",
+				Thinking: "",
+			},
+		})
+		state.HasThinkingBlock = true
 	}
 
 	if chunk.Thinking != "" {
@@ -276,6 +333,19 @@ func FromInternalStreamChunk(chunk *llm.StreamChunk) []StreamEvent {
 	}
 
 	if chunk.FinishReason != nil {
+		// Stop any open content blocks before message_delta
+		if state.HasTextBlock {
+			events = append(events, StreamEvent{
+				Type:  "content_block_stop",
+				Index: chunk.Index,
+			})
+		}
+		if state.HasThinkingBlock {
+			events = append(events, StreamEvent{
+				Type:  "content_block_stop",
+				Index: chunk.Index,
+			})
+		}
 		events = append(events, StreamEvent{
 			Type: "message_delta",
 			Delta: &StreamDelta{
@@ -300,6 +370,7 @@ func anthropicUsage(u *llm.Usage) *Usage {
 	}
 }
 
-func generateID() string {
+// GenerateID creates a unique message ID in Anthropic format.
+func GenerateID() string {
 	return fmt.Sprintf("msg_%d", time.Now().UnixNano())
 }

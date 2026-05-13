@@ -65,7 +65,32 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Content moderation (same as OpenAI proxy)
+	if h.moderator != nil && !isSandbox {
+		for _, m := range req.Messages {
+			var contentStr string
+			if err := json.Unmarshal(m.Content, &contentStr); err == nil && contentStr != "" {
+				modResult, modErr := h.moderator.Moderate(r.Context(), contentStr)
+				if modErr == nil && modResult != nil && modResult.Flagged {
+					logger.Warn("anthropic_content_moderation_flagged", "user_id", userID, "categories", modResult.Categories, "score", modResult.Score)
+					writeAnthropicError(w, http.StatusBadRequest, "invalid_request_error", "Content flagged by moderation policy")
+					return
+				}
+			}
+		}
+	}
+
 	internalReq := anthropic.ToInternalRequest(&req)
+
+	// API key scoping: max tokens per request
+	if apiKey := middleware.GetAPIKey(r); apiKey != nil && apiKey.MaxTokensPerRequest > 0 && !isSandbox {
+		estInput, estOutput := h.providerSvc.EstimateTokens(internalReq.Model, nil)
+		estimatedTokens := estInput + estOutput
+		if estimatedTokens > apiKey.MaxTokensPerRequest {
+			writeAnthropicError(w, http.StatusTooManyRequests, "invalid_request_error", "estimated tokens exceed max allowed per request for this API key")
+			return
+		}
+	}
 
 	if h.modelRouter != nil {
 		span.SetTag("router", "active")
@@ -129,19 +154,24 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	h.handleAnthropicNonStream(w, r, internalReq, userID, apiKeyID, isSandbox)
 }
 
-func (h *Handler) handleAnthropicNonStream(w http.ResponseWriter, r *http.Request, req *llm.ChatRequest, userID string, apiKeyID *string, isSandbox bool) {
-	span := middleware.StartSpan(r.Context(), "anthropic_nonstream")
-	defer span.Finish()
-
-	domainReq := domain.ChatRequest{
+func domainMessagesFromInternal(req *llm.ChatRequest) domain.ChatRequest {
+	dReq := domain.ChatRequest{
 		Model: req.Model,
 	}
 	for _, m := range req.Messages {
-		domainReq.Messages = append(domainReq.Messages, domain.ChatMessage{
+		dReq.Messages = append(dReq.Messages, domain.ChatMessage{
 			Role:    string(m.Role),
 			Content: m.Content,
 		})
 	}
+	return dReq
+}
+
+func (h *Handler) handleAnthropicNonStream(w http.ResponseWriter, r *http.Request, req *llm.ChatRequest, userID string, apiKeyID *string, isSandbox bool) {
+	span := middleware.StartSpan(r.Context(), "anthropic_nonstream")
+	defer span.Finish()
+
+	domainReq := domainMessagesFromInternal(req)
 
 	resp, err := h.providerSvc.Chat(r.Context(), domainReq)
 	if err != nil {
@@ -164,15 +194,7 @@ func (h *Handler) handleAnthropicStream(w http.ResponseWriter, r *http.Request, 
 	span := middleware.StartSpan(r.Context(), "anthropic_stream")
 	defer span.Finish()
 
-	domainReq := domain.ChatRequest{
-		Model: req.Model,
-	}
-	for _, m := range req.Messages {
-		domainReq.Messages = append(domainReq.Messages, domain.ChatMessage{
-			Role:    string(m.Role),
-			Content: m.Content,
-		})
-	}
+	domainReq := domainMessagesFromInternal(req)
 
 	ch, err := h.providerSvc.ChatStream(r.Context(), domainReq)
 	if err != nil {
@@ -189,6 +211,8 @@ func (h *Handler) handleAnthropicStream(w http.ResponseWriter, r *http.Request, 
 	var outputBuf strings.Builder
 	var outputTokens int
 	sentMessageStart := false
+	streamState := &anthropic.StreamingState{}
+	modelForStream := req.Model
 
 	done := r.Context().Done()
 	for {
@@ -200,16 +224,20 @@ func (h *Handler) handleAnthropicStream(w http.ResponseWriter, r *http.Request, 
 
 			// Send message_start on first chunk
 			if !sentMessageStart {
+				msgID := chunk.ID
+				if msgID == "" {
+					msgID = anthropic.GenerateID()
+				}
+				if chunk.Model != "" {
+					modelForStream = chunk.Model
+				}
 				msgStart := anthropic.StreamEvent{
 					Type: "message_start",
 					Message: &anthropic.MessageResponse{
-						ID:    chunk.ID,
+						ID:    msgID,
 						Type:  "message",
 						Role:  "assistant",
-						Model: chunk.Model,
-						Content: []anthropic.ResponseBlock{
-							{Type: "text", Text: ""},
-						},
+						Model: modelForStream,
 					},
 				}
 				data, _ := json.Marshal(msgStart)
@@ -220,16 +248,19 @@ func (h *Handler) handleAnthropicStream(w http.ResponseWriter, r *http.Request, 
 				sentMessageStart = true
 			}
 
+			// Track output for token estimation
 			if chunk.Delta.Content != "" {
 				outputBuf.WriteString(chunk.Delta.Content)
 				outputTokens += llm.EstimateTokens(chunk.Delta.Content)
-				events := anthropic.FromInternalStreamChunk(&chunk)
-				for _, evt := range events {
-					data, _ := json.Marshal(evt)
-					fmt.Fprintf(w, "event: %s\ndata: %s\n\n", evt.Type, data)
-					if ok {
-						flusher.Flush()
-					}
+			}
+
+			// Convert chunk to Anthropic SSE events with proper sequencing
+			events := anthropic.FromInternalStreamChunk(&chunk, streamState)
+			for _, evt := range events {
+				data, _ := json.Marshal(evt)
+				fmt.Fprintf(w, "event: %s\ndata: %s\n\n", evt.Type, data)
+				if ok {
+					flusher.Flush()
 				}
 			}
 
@@ -239,19 +270,20 @@ func (h *Handler) handleAnthropicStream(w http.ResponseWriter, r *http.Request, 
 	}
 
 ANTHROPIC_FINISH:
-	inputTokens := llm.EstimateTokens(outputBuf.String())
-	if inputTokens == 0 {
-		inputTokens = len(req.Messages) * 50
+	// Estimate input tokens from messages if streaming didn't provide usage info
+	// outputTokens tracks actual output, inputTokens should be estimated from input
+	inputTokens := len(req.Messages) * 50
+	for _, m := range req.Messages {
+		if len(m.Content) > 0 {
+			inputTokens += llm.EstimateTokens(m.Content)
+		}
 	}
 	if outputTokens == 0 {
 		outputTokens = inputTokens / 2
 	}
 
-	// Send message_stop
-	stopEvent := anthropic.StreamEvent{
-		Type: "message_stop",
-	}
-	stopData, _ := json.Marshal(stopEvent)
+	// Send message_stop event
+	stopData, _ := json.Marshal(anthropic.StreamEvent{Type: "message_stop"})
 	fmt.Fprintf(w, "event: message_stop\ndata: %s\n\n", stopData)
 	if ok {
 		flusher.Flush()

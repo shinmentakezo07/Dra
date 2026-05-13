@@ -9,6 +9,9 @@ import (
 )
 
 func ToInternalRequest(req *ChatCompletionRequest) *llm.ChatRequest {
+	if req == nil {
+		return &llm.ChatRequest{}
+	}
 	internal := &llm.ChatRequest{
 		Model:           req.Model,
 		Stream:          req.Stream,
@@ -48,10 +51,12 @@ func toInternalMessage(m ChatMessage) llm.Message {
 		case string:
 			msg.Content = v
 		case []interface{}:
-			msg.ContentBlocks = make([]llm.ContentBlock, len(v))
-			for i, part := range v {
+			for _, part := range v {
 				if p, ok := part.(map[string]interface{}); ok {
-					cb := llm.ContentBlock{Type: llm.ContentType(p["type"].(string))}
+					cb := llm.ContentBlock{}
+					if typeStr, ok := p["type"].(string); ok {
+						cb.Type = llm.ContentType(typeStr)
+					}
 					if txt, ok := p["text"].(string); ok {
 						cb.Text = txt
 					}
@@ -61,7 +66,7 @@ func toInternalMessage(m ChatMessage) llm.Message {
 							Detail: fmt.Sprint(img["detail"]),
 						}
 					}
-					msg.ContentBlocks[i] = cb
+					msg.ContentBlocks = append(msg.ContentBlocks, cb)
 				}
 			}
 		}
@@ -85,6 +90,19 @@ func toInternalMessage(m ChatMessage) llm.Message {
 }
 
 func FromInternalResponse(resp *llm.ChatResponse) *ChatCompletionResponse {
+	if resp == nil {
+		return &ChatCompletionResponse{
+			ID:     generateID(),
+			Object: "chat.completion",
+			Choices: []Choice{{
+				Index: 0,
+				Message: ChatMessage{
+					Role:    "assistant",
+					Content: "",
+				},
+			}},
+		}
+	}
 	choices := make([]Choice, len(resp.Choices))
 	for i, c := range resp.Choices {
 		choices[i] = Choice{
@@ -152,6 +170,9 @@ func fromInternalMessage(m llm.Message) ChatMessage {
 }
 
 func FromInternalStreamChunk(chunk *llm.StreamChunk) *ChatCompletionChunk {
+	if chunk == nil {
+		return nil
+	}
 	finishReason := ""
 	if chunk.FinishReason != nil {
 		finishReason = string(*chunk.FinishReason)

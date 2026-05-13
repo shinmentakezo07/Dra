@@ -58,7 +58,7 @@ bash scripts/smoke-test.sh   # Post-change wiring verification
 - **LLM pipeline** (`pkg/llm/`): 16 subpackages — validator → router → cache → guardrails → moderation → translator → provider → telemetry → circuitbreaker → watcher + batch, context, embeddings, tokens, tools, openai.
 - **Anthropic `/v1/messages`** (`internal/handler/anthropic_messages.go`, `pkg/llm/anthropic/`): Drop-in Anthropic SDK compatible endpoint. Accepts Anthropic-format requests, translates to internal `llm.ChatRequest`, reuses same auth/quota/billing pipeline as OpenAI proxy. Streaming uses Anthropic SSE format.
 - **Provider registry**: `pkg/llm/provider/` — single canonical registry using `sashabaranov/go-openai`. `internal/service/provider.go` is a service wrapper, not a separate registry.
-- **Vendored official SDKs** in `vendor/github.com/openai/openai-go/v3` and `vendor/github.com/anthropics/anthropic-sdk-go/`. Both SDK source code is in the repo. Wrapper packages at `pkg/sdk/openai/` and `pkg/sdk/anthropic/` provide simplified Go-native APIs using the official SDKs internally. Build with `-mod=vendor`.
+- **Official SDKs** as `go.mod` dependencies: `github.com/openai/openai-go/v3` and `github.com/anthropics/anthropic-sdk-go`. Wrapper packages at `pkg/sdk/openai/` and `pkg/sdk/anthropic/` provide simplified Go-native APIs using the official SDKs internally. Build with default `go build` (no vendor).
 - **Sandbox mode**: Pass `X-Sandbox: true` header to `/v1/chat/completions` to skip quota/cost/logging (for testing).
 - **Auth**: Accepts `Authorization: Bearer <jwt>`, cookie `authjs.session-token`, or `x-api-key` header.
 - **Middleware**: Auth, CORS, rate limiting (sliding window + optional Redis), quota enforcement, request logging, tracing, body size limit, Prometheus metrics.
@@ -102,7 +102,6 @@ bash scripts/smoke-test.sh   # Post-change wiring verification
 
 - **No `as any` or `@ts-ignore`** in TypeScript — enforced at review
 - **No mock data** in dashboard components — must use real SDK. Wiring test enforces
-- **Go 1.25** — features may differ from training data. Run `go vet ./...` before committing
-- **Build with `-mod=vendor`** — official SDKs are vendored at `vendor/`
+**Go 1.25** — features may differ from training data. Run `go vet ./...` before committing
 - **Tailwind CSS v4** — PostCSS plugin `@tailwindcss/postcss`, not v3 CLI
 - **No CI workflows** currently configured (`.github/workflows/` absent)
