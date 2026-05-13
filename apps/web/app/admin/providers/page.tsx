@@ -19,7 +19,6 @@ import {
 import { cn } from "@/lib/utils";
 
 interface ProviderCardProps {
-import AdminPageHeader from "../AdminPageHeader";
   provider: Provider;
   onToggleStatus: (id: string, status: ProviderStatus) => void;
 }

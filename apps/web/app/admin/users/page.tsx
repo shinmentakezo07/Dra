@@ -363,7 +363,6 @@ export default function AdminUsersPage() {
             </div>
           )}
     </AdminPageHeader>
-      )}
 
       {confirmDelete && (
         <DeleteConfirmDialog
