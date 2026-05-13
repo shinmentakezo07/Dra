@@ -102,8 +102,8 @@ export default function AdminSidebar() {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className={`bg-[#000000] border-r border-white/[0.05] flex flex-col h-screen transition-all duration-300 relative ${
-        collapsed ? 'w-[68px]' : 'w-60'
+      className={`bg-[#000000] border-r border-white/[0.05] flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 z-40 ${
+        collapsed ? 'w-[68px]' : 'w-[240px]'
       }`}
     >
       {/* Gradient orb decoration */}
