@@ -23,6 +23,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
   const isDashboardRoute = pathname?.startsWith('/dashboard');
   const isAuthRoute = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password';
   const isFullScreenRoute = pathname === '/playground';
+  const isAdminRoute = pathname?.startsWith('/admin');
 
   const menuItems = [
     { label: 'Playground', href: '/playground', icon: Code2 },
@@ -52,7 +53,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/30" suppressHydrationWarning>
-        {!isDashboardRoute && !isAuthRoute && !isFullScreenRoute && <Header onMenuClick={() => setSidebarOpen(true)} user={user} />}
+        {!isDashboardRoute && !isAuthRoute && !isFullScreenRoute && !isAdminRoute && <Header onMenuClick={() => setSidebarOpen(true)} user={user} />}
         
         <AnimatePresence>
           {sidebarOpen && (
