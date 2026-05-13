@@ -124,18 +124,32 @@ docs/            Implementation guides and design docs
 ### Key API endpoints
 Backend serves on `:8080`. Frontend proxies `/api/*` and `/v1/*` → `BACKEND_URL`.
 
+**Auth endpoints:**
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/auth/signup` | Register |
+| `POST /api/auth/login` | Login |
+| `GET /api/auth/me` | Get current user profile |
+| `PUT /api/auth/profile` | Update user profile |
+
+**Core endpoints:**
 | Endpoint | Description |
 |----------|-------------|
 | `GET /health` | Health check |
-| `POST /api/auth/signup` | Register |
-| `POST /api/auth/login` | Login |
 | `POST /api/chat` | Streaming chat (SSE) |
 | `GET /api/keys` | List API keys |
+| `POST /api/keys` | Create new API key |
+| `DELETE /api/keys/:id` | Delete API key |
 | `GET /api/credits` | Credit balance |
 | `GET /api/analytics` | Usage analytics |
 | `GET /api/logs` | Request logs |
-| `GET /api/admin/users` | Admin: list users |
 | `/v1/chat/completions` | OpenAI-compatible proxy |
+
+**Admin endpoints:**
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/admin/users` | List all users |
+| `DELETE /api/admin/users/:id` | Delete user account |
 
 ### SDK duality
 Both Go SDK (`pkg/sdk/client.go`) and TypeScript SDK (`lib/api/sdk.ts`) must be kept in sync. They cover the same backend endpoints with matching types. When adding new endpoints, implement in Go backend → Go SDK → TypeScript SDK.
@@ -151,3 +165,23 @@ docker-compose up -d    # Full stack: Postgres + frontend + backend
 - **Tailwind CSS v4** — uses `@tailwindcss/postcss`, not v3 config approach.
 - **No mock data** — dashboard fetches live data via SDK.
 - **Module path**: `dra-platform/backend` in all Go imports.
+
+### Environment Variables
+
+**Required:**
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `AUTH_SECRET` | JWT signing secret (openssl rand -base64 32) |
+| `NEXTAUTH_SECRET` | NextAuth session secret |
+| `NEXTAUTH_URL` | Public base URL (http://localhost:3000) |
+| `BACKEND_URL` | Go backend URL (http://localhost:8080) |
+
+**AI Provider Keys (at least one):**
+| Variable | Description |
+|----------|-------------|
+| `NVIDIA_API_KEY` | NVIDIA NIM API key |
+| `OPENAI_API_KEY` | OpenAI API key |
+| `ANTHROPIC_API_KEY` | Anthropic API key |
+| `GROQ_API_KEY` | Groq API key |
+| `GEMINI_API_KEY` | Google Gemini API key |

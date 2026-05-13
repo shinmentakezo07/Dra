@@ -36,14 +36,39 @@ export default function ModelDetailPage() {
       <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center relative overflow-hidden">
         <AmbientBackground />
         <div className="text-center relative z-10">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6"
+          >
+            <svg className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </motion.div>
-          <h1 className="text-3xl font-black tracking-tighter mb-3">Model Not Found</h1>
-          <p className="text-gray-600 mb-8 text-sm font-mono">The model you&apos;re looking for doesn&apos;t exist.</p>
-          <button onClick={() => router.push("/models")} className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono tracking-wider uppercase transition-all cursor-pointer">
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="text-3xl font-black tracking-tighter mb-3"
+          >
+            Model Not Found
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+            className="text-gray-600 mb-8 text-sm font-mono"
+          >
+            The model you&apos;re looking for doesn&apos;t exist.
+          </motion.p>
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            onClick={() => router.push("/models")}
+            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono tracking-wider uppercase transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
             ← Back to Models
-          </button>
+          </motion.button>
         </div>
       </div>
     );
@@ -66,7 +91,7 @@ export default function ModelDetailPage() {
             {/* Left — narrative flow */}
             <div className="lg:col-span-3 space-y-12">
               {model.description && (
-                <motion.section {...fadeUp()} aria-label="About this model">
+                <motion.section {...fadeUp()} aria-label="About this model" id="about">
                   <h2 className="text-[10px] font-mono text-gray-600 tracking-[0.25em] uppercase mb-5">About</h2>
                   <p className="text-gray-300 text-sm leading-[1.8] max-w-prose">{model.description}</p>
                 </motion.section>

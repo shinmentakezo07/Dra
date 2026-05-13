@@ -39,7 +39,7 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
         onClick={onBack}
-        className="mb-12 text-[10px] font-mono text-gray-600 hover:text-gray-300 tracking-[0.2em] uppercase transition-colors duration-200"
+        className="mb-12 text-[10px] font-mono text-gray-600 hover:text-gray-300 tracking-[0.2em] uppercase transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
       >
         ← Models
       </motion.button>
@@ -87,15 +87,18 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-            className="relative shrink-0 mt-1"
+            className="relative shrink-0 mt-1 group"
           >
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border border-white/[0.06]" style={{ backgroundColor: `${theme.accent}08` }}>
+            <div
+              className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border border-white/[0.06] transition-all duration-300 group-hover:border-white/[0.15] group-hover:shadow-lg"
+              style={{ backgroundColor: `${theme.accent}08` }}
+            >
               {logo ? (
-                <div className="w-full h-full flex items-center justify-center p-4">
+                <div className="w-full h-full flex items-center justify-center p-4 transition-transform duration-300 group-hover:scale-105">
                   <Image src={logo} alt={`${providerName} logo`} width={48} height={48} className="object-contain" unoptimized />
                 </div>
               ) : (
-                <div className={`w-full h-full flex items-center justify-center ${theme.color}`}>
+                <div className={`w-full h-full flex items-center justify-center ${theme.color} transition-transform duration-300 group-hover:scale-105`}>
                   <Icon className="w-10 h-10 md:w-12 md:h-12" />
                 </div>
               )}
@@ -112,7 +115,7 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
         >
           <button
             onClick={copyId}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-[11px] font-bold transition-all duration-200 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-lg font-mono text-[11px] font-bold transition-all duration-200 cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             style={{ backgroundColor: `${theme.accent}0d`, color: theme.accent, borderColor: `${theme.accent}20`, borderWidth: 1 }}
             aria-label={`Copy model ID: ${model.id}`}
           >
@@ -124,7 +127,7 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
             )}
           </button>
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-mono font-bold">
+          <span className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-mono font-bold">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />

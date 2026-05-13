@@ -14,10 +14,12 @@ export function ParametersPanel({ params }: ParametersPanelProps) {
         {params.map((param, i) => (
           <div
             key={param}
-            className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] last:border-0"
+            className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] last:border-0 transition-colors duration-150 hover:bg-white/[0.02]"
           >
             <span className="font-mono text-[12px] text-gray-400">{param}</span>
-            <span className="font-mono text-[11px] text-gray-700">supported</span>
+            <svg className="w-3.5 h-3.5 text-emerald-500/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
           </div>
         ))}
       </div>

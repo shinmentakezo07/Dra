@@ -27,7 +27,7 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
               <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2.5">Input</div>
               <div className="flex flex-wrap gap-1.5">
                 {arch.input_modalities.map((mod: string) => (
-                  <span key={mod} className="px-2.5 py-1 rounded-md bg-blue-500/8 border border-blue-500/15 text-blue-400 font-mono text-[11px] font-semibold">{mod}</span>
+                  <span key={mod} className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-blue-400/80 font-mono text-[11px] font-semibold">{mod}</span>
                 ))}
               </div>
             </div>
@@ -37,7 +37,7 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
               <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2.5">Output</div>
               <div className="flex flex-wrap gap-1.5">
                 {arch.output_modalities.map((mod: string) => (
-                  <span key={mod} className="px-2.5 py-1 rounded-md bg-violet-500/8 border border-violet-500/15 text-violet-400 font-mono text-[11px] font-semibold">{mod}</span>
+                  <span key={mod} className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-violet-400/80 font-mono text-[11px] font-semibold">{mod}</span>
                 ))}
               </div>
             </div>
@@ -45,13 +45,13 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
           {arch.tokenizer && (
             <div>
               <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2.5">Tokenizer</div>
-              <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white font-mono text-[11px] font-semibold">{arch.tokenizer}</span>
+              <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-gray-300 font-mono text-[11px] font-semibold">{arch.tokenizer}</span>
             </div>
           )}
           {arch.instruct_type && (
             <div>
               <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2.5">Instruction Type</div>
-              <span className="px-2.5 py-1 rounded-md bg-amber-500/8 border border-amber-500/15 text-amber-400 font-mono text-[11px] font-semibold">{arch.instruct_type}</span>
+              <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-amber-400/80 font-mono text-[11px] font-semibold">{arch.instruct_type}</span>
             </div>
           )}
         </div>

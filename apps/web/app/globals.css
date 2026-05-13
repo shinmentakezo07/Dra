@@ -332,3 +332,41 @@ textarea[data-autoresize] {
 .animate-border-glow {
   animation: border-glow 3s ease-in-out infinite;
 }
+
+/* Reduced motion overrides — respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-mesh-shift {
+    animation: none;
+  }
+
+  .animate-glow-pulse {
+    animation: none;
+    opacity: 0.4;
+  }
+
+  .animate-orbit,
+  .animate-orbit-reverse {
+    animation: none;
+  }
+
+  .animate-scroll-bounce {
+    animation: none;
+  }
+
+  .animate-typing-pulse {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .animate-gradient {
+    animation: none;
+  }
+
+  .animate-shimmer {
+    animation: none;
+  }
+
+  .animate-border-glow {
+    animation: none;
+  }
+}

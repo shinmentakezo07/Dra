@@ -9,7 +9,7 @@ interface PricingPanelProps {
 
 function PriceRow({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="flex items-baseline justify-between py-2.5 border-b border-white/[0.04] last:border-0">
+    <div className="flex items-baseline justify-between py-2.5 border-b border-white/[0.04] last:border-0 transition-colors duration-150 hover:bg-white/[0.02] px-4 -mx-4 first:-mt-2.5 last:-mb-2.5 rounded-sm">
       <span className="text-[11px] font-mono text-gray-500">{label}</span>
       <div>
         <span className="text-base font-bold font-mono text-white tracking-tight">${value}</span>
