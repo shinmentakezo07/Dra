@@ -336,7 +336,7 @@ export default function AdminUsersPage() {
                 </button>
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                   const pg = i + 1
-                  return (
+  return (<>
                     <button
                       key={pg}
                       onClick={() => setPage(pg)}
@@ -362,8 +362,6 @@ export default function AdminUsersPage() {
               </div>
             </div>
           )}
-    </AdminPageHeader>
-
       {confirmDelete && (
         <DeleteConfirmDialog
           userName={confirmDelete.name || confirmDelete.email}
@@ -372,6 +370,6 @@ export default function AdminUsersPage() {
           isPending={deleteMutation.isPending}
         />
       )}
-    </motion.div>
+    </AdminPageHeader>
   )
 }
