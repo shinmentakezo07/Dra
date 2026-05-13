@@ -362,6 +362,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
           )}
+        </motion.div>
       {confirmDelete && (
         <DeleteConfirmDialog
           userName={confirmDelete.name || confirmDelete.email}
