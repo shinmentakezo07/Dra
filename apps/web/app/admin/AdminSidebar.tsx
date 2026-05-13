@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -112,20 +113,16 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-white/[0.05] relative">
         {collapsed ? (
-          <div className="mx-auto relative w-9 h-9 flex items-center justify-center bg-black border border-blue-500/30 rounded-lg overflow-hidden">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f610_1px,transparent_1px),linear-gradient(to_bottom,#3b82f610_1px,transparent_1px)] bg-[size:4px_4px]" />
-            <span className="relative z-10 text-blue-400 font-black text-xl italic drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]">P</span>
+          <div className="mx-auto w-9 h-9 rounded-lg overflow-hidden ring-1 ring-white/10">
+            <Image src="/admin-logo.jpg" alt="Logo" width={36} height={36} className="w-full h-full object-cover" />
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <div className="relative w-10 h-10 flex items-center justify-center bg-black border border-blue-500/30 rounded-lg overflow-hidden flex-shrink-0">
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f610_1px,transparent_1px),linear-gradient(to_bottom,#3b82f610_1px,transparent_1px)] bg-[size:4px_4px]" />
-              <span className="relative z-10 text-blue-400 font-black text-2xl italic drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]">P</span>
+            <div className="w-10 h-10 rounded-lg overflow-hidden ring-1 ring-white/10 flex-shrink-0">
+              <Image src="/admin-logo.jpg" alt="Logo" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-white uppercase italic" style={{ textShadow: "2px 2px 0px rgba(59, 130, 246, 0.3)" }}>
-                YAPAPA
-              </h1>
+              <h1 className="text-base font-bold text-white tracking-tight">Yapapa</h1>
               <span className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase text-blue-400/50">Admin Panel</span>
             </div>
           </div>
