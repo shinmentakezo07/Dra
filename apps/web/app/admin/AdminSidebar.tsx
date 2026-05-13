@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Server, BrainCircuit, CreditCard,
   Settings, Shield, FileText, Bell, Gift, UserCog,
   BarChart3, Radio, Wrench, LogOut, ChevronLeft, Search,
-  type LucideIcon,
+  Activity, Key, ClipboardList, type LucideIcon,
 } from 'lucide-react'
 
 interface NavItem {

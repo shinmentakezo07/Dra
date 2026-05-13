@@ -255,6 +255,30 @@ export class AdminSDK {
   async listUserUsage(userId: string): Promise<UsageRecord[]> {
     return this.api.request<UsageRecord[]>("GET", `/api/admin/users/${userId}/usage`);
   }
+
+  async listIPAccessLogs(params?: { limit?: number }): Promise<PaginatedResult<IPAccessLog>> {
+    return this.paginated<IPAccessLog>("/api/admin/ip/logs", params as Record<string, string | number | undefined>);
+  }
+
+  async costOptimizations(): Promise<unknown[]> {
+    return this.api.request<unknown[]>("GET", "/api/admin/cost/optimizations");
+  }
+
+  async costForecast(): Promise<unknown> {
+    return this.api.request<unknown>("GET", "/api/admin/cost/forecast");
+  }
+
+  async cacheStats(): Promise<unknown> {
+    return this.api.request<unknown>("GET", "/api/admin/cache/stats");
+  }
+
+  async listWebhookLogs(): Promise<unknown> {
+    return this.api.request<unknown>("GET", "/api/admin/webhooks/logs");
+  }
+
+  async clearCache(): Promise<void> {
+    await this.api.request<{ cleared: boolean }>("POST", "/api/admin/cache/clear");
+  }
 }
 
 let adminSDKInstance: AdminSDK | null = null;
