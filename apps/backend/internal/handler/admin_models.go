@@ -30,6 +30,21 @@ func (h *Handler) AdminUpdateModelStatus(w http.ResponseWriter, r *http.Request)
 	response.OK(w, map[string]string{"status": "updated"})
 }
 
+func (h *Handler) AdminGetModel(w http.ResponseWriter, r *http.Request) {
+	m, err := h.adminSvc.GetModel(r.Context(), chi.URLParam(r, "id"))
+	if err != nil { response.Error(w, 500, err.Error()); return }
+	response.OK(w, m)
+}
+
+func (h *Handler) AdminUpdateModel(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var m domain.ModelRegistry
+	if err := json.NewDecoder(r.Body).Decode(&m); err != nil { response.Error(w, 400, "Invalid body"); return }
+	m.ID = id
+	if err := h.adminSvc.UpdateModel(r.Context(), &m); err != nil { response.Error(w, 500, err.Error()); return }
+	response.OK(w, map[string]string{"status": "updated"})
+}
+
 func (h *Handler) AdminListAliases(w http.ResponseWriter, r *http.Request) {
 	aliases, err := h.adminSvc.ListAliases(r.Context())
 	if err != nil { response.Error(w, 500, err.Error()); return }
@@ -41,6 +56,15 @@ func (h *Handler) AdminCreateAlias(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil { response.Error(w, 400, "Invalid body"); return }
 	if err := h.adminSvc.CreateAlias(r.Context(), &a); err != nil { response.Error(w, 500, err.Error()); return }
 	response.OK(w, a)
+}
+
+func (h *Handler) AdminUpdateAlias(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var a domain.ModelAlias
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil { response.Error(w, 400, "Invalid body"); return }
+	a.ID = id
+	if err := h.adminSvc.UpdateAlias(r.Context(), &a); err != nil { response.Error(w, 500, err.Error()); return }
+	response.OK(w, map[string]string{"status": "updated"})
 }
 
 func (h *Handler) AdminDeleteAlias(w http.ResponseWriter, r *http.Request) {

@@ -140,6 +140,10 @@ func (s *AdminService) CreateAlias(ctx context.Context, a *domain.ModelAlias) er
 	return s.modelRepo.CreateAlias(ctx, a)
 }
 
+func (s *AdminService) UpdateAlias(ctx context.Context, a *domain.ModelAlias) error {
+	return s.modelRepo.UpdateAlias(ctx, a)
+}
+
 func (s *AdminService) DeleteAlias(ctx context.Context, id string) error {
 	return s.modelRepo.DeleteAlias(ctx, id)
 }

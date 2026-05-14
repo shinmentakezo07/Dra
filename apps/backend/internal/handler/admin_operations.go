@@ -184,7 +184,7 @@ func (h *Handler) AdminCostBreakdown(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) AdminUpdateDashboard(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminDashboardStats(w http.ResponseWriter, r *http.Request) {
 	var stats domain.DashboardStats
 	ctx := r.Context()
 	now := time.Now()

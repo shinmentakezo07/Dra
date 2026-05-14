@@ -402,6 +402,14 @@ func main() {
 			if err != nil {
 				return nil, err
 			}
+			if u != nil && u.IsAdmin() {
+				if au, err := adminUserRepo.GetAdminUser(ctx, userID); err == nil && au != nil {
+					u.Permissions = au.Permissions
+					if u.Permissions == nil {
+						u.Permissions = []string{}
+					}
+				}
+			}
 			return u, nil
 		},
 	)
@@ -555,51 +563,54 @@ func main() {
 		r.Use(authMW)
 
 		// Dashboard
-		r.Get("/api/admin/dashboard", appmiddleware.RequireAdmin(h.AdminUpdateDashboard))
+		r.Get("/api/admin/dashboard", appmiddleware.RequireAdmin(h.AdminDashboardStats))
 
 		// Users
 		r.Get("/api/admin/users", appmiddleware.RequireAdmin(h.AdminListUsers))
 		r.Get("/api/admin/users/{id}", appmiddleware.RequireAdmin(h.AdminGetUserDetail))
-		r.Put("/api/admin/users/{id}/status", appmiddleware.RequireAdmin(h.AdminUpdateUserStatus))
-		r.Put("/api/admin/users/{id}/role", appmiddleware.RequireAdmin(h.AdminUpdateUserRole))
-		r.Delete("/api/admin/users/{id}", appmiddleware.RequireAdmin(h.AdminDeleteUser))
-		r.Post("/api/admin/users/{id}/impersonate", appmiddleware.RequireAdmin(h.AdminStartImpersonation))
-		r.Post("/api/admin/impersonations/{id}/stop", appmiddleware.RequireAdmin(h.AdminStopImpersonation))
-		r.Post("/api/admin/users/bulk/suspend", appmiddleware.RequireAdmin(h.AdminBulkSuspendUsers))
+		r.Put("/api/admin/users/{id}/status", appmiddleware.RequirePermission("users.write")(h.AdminUpdateUserStatus))
+		r.Put("/api/admin/users/{id}/role", appmiddleware.RequirePermission("users.write")(h.AdminUpdateUserRole))
+		r.Delete("/api/admin/users/{id}", appmiddleware.RequirePermission("users.write")(h.AdminDeleteUser))
+		r.Post("/api/admin/users/{id}/impersonate", appmiddleware.RequirePermission("users.write")(h.AdminStartImpersonation))
+		r.Post("/api/admin/impersonations/{id}/stop", appmiddleware.RequirePermission("users.write")(h.AdminStopImpersonation))
+		r.Post("/api/admin/users/bulk/suspend", appmiddleware.RequirePermission("users.write")(h.AdminBulkSuspendUsers))
 		r.Get("/api/admin/users/{id}/keys", appmiddleware.RequireAdmin(h.AdminListUserKeys))
 		r.Get("/api/admin/users/{id}/usage", appmiddleware.RequireAdmin(h.AdminListUserUsage))
 
 		// Providers
 		r.Get("/api/admin/providers", appmiddleware.RequireAdmin(h.AdminListProviders))
-		r.Post("/api/admin/providers", appmiddleware.RequireAdmin(h.AdminCreateProvider))
+		r.Post("/api/admin/providers", appmiddleware.RequirePermission("providers.write")(h.AdminCreateProvider))
 		r.Get("/api/admin/providers/{id}", appmiddleware.RequireAdmin(h.AdminGetProvider))
-		r.Put("/api/admin/providers/{id}", appmiddleware.RequireAdmin(h.AdminUpdateProvider))
-		r.Put("/api/admin/providers/{id}/status", appmiddleware.RequireAdmin(h.AdminUpdateProviderStatus))
+		r.Put("/api/admin/providers/{id}", appmiddleware.RequirePermission("providers.write")(h.AdminUpdateProvider))
+		r.Put("/api/admin/providers/{id}/status", appmiddleware.RequirePermission("providers.write")(h.AdminUpdateProviderStatus))
 		r.Get("/api/admin/providers/{id}/keys", appmiddleware.RequireAdmin(h.AdminListProviderKeys))
-		r.Post("/api/admin/providers/{id}/keys", appmiddleware.RequireAdmin(h.AdminAddProviderKey))
-		r.Delete("/api/admin/providers/{id}/keys/{keyId}", appmiddleware.RequireAdmin(h.AdminDeleteProviderKey))
-		r.Put("/api/admin/providers/{id}/keys/reorder", appmiddleware.RequireAdmin(h.AdminReorderProviderKeys))
+		r.Post("/api/admin/providers/{id}/keys", appmiddleware.RequirePermission("providers.write")(h.AdminAddProviderKey))
+		r.Delete("/api/admin/providers/{id}/keys/{keyId}", appmiddleware.RequirePermission("providers.write")(h.AdminDeleteProviderKey))
+		r.Put("/api/admin/providers/{id}/keys/reorder", appmiddleware.RequirePermission("providers.write")(h.AdminReorderProviderKeys))
 
 		// Models
 		r.Get("/api/admin/models", appmiddleware.RequireAdmin(h.AdminListModels))
-		r.Post("/api/admin/models", appmiddleware.RequireAdmin(h.AdminCreateModel))
-		r.Put("/api/admin/models/{id}/status", appmiddleware.RequireAdmin(h.AdminUpdateModelStatus))
+		r.Post("/api/admin/models", appmiddleware.RequirePermission("models.write")(h.AdminCreateModel))
+		r.Get("/api/admin/models/{id}", appmiddleware.RequireAdmin(h.AdminGetModel))
+		r.Put("/api/admin/models/{id}", appmiddleware.RequirePermission("models.write")(h.AdminUpdateModel))
+		r.Put("/api/admin/models/{id}/status", appmiddleware.RequirePermission("models.write")(h.AdminUpdateModelStatus))
 		r.Get("/api/admin/aliases", appmiddleware.RequireAdmin(h.AdminListAliases))
-		r.Post("/api/admin/aliases", appmiddleware.RequireAdmin(h.AdminCreateAlias))
-		r.Delete("/api/admin/aliases/{id}", appmiddleware.RequireAdmin(h.AdminDeleteAlias))
+		r.Post("/api/admin/aliases", appmiddleware.RequirePermission("models.write")(h.AdminCreateAlias))
+		r.Put("/api/admin/aliases/{id}", appmiddleware.RequirePermission("models.write")(h.AdminUpdateAlias))
+		r.Delete("/api/admin/aliases/{id}", appmiddleware.RequirePermission("models.write")(h.AdminDeleteAlias))
 
 		// Billing
 		r.Get("/api/admin/billing/summary", appmiddleware.RequireAdmin(h.AdminRevenueSummary))
 		r.Get("/api/admin/billing/transactions", appmiddleware.RequireAdmin(h.AdminListTransactions))
-		r.Post("/api/admin/billing/credits/adjust", appmiddleware.RequireAdmin(h.AdminAdjustCredits))
+		r.Post("/api/admin/billing/credits/adjust", appmiddleware.RequirePermission("billing.write")(h.AdminAdjustCredits))
 		r.Get("/api/admin/billing/usage-daily", appmiddleware.RequireAdmin(h.AdminUsageDaily))
 
 		// Settings
 		r.Get("/api/admin/settings", appmiddleware.RequireAdmin(h.AdminListSettings))
-		r.Put("/api/admin/settings/{key}", appmiddleware.RequireAdmin(h.AdminUpdateSetting))
+		r.Put("/api/admin/settings/{key}", appmiddleware.RequirePermission("settings.write")(h.AdminUpdateSetting))
 		r.Get("/api/admin/feature-flags", appmiddleware.RequireAdmin(h.AdminListFeatureFlags))
-		r.Post("/api/admin/feature-flags", appmiddleware.RequireAdmin(h.AdminCreateFeatureFlag))
-		r.Put("/api/admin/feature-flags/{id}", appmiddleware.RequireAdmin(h.AdminToggleFeatureFlag))
+		r.Post("/api/admin/feature-flags", appmiddleware.RequirePermission("settings.write")(h.AdminCreateFeatureFlag))
+		r.Put("/api/admin/feature-flags/{id}", appmiddleware.RequirePermission("settings.write")(h.AdminToggleFeatureFlag))
 
 		// Security
 		r.Get("/api/admin/security/suspicious", appmiddleware.RequireAdmin(h.AdminListSuspicious))

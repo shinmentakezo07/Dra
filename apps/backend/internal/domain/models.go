@@ -11,15 +11,28 @@ import (
 )
 
 type User struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  *string   `json:"-"`
-	Role      string    `json:"role"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Email       string    `json:"email"`
+	Password    *string   `json:"-"`
+	Role        string    `json:"role"`
+	Permissions []string  `json:"-"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 func (u *User) IsAdmin() bool { return u.Role == "admin" }
+
+func (u *User) HasPermission(permission string) bool {
+	if u.Role == "superadmin" {
+		return true
+	}
+	for _, p := range u.Permissions {
+		if p == "*" || p == permission {
+			return true
+		}
+	}
+	return false
+}
 
 type APIKey struct {
 	ID                  string     `json:"id"`

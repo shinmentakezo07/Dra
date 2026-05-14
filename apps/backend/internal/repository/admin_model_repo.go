@@ -138,6 +138,17 @@ func (r *AdminModelRepo) CreateAlias(ctx context.Context, a *domain.ModelAlias) 
 	return fmt.Errorf("create alias: %w", err)
 }
 
+func (r *AdminModelRepo) UpdateAlias(ctx context.Context, a *domain.ModelAlias) error {
+	_, err := r.db.Pool.Exec(ctx, `
+		UPDATE model_aliases SET alias=$2, target_model_id=$3, preferred_provider_id=$4,
+			preferred_key_id=$5, rpm_override=$6, tpm_override=$7, monthly_budget=$8,
+			allowed_user_ids=$9, is_active=$10
+		WHERE id=$1`,
+		a.ID, a.Alias, a.TargetModelID, a.PreferredProviderID, a.PreferredKeyID,
+		a.RPMOverride, a.TPMOverride, a.MonthlyBudget, a.AllowedUserIDs, a.IsActive)
+	return fmt.Errorf("update alias: %w", err)
+}
+
 func (r *AdminModelRepo) DeleteAlias(ctx context.Context, id string) error {
 	tag, err := r.db.Pool.Exec(ctx, `DELETE FROM model_aliases WHERE id=$1`, id)
 	if err != nil {

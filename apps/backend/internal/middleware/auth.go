@@ -165,6 +165,10 @@ func RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFun
 				response.Error(w, 403, "Admin access required")
 				return
 			}
+			if !u.HasPermission(permission) {
+				response.Error(w, 403, "Permission denied: "+permission)
+				return
+			}
 			next(w, r)
 		}
 	}

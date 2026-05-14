@@ -89,6 +89,21 @@ func (r *AdminUserRepo) SoftDelete(ctx context.Context, userID string) error {
 	return fmt.Errorf("soft delete: %w", err)
 }
 
+func (r *AdminUserRepo) GetAdminUser(ctx context.Context, userID string) (*domain.AdminUser, error) {
+	var a domain.AdminUser
+	err := r.db.Pool.QueryRow(ctx, `
+		SELECT au.user_id, au.role, COALESCE(au.permissions, '{}'), au.is_active, au.created_by, au.created_at, au.updated_at
+		FROM admin_users au WHERE au.user_id=$1`, userID).
+		Scan(&a.UserID, &a.Role, &a.Permissions, &a.IsActive, &a.CreatedBy, &a.CreatedAt, &a.UpdatedAt)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get admin user: %w", err)
+	}
+	return &a, nil
+}
+
 func (r *AdminUserRepo) SearchByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var u domain.User
 	err := r.db.Pool.QueryRow(ctx, `SELECT id,name,email,role,created_at FROM users WHERE email=$1 AND deleted_at IS NULL`, email).
