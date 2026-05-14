@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (error) {
+  if (error || !stats) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex items-center gap-3 text-red-400/80">
@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const s = stats!;
+  const s = stats;
 
   return (
     <motion.div

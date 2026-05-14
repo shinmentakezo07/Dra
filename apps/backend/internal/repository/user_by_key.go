@@ -12,7 +12,7 @@ import (
 func GetUserByAPIKey(ctx context.Context, db *db.DB, key, pepper string) (*domain.User, *domain.APIKey, error) {
 	// Try hashed key first
 	hashed := HashAPIKey(key, pepper)
-	row := db.Pool.QueryRow(ctx, `
+	row := db.QueryRow(ctx, `
 		SELECT u.id, u.name, u.email, u.password, u.role, u.created_at,
 		       k.id, k.user_id, k.name, k.key, k.last_used, k.created_at, k.revoked_at,
 		       k.allowed_models, k.allowed_ips, k.max_tokens_per_request, k.daily_request_limit, k.monthly_token_limit
@@ -33,7 +33,7 @@ func GetUserByAPIKey(ctx context.Context, db *db.DB, key, pepper string) (*domai
 			return nil, nil, err
 		}
 		// Fallback: raw key lookup for legacy plaintext keys
-		row = db.Pool.QueryRow(ctx, `
+		row = db.QueryRow(ctx, `
 			SELECT u.id, u.name, u.email, u.password, u.role, u.created_at,
 			       k.id, k.user_id, k.name, k.key, k.last_used, k.created_at, k.revoked_at,
 			       k.allowed_models, k.allowed_ips, k.max_tokens_per_request, k.daily_request_limit, k.monthly_token_limit

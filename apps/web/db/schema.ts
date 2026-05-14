@@ -48,6 +48,7 @@ export const users = pgTable("users", {
   tags: text("tags").array().default([]),
   suspendedBy: uuid("suspended_by"),
   metadata: jsonb("metadata").default("{}"),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   emailIdx: index("idx_users_email").on(table.email),
@@ -516,7 +517,7 @@ export const usageDaily = pgTable("usage_daily", {
   userId: text("user_id").default("").notNull(),
   providerId: uuid("provider_id"),
   modelId: text("model_id").default("").notNull(),
-  apiKeyId: text("api_key_id").default(""),
+  apiKeyId: text("api_key_id").default("").notNull(),
   requestCount: integer("request_count").default(0).notNull(),
   tokens: bigint("tokens", { mode: "number" }).default(0).notNull(),
   cost: integer("cost").default(0).notNull(),

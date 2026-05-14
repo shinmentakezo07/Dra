@@ -21,9 +21,15 @@ async function seed() {
     const adminPassword = await hash("admin123", 10);
     const userPassword = await hash("user123", 10);
 
+    // Deterministic IDs so re-seeding doesn't invalidate existing dev tokens
+    const adminId = "9afaef50-2a7f-555e-be9a-b9df41098719";
+    const user1Id = "6df566ae-c371-5cc0-92ea-4f9095c2a81e";
+    const user2Id = "2a4caa1c-a8b4-5eb5-b038-b158a7836c1f";
+
     const [admin] = await db
       .insert(users)
       .values({
+        id: adminId,
         name: "Admin User",
         email: "admin@example.com",
         password: adminPassword,
@@ -34,6 +40,7 @@ async function seed() {
     const [user1] = await db
       .insert(users)
       .values({
+        id: user1Id,
         name: "John Doe",
         email: "john@example.com",
         password: userPassword,
@@ -44,6 +51,7 @@ async function seed() {
     const [user2] = await db
       .insert(users)
       .values({
+        id: user2Id,
         name: "Jane Smith",
         email: "jane@example.com",
         password: userPassword,

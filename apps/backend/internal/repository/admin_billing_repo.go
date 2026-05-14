@@ -18,7 +18,7 @@ func NewAdminBillingRepo(d *db.DB) *AdminBillingRepo {
 }
 
 func (r *AdminBillingRepo) AdjustCredits(ctx context.Context, adj *domain.CreditAdjustment) error {
-	tx, err := r.db.Pool.Begin(ctx)
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
@@ -57,13 +57,13 @@ func (r *AdminBillingRepo) ListAdjustments(ctx context.Context, userID string, p
 	}
 
 	var total int
-	err := r.db.Pool.QueryRow(ctx,
+	err := r.db.QueryRow(ctx,
 		`SELECT COUNT(*) FROM credit_adjustments WHERE user_id=$1`, userID).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("count adjustments: %w", err)
 	}
 
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT id, user_id, amount, balance_before, balance_after, reason, admin_id, reference_id, created_at
 		FROM credit_adjustments WHERE user_id=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		userID, limit, offset)
@@ -85,7 +85,7 @@ func (r *AdminBillingRepo) ListAdjustments(ctx context.Context, userID string, p
 }
 
 func (r *AdminBillingRepo) RevenueSummary(ctx context.Context, from, to time.Time) ([]domain.RevenueSummary, error) {
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT DATE(created_at) as date, COALESCE(SUM(cost), 0) as cost, COUNT(*) as count
 		FROM usage_records
 		WHERE created_at >= $1 AND created_at < $2
@@ -134,7 +134,7 @@ func (r *AdminBillingRepo) UsageRecords(ctx context.Context, f domain.UsageFilte
 
 	var total int
 	cq := "SELECT COUNT(*) FROM usage_records " + where
-	if err := r.db.Pool.QueryRow(ctx, cq, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, cq, args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count usage: %w", err)
 	}
 
@@ -144,7 +144,7 @@ func (r *AdminBillingRepo) UsageRecords(ctx context.Context, f domain.UsageFilte
 		FROM usage_records %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, where, argN, argN+1)
 	args = append(args, f.Limit, offset)
 
-	rows, err := r.db.Pool.Query(ctx, query, args...)
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list usage: %w", err)
 	}
@@ -164,7 +164,7 @@ func (r *AdminBillingRepo) UsageRecords(ctx context.Context, f domain.UsageFilte
 }
 
 func (r *AdminBillingRepo) UsageDaily(ctx context.Context, from, to time.Time, groupBy string) ([]domain.UsageDaily, error) {
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT date, user_id, provider_id, model_id, COALESCE(api_key_id,''),
 			request_count, tokens, cost, errors,
 			latency_p50_ms, latency_p95_ms, latency_p99_ms

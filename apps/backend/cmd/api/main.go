@@ -49,12 +49,23 @@ func main() {
 	}
 	logger.Info("starting server", "env", cfg.Env, "port", cfg.Port)
 
-	database, err := db.New(cfg.DatabaseURL)
+	database, err := db.NewFromConfig(cfg)
 	if err != nil {
 		logger.Error("database connection failed", "error", err.Error())
 		os.Exit(1)
 	}
 	defer database.Close()
+
+	// Auto-migrate (Postgres/Neon) and auto-seed if empty
+	ctx := context.Background()
+	if err := db.AutoMigrate(ctx, database); err != nil {
+		logger.Error("auto_migrate_failed", "error", err.Error())
+		// Don't exit; DB may already be set up
+	}
+	if err := db.AutoSeed(ctx, database); err != nil {
+		logger.Error("auto_seed_failed", "error", err.Error())
+		// Don't exit; seeding is best-effort
+	}
 
 	// Redis
 	var redisClient redis.Cmdable

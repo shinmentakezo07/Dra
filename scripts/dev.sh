@@ -4,14 +4,19 @@ set -eo pipefail
 # ============================================================
 # DRA Platform — Full Stack Dev Launcher
 # ============================================================
-# Usage: bash scripts/dev.sh
+# Usage: bash scripts/dev.sh [--check] [--logs]
+#
+# Options:
+#   --check   Only check dependencies and exit (no services started)
+#   --logs    Show logs from last run (no services started)
 #
 # This script:
-#   1. Installs dependencies (root, frontend, backend)
-#   2. Starts local PostgreSQL via docker-compose
-#   3. Pushes DB schema and seeds if the database is empty
-#   4. Starts the Go backend and Next.js frontend
-#   5. Streams color-coded logs for both services
+#   1. Checks ALL required dependencies and reports status
+#   2. Installs dependencies (root, frontend, backend)
+#   3. Starts local PostgreSQL via docker-compose
+#   4. Pushes DB schema and seeds if the database is empty
+#   5. Starts the Go backend and Next.js frontend
+#   6. Streams color-coded logs for both services
 # ============================================================
 
 # --- Colors ---
@@ -23,14 +28,16 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 BOLD='\033[1m'
+DIM='\033[2m'
 
 # --- Paths ---
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WEB_DIR="$ROOT_DIR/apps/web"
 BACKEND_DIR="$ROOT_DIR/apps/backend"
+LOG_DIR="/tmp/dra-dev-logs"
+mkdir -p "$LOG_DIR"
 
 # --- Docker Compose command detection ---
-# Modern Docker uses `docker compose` (plugin). Older installs use `docker-compose`.
 if docker compose version >/dev/null 2>&1; then
   DOCKER_COMPOSE="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -39,34 +46,235 @@ else
   DOCKER_COMPOSE=""
 fi
 
-# --- Track how backend was started for cleanup ---
-BACKEND_MODE=""   # "local" | "docker" | ""
+BACKEND_MODE=""
 
-
+# --- Logging ---
 log_info()  { echo -e "${BLUE}[dev]${NC} $1"; }
 log_ok()    { echo -e "${GREEN}[dev]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[dev]${NC} $1"; }
 log_error() { echo -e "${RED}[dev]${NC} $1"; }
 
 # ============================================================
-# Cleanup on exit / Ctrl+C
+# Dependency Checks (find ALL missing deps, not just first)
+# ============================================================
+check_deps() {
+  local all_ok=1
+  local status
+
+  echo ""
+  echo -e "${BOLD}═══ Dependency Check ═══${NC}"
+  echo ""
+
+  # ── Node.js ──
+  if command -v node >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} Node.js       $(node --version)"
+  else
+    echo -e "  ${RED}❌${NC} Node.js       NOT INSTALLED — install Node.js v20+ from https://nodejs.org"
+    all_ok=1
+  fi
+
+  # ── npm ──
+  if command -v npm >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} npm           v$(npm --version)"
+  else
+    echo -e "  ${RED}❌${NC} npm           NOT INSTALLED"
+    all_ok=1
+  fi
+
+  # ── Go ──
+  if command -v go >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} Go            $(go version 2>&1 | grep -oP 'go\S+' || $(go version))"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Go            NOT INSTALLED — backend will not start locally (install from https://go.dev/dl/)"
+  fi
+
+  # ── Docker ──
+  if command -v docker >/dev/null 2>&1; then
+    if docker info >/dev/null 2>&1; then
+      echo -e "  ${GREEN}✅${NC} Docker        running"
+    else
+      echo -e "  ${YELLOW}⚠${NC} Docker        installed but daemon NOT running — PostgreSQL must be started manually"
+    fi
+  else
+    echo -e "  ${YELLOW}⚠${NC} Docker        NOT INSTALLED — PostgreSQL must be started manually"
+  fi
+
+  # ── Docker Compose ──
+  if [ -n "$DOCKER_COMPOSE" ]; then
+    echo -e "  ${GREEN}✅${NC} Compose       $DOCKER_COMPOSE"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Compose       NOT FOUND — can't auto-start PostgreSQL"
+  fi
+
+  # ── psql (optional, for DB inspection) ──
+  if command -v psql >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} psql          $(psql --version 2>&1 | head -1)"
+  else
+    echo -e "  ${DIM}  ○ psql          not available (DB inspection via docker exec)${NC}"
+  fi
+
+  # ── OpenSSL (for secret generation) ──
+  if command -v openssl >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} OpenSSL       $(openssl version 2>&1 | head -1)"
+  else
+    echo -e "  ${YELLOW}⚠${NC} OpenSSL       NOT INSTALLED — secret generation will use /dev/urandom fallback"
+  fi
+
+  # ── Make ──
+  if command -v make >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} make          $(make --version 2>&1 | head -1)"
+  else
+    echo -e "  ${DIM}  ○ make          not available (can use go build directly)${NC}"
+  fi
+
+  echo ""
+
+  # ── Check node_modules status ──
+  echo -e "${BOLD}═══ Package Status ═══${NC}"
+  echo ""
+  if [ -d "$ROOT_DIR/node_modules" ]; then
+    local root_count
+    root_count="$(find "$ROOT_DIR/node_modules" -maxdepth 1 -type d 2>/dev/null | wc -l)"
+    echo -e "  ${GREEN}✅${NC} Root deps      $root_count packages installed"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Root deps      NOT INSTALLED — will run npm install"
+  fi
+  if [ -d "$WEB_DIR/node_modules" ]; then
+    local web_count
+    web_count="$(find "$WEB_DIR/node_modules" -maxdepth 1 -type d 2>/dev/null | wc -l)"
+    echo -e "  ${GREEN}✅${NC} Frontend deps  $web_count packages installed"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Frontend deps  NOT INSTALLED — will run npm install"
+  fi
+  if go env GOMODCACHE >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✅${NC} Go modules     $(go env GOMODCACHE) ready"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Go modules     Go not available, skipping"
+  fi
+
+  # ── Check .env status ──
+  echo ""
+  echo -e "${BOLD}═══ Environment ═══${NC}"
+  echo ""
+  if [ -f "$WEB_DIR/.env.local" ]; then
+    echo -e "  ${GREEN}✅${NC} .env.local     found"
+    local has_auth
+    has_auth="$(grep -c '^AUTH_SECRET=' "$WEB_DIR/.env.local" || true)"
+    if [ "$has_auth" -gt 0 ]; then
+      echo -e "  ${GREEN}✅${NC} AUTH_SECRET    set"
+    else
+      echo -e "  ${YELLOW}⚠${NC} AUTH_SECRET    MISSING — will generate"
+    fi
+  else
+    echo -e "  ${YELLOW}⚠${NC} .env.local     MISSING — will create from .env.example"
+  fi
+
+  # ── Detect DB_TYPE ──
+  local db_type="postgres"
+  if [ -f "$WEB_DIR/.env.local" ]; then
+    local env_db_type
+    env_db_type="$(grep '^DB_TYPE=' "$WEB_DIR/.env.local" | cut -d= -f2- | tr -d '[:space:]' || true)"
+    if [ -n "$env_db_type" ]; then
+      db_type="$env_db_type"
+    fi
+    local db_url
+    db_url="$(grep '^DATABASE_URL=' "$WEB_DIR/.env.local" | cut -d= -f2- || true)"
+    if [ "$db_type" = "postgres" ] && echo "$db_url" | grep -q "neon.tech"; then
+      db_type="neon"
+    fi
+  fi
+  echo -e "  ${BLUE}ℹ${NC}  DB_TYPE        $db_type"
+
+  echo ""
+
+  # ── Check Database ──
+  echo -e "${BOLD}═══ Database ═══${NC}"
+  echo ""
+  if [ "$db_type" = "mongodb" ]; then
+    echo -e "  ${BLUE}ℹ${NC}  MongoDB        backend will auto-setup on start"
+  elif [ "$db_type" = "neon" ]; then
+    echo -e "  ${BLUE}ℹ${NC}  Neon           cloud PostgreSQL (no local container)"
+  else
+    if docker info >/dev/null 2>&1; then
+      local pg_container
+      pg_container="$(docker ps --filter name=dra_postgres --format '{{.Status}}' 2>/dev/null || true)"
+      if [ -n "$pg_container" ]; then
+        echo -e "  ${GREEN}✅${NC} PostgreSQL     $pg_container"
+      else
+        echo -e "  ${YELLOW}⚠${NC} PostgreSQL     NOT running — will start"
+      fi
+    else
+      echo -e "  ${YELLOW}⚠${NC} PostgreSQL     can't check (Docker not available)"
+    fi
+  fi
+  echo ""
+
+  # ── Check Backend Process ──
+  echo -e "${BOLD}═══ Services ═══${NC}"
+  echo ""
+  if ss -tlnp 2>/dev/null | grep -q ':8080 '; then
+    echo -e "  ${GREEN}✅${NC} Backend        running on :8080"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Backend        NOT running — will start"
+  fi
+  if ss -tlnp 2>/dev/null | grep -q ':3000 '; then
+    echo -e "  ${GREEN}✅${NC} Frontend       running on :3000"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Frontend       NOT running — will start"
+  fi
+  echo ""
+}
+
+# ============================================================
+# Show Logs
+# ============================================================
+show_logs() {
+  echo -e "${BOLD}═══ Dev Script Logs ═══${NC}"
+  echo ""
+  if [ -f "$LOG_DIR/backend.log" ]; then
+    echo -e "${MAGENTA}[backend log]${NC} ${DIM}$LOG_DIR/backend.log${NC}"
+    tail -30 "$LOG_DIR/backend.log" 2>/dev/null | while IFS= read -r line; do
+      echo -e "  ${MAGENTA}|${NC} $line"
+    done
+  else
+    echo -e "  ${YELLOW}⚠${NC} No backend log found"
+  fi
+  echo ""
+  if [ -f "$LOG_DIR/frontend.log" ]; then
+    echo -e "${CYAN}[frontend log]${NC} ${DIM}$LOG_DIR/frontend.log${NC}"
+    tail -20 "$LOG_DIR/frontend.log" 2>/dev/null | while IFS= read -r line; do
+      echo -e "  ${CYAN}|${NC} $line"
+    done
+  else
+    echo -e "  ${YELLOW}⚠${NC} No frontend log found"
+  fi
+  echo ""
+  if [ -f "$LOG_DIR/postgres.log" ]; then
+    echo -e "${BLUE}[postgres log]${NC} ${DIM}$LOG_DIR/postgres.log${NC}"
+    tail -20 "$LOG_DIR/postgres.log" 2>/dev/null | while IFS= read -r line; do
+      echo -e "  ${BLUE}|${NC} $line"
+    done
+  fi
+  echo ""
+  echo -e "${DIM}Full logs: $LOG_DIR/${NC}"
+}
+
+# ============================================================
+# Cleanup
 # ============================================================
 cleanup() {
   echo ""
   log_info "Shutting down services..."
 
-  # Stop Docker backend if we started it
   if [ "$BACKEND_MODE" = "docker" ] && [ -n "$DOCKER_COMPOSE" ]; then
     log_info "Stopping backend container..."
     cd "$ROOT_DIR"
     $DOCKER_COMPOSE stop backend 2>/dev/null || true
   fi
 
-  # Kill all background jobs (backend + frontend + any tails)
   local pids
   pids="$(jobs -p 2>/dev/null || true)"
   if [ -n "$pids" ]; then
-    # shellcheck disable=SC2086
     kill $pids 2>/dev/null || true
     wait 2>/dev/null || true
   fi
@@ -74,50 +282,6 @@ cleanup() {
   exit 0
 }
 trap cleanup INT TERM EXIT
-
-# ============================================================
-# Dependency Checks
-# ============================================================
-check_node() {
-  if command -v node >/dev/null 2>&1; then
-    log_ok "Node.js found: $(node --version)"
-    return 0
-  else
-    log_error "Node.js is not installed. Please install Node.js v20+ first."
-    exit 1
-  fi
-}
-
-check_npm() {
-  if command -v npm >/dev/null 2>&1; then
-    log_ok "npm found: $(npm --version)"
-    return 0
-  else
-    log_error "npm is not installed. Please install npm first."
-    exit 1
-  fi
-}
-
-check_go() {
-  if command -v go >/dev/null 2>&1; then
-    log_ok "Go found: $(go version)"
-    HAS_GO=1
-  else
-    log_warn "Go is not installed. Backend will not start."
-    log_warn "Install Go from https://go.dev/dl/"
-    HAS_GO=0
-  fi
-}
-
-check_docker() {
-  if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-    log_ok "Docker is running"
-    HAS_DOCKER=1
-  else
-    log_warn "Docker is not running. PostgreSQL must be started manually."
-    HAS_DOCKER=0
-  fi
-}
 
 # ============================================================
 # Install Dependencies
@@ -128,7 +292,7 @@ install_root_deps() {
   if [ -d "node_modules" ]; then
     log_ok "Root node_modules already exists"
   else
-    npm install
+    npm install 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}npm>${NC} $line"; done
     log_ok "Root dependencies installed"
   fi
 }
@@ -139,7 +303,7 @@ install_web_deps() {
   if [ -d "node_modules" ]; then
     log_ok "Frontend node_modules already exists"
   else
-    npm install
+    npm install 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}npm>${NC} $line"; done
     log_ok "Frontend dependencies installed"
   fi
 }
@@ -154,7 +318,7 @@ install_backend_deps() {
   if [ -d "vendor" ]; then
     log_ok "Backend vendor already exists"
   else
-    go mod download
+    go mod download 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}go>${NC} $line"; done
     log_ok "Backend dependencies downloaded"
   fi
 }
@@ -172,15 +336,20 @@ start_postgres() {
     return
   fi
 
-  log_info "Starting PostgreSQL ($DOCKER_COMPOSE)..."
+  log_info "Starting PostgreSQL..."
   cd "$ROOT_DIR"
-  $DOCKER_COMPOSE up -d postgres
+  # Suppress benign env-var warnings from compose (postgres doesn't need them)
+  $DOCKER_COMPOSE up -d postgres 2>&1 | grep -v 'variable is not set\|version.\is obsolete' | while IFS= read -r line; do
+    if [ -n "$line" ]; then echo -e "  ${DIM}docker>${NC} $line"; fi
+  done
 
   log_info "Waiting for PostgreSQL to be healthy..."
   local retries=30
   while [ $retries -gt 0 ]; do
-    if $DOCKER_COMPOSE ps postgres | grep -q "healthy"; then
+    if $DOCKER_COMPOSE ps postgres 2>/dev/null | grep -q "healthy"; then
       log_ok "PostgreSQL is healthy"
+      # Save postgres logs
+      $DOCKER_COMPOSE logs --tail=30 postgres > "$LOG_DIR/postgres.log" 2>/dev/null || true
       return 0
     fi
     sleep 1
@@ -188,7 +357,11 @@ start_postgres() {
   done
 
   log_error "PostgreSQL failed to become healthy within 30s"
-  $DOCKER_COMPOSE logs --tail=20 postgres
+  log_info "PostgreSQL logs:"
+  $DOCKER_COMPOSE logs --tail=30 postgres 2>&1 | while IFS= read -r line; do echo -e "  ${RED}|${NC} $line"; done
+  # Save to log file
+  $DOCKER_COMPOSE logs --tail=100 postgres > "$LOG_DIR/postgres.log" 2>/dev/null || true
+  log_info "Full logs saved to: $LOG_DIR/postgres.log"
   exit 1
 }
 
@@ -212,13 +385,11 @@ fix_placeholder_secrets() {
   local env_file="$WEB_DIR/.env.local"
   local changed=0
 
-  # Generate AUTH_SECRET if missing or placeholder
   local auth_secret
   auth_secret="$(grep '^AUTH_SECRET=' "$env_file" | cut -d= -f2- | sed 's/^"//;s/"$//' || true)"
   if [ -z "$auth_secret" ] || [ "$auth_secret" = "your-auth-secret-here" ]; then
     local new_secret
     new_secret="$(openssl rand -base64 32 2>/dev/null || head -c 32 /dev/urandom | base64)"
-    # Update or append
     if grep -q '^AUTH_SECRET=' "$env_file"; then
       sed -i "s|^AUTH_SECRET=.*|AUTH_SECRET=$new_secret|" "$env_file"
     else
@@ -228,7 +399,6 @@ fix_placeholder_secrets() {
     changed=1
   fi
 
-  # Generate NEXTAUTH_SECRET if missing or placeholder
   local nextauth_secret
   nextauth_secret="$(grep '^NEXTAUTH_SECRET=' "$env_file" | cut -d= -f2- | sed 's/^"//;s/"$//' || true)"
   if [ -z "$nextauth_secret" ] || [ "$nextauth_secret" = "your-nextauth-secret-here" ]; then
@@ -243,6 +413,22 @@ fix_placeholder_secrets() {
     changed=1
   fi
 
+  local backend_url
+  backend_url="$(grep '^BACKEND_URL=' "$env_file" | cut -d= -f2- || true)"
+  if [ -z "$backend_url" ]; then
+    echo "BACKEND_URL=http://localhost:8080" >> "$env_file"
+    log_ok "Set BACKEND_URL=http://localhost:8080"
+    changed=1
+  fi
+
+  local nextauth_url
+  nextauth_url="$(grep '^NEXTAUTH_URL=' "$env_file" | cut -d= -f2- || true)"
+  if [ -z "$nextauth_url" ]; then
+    echo "NEXTAUTH_URL=http://localhost:3000" >> "$env_file"
+    log_ok "Set NEXTAUTH_URL=http://localhost:3000"
+    changed=1
+  fi
+
   if [ $changed -eq 1 ]; then
     log_warn "Restart the script if secrets were just generated."
   fi
@@ -254,29 +440,26 @@ fix_placeholder_secrets() {
 push_schema() {
   log_info "Pushing database schema..."
   cd "$WEB_DIR"
-  npx drizzle-kit push --force
+  local output
+  output="$(npx drizzle-kit push --force 2>&1)" || true
+  if echo "$output" | grep -qi "error\|failed"; then
+    log_error "Schema push failed:"
+    echo "$output" | while IFS= read -r line; do echo -e "  ${RED}|${NC} $line"; done
+    log_info "Check database connection in $WEB_DIR/.env.local"
+    exit 1
+  fi
+  echo "$output" | while IFS= read -r line; do echo -e "  ${DIM}db>${NC} $line"; done
   log_ok "Schema pushed"
 }
 
 is_db_seeded() {
-  local db_url
-  db_url="${DATABASE_URL:-}"
-  if [ -z "$db_url" ]; then
-    if [ -f "$WEB_DIR/.env.local" ]; then
-      db_url="$(grep '^DATABASE_URL=' "$WEB_DIR/.env.local" | cut -d= -f2- | sed 's/^"//;s/"$//')"
-    fi
-  fi
-  if [ -z "$db_url" ]; then
-    log_warn "Could not determine DATABASE_URL — assuming not seeded"
+  if ! docker info >/dev/null 2>&1; then
     return 1
   fi
-
-  if docker info >/dev/null 2>&1; then
-    local count
-    count="$(docker exec dra_postgres psql "$db_url" -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | xargs || true)"
-    if [ "$count" != "" ] && [ "$count" -gt 0 ] 2>/dev/null; then
-      return 0
-    fi
+  local count
+  count="$(docker exec dra_postgres psql -U dra -d dra_platform -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | xargs || true)"
+  if [ "$count" != "" ] && [ "$count" -gt 0 ] 2>/dev/null; then
+    return 0
   fi
   return 1
 }
@@ -284,15 +467,21 @@ is_db_seeded() {
 seed_database() {
   log_info "Database is empty — seeding demo data..."
   cd "$WEB_DIR"
-  npx tsx db/seed.ts
+  local output
+  output="$(npx tsx db/seed.ts 2>&1)" || true
+  if echo "$output" | grep -qi "error"; then
+    log_error "Seed failed:"
+    echo "$output" | while IFS= read -r line; do echo -e "  ${RED}|${NC} $line"; done
+    exit 1
+  fi
+  echo "$output" | while IFS= read -r line; do echo -e "  ${DIM}seed>${NC} $line"; done
   log_ok "Database seeded"
 }
 
 # ============================================================
-# Run Services with color-coded log prefixes
+# Run Services
 # ============================================================
 run_backend() {
-  # Try local Go first
   if command -v go >/dev/null 2>&1; then
     log_info "Starting Go backend on http://localhost:8080 ..."
     cd "$BACKEND_DIR"
@@ -302,31 +491,39 @@ run_backend() {
       env_file="$WEB_DIR/.env.local"
     fi
 
-    # Run backend in a subshell, pipe output through awk for colored prefix
+    # Find a free metrics port
+    local metrics_port=9090
+    while ss -tlnp 2>/dev/null | grep -q ":$metrics_port "; do
+      metrics_port=$((metrics_port + 1))
+    done
+
     (
       if [ -n "$env_file" ]; then
         set -a
-        # shellcheck source=/dev/null
         . "$env_file"
         set +a
       fi
       export ENV=development
+      export METRICS_PORT=$metrics_port
       exec go run ./cmd/api
-    ) 2>&1 | awk '{ printf "\033[0;35m[backend]\033[0m %s\n", $0 }' &
+    ) 2>&1 | while IFS= read -r line; do
+      echo -e "${MAGENTA}[backend]${NC} $line"
+      echo "$line" >> "$LOG_DIR/backend.log"
+    done &
 
     BACKEND_MODE="local"
+    log_ok "Backend starting on :8080 (metrics on :$metrics_port)"
     return
   fi
 
-  # Fall back to Docker if available
   if [ -n "$DOCKER_COMPOSE" ] && docker info >/dev/null 2>&1; then
     log_info "Go not installed — starting backend via Docker..."
     cd "$ROOT_DIR"
-    $DOCKER_COMPOSE up -d --build backend
-
-    # Tail container logs with color prefix
-    $DOCKER_COMPOSE logs -f backend 2>&1 | awk '{ printf "\033[0;35m[backend]\033[0m %s\n", $0 }' &
-
+    $DOCKER_COMPOSE up -d --build backend 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}docker>${NC} $line"; done
+    $DOCKER_COMPOSE logs -f backend 2>&1 | while IFS= read -r line; do
+      echo -e "${MAGENTA}[backend]${NC} $line"
+      echo "$line" >> "$LOG_DIR/backend.log"
+    done &
     BACKEND_MODE="docker"
     return
   fi
@@ -337,8 +534,10 @@ run_backend() {
 run_frontend() {
   log_info "Starting Next.js frontend on http://localhost:3000 ..."
   cd "$WEB_DIR"
-  # Pipe output through awk for colored prefix
-  npm run dev 2>&1 | awk '{ printf "\033[0;36m[frontend]\033[0m %s\n", $0 }' &
+  npm run dev 2>&1 | while IFS= read -r line; do
+    echo -e "${CYAN}[frontend]${NC} $line"
+    echo "$line" >> "$LOG_DIR/frontend.log"
+  done &
 }
 
 show_banner() {
@@ -348,9 +547,11 @@ show_banner() {
   echo -e "${BOLD}  DRA Platform is running${NC}"
   echo -e "${BOLD}  Frontend:${NC} ${CYAN}http://localhost:3000${NC}"
   echo -e "${BOLD}  Backend: ${NC} ${MAGENTA}http://localhost:8080${NC}"
+  echo -e "${BOLD}  Logs:     ${NC} ${DIM}$LOG_DIR/${NC}"
   echo -e "${BOLD}══════════════════════════════════════════════════════════════════${NC}"
   echo ""
   log_info "Press Ctrl+C to stop all services."
+  log_info "Re-run with --logs to view saved logs."
   echo ""
 }
 
@@ -358,40 +559,101 @@ show_banner() {
 # Main
 # ============================================================
 main() {
+  local CHECK_MODE=false
+  local LOGS_MODE=false
+
+  for arg in "$@"; do
+    case "$arg" in
+      --check) CHECK_MODE=true ;;
+      --logs)  LOGS_MODE=true  ;;
+    esac
+  done
+
   echo -e "${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}"
   echo -e "${BOLD}║         DRA Platform — Full Stack Dev Launcher               ║${NC}"
   echo -e "${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}"
-  echo ""
 
-  check_node
-  check_npm
-  check_go
-  check_docker
-  echo ""
+  # ── Logs mode ──
+  if [ "$LOGS_MODE" = true ]; then
+    show_logs
+    exit 0
+  fi
 
+  # ── Dependency check (always runs) ──
+  check_deps
+
+  # ── Check-only mode ──
+  if [ "$CHECK_MODE" = true ]; then
+    echo -e "${DIM}Run without --check to start all services.${NC}"
+    echo ""
+    exit 0
+  fi
+
+  echo ""
+  echo -e "${BOLD}═══ Installing Dependencies ═══${NC}"
+  echo ""
   install_root_deps
   install_web_deps
   install_backend_deps
   echo ""
 
-  start_postgres
+  # Detect DB_TYPE from env
+  local db_type="postgres"
+  if [ -f "$WEB_DIR/.env.local" ]; then
+    local env_db_type
+    env_db_type="$(grep '^DB_TYPE=' "$WEB_DIR/.env.local" | cut -d= -f2- | tr -d '[:space:]' || true)"
+    if [ -n "$env_db_type" ]; then
+      db_type="$env_db_type"
+    fi
+    local db_url
+    db_url="$(grep '^DATABASE_URL=' "$WEB_DIR/.env.local" | cut -d= -f2- || true)"
+    if [ "$db_type" = "postgres" ] && echo "$db_url" | grep -q "neon.tech"; then
+      db_type="neon"
+    fi
+  fi
+
+  echo -e "${BOLD}═══ Database Setup ═══${NC}"
+  echo ""
   ensure_env_file
   fix_placeholder_secrets
-  push_schema
-  echo ""
 
-  if is_db_seeded; then
-    log_ok "Database already seeded — skipping"
+  if [ "$db_type" = "mongodb" ]; then
+    log_info "MongoDB mode detected — skipping local PostgreSQL"
+    log_info "Backend will auto-setup MongoDB on startup"
+  elif [ "$db_type" = "neon" ]; then
+    log_info "Neon DB mode detected — skipping local PostgreSQL"
+    push_schema
   else
-    seed_database
+    start_postgres
+    push_schema
   fi
   echo ""
 
+  echo -e "${BOLD}═══ Seeding ═══${NC}"
+  echo ""
+  if [ "$db_type" = "mongodb" ]; then
+    log_info "MongoDB seeding handled by backend auto-seed"
+  elif [ "$db_type" = "neon" ]; then
+    if is_db_seeded; then
+      log_ok "Database already seeded — skipping"
+    else
+      seed_database
+    fi
+  else
+    if is_db_seeded; then
+      log_ok "Database already seeded — skipping"
+    else
+      seed_database
+    fi
+  fi
+  echo ""
+
+  echo -e "${BOLD}═══ Starting Services ═══${NC}"
+  echo ""
   run_backend
   run_frontend
   show_banner
 
-  # Wait for all background jobs
   wait
 }
 

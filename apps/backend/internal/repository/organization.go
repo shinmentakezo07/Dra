@@ -21,7 +21,7 @@ func NewOrganizationRepo(d *db.DB) *OrganizationRepo { return &OrganizationRepo{
 
 func (r *OrganizationRepo) Create(ctx context.Context, name, ownerID, plan string) (*domain.Organization, error) {
 	id := domain.NewID()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO organizations (id, name, owner_id, plan, created_at)
 		VALUES ($1, $2, $3, $4, NOW())
 		RETURNING id, name, owner_id, plan, created_at`,
@@ -30,13 +30,13 @@ func (r *OrganizationRepo) Create(ctx context.Context, name, ownerID, plan strin
 }
 
 func (r *OrganizationRepo) ByID(ctx context.Context, id string) (*domain.Organization, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, name, owner_id, plan, created_at FROM organizations WHERE id = $1`, id)
 	return scanOrganization(row)
 }
 
 func (r *OrganizationRepo) ByOwner(ctx context.Context, ownerID string) ([]domain.Organization, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, name, owner_id, plan, created_at FROM organizations WHERE owner_id = $1 ORDER BY created_at DESC`, ownerID)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (r *OrganizationRepo) ByOwner(ctx context.Context, ownerID string) ([]domai
 }
 
 func (r *OrganizationRepo) ListByMember(ctx context.Context, userID string) ([]domain.Organization, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT o.id, o.name, o.owner_id, o.plan, o.created_at
 		FROM organizations o
 		JOIN org_members m ON o.id = m.org_id
@@ -78,13 +78,13 @@ func (r *OrganizationRepo) ListByMember(ctx context.Context, userID string) ([]d
 }
 
 func (r *OrganizationRepo) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM organizations WHERE id = $1`, id)
+	_, err := r.db.Exec(ctx, `DELETE FROM organizations WHERE id = $1`, id)
 	return err
 }
 
 func (r *OrganizationRepo) AddMember(ctx context.Context, orgID, userID, role string) (*domain.OrgMember, error) {
 	id := domain.NewID()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO org_members (id, org_id, user_id, role, joined_at)
 		VALUES ($1, $2, $3, $4, NOW())
 		RETURNING id, org_id, user_id, role, joined_at`,
@@ -93,20 +93,20 @@ func (r *OrganizationRepo) AddMember(ctx context.Context, orgID, userID, role st
 }
 
 func (r *OrganizationRepo) RemoveMember(ctx context.Context, orgID, userID string) error {
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`DELETE FROM org_members WHERE org_id = $1 AND user_id = $2`, orgID, userID)
 	return err
 }
 
 func (r *OrganizationRepo) GetMember(ctx context.Context, orgID, userID string) (*domain.OrgMember, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, org_id, user_id, role, joined_at FROM org_members WHERE org_id = $1 AND user_id = $2`,
 		orgID, userID)
 	return scanOrgMember(row)
 }
 
 func (r *OrganizationRepo) ListMembers(ctx context.Context, orgID string) ([]domain.OrgMember, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, org_id, user_id, role, joined_at FROM org_members WHERE org_id = $1 ORDER BY joined_at DESC`, orgID)
 	if err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ func (r *OrganizationRepo) ListMembers(ctx context.Context, orgID string) ([]dom
 
 func (r *OrganizationRepo) CreateInvite(ctx context.Context, orgID, email, role, token string, expiresAt time.Time) (*domain.Invite, error) {
 	id := domain.NewID()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO invites (id, org_id, email, role, token, expires_at, used_at, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NULL, NOW())
 		RETURNING id, org_id, email, role, token, expires_at, used_at, created_at`,
@@ -135,19 +135,19 @@ func (r *OrganizationRepo) CreateInvite(ctx context.Context, orgID, email, role,
 }
 
 func (r *OrganizationRepo) GetInviteByToken(ctx context.Context, token string) (*domain.Invite, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, org_id, email, role, token, expires_at, used_at, created_at FROM invites WHERE token = $1`, token)
 	return scanInvite(row)
 }
 
 func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`UPDATE invites SET used_at = NOW() WHERE id = $1`, id)
 	return err
 }
 
 func (r *OrganizationRepo) ListInvites(ctx context.Context, orgID string) ([]domain.Invite, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, org_id, email, role, token, expires_at, used_at, created_at
 		FROM invites WHERE org_id = $1 ORDER BY created_at DESC`, orgID)
 	if err != nil {

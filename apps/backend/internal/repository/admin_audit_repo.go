@@ -17,7 +17,7 @@ func NewAdminAuditRepo(d *db.DB) *AdminAuditRepo {
 }
 
 func (r *AdminAuditRepo) Insert(ctx context.Context, log *domain.AuditLog) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO audit_logs (actor_id, actor_email, action, target_type, target_id, changes, ip_address, severity)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
 		log.ActorID, log.ActorEmail, log.Action, log.TargetType, log.TargetID,
@@ -67,7 +67,7 @@ func (r *AdminAuditRepo) List(ctx context.Context, filter domain.AuditLogFilter)
 	}
 
 	var total int
-	if err := r.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM audit_logs "+where, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, "SELECT COUNT(*) FROM audit_logs "+where, args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count audit: %w", err)
 	}
 
@@ -77,7 +77,7 @@ func (r *AdminAuditRepo) List(ctx context.Context, filter domain.AuditLogFilter)
 		FROM audit_logs %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, where, argN, argN+1)
 	args = append(args, filter.Limit, offset)
 
-	rows, err := r.db.Pool.Query(ctx, query, args...)
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list audit: %w", err)
 	}

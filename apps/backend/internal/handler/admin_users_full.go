@@ -109,7 +109,7 @@ func (h *Handler) AdminBulkSuspendUsers(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) AdminListAdminUsers(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Pool.Query(r.Context(), `
+	rows, err := h.db.Query(r.Context(), `
 		SELECT au.user_id, au.role, au.permissions, COALESCE(au.is_active,true), 
 		       COALESCE(au.created_by::text,''), au.created_at, COALESCE(au.updated_at, au.created_at)
 		FROM admin_users au JOIN users u ON u.id = au.user_id
@@ -147,7 +147,7 @@ func (h *Handler) AdminCreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	if req.Role == "" {
 		req.Role = "admin"
 	}
-	_, err := h.db.Pool.Exec(r.Context(), `
+	_, err := h.db.Exec(r.Context(), `
 		INSERT INTO admin_users (user_id, role, permissions, is_active, created_by)
 		VALUES ($1, $2, '{}', true, $3) ON CONFLICT (user_id) DO UPDATE SET role=$2, is_active=true`,
 		req.UserID, req.Role, "")
@@ -160,7 +160,7 @@ func (h *Handler) AdminCreateAdminUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AdminRemoveAdmin(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	tag, err := h.db.Pool.Exec(r.Context(), `DELETE FROM admin_users WHERE user_id=$1`, id)
+	tag, err := h.db.Exec(r.Context(), `DELETE FROM admin_users WHERE user_id=$1`, id)
 	if err != nil {
 		response.Error(w, 500, err.Error())
 		return

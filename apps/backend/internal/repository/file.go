@@ -32,7 +32,7 @@ type FileRecord struct {
 func (r *FileRepo) Create(ctx context.Context, userID, filename, mimeType, storageKey string, size int64) (*FileRecord, error) {
 	id := domain.NewID()
 	now := time.Now()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO files (id, user_id, filename, mime_type, size, storage_key, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, user_id, filename, mime_type, size, storage_key, created_at`,
 		id, userID, filename, mimeType, size, storageKey, now)
 	var f FileRecord
@@ -44,7 +44,7 @@ func (r *FileRepo) Create(ctx context.Context, userID, filename, mimeType, stora
 
 // ByID retrieves a file by ID.
 func (r *FileRepo) ByID(ctx context.Context, id string) (*FileRecord, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, filename, mime_type, size, storage_key, created_at FROM files WHERE id = $1`, id)
 	var f FileRecord
 	if err := row.Scan(&f.ID, &f.UserID, &f.Filename, &f.MIMEType, &f.Size, &f.StorageKey, &f.CreatedAt); err != nil {
@@ -59,7 +59,7 @@ func (r *FileRepo) ByID(ctx context.Context, id string) (*FileRecord, error) {
 // ByUser lists files for a user.
 func (r *FileRepo) ByUser(ctx context.Context, userID string, page, limit int) ([]FileRecord, int, error) {
 	offset := (page - 1) * limit
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, filename, mime_type, size, storage_key, created_at FROM files WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		userID, limit, offset)
 	if err != nil {
@@ -77,12 +77,12 @@ func (r *FileRepo) ByUser(ctx context.Context, userID string, page, limit int) (
 	}
 
 	var total int
-	_ = r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM files WHERE user_id = $1`, userID).Scan(&total)
+	_ = r.db.QueryRow(ctx, `SELECT COUNT(*) FROM files WHERE user_id = $1`, userID).Scan(&total)
 	return files, total, nil
 }
 
 // Delete removes a file record.
 func (r *FileRepo) Delete(ctx context.Context, userID, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM files WHERE id = $1 AND user_id = $2`, id, userID)
+	_, err := r.db.Exec(ctx, `DELETE FROM files WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }

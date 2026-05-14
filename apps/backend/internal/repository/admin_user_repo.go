@@ -33,12 +33,12 @@ func (r *AdminUserRepo) ListUsers(ctx context.Context, f domain.UserFilter) ([]d
 	}
 
 	var total int
-	if err := r.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM users u "+w, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, "SELECT COUNT(*) FROM users u "+w, args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count: %w", err)
 	}
 
 	q := fmt.Sprintf(`SELECT u.id,u.name,u.email,u.role,COALESCE(u.status,'active'),u.created_at,u.last_login_at,COALESCE(u.last_login_ip,''),COALESCE(u.notes,''),COALESCE(u.tags,'{}') FROM users u %s ORDER BY u.created_at DESC LIMIT $%d OFFSET $%d`, w, n, n+1)
-	rows, err := r.db.Pool.Query(ctx, q, append(args, f.Limit, offset)...)
+	rows, err := r.db.Query(ctx, q, append(args, f.Limit, offset)...)
 	if err != nil { return nil, 0, fmt.Errorf("query: %w", err) }
 	defer rows.Close()
 
@@ -60,7 +60,7 @@ func (r *AdminUserRepo) GetUser(ctx context.Context, id string) (*domain.AdminUs
 	var u domain.AdminUserDetail
 	var lip, notes string
 	var tags []string
-	err := r.db.Pool.QueryRow(ctx, `SELECT id,name,email,role,COALESCE(status,'active'),created_at,last_login_at,COALESCE(last_login_ip,''),COALESCE(notes,''),COALESCE(tags,'{}') FROM users WHERE id=$1 AND deleted_at IS NULL`, id).
+	err := r.db.QueryRow(ctx, `SELECT id,name,email,role,COALESCE(status,'active'),created_at,last_login_at,COALESCE(last_login_ip,''),COALESCE(notes,''),COALESCE(tags,'{}') FROM users WHERE id=$1 AND deleted_at IS NULL`, id).
 		Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.Status, &u.CreatedAt, &u.LastLoginAt, &lip, &notes, &tags)
 	if err != nil {
 		if err == pgx.ErrNoRows { return nil, nil }
@@ -71,27 +71,27 @@ func (r *AdminUserRepo) GetUser(ctx context.Context, id string) (*domain.AdminUs
 }
 
 func (r *AdminUserRepo) UpdateUserStatus(ctx context.Context, userID, status, reason, actorID string) error {
-	tag, err := r.db.Pool.Exec(ctx, `UPDATE users SET status=$2,suspension_reason=$3,suspended_by=$4,suspended_at=$5 WHERE id=$1`, userID, status, reason, actorID, time.Now())
+	tag, err := r.db.Exec(ctx, `UPDATE users SET status=$2,suspension_reason=$3,suspended_by=$4,suspended_at=$5 WHERE id=$1`, userID, status, reason, actorID, time.Now())
 	if err != nil { return fmt.Errorf("update status: %w", err) }
 	if tag.RowsAffected() == 0 { return fmt.Errorf("user not found: %s", userID) }
 	return nil
 }
 
 func (r *AdminUserRepo) UpdateUserRole(ctx context.Context, userID, role string) error {
-	tag, err := r.db.Pool.Exec(ctx, `UPDATE users SET role=$2 WHERE id=$1`, userID, role)
+	tag, err := r.db.Exec(ctx, `UPDATE users SET role=$2 WHERE id=$1`, userID, role)
 	if err != nil { return fmt.Errorf("update role: %w", err) }
 	if tag.RowsAffected() == 0 { return fmt.Errorf("user not found: %s", userID) }
 	return nil
 }
 
 func (r *AdminUserRepo) SoftDelete(ctx context.Context, userID string) error {
-	_, err := r.db.Pool.Exec(ctx, `UPDATE users SET email='deleted-'||id||'@deleted',name='Deleted User',password='',status='deleted',deleted_at=NOW() WHERE id=$1`, userID)
+	_, err := r.db.Exec(ctx, `UPDATE users SET email='deleted-'||id||'@deleted',name='Deleted User',password='',status='deleted',deleted_at=NOW() WHERE id=$1`, userID)
 	return fmt.Errorf("soft delete: %w", err)
 }
 
 func (r *AdminUserRepo) GetAdminUser(ctx context.Context, userID string) (*domain.AdminUser, error) {
 	var a domain.AdminUser
-	err := r.db.Pool.QueryRow(ctx, `
+	err := r.db.QueryRow(ctx, `
 		SELECT au.user_id, au.role, COALESCE(au.permissions, '{}'), au.is_active, au.created_by, au.created_at, au.updated_at
 		FROM admin_users au WHERE au.user_id=$1`, userID).
 		Scan(&a.UserID, &a.Role, &a.Permissions, &a.IsActive, &a.CreatedBy, &a.CreatedAt, &a.UpdatedAt)
@@ -106,7 +106,7 @@ func (r *AdminUserRepo) GetAdminUser(ctx context.Context, userID string) (*domai
 
 func (r *AdminUserRepo) SearchByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var u domain.User
-	err := r.db.Pool.QueryRow(ctx, `SELECT id,name,email,role,created_at FROM users WHERE email=$1 AND deleted_at IS NULL`, email).
+	err := r.db.QueryRow(ctx, `SELECT id,name,email,role,created_at FROM users WHERE email=$1 AND deleted_at IS NULL`, email).
 		Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.CreatedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows { return nil, nil }

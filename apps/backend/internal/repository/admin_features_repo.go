@@ -16,13 +16,13 @@ type AdminFeaturesRepo struct{ db *db.DB }
 func NewAdminFeaturesRepo(d *db.DB) *AdminFeaturesRepo { return &AdminFeaturesRepo{db: d} }
 
 func (r *AdminFeaturesRepo) CreateAnnouncement(ctx context.Context, a *domain.Announcement) error {
-	_, err := r.db.Pool.Exec(ctx, `INSERT INTO announcements(id,title,body,priority,target_type,target_ids,starts_at,ends_at,show_in_app,send_email,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+	_, err := r.db.Exec(ctx, `INSERT INTO announcements(id,title,body,priority,target_type,target_ids,starts_at,ends_at,show_in_app,send_email,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
 		a.ID, a.Title, a.Body, a.Priority, a.TargetType, a.TargetIDs, a.StartsAt, a.EndsAt, a.ShowInApp, a.SendEmail, a.CreatedBy)
 	return fmt.Errorf("create announcement: %w", err)
 }
 
 func (r *AdminFeaturesRepo) ListAnnouncements(ctx context.Context) ([]domain.Announcement, error) {
-	rows, err := r.db.Pool.Query(ctx, `SELECT id,title,body,priority,target_type,target_ids,starts_at,ends_at,show_in_app,send_email,created_by,created_at FROM announcements ORDER BY created_at DESC`)
+	rows, err := r.db.Query(ctx, `SELECT id,title,body,priority,target_type,target_ids,starts_at,ends_at,show_in_app,send_email,created_by,created_at FROM announcements ORDER BY created_at DESC`)
 	if err != nil { return nil, fmt.Errorf("list announcements: %w", err) }
 	defer rows.Close()
 	var announcements []domain.Announcement
@@ -35,13 +35,13 @@ func (r *AdminFeaturesRepo) ListAnnouncements(ctx context.Context) ([]domain.Ann
 }
 
 func (r *AdminFeaturesRepo) CreatePromoCode(ctx context.Context, p *domain.PromoCode) error {
-	_, err := r.db.Pool.Exec(ctx, `INSERT INTO promo_codes(id,code,type,value,max_uses,min_purchase,expires_at,is_active,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(code) DO NOTHING`,
+	_, err := r.db.Exec(ctx, `INSERT INTO promo_codes(id,code,type,value,max_uses,min_purchase,expires_at,is_active,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(code) DO NOTHING`,
 		p.ID, p.Code, p.Type, p.Value, p.MaxUses, p.MinPurchase, p.ExpiresAt, p.IsActive, p.CreatedBy)
 	return fmt.Errorf("create promo: %w", err)
 }
 
 func (r *AdminFeaturesRepo) ListPromoCodes(ctx context.Context) ([]domain.PromoCode, error) {
-	rows, err := r.db.Pool.Query(ctx, `SELECT id,code,type,value,max_uses,current_uses,min_purchase,expires_at,is_active,created_by,created_at FROM promo_codes ORDER BY created_at DESC`)
+	rows, err := r.db.Query(ctx, `SELECT id,code,type,value,max_uses,current_uses,min_purchase,expires_at,is_active,created_by,created_at FROM promo_codes ORDER BY created_at DESC`)
 	if err != nil { return nil, fmt.Errorf("list promos: %w", err) }
 	defer rows.Close()
 	var promos []domain.PromoCode
@@ -54,7 +54,7 @@ func (r *AdminFeaturesRepo) ListPromoCodes(ctx context.Context) ([]domain.PromoC
 }
 
 func (r *AdminFeaturesRepo) GetPromoRedemptions(ctx context.Context, promoID string) ([]domain.PromoRedemption, error) {
-	rows, err := r.db.Pool.Query(ctx, `SELECT id,promo_id,user_id,discount,credits_awarded,redeemed_at FROM promo_redemptions WHERE promo_id=$1 ORDER BY redeemed_at DESC`, promoID)
+	rows, err := r.db.Query(ctx, `SELECT id,promo_id,user_id,discount,credits_awarded,redeemed_at FROM promo_redemptions WHERE promo_id=$1 ORDER BY redeemed_at DESC`, promoID)
 	if err != nil { return nil, fmt.Errorf("list redemptions: %w", err) }
 	defer rows.Close()
 	var redemptions []domain.PromoRedemption
@@ -67,7 +67,7 @@ func (r *AdminFeaturesRepo) GetPromoRedemptions(ctx context.Context, promoID str
 }
 
 func (r *AdminFeaturesRepo) ListGroups(ctx context.Context) ([]domain.UserGroup, error) {
-	rows, err := r.db.Pool.Query(ctx, `SELECT id,name,description,created_by,created_at FROM user_groups ORDER BY name ASC`)
+	rows, err := r.db.Query(ctx, `SELECT id,name,description,created_by,created_at FROM user_groups ORDER BY name ASC`)
 	if err != nil { return nil, fmt.Errorf("list groups: %w", err) }
 	defer rows.Close()
 	var groups []domain.UserGroup
@@ -81,12 +81,12 @@ func (r *AdminFeaturesRepo) ListGroups(ctx context.Context) ([]domain.UserGroup,
 
 func (r *AdminFeaturesRepo) CreateGroup(ctx context.Context, g *domain.UserGroup) error {
 	g.ID = uuid.New().String()
-	_, err := r.db.Pool.Exec(ctx, `INSERT INTO user_groups(id,name,description,created_by) VALUES($1,$2,$3,$4)`, g.ID, g.Name, g.Description, g.CreatedBy)
+	_, err := r.db.Exec(ctx, `INSERT INTO user_groups(id,name,description,created_by) VALUES($1,$2,$3,$4)`, g.ID, g.Name, g.Description, g.CreatedBy)
 	return fmt.Errorf("create group: %w", err)
 }
 
 func (r *AdminFeaturesRepo) ListScheduledReports(ctx context.Context) ([]domain.ScheduledReport, error) {
-	rows, err := r.db.Pool.Query(ctx, `SELECT id,name,frequency,format,sections,recipients,next_send_at,last_sent_at,is_active,created_at FROM scheduled_reports ORDER BY is_active DESC,next_send_at ASC`)
+	rows, err := r.db.Query(ctx, `SELECT id,name,frequency,format,sections,recipients,next_send_at,last_sent_at,is_active,created_at FROM scheduled_reports ORDER BY is_active DESC,next_send_at ASC`)
 	if err != nil { return nil, fmt.Errorf("list reports: %w", err) }
 	defer rows.Close()
 	var reports []domain.ScheduledReport
@@ -100,14 +100,14 @@ func (r *AdminFeaturesRepo) ListScheduledReports(ctx context.Context) ([]domain.
 
 func (r *AdminFeaturesRepo) CreateScheduledReport(ctx context.Context, s *domain.ScheduledReport) error {
 	s.ID = uuid.New().String()
-	_, err := r.db.Pool.Exec(ctx, `INSERT INTO scheduled_reports(id,name,frequency,format,sections,recipients,next_send_at,is_active) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
+	_, err := r.db.Exec(ctx, `INSERT INTO scheduled_reports(id,name,frequency,format,sections,recipients,next_send_at,is_active) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
 		s.ID, s.Name, s.Frequency, s.Format, s.Sections, s.Recipients, s.NextSendAt, s.IsActive)
 	return fmt.Errorf("create report: %w", err)
 }
 
 func (r *AdminFeaturesRepo) CreateChangelog(ctx context.Context, e *domain.ChangelogEntry) error {
 	e.ID = uuid.New().String()
-	_, err := r.db.Pool.Exec(ctx, `INSERT INTO api_changelog(id,title,body,version,type,is_draft,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)`,
+	_, err := r.db.Exec(ctx, `INSERT INTO api_changelog(id,title,body,version,type,is_draft,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)`,
 		e.ID, e.Title, e.Body, e.Version, e.Type, e.IsDraft, e.CreatedBy)
 	return fmt.Errorf("create changelog: %w", err)
 }
@@ -116,7 +116,7 @@ func (r *AdminFeaturesRepo) ListChangelog(ctx context.Context, drafts bool) ([]d
 	q := `SELECT id,title,body,version,type,published_at,is_draft,created_by,created_at FROM api_changelog`
 	if !drafts { q += " WHERE is_draft=false" }
 	q += " ORDER BY COALESCE(published_at,created_at) DESC"
-	rows, err := r.db.Pool.Query(ctx, q)
+	rows, err := r.db.Query(ctx, q)
 	if err != nil { return nil, fmt.Errorf("list changelog: %w", err) }
 	defer rows.Close()
 	var entries []domain.ChangelogEntry
@@ -129,12 +129,12 @@ func (r *AdminFeaturesRepo) ListChangelog(ctx context.Context, drafts bool) ([]d
 }
 
 func (r *AdminFeaturesRepo) PublishChangelog(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `UPDATE api_changelog SET is_draft=false,published_at=NOW() WHERE id=$1`, id)
+	_, err := r.db.Exec(ctx, `UPDATE api_changelog SET is_draft=false,published_at=NOW() WHERE id=$1`, id)
 	return fmt.Errorf("publish changelog: %w", err)
 }
 
 func (r *AdminFeaturesRepo) ListSSOConfigs(ctx context.Context) ([]domain.SSOConfig, error) {
-	rows, err := r.db.Pool.Query(ctx, `SELECT id,provider,label,issuer,client_id,allowed_domains,auto_provision,default_role,is_active,created_at FROM sso_configs ORDER BY provider ASC`)
+	rows, err := r.db.Query(ctx, `SELECT id,provider,label,issuer,client_id,allowed_domains,auto_provision,default_role,is_active,created_at FROM sso_configs ORDER BY provider ASC`)
 	if err != nil { return nil, fmt.Errorf("list sso: %w", err) }
 	defer rows.Close()
 	var configs []domain.SSOConfig
@@ -147,7 +147,7 @@ func (r *AdminFeaturesRepo) ListSSOConfigs(ctx context.Context) ([]domain.SSOCon
 }
 
 func (r *AdminFeaturesRepo) RedeemPromo(ctx context.Context, code, userID string) (*domain.PromoRedemption, int, error) {
-	tx, err := r.db.Pool.Begin(ctx)
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("begin tx: %w", err)
 	}

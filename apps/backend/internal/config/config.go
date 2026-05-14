@@ -10,7 +10,10 @@ import (
 
 type Config struct {
 	Port            string
+	DBType          string
 	DatabaseURL     string
+	MongoDBURI      string
+	MongoDBName     string
 	AuthSecret      string
 	NvidiaAPIKey           string
 	NvidiaSecondaryAPIKeys []string
@@ -64,9 +67,20 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+	dbType := getEnv("DB_TYPE", "postgres")
+	// Auto-detect Neon from URL if not explicitly set
+	if dbType == "postgres" {
+		if strings.Contains(getEnv("DATABASE_URL", ""), "neon.tech") {
+			dbType = "neon"
+		}
+	}
+
 	cfg := &Config{
 		Port:            getEnv("PORT", "8080"),
-		DatabaseURL:     mustGetEnv("DATABASE_URL"),
+		DBType:          dbType,
+		DatabaseURL:     getEnv("DATABASE_URL", ""),
+		MongoDBURI:      getEnv("MONGODB_URI", ""),
+		MongoDBName:     getEnv("MONGODB_NAME", "dra_platform"),
 		AuthSecret:      mustGetEnv("AUTH_SECRET"),
 		NvidiaAPIKey:              getEnv("NVIDIA_API_KEY", ""),
 		NvidiaSecondaryAPIKeys:    getEnvSlice("NVIDIA_API_KEY_2"),
@@ -110,6 +124,18 @@ func Load() (*Config, error) {
 
 	if cfg.AuthSecret == "" {
 		return nil, fmt.Errorf("AUTH_SECRET is required")
+	}
+	if cfg.DBType != "postgres" && cfg.DBType != "neon" && cfg.DBType != "mongodb" {
+		return nil, fmt.Errorf("DB_TYPE must be one of: postgres, neon, mongodb")
+	}
+	if cfg.DBType == "mongodb" {
+		if cfg.MongoDBURI == "" {
+			return nil, fmt.Errorf("MONGODB_URI is required when DB_TYPE=mongodb")
+		}
+	} else {
+		if cfg.DatabaseURL == "" {
+			return nil, fmt.Errorf("DATABASE_URL is required when DB_TYPE=%s", cfg.DBType)
+		}
 	}
 	if len(cfg.AllowedOrigins) == 0 {
 		if cfg.IsProduction() {

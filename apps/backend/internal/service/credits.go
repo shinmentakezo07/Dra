@@ -124,7 +124,7 @@ func (s *CreditService) checkBudget(c *domain.UserCredits, required int) *domain
 }
 
 func (s *CreditService) SetBudget(ctx context.Context, userID string, dailyBudget, monthlyBudget *int) *domain.AppError {
-	_, err := s.db.Pool.Exec(ctx,
+	_, err := s.db.Exec(ctx,
 		`UPDATE user_credits SET daily_budget = $2, monthly_budget = $3, updated_at = NOW() WHERE user_id = $1`,
 		userID, dailyBudget, monthlyBudget)
 	if err != nil {

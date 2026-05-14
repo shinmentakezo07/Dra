@@ -32,7 +32,7 @@ func (r *AdminModelRepo) ListModels(ctx context.Context, status string) ([]domai
 	}
 	query += " ORDER BY display_name ASC"
 
-	rows, err := r.db.Pool.Query(ctx, query, args...)
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("list models: %w", err)
 	}
@@ -54,7 +54,7 @@ func (r *AdminModelRepo) ListModels(ctx context.Context, status string) ([]domai
 
 func (r *AdminModelRepo) GetModel(ctx context.Context, id string) (*domain.ModelRegistry, error) {
 	var m domain.ModelRegistry
-	err := r.db.Pool.QueryRow(ctx, `
+	err := r.db.QueryRow(ctx, `
 		SELECT id, model_id, provider_id, display_name, description,
 			context_window, max_output, input_price_per_1k, output_price_per_1k,
 			capabilities, supports_vision, supports_tools, supports_thinking,
@@ -74,7 +74,7 @@ func (r *AdminModelRepo) GetModel(ctx context.Context, id string) (*domain.Model
 }
 
 func (r *AdminModelRepo) CreateModel(ctx context.Context, m *domain.ModelRegistry) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO model_registry (id, model_id, provider_id, display_name, description,
 			context_window, max_output, input_price_per_1k, output_price_per_1k,
 			capabilities, supports_vision, supports_tools, supports_thinking, status)
@@ -86,7 +86,7 @@ func (r *AdminModelRepo) CreateModel(ctx context.Context, m *domain.ModelRegistr
 }
 
 func (r *AdminModelRepo) UpdateModel(ctx context.Context, m *domain.ModelRegistry) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		UPDATE model_registry SET display_name=$2, description=$3, context_window=$4, max_output=$5,
 			input_price_per_1k=$6, output_price_per_1k=$7, capabilities=$8,
 			supports_vision=$9, supports_tools=$10, supports_thinking=$11
@@ -97,14 +97,14 @@ func (r *AdminModelRepo) UpdateModel(ctx context.Context, m *domain.ModelRegistr
 }
 
 func (r *AdminModelRepo) UpdateModelStatus(ctx context.Context, id string, status domain.ModelStatus, replacementID *string) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		UPDATE model_registry SET status=$2, replacement_model_id=$3 WHERE id=$1`,
 		id, status, replacementID)
 	return fmt.Errorf("update model status: %w", err)
 }
 
 func (r *AdminModelRepo) ListAliases(ctx context.Context) ([]domain.ModelAlias, error) {
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT id, alias, target_model_id, preferred_provider_id, preferred_key_id,
 			rpm_override, tpm_override, monthly_budget, allowed_user_ids, is_active, created_at
 		FROM model_aliases ORDER BY alias ASC`)
@@ -128,7 +128,7 @@ func (r *AdminModelRepo) ListAliases(ctx context.Context) ([]domain.ModelAlias, 
 }
 
 func (r *AdminModelRepo) CreateAlias(ctx context.Context, a *domain.ModelAlias) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO model_aliases (id, alias, target_model_id, preferred_provider_id,
 			preferred_key_id, rpm_override, tpm_override, monthly_budget,
 			allowed_user_ids, is_active)
@@ -139,7 +139,7 @@ func (r *AdminModelRepo) CreateAlias(ctx context.Context, a *domain.ModelAlias) 
 }
 
 func (r *AdminModelRepo) UpdateAlias(ctx context.Context, a *domain.ModelAlias) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		UPDATE model_aliases SET alias=$2, target_model_id=$3, preferred_provider_id=$4,
 			preferred_key_id=$5, rpm_override=$6, tpm_override=$7, monthly_budget=$8,
 			allowed_user_ids=$9, is_active=$10
@@ -150,7 +150,7 @@ func (r *AdminModelRepo) UpdateAlias(ctx context.Context, a *domain.ModelAlias) 
 }
 
 func (r *AdminModelRepo) DeleteAlias(ctx context.Context, id string) error {
-	tag, err := r.db.Pool.Exec(ctx, `DELETE FROM model_aliases WHERE id=$1`, id)
+	tag, err := r.db.Exec(ctx, `DELETE FROM model_aliases WHERE id=$1`, id)
 	if err != nil {
 		return fmt.Errorf("delete alias: %w", err)
 	}

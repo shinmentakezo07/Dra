@@ -35,7 +35,7 @@ func NewBatchJobRepo(d *db.DB) *BatchJobRepo { return &BatchJobRepo{db: d} }
 // Create inserts a new batch job.
 func (r *BatchJobRepo) Create(ctx context.Context, id, userID, status string, itemsJSON []byte, total int) (*BatchJob, error) {
 	now := time.Now()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO batch_jobs (id, user_id, status, items, results, error, progress, total, created_at, started_at, ended_at)
 		VALUES ($1, $2, $3, $4, '[]', '', 0, $5, $6, NULL, NULL)
 		RETURNING id, user_id, status, items, results, error, progress, total, created_at, started_at, ended_at`,
@@ -45,7 +45,7 @@ func (r *BatchJobRepo) Create(ctx context.Context, id, userID, status string, it
 
 // ByID retrieves a batch job by ID.
 func (r *BatchJobRepo) ByID(ctx context.Context, id string) (*BatchJob, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, status, items, results, error, progress, total, created_at, started_at, ended_at FROM batch_jobs WHERE id = $1`, id)
 	return scanBatchJob(row)
 }
@@ -53,7 +53,7 @@ func (r *BatchJobRepo) ByID(ctx context.Context, id string) (*BatchJob, error) {
 // ByUser lists batch jobs for a user.
 func (r *BatchJobRepo) ByUser(ctx context.Context, userID string, limit, offset int) ([]BatchJob, error) {
 	if limit <= 0 { limit = 20 }
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, status, items, results, error, progress, total, created_at, started_at, ended_at
 		FROM batch_jobs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		userID, limit, offset)
@@ -75,7 +75,7 @@ func (r *BatchJobRepo) ByUser(ctx context.Context, userID string, limit, offset 
 
 // UpdateStatus updates a batch job's status and results.
 func (r *BatchJobRepo) UpdateStatus(ctx context.Context, id, status string, resultsJSON []byte, errMsg string, progress int) error {
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`UPDATE batch_jobs SET status = $1, results = $2, error = $3, progress = $4 WHERE id = $5`,
 		status, resultsJSON, errMsg, progress, id)
 	return err
@@ -84,7 +84,7 @@ func (r *BatchJobRepo) UpdateStatus(ctx context.Context, id, status string, resu
 // UpdateRunning sets status to running and started_at.
 func (r *BatchJobRepo) UpdateRunning(ctx context.Context, id string) error {
 	now := time.Now()
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`UPDATE batch_jobs SET status = 'running', started_at = $1 WHERE id = $2`,
 		now, id)
 	return err
@@ -93,7 +93,7 @@ func (r *BatchJobRepo) UpdateRunning(ctx context.Context, id string) error {
 // UpdateCompleted sets final status, results, error, ended_at.
 func (r *BatchJobRepo) UpdateCompleted(ctx context.Context, id, status string, resultsJSON []byte, errMsg string, progress int) error {
 	now := time.Now()
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`UPDATE batch_jobs SET status = $1, results = $2, error = $3, progress = $4, ended_at = $5 WHERE id = $6`,
 		status, resultsJSON, errMsg, progress, now, id)
 	return err

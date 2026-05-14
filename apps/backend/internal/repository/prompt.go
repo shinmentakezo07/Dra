@@ -34,9 +34,9 @@ func (r *PromptRepo) CreatePrompt(ctx context.Context, name, template, model str
 	now := time.Now()
 	// Determine next version
 	var version int
-	_ = r.db.Pool.QueryRow(ctx, `SELECT COALESCE(MAX(version), 0) + 1 FROM prompts WHERE name = $1`, name).Scan(&version)
+	_ = r.db.QueryRow(ctx, `SELECT COALESCE(MAX(version), 0) + 1 FROM prompts WHERE name = $1`, name).Scan(&version)
 
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO prompts (id, name, version, template, model, config, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, version, template, model, config, created_at`,
 		id, name, version, template, model, config, now)
 	var p Prompt
@@ -48,7 +48,7 @@ func (r *PromptRepo) CreatePrompt(ctx context.Context, name, template, model str
 
 // GetPrompt retrieves the latest version of a prompt by name.
 func (r *PromptRepo) GetPrompt(ctx context.Context, name string) (*Prompt, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, name, version, template, model, config, created_at FROM prompts WHERE name = $1 ORDER BY version DESC LIMIT 1`, name)
 	var p Prompt
 	if err := row.Scan(&p.ID, &p.Name, &p.Version, &p.Template, &p.Model, &p.Config, &p.CreatedAt); err != nil {
@@ -60,7 +60,7 @@ func (r *PromptRepo) GetPrompt(ctx context.Context, name string) (*Prompt, error
 
 // GetPromptByVersion retrieves a specific version of a prompt.
 func (r *PromptRepo) GetPromptByVersion(ctx context.Context, name string, version int) (*Prompt, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, name, version, template, model, config, created_at FROM prompts WHERE name = $1 AND version = $2`, name, version)
 	var p Prompt
 	if err := row.Scan(&p.ID, &p.Name, &p.Version, &p.Template, &p.Model, &p.Config, &p.CreatedAt); err != nil {
@@ -73,7 +73,7 @@ func (r *PromptRepo) GetPromptByVersion(ctx context.Context, name string, versio
 // ListPrompts lists all unique prompt names with their latest version.
 func (r *PromptRepo) ListPrompts(ctx context.Context, limit, offset int) ([]Prompt, error) {
 	if limit <= 0 { limit = 20 }
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT DISTINCT ON (name) id, name, version, template, model, config, created_at FROM prompts ORDER BY name, version DESC LIMIT $1 OFFSET $2`,
 		limit, offset)
 	if err != nil { return nil, err }
@@ -92,6 +92,6 @@ func (r *PromptRepo) ListPrompts(ctx context.Context, limit, offset int) ([]Prom
 
 // DeletePrompt removes all versions of a prompt.
 func (r *PromptRepo) DeletePrompt(ctx context.Context, name string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM prompts WHERE name = $1`, name)
+	_, err := r.db.Exec(ctx, `DELETE FROM prompts WHERE name = $1`, name)
 	return err
 }

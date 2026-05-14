@@ -42,7 +42,7 @@ type ConversationMessage struct {
 func (r *ConversationRepo) CreateConversation(ctx context.Context, userID, title, model string) (*Conversation, error) {
 	id := domain.NewID()
 	now := time.Now()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO conversations (id, user_id, title, model, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, title, model, created_at, updated_at`,
 		id, userID, title, model, now, now)
 	var c Conversation
@@ -54,7 +54,7 @@ func (r *ConversationRepo) CreateConversation(ctx context.Context, userID, title
 
 // GetConversation retrieves a conversation by ID.
 func (r *ConversationRepo) GetConversation(ctx context.Context, id string) (*Conversation, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, title, model, created_at, updated_at FROM conversations WHERE id = $1`, id)
 	var c Conversation
 	if err := row.Scan(&c.ID, &c.UserID, &c.Title, &c.Model, &c.CreatedAt, &c.UpdatedAt); err != nil {
@@ -67,7 +67,7 @@ func (r *ConversationRepo) GetConversation(ctx context.Context, id string) (*Con
 // ListConversations lists conversations for a user.
 func (r *ConversationRepo) ListConversations(ctx context.Context, userID string, limit, offset int) ([]Conversation, error) {
 	if limit <= 0 { limit = 20 }
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, title, model, created_at, updated_at FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3`,
 		userID, limit, offset)
 	if err != nil { return nil, err }
@@ -86,7 +86,7 @@ func (r *ConversationRepo) ListConversations(ctx context.Context, userID string,
 
 // DeleteConversation removes a conversation and its messages.
 func (r *ConversationRepo) DeleteConversation(ctx context.Context, userID, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM conversations WHERE id = $1 AND user_id = $2`, id, userID)
+	_, err := r.db.Exec(ctx, `DELETE FROM conversations WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }
 
@@ -94,7 +94,7 @@ func (r *ConversationRepo) DeleteConversation(ctx context.Context, userID, id st
 func (r *ConversationRepo) AddMessage(ctx context.Context, convID, role, content string, inputTokens, outputTokens int) (*ConversationMessage, error) {
 	id := domain.NewID()
 	now := time.Now()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO conversation_messages (id, conversation_id, role, content, input_tokens, output_tokens, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, conversation_id, role, content, input_tokens, output_tokens, created_at`,
 		id, convID, role, content, inputTokens, outputTokens, now)
 	var m ConversationMessage
@@ -103,14 +103,14 @@ func (r *ConversationRepo) AddMessage(ctx context.Context, convID, role, content
 	}
 
 	// Update conversation updated_at
-	_, _ = r.db.Pool.Exec(ctx, `UPDATE conversations SET updated_at = $1 WHERE id = $2`, now, convID)
+	_, _ = r.db.Exec(ctx, `UPDATE conversations SET updated_at = $1 WHERE id = $2`, now, convID)
 	return &m, nil
 }
 
 // GetMessages retrieves messages for a conversation.
 func (r *ConversationRepo) GetMessages(ctx context.Context, convID string, limit, offset int) ([]ConversationMessage, error) {
 	if limit <= 0 { limit = 100 }
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, conversation_id, role, content, input_tokens, output_tokens, created_at FROM conversation_messages WHERE conversation_id = $1 ORDER BY created_at ASC LIMIT $2 OFFSET $3`,
 		convID, limit, offset)
 	if err != nil { return nil, err }
@@ -129,6 +129,6 @@ func (r *ConversationRepo) GetMessages(ctx context.Context, convID string, limit
 
 // UpdateTitle updates a conversation title.
 func (r *ConversationRepo) UpdateTitle(ctx context.Context, userID, id, title string) error {
-	_, err := r.db.Pool.Exec(ctx, `UPDATE conversations SET title = $1, updated_at = $2 WHERE id = $3 AND user_id = $4`, title, time.Now(), id, userID)
+	_, err := r.db.Exec(ctx, `UPDATE conversations SET title = $1, updated_at = $2 WHERE id = $3 AND user_id = $4`, title, time.Now(), id, userID)
 	return err
 }

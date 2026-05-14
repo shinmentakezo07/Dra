@@ -104,7 +104,7 @@ func Auth(cfg *config.Config, apiKeyLookup APIKeyLookup, userLookup UserLookup) 
 			}
 			if user == nil {
 				logger.Warn("user_not_found", "user_id", userID, "remote_addr", r.RemoteAddr)
-				response.Error(w, 401, "User not found")
+				response.Error(w, 401, "User not found. Please sign in again.")
 				return
 			}
 

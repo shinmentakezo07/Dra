@@ -22,7 +22,7 @@ func (h *Handler) AdminTogglePromoStatus(w http.ResponseWriter, r *http.Request)
 		response.Error(w, 400, "Invalid body")
 		return
 	}
-	tag, err := h.db.Pool.Exec(r.Context(), `UPDATE promo_codes SET is_active=$2 WHERE id=$1`, id, req.IsActive)
+	tag, err := h.db.Exec(r.Context(), `UPDATE promo_codes SET is_active=$2 WHERE id=$1`, id, req.IsActive)
 	if err != nil {
 		response.Error(w, 500, err.Error())
 		return

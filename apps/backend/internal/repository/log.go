@@ -16,7 +16,7 @@ func NewLogRepo(d *db.DB) *LogRepo { return &LogRepo{db: d} }
 
 func (r *LogRepo) ByUser(ctx context.Context, userID string, page, limit int) ([]domain.APILog, int, error) {
 	offset := (page - 1) * limit
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, api_key_id, model, provider, input_tokens, output_tokens, cost, latency, status, error_message, created_at FROM api_logs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		userID, limit, offset)
 	if err != nil { return nil, 0, err }
@@ -32,13 +32,13 @@ func (r *LogRepo) ByUser(ctx context.Context, userID string, page, limit int) ([
 	}
 
 	var total int
-	r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM api_logs WHERE user_id = $1`, userID).Scan(&total)
+	r.db.QueryRow(ctx, `SELECT COUNT(*) FROM api_logs WHERE user_id = $1`, userID).Scan(&total)
 	return logs, total, rows.Err()
 }
 
 func (r *LogRepo) Create(ctx context.Context, log *domain.APILog) (*domain.APILog, error) {
 	id := domain.NewID()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO api_logs (id, user_id, api_key_id, model, provider, input_tokens, output_tokens, cost, latency, status, error_message)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id, user_id, api_key_id, model, provider, input_tokens, output_tokens, cost, latency, status, error_message, created_at`,
@@ -52,18 +52,18 @@ func (r *LogRepo) Create(ctx context.Context, log *domain.APILog) (*domain.APILo
 
 func (r *LogRepo) Count(ctx context.Context) (int, error) {
 	var n int
-	err := r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM api_logs`).Scan(&n)
+	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM api_logs`).Scan(&n)
 	return n, err
 }
 
 func (r *LogRepo) CountByStatus(ctx context.Context, status string) (int, error) {
 	var n int
-	err := r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM api_logs WHERE status = $1`, status).Scan(&n)
+	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM api_logs WHERE status = $1`, status).Scan(&n)
 	return n, err
 }
 
 func (r *LogRepo) Recent(ctx context.Context, limit int) ([]domain.APILog, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, api_key_id, model, provider, input_tokens, output_tokens, cost, latency, status, error_message, created_at FROM api_logs ORDER BY created_at DESC LIMIT $1`, limit)
 	if err != nil { return nil, err }
 	defer rows.Close()
@@ -80,7 +80,7 @@ func (r *LogRepo) Recent(ctx context.Context, limit int) ([]domain.APILog, error
 }
 
 func (r *LogRepo) ModelBreakdown(ctx context.Context, userID string) ([]map[string]interface{}, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT model, COUNT(*) as count, COALESCE(SUM(cost), 0) as total_cost FROM api_logs WHERE user_id = $1 GROUP BY model`, userID)
 	if err != nil { return nil, err }
 	defer rows.Close()
@@ -96,7 +96,7 @@ func (r *LogRepo) ModelBreakdown(ctx context.Context, userID string) ([]map[stri
 }
 
 func (r *LogRepo) DailyUsage(ctx context.Context, userID string, since time.Time) ([]map[string]interface{}, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT DATE(created_at) as date, COUNT(*) as requests, COALESCE(SUM(cost), 0) as cost, COALESCE(SUM(input_tokens + output_tokens), 0) as tokens
 		FROM api_logs WHERE user_id = $1 AND created_at >= $2 GROUP BY DATE(created_at) ORDER BY date DESC`,
 		userID, since)

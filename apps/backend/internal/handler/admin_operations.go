@@ -13,7 +13,7 @@ import (
 func (h *Handler) AdminCacheStats(w http.ResponseWriter, r *http.Request) {
 	var entries, sizeBytes int
 	var hitRate float64
-	err := h.db.Pool.QueryRow(r.Context(), `
+	err := h.db.QueryRow(r.Context(), `
 		SELECT COALESCE(SUM(entry_count),0), COALESCE(SUM(size_bytes),0),
 		       CASE WHEN SUM(hits+misses) > 0 THEN SUM(hits)::float/SUM(hits+misses) ELSE 0 END
 		FROM cache_stats WHERE recorded_at >= $1`, time.Now().Add(-24*time.Hour)).Scan(&entries, &sizeBytes, &hitRate)
@@ -32,12 +32,12 @@ func (h *Handler) AdminClearCache(w http.ResponseWriter, r *http.Request) {
 	if h.llmCache != nil {
 		_ = h.llmCache.Clear(r.Context())
 	}
-	_, _ = h.db.Pool.Exec(r.Context(), `DELETE FROM cache_stats`)
+	_, _ = h.db.Exec(r.Context(), `DELETE FROM cache_stats`)
 	response.OK(w, map[string]string{"status": "cache_cleared"})
 }
 
 func (h *Handler) AdminListWebhookLogs(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Pool.Query(r.Context(), `
+	rows, err := h.db.Query(r.Context(), `
 		SELECT id, webhook_id, event_type, response_status, duration_ms, success, attempt, created_at
 		FROM webhook_delivery_logs ORDER BY created_at DESC LIMIT 50`)
 	if err != nil {
@@ -69,13 +69,13 @@ func (h *Handler) AdminListWebhookLogs(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AdminRetryWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	_, _ = h.db.Pool.Exec(r.Context(),
+	_, _ = h.db.Exec(r.Context(),
 		`UPDATE webhook_delivery_logs SET attempt=0, success=false WHERE id=$1`, id)
 	response.OK(w, map[string]string{"status": "retried", "id": id})
 }
 
 func (h *Handler) AdminListOptimizations(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Pool.Query(r.Context(), `
+	rows, err := h.db.Query(r.Context(), `
 		SELECT id, type, title, estimated_savings_cents, user_id, applied, created_at
 		FROM cost_optimizations WHERE applied=false ORDER BY estimated_savings_cents DESC LIMIT 20`)
 	if err != nil {
@@ -109,15 +109,15 @@ func (h *Handler) AdminGetForecast(w http.ResponseWriter, r *http.Request) {
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 
 	var currentMonthCost float64
-	_ = h.db.Pool.QueryRow(ctx,
-		`SELECT COALESCE(SUM(cost_cents),0) FROM usage_records WHERE created_at >= $1`, monthStart).Scan(&currentMonthCost)
+	_ = h.db.QueryRow(ctx,
+		`SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1`, monthStart).Scan(&currentMonthCost)
 
 	type trend struct {
 		Date string  `json:"date"`
 		Cost float64 `json:"costCents"`
 	}
-	rows, err := h.db.Pool.Query(ctx, `
-		SELECT DATE(created_at) as d, COALESCE(SUM(cost_cents),0)
+	rows, err := h.db.Query(ctx, `
+		SELECT DATE(created_at) as d, COALESCE(SUM(cost),0)
 		FROM usage_records WHERE created_at >= $1 GROUP BY d ORDER BY d`, monthStart.AddDate(0, -2, 0))
 	if err == nil {
 		defer rows.Close()
@@ -155,8 +155,8 @@ func (h *Handler) AdminCostBreakdown(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 
-	rows, err := h.db.Pool.Query(ctx, `
-		SELECT model, COUNT(*) as reqs, COALESCE(SUM(cost_cents),0) as total
+	rows, err := h.db.Query(ctx, `
+		SELECT model, COUNT(*) as reqs, COALESCE(SUM(cost),0) as total
 		FROM usage_records WHERE created_at >= $1 GROUP BY model ORDER BY total DESC LIMIT 20`, monthStart)
 	if err != nil {
 		response.Error(w, 500, err.Error())
@@ -192,18 +192,18 @@ func (h *Handler) AdminDashboardStats(w http.ResponseWriter, r *http.Request) {
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	yesterday := now.Add(-24 * time.Hour)
 
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE deleted_at IS NULL").Scan(&stats.Users.Total)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE last_login_at >= $1", yesterday).Scan(&stats.Users.ActiveToday)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE created_at >= $1", todayStart).Scan(&stats.Users.NewToday)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE status='suspended'").Scan(&stats.Users.Suspended)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.TotalToday)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Requests.TotalMonth)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COALESCE(AVG(duration_ms),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.AvgLatencyMs)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COALESCE(SUM(tokens),0) FROM usage_records WHERE created_at >= $1 AND tokens > 0", todayStart).Scan(&stats.Tokens.InputToday)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COALESCE(SUM(cost_cents),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Revenue.TodayCents)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COALESCE(SUM(cost_cents),0) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Revenue.MonthCents)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM providers").Scan(&stats.Providers.Total)
-	_ = h.db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM providers WHERE status='active'").Scan(&stats.Providers.Healthy)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users").Scan(&stats.Users.Total)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE last_login_at >= $1", yesterday).Scan(&stats.Users.ActiveToday)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE created_at >= $1", todayStart).Scan(&stats.Users.NewToday)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE status='suspended'").Scan(&stats.Users.Suspended)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.TotalToday)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Requests.TotalMonth)
+	_ = h.db.QueryRow(ctx, "SELECT COALESCE(AVG(duration_ms),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.AvgLatencyMs)
+	_ = h.db.QueryRow(ctx, "SELECT COALESCE(SUM(tokens),0) FROM usage_records WHERE created_at >= $1 AND tokens > 0", todayStart).Scan(&stats.Tokens.InputToday)
+	_ = h.db.QueryRow(ctx, "SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Revenue.TodayCents)
+	_ = h.db.QueryRow(ctx, "SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Revenue.MonthCents)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM providers").Scan(&stats.Providers.Total)
+	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM providers WHERE status='active'").Scan(&stats.Providers.Healthy)
 
 	response.OK(w, stats)
 }

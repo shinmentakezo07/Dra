@@ -59,7 +59,7 @@ func NewTestDB() (*db.DB, error) {
 	if !HasTestDB() {
 		return nil, fmt.Errorf("TEST_DATABASE_URL not set")
 	}
-	return db.New(os.Getenv("TEST_DATABASE_URL"))
+	return db.NewPostgres(os.Getenv("TEST_DATABASE_URL"))
 }
 
 // NewTestServer creates a fully wired test HTTP server with a test database.

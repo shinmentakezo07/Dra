@@ -20,7 +20,7 @@ func NewAdminProviderRepo(d *db.DB) *AdminProviderRepo {
 }
 
 func (r *AdminProviderRepo) Create(ctx context.Context, p *domain.Provider) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO providers (id, name, display_name, provider_type, base_url, status, priority,
 			timeout_ms, circuit_breaker_enabled, circuit_breaker_threshold,
 			circuit_breaker_recovery_ms, circuit_breaker_half_open_max, max_retries,
@@ -35,7 +35,7 @@ func (r *AdminProviderRepo) Create(ctx context.Context, p *domain.Provider) erro
 
 func (r *AdminProviderRepo) Get(ctx context.Context, id string) (*domain.Provider, error) {
 	var p domain.Provider
-	err := r.db.Pool.QueryRow(ctx, `
+	err := r.db.QueryRow(ctx, `
 		SELECT id, name, display_name, provider_type, base_url, status, priority,
 			timeout_ms, circuit_breaker_enabled, circuit_breaker_threshold,
 			circuit_breaker_recovery_ms, circuit_breaker_half_open_max, max_retries,
@@ -55,7 +55,7 @@ func (r *AdminProviderRepo) Get(ctx context.Context, id string) (*domain.Provide
 }
 
 func (r *AdminProviderRepo) List(ctx context.Context) ([]domain.Provider, error) {
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT id, name, display_name, provider_type, base_url, status, priority,
 			timeout_ms, circuit_breaker_enabled, rate_limit_rpm, rate_limit_tpm,
 			metadata, created_at, updated_at
@@ -79,7 +79,7 @@ func (r *AdminProviderRepo) List(ctx context.Context) ([]domain.Provider, error)
 }
 
 func (r *AdminProviderRepo) Update(ctx context.Context, p *domain.Provider) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		UPDATE providers SET display_name=$2, base_url=$3, status=$4, priority=$5,
 			timeout_ms=$6, max_retries=$7, metadata=$8, updated_at=NOW()
 		WHERE id=$1`, p.ID, p.DisplayName, p.BaseURL, p.Status, p.Priority,
@@ -88,7 +88,7 @@ func (r *AdminProviderRepo) Update(ctx context.Context, p *domain.Provider) erro
 }
 
 func (r *AdminProviderRepo) UpdateStatus(ctx context.Context, id string, status domain.ProviderStatus) error {
-	tag, err := r.db.Pool.Exec(ctx, `UPDATE providers SET status=$2, updated_at=NOW() WHERE id=$1`, id, status)
+	tag, err := r.db.Exec(ctx, `UPDATE providers SET status=$2, updated_at=NOW() WHERE id=$1`, id, status)
 	if err != nil {
 		return fmt.Errorf("update provider status: %w", err)
 	}
@@ -99,7 +99,7 @@ func (r *AdminProviderRepo) UpdateStatus(ctx context.Context, id string, status 
 }
 
 func (r *AdminProviderRepo) CreateKey(ctx context.Context, k *domain.ProviderKey) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO provider_keys (id, provider_id, label, key_prefix, key_hash, key_last_four,
 			strategy, weight, sort_order, rpm_limit, tpm_limit, monthly_quota, is_active)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
@@ -109,7 +109,7 @@ func (r *AdminProviderRepo) CreateKey(ctx context.Context, k *domain.ProviderKey
 }
 
 func (r *AdminProviderRepo) ListKeys(ctx context.Context, providerID string) ([]domain.ProviderKey, error) {
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT id, provider_id, label, key_prefix, key_last_four,
 			strategy, weight, sort_order, is_active, usage_count, total_tokens,
 			rpm_limit, tpm_limit, monthly_quota, monthly_used, last_used_at, expires_at, created_at
@@ -134,7 +134,7 @@ func (r *AdminProviderRepo) ListKeys(ctx context.Context, providerID string) ([]
 }
 
 func (r *AdminProviderRepo) UpdateKey(ctx context.Context, k *domain.ProviderKey) error {
-	_, err := r.db.Pool.Exec(ctx, `
+	_, err := r.db.Exec(ctx, `
 		UPDATE provider_keys SET label=$2, strategy=$3, weight=$4, sort_order=$5,
 			rpm_limit=$6, tpm_limit=$7, monthly_quota=$8, is_active=$9
 		WHERE id=$1`, k.ID, k.Label, k.Strategy, k.Weight, k.SortOrder,
@@ -143,7 +143,7 @@ func (r *AdminProviderRepo) UpdateKey(ctx context.Context, k *domain.ProviderKey
 }
 
 func (r *AdminProviderRepo) DeleteKey(ctx context.Context, id string) error {
-	tag, err := r.db.Pool.Exec(ctx, `DELETE FROM provider_keys WHERE id=$1`, id)
+	tag, err := r.db.Exec(ctx, `DELETE FROM provider_keys WHERE id=$1`, id)
 	if err != nil {
 		return fmt.Errorf("delete key: %w", err)
 	}
@@ -154,7 +154,7 @@ func (r *AdminProviderRepo) DeleteKey(ctx context.Context, id string) error {
 }
 
 func (r *AdminProviderRepo) ReorderKeys(ctx context.Context, providerID string, keyIDs []string) error {
-	tx, err := r.db.Pool.Begin(ctx)
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
@@ -171,7 +171,7 @@ func (r *AdminProviderRepo) ReorderKeys(ctx context.Context, providerID string, 
 }
 
 func (r *AdminProviderRepo) GetHealthChecks(ctx context.Context, providerID string, since time.Time) ([]domain.ProviderHealthCheck, error) {
-	rows, err := r.db.Pool.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
 		SELECT status, latency_ms, error, checked_at
 		FROM provider_health_checks
 		WHERE provider_id=$1 AND checked_at >= $2

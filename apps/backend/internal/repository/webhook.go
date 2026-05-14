@@ -19,7 +19,7 @@ func NewWebhookRepo(d *db.DB) *WebhookRepo { return &WebhookRepo{db: d} }
 func (r *WebhookRepo) Create(ctx context.Context, userID, url, secret string, events []string, headers map[string]string) (*domain.Webhook, error) {
 	id := domain.NewID()
 	headersBytes, _ := json.Marshal(headers)
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO webhooks (id, user_id, url, secret, events, headers, active, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, true, NOW())
 		RETURNING id, user_id, url, secret, events, headers, active, created_at`,
@@ -28,7 +28,7 @@ func (r *WebhookRepo) Create(ctx context.Context, userID, url, secret string, ev
 }
 
 func (r *WebhookRepo) ByUser(ctx context.Context, userID string) ([]domain.Webhook, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, url, secret, events, headers, active, created_at FROM webhooks WHERE user_id = $1 ORDER BY created_at DESC`, userID)
 	if err != nil {
 		return nil, err
@@ -47,19 +47,19 @@ func (r *WebhookRepo) ByUser(ctx context.Context, userID string) ([]domain.Webho
 }
 
 func (r *WebhookRepo) ByID(ctx context.Context, id string) (*domain.Webhook, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, url, secret, events, headers, active, created_at FROM webhooks WHERE id = $1`, id)
 	return scanWebhook(row)
 }
 
 func (r *WebhookRepo) Delete(ctx context.Context, userID, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM webhooks WHERE id = $1 AND user_id = $2`, id, userID)
+	_, err := r.db.Exec(ctx, `DELETE FROM webhooks WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }
 
 func (r *WebhookRepo) Update(ctx context.Context, userID, id, url, secret string, events []string, headers map[string]string, active bool) (*domain.Webhook, error) {
 	headersBytes, _ := json.Marshal(headers)
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`UPDATE webhooks SET url = $1, secret = $2, events = $3, headers = $4, active = $5
 		WHERE id = $6 AND user_id = $7
 		RETURNING id, user_id, url, secret, events, headers, active, created_at`,
@@ -68,13 +68,13 @@ func (r *WebhookRepo) Update(ctx context.Context, userID, id, url, secret string
 }
 
 func (r *WebhookRepo) ToggleActive(ctx context.Context, userID, id string, active bool) error {
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`UPDATE webhooks SET active = $1 WHERE id = $2 AND user_id = $3`, active, id, userID)
 	return err
 }
 
 func (r *WebhookRepo) CreateDelivery(ctx context.Context, d *domain.WebhookDelivery) error {
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`INSERT INTO webhook_deliveries (id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, delivered_at, next_retry_at, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		d.ID, d.WebhookID, d.EventType, d.Payload, d.StatusCode, d.Error, d.Attempts, d.MaxAttempts, d.DeliveredAt, d.NextRetryAt, d.CreatedAt)
@@ -82,7 +82,7 @@ func (r *WebhookRepo) CreateDelivery(ctx context.Context, d *domain.WebhookDeliv
 }
 
 func (r *WebhookRepo) UpdateDelivery(ctx context.Context, d *domain.WebhookDelivery) error {
-	_, err := r.db.Pool.Exec(ctx,
+	_, err := r.db.Exec(ctx,
 		`UPDATE webhook_deliveries SET status_code = $1, error = $2, attempts = $3, delivered_at = $4, next_retry_at = $5 WHERE id = $6`,
 		d.StatusCode, d.Error, d.Attempts, d.DeliveredAt, d.NextRetryAt, d.ID)
 	return err
@@ -92,7 +92,7 @@ func (r *WebhookRepo) ListDeliveries(ctx context.Context, webhookID string, limi
 	if limit <= 0 {
 		limit = 50
 	}
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, delivered_at, next_retry_at, created_at
 		FROM webhook_deliveries WHERE webhook_id = $1 ORDER BY created_at DESC LIMIT $2`, webhookID, limit)
 	if err != nil {

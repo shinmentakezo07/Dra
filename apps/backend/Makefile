@@ -11,11 +11,14 @@ dev:
 run: build
 	./api
 
+# go list -f filter excludes packages without test files (needed for Go 1.26+ since covdata was removed)
+TEST_PACKAGES = $(shell go list -f '{{if or (len .TestGoFiles) (len .XTestGoFiles)}}{{.ImportPath}}{{end}}' ./...)
+
 test:
-	go test -race -cover ./...
+	go test -race -cover $(TEST_PACKAGES)
 
 test-race:
-	go test -race -v ./...
+	go test -race -v $(TEST_PACKAGES)
 
 test-unit:
 	go test -v -short ./...
@@ -29,7 +32,7 @@ test-integration:
 	go test -v -race ./internal/handler/... ./tests/integration/...
 
 test-coverage:
-	go test -race -coverprofile=coverage.out ./...
+	go test -race -coverprofile=coverage.out $(TEST_PACKAGES)
 	go tool cover -func=coverage.out
 	@echo ""
 	@echo "HTML report: go tool cover -html=coverage.out"

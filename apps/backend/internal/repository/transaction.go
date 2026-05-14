@@ -15,7 +15,7 @@ func NewTransactionRepo(d *db.DB) *TransactionRepo { return &TransactionRepo{db:
 
 func (r *TransactionRepo) ByUser(ctx context.Context, userID string, page, limit int) ([]domain.CreditTransaction, int, error) {
 	offset := (page - 1) * limit
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, amount, type, description, related_log_id, created_at FROM credit_transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
 		userID, limit, offset)
 	if err != nil { return nil, 0, err }
@@ -31,13 +31,13 @@ func (r *TransactionRepo) ByUser(ctx context.Context, userID string, page, limit
 	}
 
 	var total int
-	r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM credit_transactions WHERE user_id = $1`, userID).Scan(&total)
+	r.db.QueryRow(ctx, `SELECT COUNT(*) FROM credit_transactions WHERE user_id = $1`, userID).Scan(&total)
 	return txs, total, rows.Err()
 }
 
 func (r *TransactionRepo) Create(ctx context.Context, userID string, amount int, txType, description string, relatedLogID *string) (*domain.CreditTransaction, error) {
 	id := domain.NewID()
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO credit_transactions (id, user_id, amount, type, description, related_log_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, amount, type, description, related_log_id, created_at`,
 		id, userID, amount, txType, description, relatedLogID)
 	var t domain.CreditTransaction

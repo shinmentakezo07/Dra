@@ -1,4 +1,5 @@
 import { proxyToBackend } from "@/lib/api/proxy";
+import { requireAdmin } from "@/lib/api/require-auth";
 import { NextRequest } from "next/server";
 
 const ADMIN_PATHS = [
@@ -114,30 +115,40 @@ function matchPath(requestPath: string): string | null {
 }
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
   const backendPath = matchPath(request.url);
   if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
   return proxyToBackend(request, backendPath);
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
   const backendPath = matchPath(request.url);
   if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
   return proxyToBackend(request, backendPath);
 }
 
 export async function PUT(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
   const backendPath = matchPath(request.url);
   if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
   return proxyToBackend(request, backendPath);
 }
 
 export async function DELETE(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
   const backendPath = matchPath(request.url);
   if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
   return proxyToBackend(request, backendPath);
 }
 
 export async function PATCH(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
   const backendPath = matchPath(request.url);
   if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
   return proxyToBackend(request, backendPath);

@@ -30,7 +30,7 @@ func HashAPIKey(key, pepper string) string {
 }
 
 func (r *APIKeyRepo) ByUser(ctx context.Context, userID string) ([]domain.APIKey, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, name, key, last_used, created_at, revoked_at, allowed_models, allowed_ips, max_tokens_per_request, daily_request_limit, monthly_token_limit FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC`, userID)
 	if err != nil { return nil, err }
 	defer rows.Close()
@@ -50,7 +50,7 @@ func (r *APIKeyRepo) ByUser(ctx context.Context, userID string) ([]domain.APIKey
 func (r *APIKeyRepo) ByKey(ctx context.Context, key string) (*domain.APIKey, error) {
 	// Try hashed key first (new behavior)
 	hashed := HashAPIKey(key, r.pepper)
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, name, key, last_used, created_at, revoked_at, allowed_models, allowed_ips, max_tokens_per_request, daily_request_limit, monthly_token_limit FROM api_keys WHERE key = $1`, hashed)
 	var k domain.APIKey
 	if err := row.Scan(&k.ID, &k.UserID, &k.Name, &k.Key, &k.LastUsed, &k.CreatedAt, &k.RevokedAt, &k.AllowedModels, &k.AllowedIPs, &k.MaxTokensPerRequest, &k.DailyRequestLimit, &k.MonthlyTokenLimit); err != nil {
@@ -58,7 +58,7 @@ func (r *APIKeyRepo) ByKey(ctx context.Context, key string) (*domain.APIKey, err
 			return nil, err
 		}
 		// Fallback: raw key lookup for legacy plaintext keys
-		row = r.db.Pool.QueryRow(ctx,
+		row = r.db.QueryRow(ctx,
 			`SELECT id, user_id, name, key, last_used, created_at, revoked_at, allowed_models, allowed_ips, max_tokens_per_request, daily_request_limit, monthly_token_limit FROM api_keys WHERE key = $1`, key)
 		if err := row.Scan(&k.ID, &k.UserID, &k.Name, &k.Key, &k.LastUsed, &k.CreatedAt, &k.RevokedAt, &k.AllowedModels, &k.AllowedIPs, &k.MaxTokensPerRequest, &k.DailyRequestLimit, &k.MonthlyTokenLimit); err != nil {
 			if err == pgx.ErrNoRows { return nil, nil }
@@ -70,7 +70,7 @@ func (r *APIKeyRepo) ByKey(ctx context.Context, key string) (*domain.APIKey, err
 }
 
 func (r *APIKeyRepo) ByID(ctx context.Context, id string) (*domain.APIKey, error) {
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, name, key, last_used, created_at, revoked_at, allowed_models, allowed_ips, max_tokens_per_request, daily_request_limit, monthly_token_limit FROM api_keys WHERE id = $1`, id)
 	var k domain.APIKey
 	if err := row.Scan(&k.ID, &k.UserID, &k.Name, &k.Key, &k.LastUsed, &k.CreatedAt, &k.RevokedAt, &k.AllowedModels, &k.AllowedIPs, &k.MaxTokensPerRequest, &k.DailyRequestLimit, &k.MonthlyTokenLimit); err != nil {
@@ -83,7 +83,7 @@ func (r *APIKeyRepo) ByID(ctx context.Context, id string) (*domain.APIKey, error
 func (r *APIKeyRepo) Create(ctx context.Context, userID, name, key string) (*domain.APIKey, error) {
 	id := domain.NewID()
 	hashed := HashAPIKey(key, r.pepper)
-	row := r.db.Pool.QueryRow(ctx,
+	row := r.db.QueryRow(ctx,
 		`INSERT INTO api_keys (id, user_id, name, key) VALUES ($1, $2, $3, $4) RETURNING id, user_id, name, key, last_used, created_at, revoked_at`,
 		id, userID, name, hashed)
 	var k domain.APIKey
@@ -95,22 +95,22 @@ func (r *APIKeyRepo) Create(ctx context.Context, userID, name, key string) (*dom
 }
 
 func (r *APIKeyRepo) Delete(ctx context.Context, userID, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM api_keys WHERE id = $1 AND user_id = $2`, id, userID)
+	_, err := r.db.Exec(ctx, `DELETE FROM api_keys WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }
 
 func (r *APIKeyRepo) Touch(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `UPDATE api_keys SET last_used = NOW() WHERE id = $1`, id)
+	_, err := r.db.Exec(ctx, `UPDATE api_keys SET last_used = NOW() WHERE id = $1`, id)
 	return err
 }
 
 func (r *APIKeyRepo) Revoke(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `UPDATE api_keys SET revoked_at = NOW() WHERE id = $1`, id)
+	_, err := r.db.Exec(ctx, `UPDATE api_keys SET revoked_at = NOW() WHERE id = $1`, id)
 	return err
 }
 
 func (r *APIKeyRepo) Count(ctx context.Context) (int, error) {
 	var n int
-	err := r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM api_keys`).Scan(&n)
+	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM api_keys`).Scan(&n)
 	return n, err
 }

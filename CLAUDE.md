@@ -51,6 +51,12 @@ bash scripts/dev.sh    # Install deps, start Postgres, push schema, seed DB, sta
 bash scripts/smoke-test.sh  # Post-change wiring verification
 ```
 
+### Docker
+```bash
+docker-compose up -d                                              # Postgres only (default)
+docker-compose --profile mongo up -d                              # Postgres + MongoDB (mongo behind profile)
+```
+
 ### Running single Go tests
 ```bash
 go test -race -cover ./pkg/llm/provider/...          # Single package
@@ -96,6 +102,9 @@ docs/            Implementation guides and design docs
 - **Domain layer** (`internal/domain/`): Shared models, typed errors, and enums used across all backend layers.
 - **Layered architecture**: `handler/` → `service/` → `repository/` + `domain/`
 - **Dual provider systems** (architecture note): There are two provider registries — `internal/provider/provider.go` (used by legacy handler endpoints) and `pkg/llm/provider/` (used by `/v1/*` OpenAI-compatible proxy). Adding a new LLM backend requires registering in both. `pkg/llm/provider/` is the canonical one for new work.
+- **Anthropic endpoint** (`internal/handler/anthropic_messages.go`, `pkg/llm/anthropic/`): Drop-in Anthropic SDK compatible `/v1/messages` endpoint. Accepts Anthropic-format requests, translates to internal format, reuses same auth/quota/billing as OpenAI proxy. Streaming uses Anthropic SSE format.
+- **Sandbox mode**: Pass `X-Sandbox: true` header to `/v1/chat/completions` to skip quota/cost/logging (for testing).
+- **Official Go SDKs** in `go.mod`: both `github.com/openai/openai-go/v3` and `github.com/sashabaranov/go-openai` are present. Internal provider wrappers use `sashabaranov/go-openai`. No vendoring — use default `go build`.
 - **LLM pipeline** (`pkg/llm/`): provider registry → model router → cache → guardrails → moderation → telemetry. Sub-packages:
   - `provider/` — Provider registry with OpenAI SDK, multi-key rotation, health checking, fallback/balancing
   - `translator/` — Format translation between Anthropic, OpenAI, and generic chat formats
@@ -147,6 +156,7 @@ Backend serves on `:8080`. Frontend proxies `/api/*` and `/v1/*` → `BACKEND_UR
 | POST | `/api/chat` | Streaming chat (SSE) |
 | POST | `/api/embeddings` | Generate embeddings |
 | POST | `/v1/chat/completions` | OpenAI-compatible proxy |
+| POST | `/v1/messages` | Anthropic SDK-compatible endpoint |
 | POST | `/v1/embeddings` | OpenAI-compatible embeddings |
 | GET | `/v1/models` | OpenAI-compatible model list |
 | GET | `/api/models` | List available models |
@@ -244,10 +254,18 @@ Backend serves on `:8080`. Frontend proxies `/api/*` and `/v1/*` → `BACKEND_UR
 ### SDK duality
 Both Go SDK (`pkg/sdk/client.go`) and TypeScript SDK (`lib/api/sdk.ts`) must be kept in sync. They cover the same backend endpoints with matching types. When adding new endpoints, implement in Go backend → Go SDK → TypeScript SDK.
 
-### Docker
-```bash
-docker-compose up -d    # Full stack: Postgres + frontend + backend
-```
+
+## Environment Quirks
+
+- **`AUTH_SECRET` must be identical** between frontend and backend for HS256 JWT validation
+- **`.npmrc` has `legacy-peer-deps=true`** — do not remove
+- **Drizzle uses `@neondatabase/serverless`** driver against ALL Postgres instances (including local)
+- **Backend `ENV=development`** enables `slog.LevelDebug` logging; `ENV=production` in Docker
+- **Root `.env` uses Docker network URLs** (`BACKEND_URL=http://backend:8080`). Local dev needs `.env.local` with `BACKEND_URL=http://localhost:8080`
+- **No CI workflows** currently configured (`.github/workflows/` absent)
+- **Go binary path**: Makefile prepends `$(HOME)/.local/go/bin` to `PATH`
+- **Frontend `@/` path alias** → `apps/web/` root. Example: `@/lib/api/sdk` → `apps/web/lib/api/sdk.ts`
+- **Next.js standalone output** — `next.config.ts` sets `output: 'standalone'`. Production Docker entry is `apps/web/server.js` (inside `.next/standalone/`)
 
 ## Mandatory: Skill & Rule Usage
 
@@ -259,17 +277,14 @@ Before EVERY task, you MUST:
 
 ## Important notes
 - **Go 1.25** — use `slog` for logging, `context` for timeouts.
-- **Next.js 16 canary** — check `node_modules/next/dist/docs/` before writing new frontend code.
+- **Next.js 16 canary** — check `node_modules/next/dist/docs/` before writing new frontend code. Heed deprecation notices.
 - **Tailwind CSS v4** — uses `@tailwindcss/postcss`, not v3 config approach.
 - **No mock data** — dashboard fetches live data via SDK.
 - **Module path**: `dra-platform/backend` in all Go imports.
-- **AUTH_SECRET must be identical** between frontend and backend for HS256 JWT validation.
-- **`.npmrc` has `legacy-peer-deps=true`** — do not remove.
-- **Drizzle** uses `@neondatabase/serverless` driver (even for local Postgres).
 - **Backend auth methods**: JWT (`Authorization: Bearer`), session cookie (`authjs.session-token`), or `x-api-key` header.
 - **`tsconfig.json` excludes `db/seed*.ts` and `scripts/**/*`** from type checking (top-level await).
-- **`turbo.json` passes build env vars**: `DATABASE_URL`, `NEXTAUTH_SECRET`, `AUTH_SECRET`, `NEXTAUTH_URL`, `OPENAI_API_KEY`, `NVIDIA_API_KEY`, `BACKEND_URL`.
-- **Full API endpoint reference** with behavioral rules for AI agents is in `AGENTS.md` at repo root. Read it for the complete list (40+ endpoints) and operating constraints.
+- **`turbo.json` passes build env vars**: `DATABASE_URL`, `NEXTAUTH_SECRET`, `AUTH_SECRET`, `NEXTAUTH_URL`, `OPENAI_API_KEY`, `NVIDIA_API_KEY`, `BACKEND_URL`. Missing from turbo: `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `GEMINI_API_KEY` — set these in runtime env.
+- **Full API endpoint reference** with behavioral rules for AI agents is in `AGENTS.md` at repo root.
 
 ### Environment Variables
 
