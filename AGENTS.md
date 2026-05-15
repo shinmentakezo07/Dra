@@ -24,15 +24,22 @@ npm run db:setup             # push + seed
 # Backend (apps/backend/)
 make build                   # go build -o api ./cmd/api
 make dev                     # go run ./cmd/api
+make run                     # build + ./api
 make test                    # go test -race -cover ./...
 make test-unit               # go test -v -short ./... (skips integration)
 make test-integration        # requires TEST_DATABASE_URL
 make test-coverage           # text + HTML coverage report
+make coverage-html           # go tool cover -html=coverage.out
 make vet                     # go vet ./...
 make lint                    # vet + staticcheck
 make fmt                     # gofmt + goimports
 make clean                   # rm api coverage.out coverage.html
-bash scripts/dev.sh          # Full stack: Postgres → schema → seed → servers
+make docker                  # docker build -t dra-backend .
+
+# Full-stack scripts
+bash scripts/dev.sh          # Full stack: deps → Postgres → schema → seed → servers
+bash scripts/dev.sh --check  # Dependency check only (no services started)
+bash scripts/dev.sh --logs   # Show saved logs from last run
 bash scripts/smoke-test.sh   # Post-change wiring verification
 ```
 
@@ -43,15 +50,17 @@ bash scripts/smoke-test.sh   # Post-change wiring verification
 | `apps/web/` | Next.js 16 canary frontend — App Router, Tailwind v4, React 19 |
 | `apps/backend/` | Go 1.25 backend — chi router, pgx v5, JWT auth, LLM pipeline |
 | `packages/` | Reserved for shared packages (empty) |
-| `scripts/` | `dev.sh` (full stack), `smoke-test.sh` (wiring) |
+| `scripts/` | `dev.sh` (full stack, supports `--check`/`--logs`), `smoke-test.sh` (wiring) |
 | `docs/` | Implementation guides |
+| `ops.md` | Operational debt tracking and known issues (P0–P3) |
+| `examples/llmtests/` | LLM test examples |
 
-Each app has its own `AGENTS.md` with app-specific details. See also `CLAUDE.md` at root and `apps/web/CLAUDE.md` / `apps/backend/AGENTS.md` for the complete API endpoint reference.
+Each app has its own instruction file: `apps/backend/AGENTS.md` (Go layer rules), `apps/web/AGENTS.md` (frontend SDK/convention rules). See also `CLAUDE.md` at root for the complete API endpoint reference.
 
 ## Architecture essentials
 
 ### Frontend
-- **Next.js 16 canary** — read `node_modules/next/dist/docs/` before writing code. Deprecation notices matter.
+- **Next.js 16 canary** — read `node_modules/next/dist/docs/` before writing code. Deprecation notices matter. **`"use cache"` replaces old `revalidate`/`dynamic`** — implicit caching is gone.
 - **App Router** — `app/api/*/route.ts` proxies to Go backend via `proxyToBackend()` from `lib/api/proxy.ts`. NextAuth middleware at `proxy.ts` protects `/dashboard/*` routes.
 - **Auth**: NextAuth v5 in `auth.ts` + `auth.config.ts`. JWT HS256 shared with Go backend. OAuth: GitHub + Google. Backend login via `/auth/login` and OAuth sync via `/auth/oauth`.
 - **DB**: Drizzle ORM with `@neondatabase/serverless` driver (even for local Postgres). Schema: `db/schema.ts`. Drizzle config loads `.env.local`.
@@ -60,15 +69,19 @@ Each app has its own `AGENTS.md` with app-specific details. See also `CLAUDE.md`
 - **State**: `@tanstack/react-query` for server state, `@ai-sdk/react` for streaming.
 - **Charts**: Recharts. Animations: Framer Motion + GSAP (both active — motion in components, GSAP for scroll-triggered).
 - **Proxy middleware** (`proxy.ts`): Matches `/((?!api|_next/static|_next/image|.*\\.png$).*)`. Redirects `/dashboard/*` → login if unauthenticated, `/login`/`/signup` → dashboard if authenticated.
+- **Validation**: Zod v4 — breaking changes from v3.
 
 ### Backend
 - **Layered**: `cmd/api/main.go` → `internal/handler/` → `internal/service/` → `internal/repository/` + `internal/domain/`. Plus `internal/middleware/`, `internal/config/`, `internal/db/`, `internal/redis/`, `internal/testutil/`.
 - **Internal shared packages** (`internal/pkg/`): `logger/` (slog), `response/` (standardized HTTP), `token/` (JWT).
 - **LLM pipeline** (`pkg/llm/`): 19 subpackages — anthropic, batch, cache, circuitbreaker, context, embeddings, guardrails, moderation, openai, pipeline, provider, router, telemetry, tokens, tools, translate, translator, validator, watcher.
 - **Anthropic `/v1/messages`** (`internal/handler/anthropic_messages.go`, `pkg/llm/anthropic/`): Drop-in Anthropic SDK compatible endpoint. Accepts Anthropic-format requests, translates to internal `llm.ChatRequest`, reuses same auth/quota/billing pipeline as OpenAI proxy. Streaming uses Anthropic SSE format.
-- **Provider registry**: `pkg/llm/provider/` — canonical registry uses `sashabaranov/go-openai`. There is ALSO `internal/service/provider.go` (a service wrapper). Adding a provider may require registering in both places.
-- **Official Go SDKs** in `go.mod`: `github.com/openai/openai-go/v3` and `github.com/anthropics/anthropic-sdk-go`. These are separate from the internal provider wrappers — the internal code uses `sashabaranov/go-openai` for provider calls. Build with default `go build` (no vendor).
+- **Dual provider registries** (P0 debt — see `ops.md`): `pkg/llm/provider/` is the canonical registry (used by `/v1/*` OpenAI-compatible proxy). There is ALSO `internal/provider/provider.go` (legacy handler endpoints) and `internal/service/provider.go` (service wrapper). Adding a provider may require registering in multiple places. **`pkg/llm/provider/` is the canonical one for new work.**
+- **Official Go SDKs** in `go.mod`: `github.com/openai/openai-go/v3` and `github.com/anthropics/anthropic-sdk-go` are direct deps. Internal provider wrappers ALSO use `sashabaranov/go-openai`. Build with default `go build` (no vendor).
 - **External packages** (`pkg/`): `sdk/` (typed Go client mirroring TS SDK), `llmsdk/` (legacy), `email/` (SMTP), `webhook/` (outbound delivery + retry), `trace/` (distributed tracing).
+- **Webhook system** (`pkg/webhook/`): Event-driven outbound delivery with retry logic and tracking.
+- **Batch processing** (`internal/handler/batch.go`): Async job submission and status tracking.
+- **SSE notifications** (`internal/handler/sse.go`): Real-time streaming via `NotificationHub`.
 - **Sandbox mode**: Pass `X-Sandbox: true` header to `/v1/chat/completions` to skip quota/cost/logging (for testing).
 - **Auth**: Accepts `Authorization: Bearer <jwt>`, cookie `authjs.session-token`, or `x-api-key` header.
 - **Middleware**: Auth (JWT/API key), CORS, rate limiting (in-memory sliding window by default, Redis when configured), quota enforcement, request logging, tracing (request ID), Prometheus metrics, body size limit, response transformation, input validation.
@@ -109,7 +122,10 @@ Each app has its own `AGENTS.md` with app-specific details. See also `CLAUDE.md`
 - **Next.js standalone output** — `next.config.ts` sets `output: 'standalone'`. Production Docker server entry is `apps/web/server.js` (inside `.next/standalone/`)
 - **Root `.env`**: used by docker-compose, has `BACKEND_URL=http://backend:8080` (Docker network). Local dev needs `.env.local` with `BACKEND_URL=http://localhost:8080`
 - **MongoDB** in `docker-compose.yml` is behind a `mongo` profile — NOT started by default. Only `postgres` starts with `docker-compose up -d`. Start with: `docker-compose --profile mongo up -d`
+- **DB_TYPE modes**: `dev.sh` detects `DB_TYPE` from `.env.local` — supports `postgres` (default), `neon` (cloud, skips local container), and `mongodb` (backend auto-setup)
+- **Security headers**: `next.config.ts` sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`
 - **ECC rules** active for this repo: `.claude/rules/golang/` (patterns, testing, hooks, coding-style, security) and `.claude/rules/typescript/` (patterns, testing, hooks, coding-style, security) — these load automatically for matching file types
+- **`opencode.json`** configures the project to use its own Yapapa instance (`https://yapa.up.railway.app/v1`) as the LLM provider via `@ai-sdk/openai-compatible`
 
 ## Constraints
 
@@ -117,6 +133,7 @@ Each app has its own `AGENTS.md` with app-specific details. See also `CLAUDE.md`
 - **No mock data** in dashboard components — must use real SDK. Smoke test (`scripts/smoke-test.sh`) enforces with grep
 - **Go 1.25** — features differ from training data (iter.Seq, unique, slog improvements). Run `go vet ./...` before committing
 - **Tailwind CSS v4** — PostCSS plugin `@tailwindcss/postcss`, not v3 CLI. Config is CSS-first (globals.css @theme), NOT `tailwind.config.ts`
+- **Zod v4** — breaking changes from v3. Do not use v3 patterns
 - **No CI workflows** currently configured (`.github/workflows/` absent)
 - **Dual SDK sync**: Go SDK (`pkg/sdk/`) and TypeScript SDK (`lib/api/sdk.ts`) must be kept in sync — implement backend → Go SDK → TS SDK
 - **Keys validation**: `AUTH_SECRET` fallback chain in `auth.ts`: `process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET`

@@ -32,7 +32,7 @@ export function SpeedometerGauge({ label, value, sublabel, percentage, accentCol
           <span className="text-gray-600 font-mono text-[10px] ml-1.5">{sublabel}</span>
         </div>
       </div>
-      <div className="relative h-2 bg-white/5 rounded-full overflow-hidden" role="meter" aria-valuenow={Math.round(percentage)} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${value}`}>
+      <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden" role="meter" aria-valuenow={Math.round(percentage)} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${value}`}>
         <motion.div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{ backgroundColor: accentColor }}
@@ -41,15 +41,6 @@ export function SpeedometerGauge({ label, value, sublabel, percentage, accentCol
           transition={{ duration: 1, delay, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
-      {/* SVG tick marks */}
-      <svg className="w-full mt-1" height="10" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
-        {[0, 25, 50, 75, 100].map((tick) => (
-          <g key={tick}>
-            <line x1={tick} y1="0" x2={tick} y2="4" stroke="rgb(75,85,99)" strokeWidth="0.5" />
-            <text x={tick} y="10" textAnchor="middle" fill="rgb(55,65,81)" fontSize="4" fontFamily="monospace">{tick}%</text>
-          </g>
-        ))}
-      </svg>
     </div>
   );
 }

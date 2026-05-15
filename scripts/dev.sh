@@ -47,12 +47,56 @@ else
 fi
 
 BACKEND_MODE=""
+BACKEND_PID=""
+FRONTEND_PID=""
+SERVICE_PIDS=()
+RUNNING_CLEANUP=0
+SERVICES_STARTED=0
 
 # --- Logging ---
 log_info()  { echo -e "${BLUE}[dev]${NC} $1"; }
 log_ok()    { echo -e "${GREEN}[dev]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[dev]${NC} $1"; }
 log_error() { echo -e "${RED}[dev]${NC} $1"; }
+
+register_pid() {
+  local pid="$1"
+  if [ -n "$pid" ]; then
+    SERVICE_PIDS+=("$pid")
+  fi
+}
+
+kill_process_tree() {
+  local pid="$1"
+  if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+    return
+  fi
+
+  local children
+  children="$(pgrep -P "$pid" 2>/dev/null || true)"
+  if [ -n "$children" ]; then
+    while IFS= read -r child; do
+      [ -n "$child" ] && kill_process_tree "$child"
+    done <<< "$children"
+  fi
+
+  kill "$pid" 2>/dev/null || true
+}
+
+wait_for_process_exit() {
+  local pid="$1"
+  local retries="${2:-20}"
+
+  while [ "$retries" -gt 0 ]; do
+    if ! kill -0 "$pid" 2>/dev/null; then
+      return 0
+    fi
+    sleep 0.2
+    retries=$((retries - 1))
+  done
+
+  return 1
+}
 
 # ============================================================
 # Dependency Checks (find ALL missing deps, not just first)
@@ -263,6 +307,15 @@ show_logs() {
 # Cleanup
 # ============================================================
 cleanup() {
+  if [ "$RUNNING_CLEANUP" -eq 1 ]; then
+    return
+  fi
+  RUNNING_CLEANUP=1
+
+  if [ "$SERVICES_STARTED" -eq 0 ]; then
+    return
+  fi
+
   echo ""
   log_info "Shutting down services..."
 
@@ -272,12 +325,20 @@ cleanup() {
     $DOCKER_COMPOSE stop backend 2>/dev/null || true
   fi
 
-  local pids
-  pids="$(jobs -p 2>/dev/null || true)"
-  if [ -n "$pids" ]; then
-    kill $pids 2>/dev/null || true
-    wait 2>/dev/null || true
-  fi
+  local pid
+  for pid in "${SERVICE_PIDS[@]}"; do
+    kill_process_tree "$pid"
+  done
+
+  for pid in "${SERVICE_PIDS[@]}"; do
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+      if ! wait_for_process_exit "$pid"; then
+        kill -9 "$pid" 2>/dev/null || true
+      fi
+    fi
+  done
+
+  wait 2>/dev/null || true
   log_ok "All services stopped. Goodbye!"
   exit 0
 }
@@ -315,12 +376,22 @@ install_backend_deps() {
   fi
   log_info "Installing backend dependencies..."
   cd "$BACKEND_DIR"
-  if [ -d "vendor" ]; then
-    log_ok "Backend vendor already exists"
-  else
-    go mod download 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}go>${NC} $line"; done
-    log_ok "Backend dependencies downloaded"
+  go mod download 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}go>${NC} $line"; done
+  go mod tidy 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}go>${NC} $line"; done
+  log_ok "Backend dependencies refreshed"
+}
+
+build_backend_binary() {
+  if ! command -v go >/dev/null 2>&1; then
+    log_warn "Skipping backend rebuild (Go not found)"
+    return
   fi
+
+  log_info "Building backend binary..."
+  cd "$BACKEND_DIR"
+  rm -f api
+  make build 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}build>${NC} $line"; done
+  log_ok "Backend binary rebuilt"
 }
 
 # ============================================================
@@ -521,12 +592,14 @@ run_backend() {
       fi
       export ENV=development
       export METRICS_PORT=$metrics_port
-      exec go run ./cmd/api
+      exec ./api
     ) 2>&1 | while IFS= read -r line; do
       echo -e "${MAGENTA}[backend]${NC} $line"
       echo "$line" >> "$LOG_DIR/backend.log"
     done &
 
+    BACKEND_PID=$!
+    register_pid "$BACKEND_PID"
     BACKEND_MODE="local"
     log_ok "Backend starting on :8080 (metrics on :$metrics_port)"
     return
@@ -554,6 +627,8 @@ run_frontend() {
     echo -e "${CYAN}[frontend]${NC} $line"
     echo "$line" >> "$LOG_DIR/frontend.log"
   done &
+  FRONTEND_PID=$!
+  register_pid "$FRONTEND_PID"
 }
 
 show_banner() {
@@ -611,6 +686,7 @@ main() {
   install_root_deps
   install_web_deps
   install_backend_deps
+  build_backend_binary
   echo ""
 
   # Detect DB_TYPE from env
@@ -666,6 +742,7 @@ main() {
 
   echo -e "${BOLD}═══ Starting Services ═══${NC}"
   echo ""
+  SERVICES_STARTED=1
   run_backend
   run_frontend
   show_banner

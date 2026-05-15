@@ -34,6 +34,7 @@ npm run db:setup     # push + seed
 ```bash
 make build             # go build -o api ./cmd/api
 make dev               # go run ./cmd/api
+make run               # build + ./api
 make test              # go test -race -cover ./...
 make test-unit         # go test -v -short ./...
 make test-integration  # needs TEST_DATABASE_URL
@@ -43,6 +44,7 @@ make vet               # go vet ./...
 make lint              # vet + staticcheck
 make fmt               # gofmt + goimports
 make clean             # rm api coverage.out coverage.html
+make docker            # docker build -t dra-backend .
 ```
 
 ### Full-stack dev
@@ -76,7 +78,10 @@ apps/
   web/           Next.js 16 (canary) — App Router, Tailwind CSS v4, React 19
   backend/       Go 1.25 — chi router, pgx, JWT auth, LLM pipeline
 scripts/         dev.sh, smoke-test.sh
-docs/            Implementation guides and design docs
+docs/            Implementation guides and design docs (admin/, api/, backend/, database/, llm-pipeline/, etc.)
+AGENTS.md        Behavioral rules and endpoint reference for AI agents
+ops.md           Operational debt tracking and known issues
+Dockerfile       Multi-stage production build
 ```
 
 ### Test organization
@@ -95,6 +100,7 @@ docs/            Implementation guides and design docs
 - **Styling**: Tailwind CSS v4 (`@tailwindcss/postcss`), `cva` for variant components, `tailwind-merge` for class merging.
 - **Validation**: Zod v4 schemas.
 - **Pages**: Landing (`/`), Playground (`/playground`), Dashboard (`/dashboard`), Gateway (`/gateway`), Pricing (`/pricing`), Docs (`/docs`), Login/Signup, Forgot password.
+- **Admin panel** (`app/admin/`): Full admin dashboard with sub-pages for users, models, providers, billing, security, logs, audit, reports, settings, SSO, announcements, changelog, operations, promos, cost management, and IP management. Admin login at `app/admin/login/`.
 
 ### Backend (`apps/backend/`)
 - **Chi router** (`go-chi/chi/v5`) — lightweight HTTP router with middleware chain.
@@ -131,7 +137,9 @@ docs/            Implementation guides and design docs
 - **Embeddings** (`internal/handler/embeddings.go`, `pkg/llm/embeddings/`): Generate and query vector embeddings through the LLM pipeline.
 - **Files & uploads** (`internal/handler/upload.go`, `internal/repository/file.go`): File upload handling for prompt attachments.
 - **Internal SDK** (`internal/pkg/`): Shared packages for logger, HTTP response helpers, and JWT token utilities — distinct from the external `pkg/sdk/` consumer SDK.
-- **Migrations**: Raw SQL in `migrations/`, numbered sequentially (001-006).
+- **Config** (`internal/config/`): Environment-based configuration structs loaded at startup. Covers database, auth, Redis, providers, server settings.
+- **Email** (`pkg/email/`): Email sending package for transactional emails (password reset, invites, notifications).
+- **Migrations**: Raw SQL in `migrations/`, numbered sequentially (001-007).
 - **Middleware stack** (`internal/middleware/`): Auth (JWT/API key), CORS, rate limiting (sliding window + Redis), quota enforcement, request logging, body size limit, tracing, Prometheus metrics, response transformation, and input validation.
 - **Services** (`internal/service/`): 15+ business logic services covering analytics, API keys, billing/credits, users, organizations, webhooks, batch jobs, prompts, files, and Stripe payment processing.
 - **Go SDK** (`pkg/sdk/`): Typed Go client with webhook support — mirrors TypeScript SDK. Includes `client.go`, `types.go`, `utils.go`, `webhook.go`, `errors.go`. See `pkg/sdk/README.md`.
@@ -266,6 +274,7 @@ Both Go SDK (`pkg/sdk/client.go`) and TypeScript SDK (`lib/api/sdk.ts`) must be 
 - **Go binary path**: Makefile prepends `$(HOME)/.local/go/bin` to `PATH`
 - **Frontend `@/` path alias** → `apps/web/` root. Example: `@/lib/api/sdk` → `apps/web/lib/api/sdk.ts`
 - **Next.js standalone output** — `next.config.ts` sets `output: 'standalone'`. Production Docker entry is `apps/web/server.js` (inside `.next/standalone/`)
+- **Security headers** — `next.config.ts` configures `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy` across all routes.
 
 ## Mandatory: Skill & Rule Usage
 

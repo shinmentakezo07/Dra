@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { OpenRouterModelData } from "@/types/model";
 import { getProviderTheme } from "@/lib/model-utils";
 import { AmbientBackground } from "./AmbientBackground";
@@ -11,6 +12,7 @@ import { ArchitecturePanel } from "./ArchitecturePanel";
 import { PricingPanel } from "./PricingPanel";
 import { ParametersPanel } from "./ParametersPanel";
 import { QuickStartCard } from "./QuickStartCard";
+import { cn } from "@/lib/utils";
 
 interface ModelDetailClientProps {
     model: OpenRouterModelData | null;
@@ -19,23 +21,33 @@ interface ModelDetailClientProps {
 
 const containerEase = [0.16, 1, 0.3, 1] as const;
 
+const sections = [
+    { id: "about", label: "About" },
+    { id: "performance", label: "Performance" },
+    { id: "architecture", label: "Architecture" },
+    { id: "pricing", label: "Pricing" },
+    { id: "parameters", label: "Parameters" },
+    { id: "quickstart", label: "Quick Start" },
+] as const;
+
 function fadeUp(delay = 0) {
     return {
-        initial: { opacity: 0, y: 20 },
+        initial: { opacity: 0, y: 16 },
         whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, margin: "-80px" } as const,
-        transition: { duration: 0.6, ease: containerEase, delay },
+        viewport: { once: true, margin: "-60px" } as const,
+        transition: { duration: 0.5, ease: containerEase, delay },
     };
 }
 
 export function ModelDetailClient({ model, providerId }: ModelDetailClientProps) {
     const router = useRouter();
+    const [activeSection, setActiveSection] = useState<string>("about");
     const theme = model && providerId ? getProviderTheme(model.id) : null;
 
     if (!model || !theme) {
         return (
             <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center relative overflow-hidden">
-                <AmbientBackground />
+                <AmbientBackground accentColor={theme?.accent} />
                 <div className="text-center relative z-10">
                     <motion.div
                         initial={{ scale: 0, opacity: 0 }}
@@ -77,20 +89,57 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
 
     return (
         <div className="min-h-screen bg-[#000000] text-white relative overflow-hidden">
-            <AmbientBackground />
+            <AmbientBackground accentColor={theme.accent} />
 
-            <div className="relative z-10 pt-24 pb-32 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
+            <motion.nav
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.6, ease: containerEase }}
+                className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/60 border-b border-white/[0.06]"
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-1 h-12 overflow-x-auto scrollbar-hide">
+                        <button
+                            onClick={() => router.push("/models")}
+                            className="shrink-0 text-[10px] font-mono text-gray-500 hover:text-gray-300 tracking-[0.15em] uppercase transition-colors pr-4 border-r border-white/[0.06] mr-2"
+                        >
+                            ← All
+                        </button>
+                        {sections.map((s) => (
+                            <button
+                                key={s.id}
+                                onClick={() => {
+                                    setActiveSection(s.id);
+                                    document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                }}
+                                className={cn(
+                                    "shrink-0 px-3 py-1.5 rounded-md text-[11px] font-mono tracking-wider uppercase transition-all duration-200",
+                                    activeSection === s.id
+                                        ? "text-white bg-white/[0.08]"
+                                        : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
+                                )}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </motion.nav>
+
+            <div className="relative z-10 pt-20 pb-32">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ModelIdentity model={model} theme={theme} onBack={() => router.push("/models")} />
 
-                    <div className="h-px bg-gradient-to-r from-white/5 via-white/10 to-transparent my-16" />
+            <div className="h-px bg-gradient-to-r from-white/[0.03] via-white/[0.08] to-transparent my-16" />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-                        <div className="lg:col-span-3 space-y-12">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                <div className="lg:col-span-3 space-y-16">
                             {model.description && (
                                 <motion.section {...fadeUp()} aria-label="About this model" id="about">
-                                    <h2 className="text-[10px] font-mono text-gray-600 tracking-[0.25em] uppercase mb-5">About</h2>
-                                    <p className="text-gray-300 text-sm leading-[1.8] max-w-prose">{model.description}</p>
+                                    <SectionHeading>About</SectionHeading>
+                                    <div className="prose prose-invert prose-sm max-w-none">
+                                        <p className="text-gray-300 text-[15px] leading-[1.85]">{model.description}</p>
+                                    </div>
                                 </motion.section>
                             )}
 
@@ -98,8 +147,8 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
                             <ArchitecturePanel model={model} />
                         </div>
 
-                        <div className="lg:col-span-2 space-y-8">
-                            <div className="lg:sticky lg:top-28 space-y-8">
+                <div className="lg:col-span-2">
+                            <div className="lg:sticky lg:top-20 space-y-10">
                                 <PricingPanel model={model} />
                                 <ParametersPanel params={model.supported_parameters} />
                                 <QuickStartCard model={model} />
@@ -109,5 +158,14 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
                 </div>
             </div>
         </div>
+    );
+}
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+    return (
+        <h2 className="text-[10px] font-mono text-gray-500 tracking-[0.25em] uppercase mb-5 flex items-center gap-3">
+            <span className="w-4 h-px bg-gray-600" />
+            {children}
+        </h2>
     );
 }

@@ -2,6 +2,7 @@ export function HydrationGuard() {
   return (
     <script
       id="hydration-guard"
+      suppressHydrationWarning
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
