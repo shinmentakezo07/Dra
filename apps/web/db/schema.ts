@@ -561,6 +561,23 @@ export const adminImpersonations = pgTable("admin_impersonations", {
   endedAt: timestamp("ended_at"),
 });
 
+export const adminSessions = pgTable("admin_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  tokenHash: text("token_hash").default("").notNull(),
+  ipAddress: text("ip_address").default("").notNull(),
+  userAgent: text("user_agent").default("").notNull(),
+  status: text("status").default("active").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  revokedAt: timestamp("revoked_at"),
+  revokedBy: uuid("revoked_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("idx_admin_sessions_user_id").on(table.userId, table.createdAt),
+  statusIdx: index("idx_admin_sessions_status").on(table.status, table.expiresAt),
+  tokenHashIdx: index("idx_admin_sessions_token_hash").on(table.tokenHash),
+}));
+
 export const systemSettings = pgTable("system_settings", {
   key: text("key").primaryKey(),
   value: jsonb("value").notNull(),

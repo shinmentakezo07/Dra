@@ -44,6 +44,7 @@ type Handler struct {
 	orgSvc          *service.OrganizationService
 	fileRepo        *repository.FileRepo
 	adminSvc       *service.AdminService
+	adminSessionRepo *repository.AdminSessionRepo
 	moderator       moderation.Moderator
 	guard           *guardrails.Guard
 	notificationHub *NotificationHub
@@ -114,6 +115,10 @@ func (h *Handler) SetAdminService(s *service.AdminService) {
 	h.adminSvc = s
 }
 
+func (h *Handler) SetAdminSessionRepo(r *repository.AdminSessionRepo) {
+	h.adminSessionRepo = r
+}
+
 // SetEmailSender sets the email sender.
 func (h *Handler) SetEmailSender(s email.Sender) {
 	h.emailSender = s
@@ -181,6 +186,32 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		response.JSON(w, appErr.Status, response.Body{Success: false, Error: appErr.Message})
 		return
+	}
+	response.OK(w, auth)
+}
+
+func (h *Handler) AdminLogin(w http.ResponseWriter, r *http.Request) {
+	var req domain.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body")
+		return
+	}
+	auth, appErr := h.userSvc.Authenticate(r.Context(), req)
+	if appErr != nil {
+		response.JSON(w, appErr.Status, response.Body{Success: false, Error: appErr.Message})
+		return
+	}
+	if auth == nil || auth.User.ID == "" || !auth.User.IsAdmin() {
+		response.Error(w, 403, "Admin access required")
+		return
+	}
+	// Create admin session record for audit
+	if h.adminSessionRepo != nil {
+		ip := r.Header.Get("X-Forwarded-For")
+		if ip == "" {
+			ip = r.RemoteAddr
+		}
+		_, _ = h.adminSessionRepo.Create(r.Context(), auth.User.ID, "", ip, r.UserAgent(), time.Now().Add(24*time.Hour))
 	}
 	response.OK(w, auth)
 }

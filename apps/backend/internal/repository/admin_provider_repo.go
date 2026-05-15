@@ -12,11 +12,18 @@ import (
 )
 
 type AdminProviderRepo struct {
-	db *db.DB
+	db    *db.DB
+	cache RepoCache
+	ttl   time.Duration
 }
 
 func NewAdminProviderRepo(d *db.DB) *AdminProviderRepo {
 	return &AdminProviderRepo{db: d}
+}
+
+func (r *AdminProviderRepo) SetCache(c RepoCache, ttl time.Duration) {
+	r.cache = c
+	r.ttl = ttl
 }
 
 func (r *AdminProviderRepo) Create(ctx context.Context, p *domain.Provider) error {
@@ -34,7 +41,11 @@ func (r *AdminProviderRepo) Create(ctx context.Context, p *domain.Provider) erro
 }
 
 func (r *AdminProviderRepo) Get(ctx context.Context, id string) (*domain.Provider, error) {
+	key := providerCacheKey(id)
 	var p domain.Provider
+	if r.cache != nil && r.cache.Get(ctx, key, &p) {
+		return &p, nil
+	}
 	err := r.db.QueryRow(ctx, `
 		SELECT id, name, display_name, provider_type, base_url, status, priority,
 			timeout_ms, circuit_breaker_enabled, circuit_breaker_threshold,
@@ -51,10 +62,18 @@ func (r *AdminProviderRepo) Get(ctx context.Context, id string) (*domain.Provide
 		}
 		return nil, fmt.Errorf("get provider: %w", err)
 	}
+	if r.cache != nil {
+		_ = r.cache.Set(ctx, key, &p, r.ttl)
+	}
 	return &p, nil
 }
 
 func (r *AdminProviderRepo) List(ctx context.Context) ([]domain.Provider, error) {
+	key := providerListCacheKey()
+	var list []domain.Provider
+	if r.cache != nil && r.cache.Get(ctx, key, &list) {
+		return list, nil
+	}
 	rows, err := r.db.Query(ctx, `
 		SELECT id, name, display_name, provider_type, base_url, status, priority,
 			timeout_ms, circuit_breaker_enabled, rate_limit_rpm, rate_limit_tpm,
@@ -75,6 +94,9 @@ func (r *AdminProviderRepo) List(ctx context.Context) ([]domain.Provider, error)
 		}
 		providers = append(providers, p)
 	}
+	if r.cache != nil {
+		_ = r.cache.Set(ctx, key, providers, r.ttl)
+	}
 	return providers, nil
 }
 
@@ -84,7 +106,14 @@ func (r *AdminProviderRepo) Update(ctx context.Context, p *domain.Provider) erro
 			timeout_ms=$6, max_retries=$7, metadata=$8, updated_at=NOW()
 		WHERE id=$1`, p.ID, p.DisplayName, p.BaseURL, p.Status, p.Priority,
 		p.TimeoutMS, p.MaxRetries, p.Metadata)
-	return fmt.Errorf("update provider: %w", err)
+	if err != nil {
+		return fmt.Errorf("update provider: %w", err)
+	}
+	if r.cache != nil {
+		_ = r.cache.Delete(ctx, providerCacheKey(p.ID))
+		_ = r.cache.Delete(ctx, providerListCacheKey())
+	}
+	return nil
 }
 
 func (r *AdminProviderRepo) UpdateStatus(ctx context.Context, id string, status domain.ProviderStatus) error {
@@ -94,6 +123,10 @@ func (r *AdminProviderRepo) UpdateStatus(ctx context.Context, id string, status 
 	}
 	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("provider not found: %s", id)
+	}
+	if r.cache != nil {
+		_ = r.cache.Delete(ctx, providerCacheKey(id))
+		_ = r.cache.Delete(ctx, providerListCacheKey())
 	}
 	return nil
 }
@@ -105,7 +138,13 @@ func (r *AdminProviderRepo) CreateKey(ctx context.Context, k *domain.ProviderKey
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
 		k.ID, k.ProviderID, k.Label, k.KeyPrefix, k.KeyHash, k.KeyLastFour,
 		k.Strategy, k.Weight, k.SortOrder, k.RPMLimit, k.TPMLimit, k.MonthlyQuota, k.IsActive)
-	return fmt.Errorf("create provider key: %w", err)
+	if err != nil {
+		return fmt.Errorf("create provider key: %w", err)
+	}
+	if r.cache != nil {
+		_ = r.cache.DeletePrefix(ctx, providerCacheKey(""))
+	}
+	return nil
 }
 
 func (r *AdminProviderRepo) ListKeys(ctx context.Context, providerID string) ([]domain.ProviderKey, error) {
@@ -139,7 +178,13 @@ func (r *AdminProviderRepo) UpdateKey(ctx context.Context, k *domain.ProviderKey
 			rpm_limit=$6, tpm_limit=$7, monthly_quota=$8, is_active=$9
 		WHERE id=$1`, k.ID, k.Label, k.Strategy, k.Weight, k.SortOrder,
 		k.RPMLimit, k.TPMLimit, k.MonthlyQuota, k.IsActive)
-	return fmt.Errorf("update key: %w", err)
+	if err != nil {
+		return fmt.Errorf("update key: %w", err)
+	}
+	if r.cache != nil {
+		_ = r.cache.DeletePrefix(ctx, providerCacheKey(""))
+	}
+	return nil
 }
 
 func (r *AdminProviderRepo) DeleteKey(ctx context.Context, id string) error {
@@ -149,6 +194,9 @@ func (r *AdminProviderRepo) DeleteKey(ctx context.Context, id string) error {
 	}
 	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("key not found: %s", id)
+	}
+	if r.cache != nil {
+		_ = r.cache.DeletePrefix(ctx, providerCacheKey(""))
 	}
 	return nil
 }
@@ -167,7 +215,13 @@ func (r *AdminProviderRepo) ReorderKeys(ctx context.Context, providerID string, 
 			return fmt.Errorf("reorder key %d: %w", i, err)
 		}
 	}
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	if r.cache != nil {
+		_ = r.cache.DeletePrefix(ctx, providerCacheKey(""))
+	}
+	return nil
 }
 
 func (r *AdminProviderRepo) GetHealthChecks(ctx context.Context, providerID string, since time.Time) ([]domain.ProviderHealthCheck, error) {

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/domain"
@@ -10,18 +11,32 @@ import (
 )
 
 type CreditsRepo struct {
-	db *db.DB
+	db    *db.DB
+	cache RepoCache
+	ttl   time.Duration
 }
 
 func NewCreditsRepo(d *db.DB) *CreditsRepo { return &CreditsRepo{db: d} }
 
+func (r *CreditsRepo) SetCache(c RepoCache, ttl time.Duration) {
+	r.cache = c
+	r.ttl = ttl
+}
+
 func (r *CreditsRepo) ByUser(ctx context.Context, userID string) (*domain.UserCredits, error) {
+	key := creditsCacheKey(userID)
+	var c domain.UserCredits
+	if r.cache != nil && r.cache.Get(ctx, key, &c) {
+		return &c, nil
+	}
 	row := r.db.QueryRow(ctx,
 		`SELECT id, user_id, balance, total_purchased, total_spent, monthly_budget, daily_budget, daily_spent, monthly_spent, budget_reset_at, updated_at FROM user_credits WHERE user_id = $1`, userID)
-	var c domain.UserCredits
 	if err := row.Scan(&c.ID, &c.UserID, &c.Balance, &c.TotalPurchased, &c.TotalSpent, &c.MonthlyBudget, &c.DailyBudget, &c.DailySpent, &c.MonthlySpent, &c.BudgetResetAt, &c.UpdatedAt); err != nil {
 		if err == pgx.ErrNoRows { return nil, nil }
 		return nil, err
+	}
+	if r.cache != nil {
+		_ = r.cache.Set(ctx, key, &c, r.ttl)
 	}
 	return &c, nil
 }
@@ -35,6 +50,9 @@ func (r *CreditsRepo) Upsert(ctx context.Context, userID string, balanceDelta, p
 			total_purchased = user_credits.total_purchased + $4,
 			updated_at = NOW()
 	`, domain.NewID(), userID, balanceDelta, purchasedDelta)
+	if err == nil && r.cache != nil {
+		_ = r.cache.Delete(ctx, creditsCacheKey(userID))
+	}
 	return err
 }
 
@@ -47,6 +65,9 @@ func (r *CreditsRepo) Deduct(ctx context.Context, userID string, amount int) (bo
 		WHERE user_id = $1 AND balance >= $2
 	`, userID, amount)
 	if err != nil { return false, err }
+	if r.cache != nil {
+		_ = r.cache.Delete(ctx, creditsCacheKey(userID))
+	}
 	return tag.RowsAffected() > 0, nil
 }
 

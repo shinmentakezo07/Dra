@@ -11,29 +11,51 @@ import (
 )
 
 type UserRepo struct {
-	db *db.DB
+	db    *db.DB
+	cache RepoCache
+	ttl   time.Duration
 }
 
 func NewUserRepo(d *db.DB) *UserRepo { return &UserRepo{db: d} }
 
+func (r *UserRepo) SetCache(c RepoCache, ttl time.Duration) {
+	r.cache = c
+	r.ttl = ttl
+}
+
 func (r *UserRepo) ByEmail(ctx context.Context, email string) (*domain.User, error) {
+	key := userEmailCacheKey(email)
+	var u domain.User
+	if r.cache != nil && r.cache.Get(ctx, key, &u) {
+		return &u, nil
+	}
 	row := r.db.QueryRow(ctx,
 		`SELECT id, name, email, password, role, created_at FROM users WHERE email = $1`, email)
-	var u domain.User
 	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Role, &u.CreatedAt); err != nil {
 		if err == pgx.ErrNoRows { return nil, nil }
 		return nil, err
+	}
+	if r.cache != nil {
+		_ = r.cache.Set(ctx, key, &u, r.ttl)
+		_ = r.cache.Set(ctx, userCacheKey(u.ID), &u, r.ttl)
 	}
 	return &u, nil
 }
 
 func (r *UserRepo) ByID(ctx context.Context, id string) (*domain.User, error) {
+	key := userCacheKey(id)
+	var u domain.User
+	if r.cache != nil && r.cache.Get(ctx, key, &u) {
+		return &u, nil
+	}
 	row := r.db.QueryRow(ctx,
 		`SELECT id, name, email, password, role, created_at FROM users WHERE id = $1`, id)
-	var u domain.User
 	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Role, &u.CreatedAt); err != nil {
 		if err == pgx.ErrNoRows { return nil, nil }
 		return nil, err
+	}
+	if r.cache != nil {
+		_ = r.cache.Set(ctx, key, &u, r.ttl)
 	}
 	return &u, nil
 }
@@ -47,21 +69,35 @@ func (r *UserRepo) Create(ctx context.Context, name, email, hashedPassword, role
 	if err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.Role, &u.CreatedAt); err != nil {
 		return nil, err
 	}
+	if r.cache != nil {
+		_ = r.cache.Set(ctx, userCacheKey(u.ID), &u, r.ttl)
+		_ = r.cache.Set(ctx, userEmailCacheKey(u.Email), &u, r.ttl)
+	}
 	return &u, nil
 }
 
 func (r *UserRepo) UpdateProfile(ctx context.Context, id, name, email string) error {
 	_, err := r.db.Exec(ctx, `UPDATE users SET name = $2, email = $3 WHERE id = $1`, id, name, email)
+	if err == nil && r.cache != nil {
+		_ = r.cache.Delete(ctx, userCacheKey(id))
+		_ = r.cache.Delete(ctx, userEmailCacheKey(email))
+	}
 	return err
 }
 
 func (r *UserRepo) UpdatePassword(ctx context.Context, id, hashedPassword string) error {
 	_, err := r.db.Exec(ctx, `UPDATE users SET password = $2 WHERE id = $1`, id, hashedPassword)
+	if err == nil && r.cache != nil {
+		_ = r.cache.Delete(ctx, userCacheKey(id))
+	}
 	return err
 }
 
 func (r *UserRepo) Delete(ctx context.Context, id string) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err == nil && r.cache != nil {
+		_ = r.cache.Delete(ctx, userCacheKey(id))
+	}
 	return err
 }
 

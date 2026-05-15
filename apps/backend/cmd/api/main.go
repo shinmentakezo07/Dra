@@ -86,6 +86,21 @@ func main() {
 	txRepo := repository.NewTransactionRepo(database)
 	logRepo := repository.NewLogRepo(database)
 
+	// Repository cache layer (Redis-backed if available, else memory)
+	var repoCache repository.RepoCache
+	if redisClient != nil {
+		repoCache = repository.NewRedisRepoCache(redisClient, "repo:")
+		logger.Info("repo_cache_enabled", "backend", "redis")
+	} else {
+		repoCache = repository.NewMemoryRepoCache(cfg.CacheMaxSize)
+		logger.Info("repo_cache_enabled", "backend", "memory", "max_size", cfg.CacheMaxSize)
+	}
+
+	// Enable caching on base repos
+	userRepo.SetCache(repoCache, cfg.CacheDefaultTTL)
+	keyRepo.SetCache(repoCache, cfg.CacheDefaultTTL)
+	creditsRepo.SetCache(repoCache, cfg.CacheDefaultTTL)
+
 	// Provider registry with optional SDK features
 	var llmCache cache.Cache
 	if cfg.EnableCache {
@@ -321,10 +336,19 @@ func main() {
 	adminAuditRepo := repository.NewAdminAuditRepo(database)
 	adminSecurityRepo := repository.NewAdminSecurityRepo(database)
 	adminFeaturesRepo := repository.NewAdminFeaturesRepo(database)
+
+	// Enable caching on admin repos
+	adminProviderRepo.SetCache(repoCache, cfg.CacheDefaultTTL)
+	adminModelRepo.SetCache(repoCache, cfg.CacheDefaultTTL)
+	adminSettingsRepo.SetCache(repoCache, cfg.CacheDefaultTTL)
+
 	adminAuditSvc := service.NewAuditService(adminAuditRepo, 1000)
 	adminSvc := service.NewAdminService(adminUserRepo, adminProviderRepo, adminModelRepo,
 		adminBillingRepo, adminSettingsRepo, adminAuditRepo,
 		adminSecurityRepo, adminFeaturesRepo, adminAuditSvc)
+
+	// Admin session repo
+	adminSessionRepo := repository.NewAdminSessionRepo(database)
 
 	// Stripe service
 	stripeRepo := repository.NewStripeRepo(database)
@@ -346,6 +370,7 @@ func main() {
 	h.SetABRouter(abRouter)
 	h.SetLLMCache(llmCache)
 	h.SetAdminService(adminSvc)
+	h.SetAdminSessionRepo(adminSessionRepo)
 
 	// Batch service needs the handler's chat function; wire after handler creation
 	batchRepo := repository.NewBatchJobRepo(database)
@@ -476,6 +501,7 @@ func main() {
 		r.Use(authRateLimitMW)
 		r.Post("/auth/signup", h.Signup)
 		r.Post("/auth/login", h.Login)
+		r.Post("/auth/admin-login", h.AdminLogin)
 		r.Post("/auth/oauth", h.OAuthLogin)
 		r.Post("/auth/forgot-password", h.ForgotPassword)
 		r.Post("/auth/reset-password", h.ResetPassword)

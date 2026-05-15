@@ -532,3 +532,16 @@ type IPAccessLogFilter struct {
 	Page      int        `json:"page"`
 	Limit     int        `json:"limit"`
 }
+
+type AdminSession struct {
+	ID        string     `json:"id"`
+	UserID    string     `json:"userId"`
+	TokenHash string     `json:"tokenHash"`
+	IPAddress string     `json:"ipAddress"`
+	UserAgent string     `json:"userAgent"`
+	Status    string     `json:"status"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	RevokedAt *time.Time `json:"revokedAt,omitempty"`
+	RevokedBy *string    `json:"revokedBy,omitempty"`
+	CreatedAt time.Time  `json:"createdAt"`
+}

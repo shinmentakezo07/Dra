@@ -94,6 +94,29 @@ export async function authenticateSocial(provider: string) {
   await signIn(provider, { redirectTo: "/dashboard" });
 }
 
+export async function authenticateAdmin(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn("credentials", {
+      redirectTo: "/admin",
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return "Invalid admin credentials.";
+        default:
+          return "Something went wrong.";
+      }
+    }
+    throw error;
+  }
+}
+
 export async function forgotPassword(prevState: any, formData: FormData) {
   const email = formData.get("email");
   if (!email) return { message: "Email is required" };
