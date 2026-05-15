@@ -44,9 +44,18 @@ type Handler struct {
 	webhookSvc      *service.WebhookService
 	batchSvc        *service.BatchService
 	orgSvc          *service.OrganizationService
-	fileRepo        *repository.FileRepo
-	adminSvc       *service.AdminService
-	adminSessionRepo *repository.AdminSessionRepo
+	conversationSvc   *service.ConversationService
+	promptSvc         *service.PromptService
+	fileSvc           *service.FileService
+	adminSvc          *service.AdminService
+	adminSessionRepo  *repository.AdminSessionRepo
+	rbacSvc           *service.RBACService
+	rateLimitSvc      *service.RateLimitService
+	budgetSvc         *service.BudgetService
+	comparisonSvc     *service.ComparisonService
+	fineTuningSvc     *service.FineTuningService
+	providerPluginSvc *service.ProviderPluginService
+	exportSvc         *service.ExportService
 	moderator       moderation.Moderator
 	guard           *guardrails.Guard
 	notificationHub *NotificationHub
@@ -67,7 +76,22 @@ func (h *Handler) SetGuard(g *guardrails.Guard) {
 }
 
 func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService, p *service.ProviderService, w *service.WebhookService, b *service.BatchService, o *service.OrganizationService) *Handler {
-	return &Handler{cfg: cfg, db: database, userSvc: u, keySvc: k, creditSvc: c, analyticsSvc: a, logSvc: l, providerSvc: p, webhookSvc: w, batchSvc: b, orgSvc: o, fileRepo: repository.NewFileRepo(database), moderator: moderation.NewLocalModerator(), notificationHub: NewNotificationHub()}
+	return &Handler{
+		cfg: cfg, db: database, userSvc: u, keySvc: k, creditSvc: c, analyticsSvc: a,
+		logSvc: l, providerSvc: p, webhookSvc: w, batchSvc: b, orgSvc: o,
+		conversationSvc:   service.NewConversationService(repository.NewConversationRepo(database)),
+		promptSvc:         service.NewPromptService(repository.NewPromptRepo(database)),
+		fileSvc:           service.NewFileService(repository.NewFileRepo(database)),
+		rbacSvc:           service.NewRBACService(repository.NewRBACRepo(database)),
+		rateLimitSvc:      service.NewRateLimitService(repository.NewRateLimitRepo(database)),
+		budgetSvc:         service.NewBudgetService(repository.NewBudgetRepo(database)),
+		comparisonSvc:     service.NewComparisonService(repository.NewComparisonRepo(database)),
+		fineTuningSvc:     service.NewFineTuningService(repository.NewFineTuningRepo(database)),
+		providerPluginSvc: service.NewProviderPluginService(repository.NewProviderPluginRepo(database)),
+		exportSvc:         service.NewExportService(repository.NewExportRepo(database), repository.NewLogRepo(database)),
+		moderator:         moderation.NewLocalModerator(),
+		notificationHub:   NewNotificationHub(),
+	}
 }
 
 // SetLLMRegistry sets the pkg/llm provider registry for OpenAI-compatible proxy endpoints.
@@ -848,4 +872,284 @@ func (h *Handler) AdminCircuitBreakers(w http.ResponseWriter, r *http.Request) {
 		result = append(result, item)
 	}
 	response.OK(w, result)
+}
+
+func (h *Handler) MyPermissions(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	perms, err := h.rbacSvc.GetUserPermissions(r.Context(), u.ID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, perms)
+}
+
+func (h *Handler) ListRoles(w http.ResponseWriter, r *http.Request) {
+	roles, err := h.rbacSvc.ListRoles(r.Context())
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, roles)
+}
+
+func (h *Handler) GetRolePermissions(w http.ResponseWriter, r *http.Request) {
+	role := chi.URLParam(r, "role")
+	perms, err := h.rbacSvc.GetRolePermissions(r.Context(), role)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, perms)
+}
+
+func (h *Handler) AddRolePermission(w http.ResponseWriter, r *http.Request) {
+	role := chi.URLParam(r, "role")
+	var req struct { PermissionName string `json:"permissionName"` }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	if req.PermissionName == "" { response.Error(w, 400, "permissionName is required"); return }
+	if err := h.rbacSvc.AddRolePermission(r.Context(), role, req.PermissionName); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"added": true})
+}
+
+func (h *Handler) RemoveRolePermission(w http.ResponseWriter, r *http.Request) {
+	role := chi.URLParam(r, "role")
+	permName := chi.URLParam(r, "permission")
+	if err := h.rbacSvc.RemoveRolePermission(r.Context(), role, permName); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"removed": true})
+}
+
+func (h *Handler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "userId")
+	var req struct { Role string `json:"role"` }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	if req.Role == "" { response.Error(w, 400, "role is required"); return }
+	if err := h.rbacSvc.UpdateUserRole(r.Context(), userID, req.Role); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) ListPermissions(w http.ResponseWriter, r *http.Request) {
+	perms, err := h.rbacSvc.ListPermissions(r.Context())
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, perms)
+}
+
+func (h *Handler) ListTiers(w http.ResponseWriter, r *http.Request) {
+	tiers, err := h.rateLimitSvc.ListTiers(r.Context())
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, tiers)
+}
+
+func (h *Handler) UpdateTierLimits(w http.ResponseWriter, r *http.Request) {
+	tier := chi.URLParam(r, "tier")
+	var req struct { RPM, Daily, Monthly, MaxTokens int }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	if err := h.rateLimitSvc.UpdateTierLimits(r.Context(), tier, req.RPM, req.Daily, req.Monthly, req.MaxTokens); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) SetUserTier(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "userId")
+	var req struct { Tier string `json:"tier"` }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	if req.Tier == "" { response.Error(w, 400, "tier is required"); return }
+	if err := h.rateLimitSvc.SetUserTier(r.Context(), userID, req.Tier); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) CreateBudgetAlert(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateBudgetAlertRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	alert, err := h.budgetSvc.CreateAlert(r.Context(), u.ID, req)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, alert)
+}
+
+func (h *Handler) ListBudgetAlerts(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	alerts, err := h.budgetSvc.GetUserAlerts(r.Context(), u.ID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, alerts)
+}
+
+func (h *Handler) DeleteBudgetAlert(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	if err := h.budgetSvc.DeleteAlert(r.Context(), u.ID, id); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) CreateBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateBudgetCapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	cap, err := h.budgetSvc.CreateCap(r.Context(), u.ID, req)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, cap)
+}
+
+func (h *Handler) GetBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	cap, err := h.budgetSvc.GetUserCap(r.Context(), u.ID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, cap)
+}
+
+func (h *Handler) UpdateBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateBudgetCapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	if err := h.budgetSvc.UpdateCap(r.Context(), u.ID, req); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) DeleteBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	if err := h.budgetSvc.DeleteCap(r.Context(), u.ID); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) CreateComparison(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateABComparisonRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	c, err := h.comparisonSvc.Create(r.Context(), u.ID, req)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, c)
+}
+
+func (h *Handler) GetComparison(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	c, err := h.comparisonSvc.GetByID(r.Context(), u.ID, id)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, c)
+}
+
+func (h *Handler) ListComparisons(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	page, limit := parsePagination(r)
+	items, err := h.comparisonSvc.ListByUser(r.Context(), u.ID, page, limit)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, items)
+}
+
+func (h *Handler) DeleteComparison(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	if err := h.comparisonSvc.Delete(r.Context(), u.ID, id); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) ListFineTuningDatasets(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	datasets, err := h.fineTuningSvc.ListDatasets(r.Context(), u.ID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, datasets)
+}
+
+func (h *Handler) GetFineTuningDataset(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "datasetId")
+	d, err := h.fineTuningSvc.GetDataset(r.Context(), u.ID, id)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, d)
+}
+
+func (h *Handler) CreateFineTuningJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateFineTuningJobRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	dsID := req.DatasetID
+	j, err := h.fineTuningSvc.CreateJob(r.Context(), u.ID, req.BaseModel, &dsID, req.Hyperparams)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, j)
+}
+
+func (h *Handler) GetFineTuningJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "jobId")
+	j, err := h.fineTuningSvc.GetJob(r.Context(), u.ID, id)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, j)
+}
+
+func (h *Handler) ListFineTuningJobs(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	page, limit := parsePagination(r)
+	jobs, err := h.fineTuningSvc.ListJobs(r.Context(), u.ID, page, limit)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, jobs)
+}
+
+func (h *Handler) CreateProviderPlugin(w http.ResponseWriter, r *http.Request) {
+	var req domain.CreateProviderPluginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	p, err := h.providerPluginSvc.Create(r.Context(), "", req)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, p)
+}
+
+func (h *Handler) ListProviderPlugins(w http.ResponseWriter, r *http.Request) {
+	plugins, err := h.providerPluginSvc.List(r.Context())
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, plugins)
+}
+
+func (h *Handler) GetProviderPlugin(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	p, err := h.providerPluginSvc.GetByID(r.Context(), id)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, p)
+}
+
+func (h *Handler) ToggleProviderPlugin(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var req struct { Active bool `json:"active"` }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	if err := h.providerPluginSvc.Toggle(r.Context(), id, req.Active); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) DeleteProviderPlugin(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.providerPluginSvc.Delete(r.Context(), id); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) CreateExportJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateExportJobRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	job, err := h.exportSvc.CreateJob(r.Context(), u.ID, req)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, job)
+}
+
+func (h *Handler) GetExportJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	job, err := h.exportSvc.GetJob(r.Context(), u.ID, id)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, job)
+}
+
+func (h *Handler) ListExportJobs(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	page, limit := parsePagination(r)
+	jobs, err := h.exportSvc.ListJobs(r.Context(), u.ID, page, limit)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, jobs)
 }

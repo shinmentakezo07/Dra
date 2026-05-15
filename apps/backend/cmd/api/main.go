@@ -577,6 +577,33 @@ func main() {
 		r.Post("/api/organizations/{id}/members/{userId}", h.RemoveMember)
 		r.Get("/api/organizations/{id}/members", h.ListMembers)
 		r.Post("/api/invites/accept", h.AcceptInvite)
+
+		// A/B Comparisons
+		r.Get("/api/comparisons", h.ListComparisons)
+		r.Post("/api/comparisons", h.CreateComparison)
+		r.Get("/api/comparisons/{id}", h.GetComparison)
+		r.Delete("/api/comparisons/{id}", h.DeleteComparison)
+
+		// Fine-tuning
+		r.Get("/api/fine-tuning/datasets", h.ListFineTuningDatasets)
+		r.Get("/api/fine-tuning/datasets/{datasetId}", h.GetFineTuningDataset)
+		r.Get("/api/fine-tuning/jobs", h.ListFineTuningJobs)
+		r.Post("/api/fine-tuning/jobs", h.CreateFineTuningJob)
+		r.Get("/api/fine-tuning/jobs/{jobId}", h.GetFineTuningJob)
+
+		// Budget alerts & caps
+		r.Get("/api/budget/alerts", h.ListBudgetAlerts)
+		r.Post("/api/budget/alerts", h.CreateBudgetAlert)
+		r.Delete("/api/budget/alerts/{id}", h.DeleteBudgetAlert)
+		r.Get("/api/budget/cap", h.GetBudgetCap)
+		r.Post("/api/budget/cap", h.CreateBudgetCap)
+		r.Put("/api/budget/cap", h.UpdateBudgetCap)
+		r.Delete("/api/budget/cap", h.DeleteBudgetCap)
+
+		// Exports
+		r.Get("/api/exports", h.ListExportJobs)
+		r.Post("/api/exports", h.CreateExportJob)
+		r.Get("/api/exports/{id}", h.GetExportJob)
 	})
 
 	// Stripe webhook (public, signature verified in handler)
@@ -657,6 +684,7 @@ func main() {
 		// Promo codes
 		r.Get("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminListPromoCodes))
 		r.Post("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminCreatePromoCodeWithRandom))
+		r.Post("/api/admin/promos/custom", appmiddleware.RequireAdmin(h.AdminCreatePromoCode))
 		r.Put("/api/admin/promos/{id}/toggle", appmiddleware.RequireAdmin(h.AdminTogglePromoStatus))
 		r.Get("/api/admin/promos/{id}/redemptions", appmiddleware.RequireAdmin(h.AdminListPromoRedemptions))
 
@@ -693,6 +721,26 @@ func main() {
 		r.Get("/api/admin/stats", appmiddleware.RequireAdmin(h.AdminStats))
 		r.Get("/api/admin/circuit-breakers", appmiddleware.RequireAdmin(h.AdminCircuitBreakers))
 		r.Get("/api/admin/provider-health", appmiddleware.RequireAdmin(h.ProviderHealth))
+
+		// RBAC
+		r.Get("/api/admin/rbac/permissions", appmiddleware.RequireAdmin(h.ListPermissions))
+		r.Get("/api/admin/rbac/roles", appmiddleware.RequireAdmin(h.ListRoles))
+		r.Get("/api/admin/rbac/roles/{role}/permissions", appmiddleware.RequireAdmin(h.GetRolePermissions))
+		r.Post("/api/admin/rbac/roles/{role}/permissions", appmiddleware.RequireAdmin(h.AddRolePermission))
+		r.Delete("/api/admin/rbac/roles/{role}/permissions/{permission}", appmiddleware.RequireAdmin(h.RemoveRolePermission))
+		r.Put("/api/admin/users/{userId}/role", appmiddleware.RequireAdmin(h.UpdateUserRole))
+
+		// Rate limit tiers
+		r.Get("/api/admin/rate-limits/tiers", appmiddleware.RequireAdmin(h.ListTiers))
+		r.Put("/api/admin/rate-limits/tiers/{tier}", appmiddleware.RequireAdmin(h.UpdateTierLimits))
+		r.Put("/api/admin/users/{userId}/tier", appmiddleware.RequireAdmin(h.SetUserTier))
+
+		// Provider plugins
+		r.Get("/api/admin/plugins", appmiddleware.RequireAdmin(h.ListProviderPlugins))
+		r.Post("/api/admin/plugins", appmiddleware.RequireAdmin(h.CreateProviderPlugin))
+		r.Get("/api/admin/plugins/{id}", appmiddleware.RequireAdmin(h.GetProviderPlugin))
+		r.Put("/api/admin/plugins/{id}/toggle", appmiddleware.RequireAdmin(h.ToggleProviderPlugin))
+		r.Delete("/api/admin/plugins/{id}", appmiddleware.RequireAdmin(h.DeleteProviderPlugin))
 	})
 
 	// Metrics server

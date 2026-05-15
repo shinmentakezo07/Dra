@@ -3,6 +3,7 @@ package domain
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/mail"
 	"time"
@@ -398,6 +399,222 @@ type Prompt struct {
 	Model     string    `json:"model"`
 	Config    []byte    `json:"config,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Permission struct {
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Resource    string    `json:"resource"`
+	Action      string    `json:"action"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type RolePermission struct {
+	Role           string    `json:"role"`
+	PermissionName string    `json:"permissionName"`
+	CreatedAt      time.Time `json:"createdAt"`
+}
+
+type BudgetAlert struct {
+	ID               string    `json:"id"`
+	UserID           string    `json:"userId"`
+	ThresholdPercent int       `json:"thresholdPercent"`
+	AlertType        string    `json:"alertType"`
+	IsActive         bool      `json:"isActive"`
+	CreatedAt        time.Time `json:"createdAt"`
+}
+
+type BudgetCap struct {
+	ID             string    `json:"id"`
+	UserID         string    `json:"userId"`
+	HardLimit      int       `json:"hardLimit"`
+	SoftLimit      *int      `json:"softLimit,omitempty"`
+	ActionOnExceed string    `json:"actionOnExceed"`
+	IsActive       bool      `json:"isActive"`
+	CreatedAt      time.Time `json:"createdAt"`
+}
+
+type ABComparison struct {
+	ID        string     `json:"id"`
+	UserID    string     `json:"userId"`
+	ModelA    string     `json:"modelA"`
+	ModelB    string     `json:"modelB"`
+	Prompt    string     `json:"prompt"`
+	ResultA   *string    `json:"resultA,omitempty"`
+	ResultB   *string    `json:"resultB,omitempty"`
+	LatencyA  *int       `json:"latencyA,omitempty"`
+	LatencyB  *int       `json:"latencyB,omitempty"`
+	CostA     *int       `json:"costA,omitempty"`
+	CostB     *int       `json:"costB,omitempty"`
+	TokensA   *int       `json:"tokensA,omitempty"`
+	TokensB   *int       `json:"tokensB,omitempty"`
+	Status    string     `json:"status"`
+	CreatedAt time.Time  `json:"createdAt"`
+}
+
+type FineTuningDataset struct {
+	ID         string    `json:"id"`
+	UserID     string    `json:"userId"`
+	Filename   string    `json:"filename"`
+	MimeType   *string   `json:"mimeType,omitempty"`
+	Size       int64     `json:"size"`
+	StorageKey string    `json:"storageKey"`
+	Format     string    `json:"format"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type FineTuningJob struct {
+	ID            string     `json:"id"`
+	UserID        string     `json:"userId"`
+	BaseModel     string     `json:"baseModel"`
+	DatasetID     *string    `json:"datasetId,omitempty"`
+	Status        string     `json:"status"`
+	ResultModelID *string    `json:"resultModelId,omitempty"`
+	Hyperparams   []byte     `json:"hyperparams,omitempty"`
+	Progress      int        `json:"progress"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	StartedAt     *time.Time `json:"startedAt,omitempty"`
+	FinishedAt    *time.Time `json:"finishedAt,omitempty"`
+}
+
+type ProviderPlugin struct {
+	ID                 string            `json:"id"`
+	Name               string            `json:"name"`
+	Type               string            `json:"type"`
+	BaseURL            string            `json:"baseUrl"`
+	APIKeyEnv          *string           `json:"apiKeyEnv,omitempty"`
+	ModelListEndpoint  string            `json:"modelListEndpoint"`
+	ChatEndpoint       string            `json:"chatEndpoint"`
+	EmbeddingEndpoint  string            `json:"embeddingEndpoint"`
+	Headers            map[string]string `json:"headers,omitempty"`
+	IsActive           bool              `json:"isActive"`
+	CreatedAt          time.Time         `json:"createdAt"`
+}
+
+type ExportJob struct {
+	ID          string     `json:"id"`
+	UserID      string     `json:"userId"`
+	Type        string     `json:"type"`
+	Format      string     `json:"format"`
+	Status      string     `json:"status"`
+	FilePath    *string    `json:"filePath,omitempty"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	CompletedAt *time.Time `json:"completedAt,omitempty"`
+}
+
+type CreateBudgetAlertRequest struct {
+	ThresholdPercent int    `json:"thresholdPercent"`
+	AlertType        string `json:"alertType"`
+}
+
+func (r *CreateBudgetAlertRequest) Validate() *AppError {
+	if r.ThresholdPercent < 1 || r.ThresholdPercent > 100 {
+		return NewError(ErrBadRequest, 400, "Threshold must be between 1 and 100")
+	}
+	if r.AlertType == "" {
+		r.AlertType = "email"
+	}
+	return nil
+}
+
+type CreateBudgetCapRequest struct {
+	HardLimit      int    `json:"hardLimit"`
+	SoftLimit      *int   `json:"softLimit"`
+	ActionOnExceed string `json:"actionOnExceed"`
+}
+
+func (r *CreateBudgetCapRequest) Validate() *AppError {
+	if r.HardLimit <= 0 {
+		return NewError(ErrBadRequest, 400, "Hard limit must be positive")
+	}
+	if r.ActionOnExceed == "" {
+		r.ActionOnExceed = "block"
+	}
+	return nil
+}
+
+type CreateABComparisonRequest struct {
+	ModelA string `json:"modelA"`
+	ModelB string `json:"modelB"`
+	Prompt string `json:"prompt"`
+}
+
+func (r *CreateABComparisonRequest) Validate() *AppError {
+	if r.ModelA == "" || r.ModelB == "" {
+		return NewError(ErrBadRequest, 400, "Both models are required")
+	}
+	if r.Prompt == "" {
+		return NewError(ErrBadRequest, 400, "Prompt is required")
+	}
+	return nil
+}
+
+type CreateFineTuningJobRequest struct {
+	BaseModel   string          `json:"baseModel"`
+	DatasetID   string          `json:"datasetId"`
+	Hyperparams json.RawMessage `json:"hyperparams,omitempty"`
+}
+
+func (r *CreateFineTuningJobRequest) Validate() *AppError {
+	if r.BaseModel == "" {
+		return NewError(ErrBadRequest, 400, "Base model is required")
+	}
+	if r.DatasetID == "" {
+		return NewError(ErrBadRequest, 400, "Dataset ID is required")
+	}
+	return nil
+}
+
+type CreateProviderPluginRequest struct {
+	Name              string            `json:"name"`
+	Type              string            `json:"type"`
+	BaseURL           string            `json:"baseUrl"`
+	APIKeyEnv         *string           `json:"apiKeyEnv,omitempty"`
+	ModelListEndpoint string            `json:"modelListEndpoint"`
+	ChatEndpoint      string            `json:"chatEndpoint"`
+	EmbeddingEndpoint string            `json:"embeddingEndpoint"`
+	Headers           map[string]string `json:"headers,omitempty"`
+}
+
+func (r *CreateProviderPluginRequest) Validate() *AppError {
+	if r.Name == "" {
+		return NewError(ErrBadRequest, 400, "Name is required")
+	}
+	if r.BaseURL == "" {
+		return NewError(ErrBadRequest, 400, "Base URL is required")
+	}
+	if r.ChatEndpoint == "" {
+		r.ChatEndpoint = "/v1/chat/completions"
+	}
+	if r.ModelListEndpoint == "" {
+		r.ModelListEndpoint = "/v1/models"
+	}
+	return nil
+}
+
+type CreateExportJobRequest struct {
+	Type   string `json:"type"`
+	Format string `json:"format"`
+}
+
+func (r *CreateExportJobRequest) Validate() *AppError {
+	if r.Type == "" {
+		return NewError(ErrBadRequest, 400, "Export type is required")
+	}
+	if r.Format == "" {
+		r.Format = "csv"
+	}
+	return nil
+}
+
+type RateLimit struct {
+	ID                 string    `json:"id"`
+	Tier               string    `json:"tier"`
+	RPM                int       `json:"rpm"`
+	DailyRequests      int       `json:"dailyRequests"`
+	MonthlyRequests    int       `json:"monthlyRequests"`
+	MaxTokensPerRequest int      `json:"maxTokensPerRequest"`
+	CreatedAt          time.Time `json:"createdAt"`
 }
 
 func NewID() string { return uuid.New().String() }

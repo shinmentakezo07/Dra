@@ -15,10 +15,8 @@ import (
 	"dra-platform/backend/internal/pkg/response"
 )
 
-// MaxUploadSize is the maximum file upload size (10MB).
 const MaxUploadSize = 10 << 20
 
-// Supported image MIME types for vision models.
 var supportedImageTypes = map[string]string{
 	"image/png":  "png",
 	"image/jpeg": "jpeg",
@@ -27,7 +25,6 @@ var supportedImageTypes = map[string]string{
 	"image/gif":  "gif",
 }
 
-// UploadedFile represents a processed upload.
 type UploadedFile struct {
 	ID         string `json:"id"`
 	Filename   string `json:"filename"`
@@ -37,7 +34,6 @@ type UploadedFile struct {
 	StorageKey string `json:"storage_key,omitempty"`
 }
 
-// UploadFiles handles multipart file uploads for vision/multimodal support.
 func (h *Handler) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
 	if u == nil {
@@ -66,11 +62,10 @@ func (h *Handler) UploadFiles(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Persist file metadata
-		if h.fileRepo != nil {
-			record, dbErr := h.fileRepo.Create(r.Context(), u.ID, f.Filename, f.MIMEType, f.StorageKey, f.Size)
+		if h.fileSvc != nil {
+			record, dbErr := h.fileSvc.CreateFile(r.Context(), u.ID, f.Filename, f.MIMEType, f.StorageKey, f.Size)
 			if dbErr != nil {
-				logger.Warn("file_persist_failed", "file", header.Filename, "error", dbErr.Error())
+				logger.Warn("file_persist_failed", "file", header.Filename, "error", dbErr.Message)
 			} else {
 				f.ID = record.ID
 			}
@@ -85,21 +80,20 @@ func (h *Handler) UploadFiles(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ListFiles returns uploaded files for the authenticated user.
 func (h *Handler) ListFiles(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
 	if u == nil {
 		response.Error(w, 401, "Authentication required")
 		return
 	}
-	if h.fileRepo == nil {
-		response.Error(w, 500, "File repository not available")
+	if h.fileSvc == nil {
+		response.Error(w, 500, "File service not available")
 		return
 	}
 	page, limit := parsePagination(r)
-	files, total, err := h.fileRepo.ByUser(r.Context(), u.ID, page, limit)
-	if err != nil {
-		response.Error(w, 500, "Failed to list files")
+	files, total, appErr := h.fileSvc.ListFiles(r.Context(), u.ID, page, limit)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
 		return
 	}
 	response.Paginated(w, files, total, page, limit)
@@ -116,12 +110,10 @@ func processUpload(header *multipart.FileHeader) (*UploadedFile, error) {
 	}
 	defer file.Close()
 
-	// Read first 512 bytes to detect content type
 	sniff := make([]byte, 512)
 	n, _ := file.Read(sniff)
 	contentType := http.DetectContentType(sniff[:n])
 
-	// Reset to read full file
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return nil, err
 	}
@@ -133,7 +125,6 @@ func processUpload(header *multipart.FileHeader) (*UploadedFile, error) {
 
 	baseName := sanitizeUploadFilename(header.Filename)
 	ext := strings.ToLower(filepath.Ext(baseName))
-	// Override content type for known extensions
 	if ext == ".png" {
 		contentType = "image/png"
 	} else if ext == ".jpg" || ext == ".jpeg" {

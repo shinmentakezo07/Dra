@@ -3,11 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/response"
-	"dra-platform/backend/internal/repository"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -23,7 +21,15 @@ type renderPromptRequest struct {
 	Variables map[string]string `json:"variables"`
 }
 
-// CreatePrompt creates a new prompt template version.
+func requirePromptUser(w http.ResponseWriter, r *http.Request) bool {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return false
+	}
+	return true
+}
+
 func (h *Handler) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 	if !requirePromptUser(w, r) {
 		return
@@ -33,56 +39,41 @@ func (h *Handler) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "Invalid JSON")
 		return
 	}
-	if req.Name == "" || req.Template == "" {
-		response.Error(w, 400, "Name and template are required")
-		return
-	}
 
-	var configBytes []byte
-	if req.Config != nil {
-		configBytes, _ = json.Marshal(req.Config)
-	}
-
-	repo := repository.NewPromptRepo(h.db)
-	prompt, err := repo.CreatePrompt(r.Context(), req.Name, req.Template, req.Model, configBytes)
-	if err != nil {
-		response.Error(w, 500, "Failed to create prompt")
+	prompt, appErr := h.promptSvc.CreatePrompt(r.Context(), req.Name, req.Template, req.Model, req.Config)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
 		return
 	}
 	response.Created(w, prompt)
 }
 
-// ListPrompts returns all prompt templates.
 func (h *Handler) ListPrompts(w http.ResponseWriter, r *http.Request) {
 	if !requirePromptUser(w, r) {
 		return
 	}
 	page, limit := parsePagination(r)
-	repo := repository.NewPromptRepo(h.db)
-	prompts, err := repo.ListPrompts(r.Context(), limit, (page-1)*limit)
-	if err != nil {
-		response.Error(w, 500, "Failed to list prompts")
+	prompts, appErr := h.promptSvc.ListPrompts(r.Context(), page, limit)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
 		return
 	}
 	response.OK(w, prompts)
 }
 
-// GetPrompt retrieves a prompt template by name.
 func (h *Handler) GetPrompt(w http.ResponseWriter, r *http.Request) {
 	if !requirePromptUser(w, r) {
 		return
 	}
 	name := chi.URLParam(r, "name")
-	repo := repository.NewPromptRepo(h.db)
-	prompt, err := repo.GetPrompt(r.Context(), name)
-	if err != nil || prompt == nil {
-		response.Error(w, 404, "Prompt not found")
+	prompt, appErr := h.promptSvc.GetPrompt(r.Context(), name)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
 		return
 	}
 	response.OK(w, prompt)
 }
 
-// RenderPrompt renders a prompt template with variables and executes it.
 func (h *Handler) RenderPrompt(w http.ResponseWriter, r *http.Request) {
 	if !requirePromptUser(w, r) {
 		return
@@ -94,14 +85,11 @@ func (h *Handler) RenderPrompt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repo := repository.NewPromptRepo(h.db)
-	prompt, err := repo.GetPrompt(r.Context(), name)
-	if err != nil || prompt == nil {
-		response.Error(w, 404, "Prompt not found")
+	prompt, rendered, appErr := h.promptSvc.RenderPrompt(r.Context(), name, req.Variables)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
 		return
 	}
-
-	rendered := renderTemplate(prompt.Template, req.Variables)
 	response.OK(w, map[string]interface{}{
 		"prompt":   prompt,
 		"rendered": rendered,
@@ -109,33 +97,15 @@ func (h *Handler) RenderPrompt(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// DeletePrompt removes all versions of a prompt.
 func (h *Handler) DeletePrompt(w http.ResponseWriter, r *http.Request) {
 	if !requirePromptUser(w, r) {
 		return
 	}
 	name := chi.URLParam(r, "name")
-	repo := repository.NewPromptRepo(h.db)
-	if err := repo.DeletePrompt(r.Context(), name); err != nil {
-		response.Error(w, 500, "Failed to delete prompt")
+	appErr := h.promptSvc.DeletePrompt(r.Context(), name)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
 		return
 	}
 	response.OK(w, map[string]string{"deleted": name})
-}
-
-func requirePromptUser(w http.ResponseWriter, r *http.Request) bool {
-	u := middleware.GetUser(r)
-	if u == nil {
-		response.Error(w, 401, "Authentication required")
-		return false
-	}
-	return true
-}
-
-func renderTemplate(template string, vars map[string]string) string {
-	result := template
-	for k, v := range vars {
-		result = strings.ReplaceAll(result, "{{"+k+"}}", v)
-	}
-	return result
 }
