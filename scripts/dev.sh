@@ -440,15 +440,31 @@ fix_placeholder_secrets() {
 push_schema() {
   log_info "Pushing database schema..."
   cd "$WEB_DIR"
-  local output
-  output="$(npx drizzle-kit push --force 2>&1)" || true
-  if echo "$output" | grep -qi "error\|failed"; then
+  local tmpfile
+  tmpfile="$(mktemp)"
+
+  # Run directly (not in $(...)) so stdin is a TTY; drizzle-kit needs this
+  # even with --force for schema conflict resolution prompts
+  npx drizzle-kit push --force > "$tmpfile" 2>&1 || true
+
+  if grep -qi "error\|failed" "$tmpfile"; then
+    # Check if it's just a TTY/interactive prompt error
+    if grep -q "Interactive prompts require a TTY terminal" "$tmpfile"; then
+      log_warn "Drizzle Kit push requires an interactive terminal."
+      log_info "The Go backend will auto-migrate raw SQL migrations on startup."
+      log_info "If you need Drizzle schema sync, run 'npm run db:push' manually in a TTY."
+      rm -f "$tmpfile"
+      return 0
+    fi
     log_error "Schema push failed:"
-    echo "$output" | while IFS= read -r line; do echo -e "  ${RED}|${NC} $line"; done
+    cat "$tmpfile" | while IFS= read -r line; do echo -e "  ${RED}|${NC} $line"; done
+    rm -f "$tmpfile"
     log_info "Check database connection in $WEB_DIR/.env.local"
     exit 1
   fi
-  echo "$output" | while IFS= read -r line; do echo -e "  ${DIM}db>${NC} $line"; done
+
+  cat "$tmpfile" | while IFS= read -r line; do echo -e "  ${DIM}db>${NC} $line"; done
+  rm -f "$tmpfile"
   log_ok "Schema pushed"
 }
 

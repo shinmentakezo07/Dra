@@ -678,7 +678,19 @@ DECLARE
   partition_start TEXT;
   partition_end TEXT;
   partition_name TEXT;
+  is_partitioned BOOLEAN;
 BEGIN
+  -- Skip if table is not partitioned (e.g., existing dev table)
+  SELECT EXISTS (
+    SELECT 1 FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname = table_name AND c.relkind = 'p'
+  ) INTO is_partitioned;
+
+  IF NOT is_partitioned THEN
+    RETURN;
+  END IF;
+
   partition_start := to_char(partition_date, 'YYYY-MM-01');
   partition_end := to_char(partition_date + INTERVAL '1 month', 'YYYY-MM-01');
   partition_name := table_name || '_' || to_char(partition_date, 'YYYY_MM');
