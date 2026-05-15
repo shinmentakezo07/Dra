@@ -15,6 +15,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

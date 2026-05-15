@@ -604,6 +604,12 @@ func main() {
 		r.Get("/api/exports", h.ListExportJobs)
 		r.Post("/api/exports", h.CreateExportJob)
 		r.Get("/api/exports/{id}", h.GetExportJob)
+
+		// Admin Messages (user inbox)
+		r.Get("/api/messages", h.GetUserMessages)
+		r.Get("/api/messages/unread-count", h.GetUnreadMessageCount)
+		r.Post("/api/messages/{id}/read", h.MarkMessageRead)
+		r.Post("/api/messages/read-all", h.MarkAllMessagesRead)
 	})
 
 	// Stripe webhook (public, signature verified in handler)
@@ -680,6 +686,13 @@ func main() {
 		// Announcements
 		r.Get("/api/admin/announcements", appmiddleware.RequireAdmin(h.AdminListAnnouncements))
 		r.Post("/api/admin/announcements", appmiddleware.RequireAdmin(h.AdminCreateAnnouncement))
+
+		// Messages
+		r.Get("/api/admin/messages", appmiddleware.RequireAdmin(h.AdminListMessages))
+		r.Get("/api/admin/messages/{id}", appmiddleware.RequireAdmin(h.AdminGetMessage))
+		r.Post("/api/admin/messages", appmiddleware.RequireAdmin(h.AdminCreateMessage))
+		r.Delete("/api/admin/messages/{id}", appmiddleware.RequireAdmin(h.AdminDeleteMessage))
+		r.Get("/api/admin/messages/{id}/stats", appmiddleware.RequireAdmin(h.AdminGetMessageStats))
 
 		// Promo codes
 		r.Get("/api/admin/promos", appmiddleware.RequireAdmin(h.AdminListPromoCodes))

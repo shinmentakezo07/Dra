@@ -9,6 +9,7 @@ import (
 	"dra-platform/backend/internal/domain"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type AdminSecurityRepo struct{ db *db.DB }
@@ -22,8 +23,16 @@ func (r *AdminSecurityRepo) AddIPEntry(ctx context.Context, e *domain.IPList) er
 
 func (r *AdminSecurityRepo) ListIPEntries(ctx context.Context, action string) ([]domain.IPList, error) {
 	q := `SELECT id,ip_or_cidr,action,scope,COALESCE(scope_id,''),COALESCE(reason,''),expires_at,created_at FROM ip_lists`
-	if action != "" { q += " WHERE action=$1" }
-	rows, err := r.db.Query(ctx, q, action)
+	var (
+		rows pgx.Rows
+		err  error
+	)
+	if action != "" {
+		q += " WHERE action=$1"
+		rows, err = r.db.Query(ctx, q, action)
+	} else {
+		rows, err = r.db.Query(ctx, q)
+	}
 	if err != nil { return nil, fmt.Errorf("list ips: %w", err) }
 	defer rows.Close()
 	var entries []domain.IPList
@@ -32,6 +41,7 @@ func (r *AdminSecurityRepo) ListIPEntries(ctx context.Context, action string) ([
 		if err := rows.Scan(&e.ID, &e.IPOrCIDR, &e.Action, &e.Scope, &e.ScopeID, &e.Reason, &e.ExpiresAt, &e.CreatedAt); err != nil { return nil, fmt.Errorf("scan ip: %w", err) }
 		entries = append(entries, e)
 	}
+	if err := rows.Err(); err != nil { return nil, fmt.Errorf("iterate ip rows: %w", err) }
 	return entries, nil
 }
 

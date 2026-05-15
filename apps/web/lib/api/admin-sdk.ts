@@ -283,6 +283,19 @@ export class AdminSDK {
   async clearCache(): Promise<void> {
     await this.api.request<{ cleared: boolean }>("POST", "/api/admin/cache/clear");
   }
+
+  // Admin Messages
+  async listMessages(page?: number, limit?: number): Promise<PaginatedResult<{ id: string; title: string; body: string; priority: string; targetType: string; targetIds: string[]; sentBy: string; senderEmail: string; sentAt: string; expiresAt?: string; createdAt: string; readCount: number }>> {
+    return this.paginated("/api/admin/messages", { page, limit } as Record<string, string | number | undefined>);
+  }
+
+  async createMessage(data: { title: string; body: string; priority?: string; targetType: string; targetIds?: string[]; expiresAt?: string }): Promise<{ id: string }> {
+    return this.api.request<{ id: string }>("POST", "/api/admin/messages", data);
+  }
+
+  async deleteMessage(id: string): Promise<void> {
+    await this.api.request<{ deleted: boolean }>("DELETE", `/api/admin/messages/${id}`);
+  }
 }
 
 let adminSDKInstance: AdminSDK | null = null;

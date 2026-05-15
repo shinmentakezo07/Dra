@@ -696,6 +696,40 @@ export const announcements = pgTable("announcements", {
 });
 
 // ============================================================================
+// Admin Messages
+// ============================================================================
+
+export const adminMessages = pgTable("admin_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  priority: text("priority").default("normal").notNull(),
+  // Targeting: who receives this message
+  targetType: text("target_type").default("all").notNull(), // all | user | tier | group
+  targetIds: text("target_ids").array().default([]), // user IDs or tier names
+  // Metadata
+  sentBy: uuid("sent_by").references(() => users.id).notNull(),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  sentByIdx: index("idx_admin_messages_sent_by").on(table.sentBy),
+  targetTypeIdx: index("idx_admin_messages_target_type").on(table.targetType),
+  sentAtIdx: index("idx_admin_messages_sent_at").on(table.sentAt),
+}));
+
+export const adminMessageReads = pgTable("admin_message_reads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  messageId: uuid("message_id").references(() => adminMessages.id).notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  readAt: timestamp("read_at").defaultNow().notNull(),
+}, (table) => ({
+  messageIdIdx: index("idx_admin_message_reads_message").on(table.messageId),
+  userIdx: index("idx_admin_message_reads_user").on(table.userId),
+  messageUserUnique: index("idx_admin_message_reads_unique").on(table.messageId, table.userId),
+}));
+
+// ============================================================================
 // Promo Codes
 // ============================================================================
 

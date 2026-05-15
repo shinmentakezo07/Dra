@@ -243,6 +243,32 @@ export interface ProviderSummary {
   models: number;
 }
 
+export interface AdminMessage {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  targetType: string;
+  targetIds: string[];
+  sentBy: string;
+  senderEmail: string;
+  sentAt: string;
+  expiresAt?: string;
+  createdAt: string;
+  readCount: number;
+}
+
+export interface UserMessage {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  senderEmail: string;
+  sentAt: string;
+  expiresAt?: string;
+  isRead: boolean;
+}
+
 // SDK configuration
 export interface DraSDKConfig {
   baseUrl?: string;
@@ -907,6 +933,60 @@ class DraSDK {
 
   adminProviderHealth() {
     return this.request<ProviderHealthStatus[]>("GET", "/api/admin/provider-health");
+  }
+
+  // Admin Messages
+
+  adminListMessages(page?: number, limit?: number) {
+    return this.paginatedRequest<AdminMessage>("/api/admin/messages", { page, limit });
+  }
+
+  adminCreateMessage(data: {
+    title: string;
+    body: string;
+    priority?: string;
+    targetType: string;
+    targetIds?: string[];
+    expiresAt?: string;
+  }) {
+    return this.request<AdminMessage>("POST", "/api/admin/messages", data);
+  }
+
+  adminGetMessage(id: string) {
+    return this.request<AdminMessage>("GET", `/api/admin/messages/${encodeURIComponent(id)}`);
+  }
+
+  adminUpdateMessage(id: string, data: Partial<{
+    title: string;
+    body: string;
+    priority: string;
+    targetType: string;
+    targetIds: string[];
+    expiresAt: string;
+  }>) {
+    return this.request<AdminMessage>("PUT", `/api/admin/messages/${encodeURIComponent(id)}`, data);
+  }
+
+  adminDeleteMessage(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/messages/${encodeURIComponent(id)}`);
+  }
+
+  // User Messages (Inbox)
+
+  getUserMessages() {
+    return this.request<UserMessage[]>("GET", "/api/messages");
+  }
+
+  getUserMessageUnreadCount() {
+    return this.request<{ unread: number }>("GET", "/api/messages/unread-count");
+  }
+
+  markMessageRead(id: string) {
+    return this.request<{ marked: boolean }>("POST", `/api/messages/${encodeURIComponent(id)}/read`);
+  }
+
+  markAllMessagesRead() {
+    return this.request<{ marked: number }>("POST", "/api/messages/read-all");
   }
 
   // Public Health

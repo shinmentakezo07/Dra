@@ -139,9 +139,9 @@ Dockerfile       Multi-stage production build
 - **Internal SDK** (`internal/pkg/`): Shared packages for logger, HTTP response helpers, and JWT token utilities — distinct from the external `pkg/sdk/` consumer SDK.
 - **Config** (`internal/config/`): Environment-based configuration structs loaded at startup. Covers database, auth, Redis, providers, server settings.
 - **Email** (`pkg/email/`): Email sending package for transactional emails (password reset, invites, notifications).
-- **Migrations**: Raw SQL in `migrations/`, numbered sequentially (001-007).
+- **Migrations**: Raw SQL in `migrations/`, numbered sequentially (001-015, adding RBAC, rate limits, budget alerts, A/B comparison, fine-tuning, provider plugins, exports, and admin messages).
 - **Middleware stack** (`internal/middleware/`): Auth (JWT/API key), CORS, rate limiting (sliding window + Redis), quota enforcement, request logging, body size limit, tracing, Prometheus metrics, response transformation, and input validation.
-- **Services** (`internal/service/`): 15+ business logic services covering analytics, API keys, billing/credits, users, organizations, webhooks, batch jobs, prompts, files, and Stripe payment processing.
+- **Services** (`internal/service/`): 25+ business logic services covering analytics, API keys, billing/credits, users, organizations, webhooks, batch jobs, prompts, files, admin, RBAC, rate limits, budgets, A/B comparisons, fine-tuning, provider plugins, exports, audits, Stripe, and more.
 - **Go SDK** (`pkg/sdk/`): Typed Go client with webhook support — mirrors TypeScript SDK. Includes `client.go`, `types.go`, `utils.go`, `webhook.go`, `errors.go`. See `pkg/sdk/README.md`.
 
 ### Key API endpoints
@@ -243,14 +243,29 @@ Backend serves on `:8080`. Frontend proxies `/api/*` and `/v1/*` → `BACKEND_UR
 |--------|------|-------------|
 | GET | `/api/notifications/stream` | SSE notification stream |
 
-**Admin endpoints:**
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/admin/users` | List all users |
-| DELETE | `/api/admin/users/:id` | Delete user account |
-| GET | `/api/admin/stats` | Platform statistics |
-| GET | `/api/admin/circuit-breakers` | Circuit breaker status |
-| GET | `/api/admin/provider-health` | Provider health |
+**Admin endpoints** (70+ routes, all in `main.go`):
+| Group | Purpose |
+|-------|---------|
+| `/api/admin/users/*` | CRUD, suspend, impersonate, bulk ops, key/usage listing |
+| `/api/admin/providers/*` | CRUD, status, key management, key reorder |
+| `/api/admin/models/*` | CRUD, status, model aliases |
+| `/api/admin/billing/*` | Revenue summary, transactions, credit adjustment, daily usage |
+| `/api/admin/settings/*` | App settings, feature flags |
+| `/api/admin/security/*` | Suspicious activity, IP allow/block, IP access logs |
+| `/api/admin/audit` | Audit log |
+| `/api/admin/announcements/*` | CRUD announcements |
+| `/api/admin/messages/*` | Admin-to-user messaging system |
+| `/api/admin/promos/*` | Promo codes (CRUD, toggle, redemptions) |
+| `/api/admin/rbac/*` | Permissions, roles, role-permission mapping |
+| `/api/admin/rate-limits/*` | Rate limit tiers |
+| `/api/admin/plugins/*` | Provider plugins CRUD |
+| `/api/admin/cost/*` | Cost optimizations, forecast, breakdown |
+| `/api/admin/operations/*` | Cache stats/clear, webhook logs/retry |
+| `/api/admin/reports` | Scheduled reports |
+| `/api/admin/changelog/*` | Changelog CRUD + publish |
+| `/api/admin/admins/*` | Admin user management |
+| `/api/admin/sso` | SSO configs |
+| `/api/admin/dashboard` | Dashboard stats |
 
 **Other:**
 | Method | Path | Description |
@@ -262,6 +277,45 @@ Backend serves on `:8080`. Frontend proxies `/api/*` and `/v1/*` → `BACKEND_UR
 ### SDK duality
 Both Go SDK (`pkg/sdk/client.go`) and TypeScript SDK (`lib/api/sdk.ts`) must be kept in sync. They cover the same backend endpoints with matching types. When adding new endpoints, implement in Go backend → Go SDK → TypeScript SDK.
 
+
+## Key Backend Patterns
+
+### Route registration
+All routes are registered in a single file: `apps/backend/cmd/api/main.go`. Routes are organized into chi groups:
+- Public: `/health`, `/health/providers`, `/webhooks/stripe`
+- Auth (stricter per-IP rate limit): signup, login, password reset
+- Proxy (auth + quota): `/v1/chat/completions`, `/v1/messages`, `/v1/embeddings`, `/v1/models`
+- Protected (auth + quota): all `/api/*` endpoints (keys, credits, chat, conversations, prompts, batch, files, webhooks, orgs, comparisons, fine-tuning, budget, exports, messages)
+- Admin (auth + RequireAdmin/RequirePermission): `/api/admin/*`
+
+### Handler injection
+The `Handler` struct collects all services as fields. Required services go in `New()`, optional/late-wired ones use `Set*(...)` methods:
+```go
+h := handler.New(cfg, db, userSvc, keySvc, ...)
+h.SetLLMRegistry(llmRegistry)
+h.SetStripeService(stripeSvc)
+h.SetAdminService(adminSvc)
+```
+
+### Error handling
+All layers use `domain.AppError` with typed codes (UNAUTHORIZED, FORBIDDEN, BAD_REQUEST, NOT_FOUND, CONFLICT, RATE_LIMITED, PAYMENT_REQUIRED, INTERNAL_ERROR, SERVICE_UNAVAILABLE). Services return `*AppError`, handlers map to HTTP responses.
+
+### Admin auth middleware
+Two levels on admin routes:
+- `appmiddleware.RequireAdmin` -- any admin role
+- `appmiddleware.RequirePermission("resource.action")` -- specific permission (e.g. `"users.write"`, `"billing.write"`)
+
+### Response helpers
+`internal/pkg/response` provides: `OK(w, data)`, `Error(w, status, msg)`, `Created(w, data)`, `Paginated(w, items, total, page, limit)` -- all using the envelope `{"success": bool, "data": ..., "error": ..., "meta": {...}}`.
+
+### Chat streaming
+The chat proxy streams SSE tokens to the client immediately while credit deduction and webhook dispatch run in background goroutines. The `/v1/*` endpoints use the llm pipeline directly instead of the handler's ChatProxy.
+
+### Reference files
+- `AGENTS.md` at repo root -- behavioral rules and API endpoint reference for agents
+- `ops.md` at repo root -- operational debt tracking (P0-P3)
+- `apps/web/AGENTS.md` -- frontend-specific conventions
+- `apps/backend/AGENTS.md` -- backend-specific conventions
 
 ## Environment Quirks
 

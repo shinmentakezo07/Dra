@@ -6,16 +6,14 @@ import {
   Search,
   Check,
   Bot,
-  Sparkles,
-  ArrowRight,
-  RotateCcw,
   Zap,
-  Hash,
-  MousePointerClick,
-  AlertCircle,
+  ChevronRight,
+  ArrowRight,
+  Cpu,
+  DollarSign,
 } from "lucide-react";
 import Image from "next/image";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { EnrichedModel } from "./types";
 import { getProviderColor, getAllProviders } from "./ProviderColors";
 
@@ -26,10 +24,6 @@ interface ModelSelectorProps {
   selectedModels: EnrichedModel[];
   onConfirm: (models: EnrichedModel[]) => void;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 function formatPrice(p?: string): string {
   if (!p) return "—";
@@ -45,10 +39,7 @@ function highlightMatch(text: string, query: string) {
   const parts = text.split(new RegExp(`(${q})`, "gi"));
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <mark
-        key={i}
-        className="bg-blue-500/20 text-blue-300 rounded px-0.5 font-semibold"
-      >
+      <mark key={i} className="bg-indigo-500/30 text-indigo-200 rounded-sm px-0.5">
         {part}
       </mark>
     ) : (
@@ -56,10 +47,6 @@ function highlightMatch(text: string, query: string) {
     )
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  Sub-components                                                     */
-/* ------------------------------------------------------------------ */
 
 function ProviderSidebar({
   providers,
@@ -73,23 +60,29 @@ function ProviderSidebar({
   onSelect: (p: string | null) => void;
 }) {
   return (
-    <div className="w-full lg:w-56 shrink-0 flex flex-col gap-1 p-4 lg:border-r border-white/[0.06] overflow-y-auto playground-scroll">
+    <div className="flex flex-col gap-0.5">
       <button
         onClick={() => onSelect(null)}
-        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all border ${
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
           active === null
-            ? "bg-white/[0.07] border-white/15 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-            : "bg-transparent border-transparent text-gray-400 hover:text-white hover:bg-white/[0.03]"
+            ? "bg-white/[0.06] text-white"
+            : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.03]"
         }`}
       >
-        <Hash className="w-4 h-4 shrink-0 opacity-60" />
-        <span className="text-sm font-medium">All Providers</span>
-        <span className="ml-auto text-[10px] font-mono text-gray-500 bg-white/[0.05] px-1.5 py-0.5 rounded-md">
-          {models.length}
-        </span>
+        <div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${
+            active === null
+              ? "bg-white/[0.08] text-white"
+              : "bg-white/[0.03] text-gray-600"
+          }`}
+        >
+          ◆
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-medium">All Models</div>
+          <div className="text-[10px] text-gray-600 font-mono">{models.length}</div>
+        </div>
       </button>
-
-      <div className="h-px bg-white/[0.04] my-1" />
 
       {providers.map((provider) => {
         const count = models.filter(
@@ -102,25 +95,44 @@ function ProviderSidebar({
           <button
             key={provider}
             onClick={() => onSelect(isActive ? null : provider)}
-            className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all border ${
+            className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 overflow-hidden ${
               isActive
-                ? "bg-white/[0.07] border-white/15 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                : "bg-transparent border-transparent text-gray-400 hover:text-white hover:bg-white/[0.03]"
+                ? "text-white"
+                : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.03]"
             }`}
           >
-            <span
-              className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-offset-2 ring-offset-[#060606] transition-all"
+            {isActive && (
+              <motion.div
+                layoutId="sidebar-active"
+                className="absolute inset-0 rounded-xl"
+                style={{ background: `${color}12` }}
+                transition={{ type: "spring" as const, stiffness: 400, damping: 28 }}
+              />
+            )}
+            <div
+              className="relative w-8 h-8 rounded-lg flex items-center justify-center transition-all"
               style={{
-                backgroundColor: color,
-                boxShadow: isActive ? `0 0 0 2px ${color}40` : "none",
+                backgroundColor: isActive ? `${color}20` : "rgba(255,255,255,0.03)",
+                boxShadow: isActive ? `0 0 12px ${color}30` : "none",
               }}
-            />
-            <span className="text-sm font-medium capitalize truncate">
-              {provider}
-            </span>
-            <span className="ml-auto text-[10px] font-mono text-gray-500 bg-white/[0.05] px-1.5 py-0.5 rounded-md">
-              {count}
-            </span>
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{
+                  backgroundColor: color,
+                  boxShadow: isActive ? `0 0 8px ${color}` : "none",
+                }}
+              />
+            </div>
+            <div className="relative flex-1 min-w-0">
+              <div className="text-xs font-medium capitalize truncate">{provider}</div>
+              <div className="text-[10px] font-mono opacity-40">{count}</div>
+            </div>
+            {isActive && (
+              <motion.div layoutId="sidebar-chevron" className="relative">
+                <ChevronRight className="w-3.5 h-3.5" style={{ color }} />
+              </motion.div>
+            )}
           </button>
         );
       })}
@@ -151,242 +163,133 @@ function ModelCard({
   return (
     <motion.button
       layout
-      initial={{ opacity: 0, y: 16, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-      transition={{ type: "spring", stiffness: 350, damping: 28, delay: index * 0.02 }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{
+        type: "spring" as const,
+        stiffness: 350,
+        damping: 28,
+        delay: (index % 6) * 0.02,
+      }}
       onClick={() => !isAtLimit && onToggle()}
       disabled={isAtLimit}
-      className={`group relative flex flex-col p-5 rounded-2xl border text-left transition-all duration-300 overflow-hidden ${
+      className={`group relative w-full text-left rounded-2xl p-4 transition-all duration-300 ${
         isSelected
-          ? "bg-white/[0.04] border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+          ? "bg-white/[0.04]"
           : isAtLimit
-          ? "bg-white/[0.015] border-white/[0.04] cursor-not-allowed opacity-35"
-          : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/12 hover:-translate-y-0.5 hover:shadow-xl cursor-pointer"
+            ? "cursor-not-allowed opacity-15"
+            : "hover:bg-white/[0.02] cursor-pointer"
       }`}
     >
-      {/* Ambient provider tint */}
-      <div
-        className="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-[60px] opacity-[0.06] pointer-events-none transition-opacity duration-500"
-        style={{ backgroundColor: color, opacity: isSelected ? 0.12 : 0.06 }}
-      />
-
-      {/* Selection border glow */}
       {isSelected && (
         <motion.div
-          layoutId={`glow-${model.id}`}
-          className="absolute inset-0 rounded-2xl pointer-events-none"
+          layoutId={`card-glow-${model.id}`}
+          className="absolute inset-0 rounded-2xl"
           style={{
-            boxShadow: `inset 0 0 0 1px ${color}30, 0 0 20px ${color}10`,
+            background: `radial-gradient(ellipse at 30% 0%, ${color}15, transparent 70%)`,
+            border: `1px solid ${color}30`,
+            boxShadow: `0 0 30px ${color}10, inset 0 1px 0 ${color}20`,
           }}
+          transition={{ type: "spring" as const, stiffness: 300, damping: 25 }}
         />
       )}
+      {!isSelected && (
+        <div className="absolute inset-0 rounded-2xl bg-white/[0.015] border border-white/[0.05] group-hover:border-white/[0.08] group-hover:bg-white/[0.025] transition-all duration-300" />
+      )}
 
-      {/* Top row: logo + name + checkbox */}
-      <div className="relative z-10 flex items-start gap-4">
-        {/* Logo */}
-        <div
-          className={`relative w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden transition-all duration-300 ${
-            isSelected
-              ? "bg-white/[0.08] ring-1 ring-white/15"
-              : "bg-white/[0.03] ring-1 ring-white/[0.06]"
-          }`}
-        >
-          {model.logo ? (
-            <Image
-              src={model.logo}
-              alt=""
-              width={28}
-              height={28}
-              className="object-contain"
-              unoptimized
-            />
-          ) : (
-            <Bot className="w-6 h-6 text-gray-500" />
-          )}
-        </div>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0 pt-0.5">
-          <h3 className="text-sm font-semibold text-white leading-snug">
-            {highlightMatch(model.name, query)}
-          </h3>
-          <p
-            className="text-[11px] font-mono mt-1 uppercase tracking-wider"
-            style={{ color }}
-          >
-            {model.provider}
-          </p>
-        </div>
-
-        {/* Checkbox */}
-        <div
-          className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-            isSelected
-              ? "border-white/30 bg-white/10"
-              : "border-white/[0.08] bg-transparent group-hover:border-white/20"
-          }`}
-        >
-          <AnimatePresence>
-            {isSelected && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <div
+              className={`relative w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 ${
+                isSelected
+                  ? "bg-white/[0.06]"
+                  : "bg-white/[0.03] group-hover:bg-white/[0.05]"
+              }`}
+              style={{
+                boxShadow: isSelected ? `0 0 16px ${color}20` : "none",
+              }}
+            >
+              {model.logo ? (
+                <Image
+                  src={model.logo}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="object-contain"
+                  unoptimized
+                />
+              ) : (
+                <Bot className="w-5 h-5 text-gray-600" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-white/90 truncate leading-tight">
+                {highlightMatch(model.name, query)}
+              </div>
+              <div
+                className="text-[10px] font-mono uppercase tracking-widest mt-0.5"
+                style={{ color: isSelected ? color : `${color}80` }}
               >
-                <Check className="w-4 h-4 text-white" strokeWidth={3} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {model.provider}
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 ${
+              isSelected ? "scale-100" : "scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
+            }`}
+            style={{
+              backgroundColor: isSelected ? `${color}25` : "rgba(255,255,255,0.04)",
+            }}
+          >
+            <AnimatePresence mode="wait">
+              {isSelected ? (
+                <motion.div
+                  key="check"
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0, rotate: 45 }}
+                  transition={{ type: "spring" as const, stiffness: 500, damping: 18 }}
+                >
+                  <Check className="w-3.5 h-3.5" style={{ color }} strokeWidth={3} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="plus"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                >
+                  <div className="w-2 h-2 rounded-full bg-gray-600 group-hover:bg-white/60 transition-colors" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {model.description && (
+          <p className="text-[11px] text-gray-500 leading-relaxed mb-3 line-clamp-2">
+            {model.description}
+          </p>
+        )}
+
+        <div className="flex items-center gap-3 pt-2 border-t border-white/[0.04]">
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <Cpu className="w-3 h-3 opacity-50" />
+            <span className="text-[10px] font-mono">{ctx}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-gray-600">
+            <DollarSign className="w-3 h-3 opacity-40" />
+            <span className="text-[10px] font-mono">{formatPrice(model.pricing?.prompt)}</span>
+          </div>
         </div>
       </div>
-
-      {/* Description */}
-      {model.description && (
-        <p className="relative z-10 mt-3 text-[11px] text-gray-500 leading-relaxed line-clamp-2">
-          {model.description}
-        </p>
-      )}
-
-      {/* Data pills */}
-      <div className="relative z-10 mt-4 flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-mono text-gray-400">
-          <Sparkles className="w-3 h-3" />
-          {ctx} context
-        </span>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-mono text-gray-400">
-          In {formatPrice(model.pricing?.prompt)}
-        </span>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-mono text-gray-400">
-          Out {formatPrice(model.pricing?.completion)}
-        </span>
-      </div>
-
-      {/* Hover instruction */}
-      {!isSelected && !isAtLimit && (
-        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <MousePointerClick className="w-4 h-4 text-gray-600" />
-        </div>
-      )}
     </motion.button>
   );
 }
-
-function SelectedStage({
-  pending,
-  onRemove,
-  onClear,
-  onConfirm,
-}: {
-  pending: EnrichedModel[];
-  onRemove: (id: string) => void;
-  onClear: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <div className="shrink-0 border-t border-white/[0.06] bg-gradient-to-t from-black/60 to-transparent backdrop-blur-xl">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-        <div className="flex items-center gap-4">
-          {/* Selected chips */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 overflow-x-auto pb-1 playground-scroll">
-              {pending.length === 0 ? (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-xs">Select up to 4 models to compare</span>
-                </div>
-              ) : (
-                <>
-                  {pending.map((model) => {
-                    const color = getProviderColor(model.id);
-                    return (
-                      <motion.div
-                        layout
-                        key={model.id}
-                        initial={{ opacity: 0, scale: 0.8, x: -10 }}
-                        animate={{ opacity: 1, scale: 1, x: 0 }}
-                        exit={{ opacity: 0, scale: 0.8, x: 10 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className="group flex items-center gap-2.5 pl-1 pr-1 py-1 rounded-full bg-white/[0.06] border border-white/[0.08] hover:border-white/20 shrink-0"
-                        style={{
-                          boxShadow: `0 0 16px ${color}12`,
-                        }}
-                      >
-                        <div className="relative w-7 h-7 rounded-full bg-white/[0.05] overflow-hidden flex items-center justify-center">
-                          {model.logo ? (
-                            <Image
-                              src={model.logo}
-                              alt=""
-                              width={18}
-                              height={18}
-                              className="object-contain"
-                              unoptimized
-                            />
-                          ) : (
-                            <Bot className="w-4 h-4 text-gray-500" />
-                          )}
-                        </div>
-                        <span className="text-xs font-medium text-white/90 truncate max-w-[140px]">
-                          {model.name}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemove(model.id);
-                          }}
-                          className="p-1 rounded-full hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </motion.div>
-                    );
-                  })}
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Counter + Actions */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right hidden sm:block">
-              <span className="text-xs font-bold text-white">{pending.length}</span>
-              <span className="text-xs text-gray-500"> /4</span>
-            </div>
-
-            {pending.length > 0 && (
-              <button
-                onClick={onClear}
-                className="p-2.5 text-gray-500 hover:text-gray-300 hover:bg-white/[0.06] rounded-xl transition-all"
-                title="Clear selection"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            )}
-
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onConfirm}
-              disabled={pending.length === 0}
-              className="relative flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-25 disabled:cursor-not-allowed rounded-xl font-bold text-sm text-white shadow-[0_0_24px_rgba(59,130,246,0.2)] hover:shadow-[0_0_32px_rgba(59,130,246,0.35)] transition-all overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              <Zap className="w-4 h-4 relative z-10" />
-              <span className="relative z-10 hidden sm:inline">Launch Comparison</span>
-              <span className="relative z-10 sm:hidden">Launch</span>
-              <ArrowRight className="w-4 h-4 relative z-10" />
-            </motion.button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Main Component                                                     */
-/* ------------------------------------------------------------------ */
 
 export default function ModelSelector({
   isOpen,
@@ -398,6 +301,7 @@ export default function ModelSelector({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [pending, setPending] = useState<EnrichedModel[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -406,6 +310,13 @@ export default function ModelSelector({
       setActiveFilter(null);
     }
   }, [isOpen, selectedModels]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => searchRef.current?.focus(), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const providers = useMemo(() => getAllProviders(models), [models]);
 
@@ -437,135 +348,145 @@ export default function ModelSelector({
     });
   }, []);
 
-  const removeFromPending = useCallback((id: string) => {
-    setPending((prev) => prev.filter((m) => m.id !== id));
-  }, []);
-
   const handleConfirm = useCallback(() => {
     onConfirm(pending);
     onClose();
   }, [pending, onConfirm, onClose]);
 
-  const handleClear = useCallback(() => setPending([]), []);
+  const selectedCount = pending.length;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex flex-col"
-          onClick={onClose}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-2xl" />
-
-          {/* Content */}
+        <>
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ type: "spring", stiffness: 300, damping: 32 }}
-            onClick={(e) => e.stopPropagation()}
-            className="relative flex flex-col h-full bg-[#050505]/90 border-b border-white/[0.06]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50"
+            onClick={onClose}
           >
-            {/* Top bar */}
-            <div className="shrink-0 px-4 sm:px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-blue-500/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white tracking-tight">
-                    Model Observatory
-                  </h2>
-                  <p className="text-[10px] text-gray-500 font-mono">
-                    {filteredModels.length} models available
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2.5 hover:bg-white/10 rounded-xl transition-colors group"
-              >
-                <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-              </button>
-            </div>
+            <div className="absolute inset-0 bg-black/85" />
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
+              }}
+            />
+          </motion.div>
 
-            {/* Hero Search */}
-            <div className="shrink-0 px-4 sm:px-6 py-4 border-b border-white/[0.04]">
-              <div className="max-w-2xl mx-auto relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search models, providers, capabilities..."
-                  className="w-full bg-white/[0.03] border border-white/[0.08] hover:border-white/15 focus:border-blue-500/40 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-white placeholder:text-gray-600 outline-none transition-all"
-                  autoFocus
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-50 flex flex-col"
+          >
+            <div className="flex-1 flex overflow-hidden p-4 sm:p-6 gap-4">
+              <div className="hidden lg:flex flex-col w-56 shrink-0">
+                <div className="flex items-center gap-3 px-1 mb-5">
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(59,130,246,0.15))",
+                      boxShadow: "0 0 20px rgba(99,102,241,0.2)",
+                    }}
                   >
-                    <X className="w-3.5 h-3.5 text-gray-500" />
-                  </button>
-                )}
+                    <Zap className="w-4 h-4 text-indigo-300" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs font-bold text-white tracking-wide">MODEL LAB</h2>
+                    <p className="text-[9px] text-gray-600 font-mono">
+                      {filteredModels.length} models
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto playground-scroll pr-1">
+                  <ProviderSidebar
+                    providers={providers}
+                    models={filteredModels}
+                    active={activeFilter}
+                    onSelect={setActiveFilter}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Main body */}
-            <div className="flex-1 flex overflow-hidden">
-              <ProviderSidebar
-                providers={providers}
-                models={filteredModels}
-                active={activeFilter}
-                onSelect={setActiveFilter}
-              />
+              <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="relative flex-1 max-w-md">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                      <input
+                        ref={searchRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search..."
+                        className="w-full bg-white/[0.03] border border-white/[0.06] focus:border-indigo-500/30 rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-white placeholder:text-gray-600 outline-none transition-all duration-300"
+                      />
+                    </div>
 
-              {/* Grid */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 playground-scroll">
-                <div className="max-w-5xl mx-auto">
-                  {/* Section header */}
-                  <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">
-                      {activeFilter ? (
-                        <span className="flex items-center gap-2">
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{
-                              backgroundColor: getProviderColor(
-                                `${activeFilter}/model`
-                              ),
-                            }}
-                          />
-                          {activeFilter}
+                    {selectedCount > 0 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                        <span className="text-[11px] font-medium text-indigo-300 font-mono">
+                          {selectedCount}/4
                         </span>
-                      ) : (
-                        "All Models"
-                      )}
-                    </h3>
-                    <span className="text-[10px] text-gray-600 font-mono">
-                      {filteredModels.length} result
-                      {filteredModels.length !== 1 ? "s" : ""}
-                    </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <button
+                    onClick={onClose}
+                    className="p-2 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                  >
+                    <X className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
+                  </button>
+                </div>
+
+                <div className="lg:hidden mb-3 overflow-x-auto playground-scroll">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setActiveFilter(null)}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                        activeFilter === null
+                          ? "bg-white/[0.08] text-white ring-1 ring-white/10"
+                          : "text-gray-500 hover:text-gray-300"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {providers.map((p) => {
+                      const color = getProviderColor(`${p}/model`);
+                      const isActive = activeFilter === p;
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setActiveFilter(isActive ? null : p)}
+                          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                            isActive ? "text-white" : "text-gray-500 hover:text-gray-300"
+                          }`}
+                          style={isActive ? { backgroundColor: `${color}20`, boxShadow: `0 0 8px ${color}20` } : {}}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isActive ? color : `${color}60` }} />
+                          <span className="capitalize">{p}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto playground-scroll -mx-1 px-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 pb-4">
                     <AnimatePresence mode="popLayout">
                       {filteredModels.map((model, i) => (
                         <ModelCard
                           key={model.id}
                           model={model}
                           isSelected={pending.some((m) => m.id === model.id)}
-                          isAtLimit={
-                            pending.length >= 4 &&
-                            !pending.some((m) => m.id === model.id)
-                          }
+                          isAtLimit={pending.length >= 4 && !pending.some((m) => m.id === model.id)}
                           onToggle={() => toggleModel(model)}
                           query={searchQuery}
                           index={i}
@@ -574,37 +495,95 @@ export default function ModelSelector({
                     </AnimatePresence>
                   </div>
 
-                  {/* Empty state */}
                   {filteredModels.length === 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-center py-24"
-                    >
-                      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-5">
-                        <Bot className="w-8 h-8 text-gray-700" />
+                    <div className="flex flex-col items-center justify-center py-24 text-center">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                        style={{
+                          background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(59,130,246,0.05))",
+                          border: "1px solid rgba(99,102,241,0.15)",
+                          boxShadow: "0 0 30px rgba(99,102,241,0.1)",
+                        }}
+                      >
+                        <Bot className="w-7 h-7 text-gray-600" />
                       </div>
-                      <p className="text-sm text-gray-400 font-medium mb-1">
-                        No models found
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        Try a different search term or provider filter
-                      </p>
-                    </motion.div>
+                      <p className="text-sm text-gray-400 font-medium">No models found</p>
+                      <p className="text-[11px] text-gray-600 mt-1">Try a different search or filter</p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Bottom stage */}
-            <SelectedStage
-              pending={pending}
-              onRemove={removeFromPending}
-              onClear={handleClear}
-              onConfirm={handleConfirm}
-            />
+            <div className="shrink-0 border-t border-white/[0.06] bg-[#060608]/95 backdrop-blur-2xl">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 overflow-x-auto playground-scroll flex-1">
+                  {pending.length === 0 ? (
+                    <span className="text-[11px] text-gray-600">Click models above to select</span>
+                  ) : (
+                    pending.map((model) => {
+                      const color = getProviderColor(model.id);
+                      return (
+                        <motion.div
+                          layout
+                          key={model.id}
+                          initial={{ opacity: 0, scale: 0.85, y: 8 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.85, y: 8 }}
+                          transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
+                          className="group relative flex items-center gap-2 pl-1 pr-1 py-1.5 rounded-xl shrink-0 overflow-hidden"
+                        >
+                          <div
+                            className="absolute inset-0 rounded-xl"
+                            style={{
+                              background: `linear-gradient(135deg, ${color}15, transparent)`,
+                              border: `1px solid ${color}25`,
+                            }}
+                          />
+                          <div className="relative flex items-center gap-2">
+                            <div className="relative w-7 h-7 rounded-lg bg-white/[0.04] overflow-hidden flex items-center justify-center">
+                              {model.logo ? (
+                                <Image src={model.logo} alt="" width={16} height={16} className="object-contain" unoptimized />
+                              ) : (
+                                <Bot className="w-4 h-4 text-gray-600" />
+                              )}
+                            </div>
+                            <span className="text-[11px] font-medium text-white/80 truncate max-w-[100px]">
+                              {model.name.split(":")[0]}
+                            </span>
+                            <button
+                              onClick={() => setPending((prev) => prev.filter((m) => m.id !== model.id))}
+                              className="p-0.5 rounded hover:bg-white/10 text-gray-600 hover:text-white transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleConfirm}
+                  disabled={pending.length === 0}
+                  className="relative flex items-center gap-2.5 px-6 py-3 disabled:opacity-20 disabled:cursor-not-allowed rounded-xl text-sm font-semibold overflow-hidden shrink-0"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-blue-500 to-violet-500 opacity-0 hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-[1px] rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600" />
+                  <Zap className="w-4 h-4 relative z-10 text-white" />
+                  <span className="relative z-10 text-white">
+                    Launch Comparison
+                  </span>
+                  <ArrowRight className="w-4 h-4 relative z-10 text-white/70" />
+                </motion.button>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

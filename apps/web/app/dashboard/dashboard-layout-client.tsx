@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Key, Activity, BarChart3, Menu, X, Home, Settings, LogOut, Shield, Bell, Building2, CreditCard } from "lucide-react";
+import { LayoutDashboard, Key, Activity, BarChart3, Menu, X, Home, Settings, LogOut, Shield, Bell, Building2, CreditCard, Mail } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOutAction } from "@/app/lib/auth-actions";
@@ -21,6 +21,7 @@ const adminNavItems = [
 ];
 
 const bottomNavItems = [
+  { href: "/dashboard/inbox", label: "Inbox", icon: Mail },
   { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/organization", label: "Organization", icon: Building2 },

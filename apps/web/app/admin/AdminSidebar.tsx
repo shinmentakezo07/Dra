@@ -64,7 +64,8 @@ const navSections: NavSection[] = [
   {
     title: 'Content',
     items: [
-      { href: '/admin/announcements', label: 'Announcements', icon: Bell },
+      { href: '/admin/messages', label: 'Messages', icon: Bell },
+      { href: '/admin/announcements', label: 'Announcements', icon: FileText },
       { href: '/admin/changelog', label: 'Changelog', icon: FileText },
       { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
     ],
