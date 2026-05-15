@@ -326,3 +326,71 @@ func TestNewID(t *testing.T) {
 		t.Fatalf("NewID() should return unique values")
 	}
 }
+
+func TestUser_HasPermission(t *testing.T) {
+	u := &User{Role: "superadmin"}
+	if !u.HasPermission("anything") {
+		t.Error("superadmin should have all permissions")
+	}
+
+	u = &User{Role: "user", Permissions: []string{"read", "write"}}
+	if !u.HasPermission("read") {
+		t.Error("user should have read permission")
+	}
+	if u.HasPermission("delete") {
+		t.Error("user should not have delete permission")
+	}
+
+	u = &User{Role: "user", Permissions: []string{"*"}}
+	if !u.HasPermission("anything") {
+		t.Error("wildcard permission should grant all")
+	}
+}
+
+func TestCreateWebhookRequest_Validate(t *testing.T) {
+	if err := (&CreateWebhookRequest{URL: "https://example.com/hook", Events: []string{"chat.completed"}}).Validate(); err != nil {
+		t.Fatalf("valid webhook: unexpected error = %v", err)
+	}
+	if err := (&CreateWebhookRequest{URL: "", Events: []string{"test"}}).Validate(); err == nil {
+		t.Fatal("empty URL: expected error")
+	}
+	if err := (&CreateWebhookRequest{URL: "https://example.com", Events: []string{}}).Validate(); err == nil {
+		t.Fatal("empty events: expected error")
+	}
+}
+
+func TestCreateOrgRequest_Validate(t *testing.T) {
+	if err := (&CreateOrgRequest{Name: "Acme"}).Validate(); err != nil {
+		t.Fatalf("valid org: unexpected error = %v", err)
+	}
+	if err := (&CreateOrgRequest{Name: "A"}).Validate(); err == nil {
+		t.Fatal("name too short: expected error")
+	}
+	if err := (&CreateOrgRequest{Name: ""}).Validate(); err == nil {
+		t.Fatal("empty name: expected error")
+	}
+}
+
+func TestInviteMemberRequest_Validate(t *testing.T) {
+	r := &InviteMemberRequest{Email: "user@example.com"}
+	if err := r.Validate(); err != nil {
+		t.Fatalf("valid invite: unexpected error = %v", err)
+	}
+	if r.Role != "member" {
+		t.Errorf("default Role = %q, want member", r.Role)
+	}
+
+	if err := (&InviteMemberRequest{Email: ""}).Validate(); err == nil {
+		t.Fatal("empty email: expected error")
+	}
+}
+
+func TestSignupRequest_InvalidEmail(t *testing.T) {
+	err := (&SignupRequest{Name: "Alice", Email: "not-an-email", Password: "password123"}).Validate()
+	if err == nil {
+		t.Fatal("invalid email: expected error")
+	}
+	if err.Message != "Invalid email format" {
+		t.Errorf("Message = %q, want Invalid email format", err.Message)
+	}
+}
