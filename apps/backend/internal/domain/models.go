@@ -109,7 +109,7 @@ type ModelInfo struct {
 	Provider         string   `json:"provider"`
 	InputPricePer1k  float64  `json:"inputPricePer1k"`
 	OutputPricePer1k float64  `json:"outputPricePer1k"`
-	ContextWindow    string   `json:"contextWindow"`
+	ContextWindow    int      `json:"contextWindow"`
 	Description      string   `json:"description"`
 	Capabilities     []string `json:"capabilities"`
 }
@@ -318,6 +318,86 @@ type BatchRequest struct {
 type BatchItem struct {
 	ID      string      `json:"id"`
 	Request ChatRequest `json:"request"`
+}
+
+type File struct {
+	ID          string    `json:"id"`
+	UserID      string    `json:"userId"`
+	Name        string    `json:"name"`
+	MimeType    string    `json:"mimeType"`
+	Size        int64     `json:"size"`
+	StoragePath string    `json:"storagePath"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type PasswordReset struct {
+	ID        string     `json:"id"`
+	Email     string     `json:"email"`
+	Token     string     `json:"token,omitempty"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	UsedAt    *time.Time `json:"usedAt,omitempty"`
+	CreatedAt time.Time  `json:"createdAt"`
+}
+
+type Setting struct {
+	ID        string    `json:"id"`
+	Key       string    `json:"key"`
+	Value     string    `json:"value"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type Changelog struct {
+	ID        string    `json:"id"`
+	Version   string    `json:"version"`
+	Body      string    `json:"body"`
+	Published bool      `json:"published"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Group struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Permissions []string  `json:"permissions"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type IPEntry struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"userId"`
+	IP        string    `json:"ip"`
+	Action    string    `json:"action"` // allow, block
+	Reason    string    `json:"reason"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Conversation struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"userId"`
+	Title     string    `json:"title"`
+	Model     string    `json:"model"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type Message struct {
+	ID             string    `json:"id"`
+	ConversationID string    `json:"conversationId"`
+	Role           string    `json:"role"`
+	Content        string    `json:"content"`
+	InputTokens    int       `json:"inputTokens"`
+	OutputTokens   int       `json:"outputTokens"`
+	CreatedAt      time.Time `json:"createdAt"`
+}
+
+type Prompt struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Version   int       `json:"version"`
+	Template  string    `json:"template"`
+	Model     string    `json:"model"`
+	Config    []byte    `json:"config,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func NewID() string { return uuid.New().String() }

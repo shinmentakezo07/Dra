@@ -27,6 +27,8 @@ import (
 	"dra-platform/backend/pkg/webhook"
 	"dra-platform/backend/pkg/email"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -743,32 +745,36 @@ FINISH:
 	userID := u.ID
 	model := req.Model
 
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				logger.Error("async_billing_panic", "recover", r, "user_id", userID)
-			}
-		}()
-		ctx := context.Background()
-		_, logErr := h.creditSvc.LogAndDeduct(ctx, userID, akID, model, inputTokens, outputTokens, cost, latency)
-		if logErr != nil {
+	eg, ctx := errgroup.WithContext(context.Background())
+	eg.Go(func() error {
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+		if _, logErr := h.creditSvc.LogAndDeduct(ctx, userID, akID, model, inputTokens, outputTokens, cost, latency); logErr != nil {
 			logger.Error("post_chat_billing_failed", "error", logErr.Error(), "user_id", userID)
 		}
-		if h.webhookSvc != nil {
-			h.webhookSvc.Dispatch(ctx, userID, webhook.Event{
-				Type:      "request.completed",
-				Timestamp: time.Now(),
-				Payload: map[string]interface{}{
-					"user_id":       userID,
-					"model":         model,
-					"input_tokens":  inputTokens,
-					"output_tokens": outputTokens,
-					"cost":          cost,
-					"api_key_id":    apiKeyID,
-				},
-			})
+		return nil
+	})
+	eg.Go(func() error {
+		if h.webhookSvc == nil {
+			return nil
 		}
-	}()
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		h.webhookSvc.Dispatch(ctx, userID, webhook.Event{
+			Type:      "request.completed",
+			Timestamp: time.Now(),
+			Payload: map[string]interface{}{
+				"user_id":       userID,
+				"model":         model,
+				"input_tokens":  inputTokens,
+				"output_tokens": outputTokens,
+				"cost":          cost,
+				"api_key_id":    apiKeyID,
+			},
+		})
+		return nil
+	})
+	go eg.Wait()
 }
 
 // Admin

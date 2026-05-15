@@ -23,7 +23,6 @@ import (
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/cache"
 	"dra-platform/backend/pkg/llm/circuitbreaker"
-	llmcontext "dra-platform/backend/pkg/llm/context"
 	"dra-platform/backend/pkg/llm/guardrails"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
 	"dra-platform/backend/pkg/llm/router"
@@ -376,15 +375,6 @@ func main() {
 	batchRepo := repository.NewBatchJobRepo(database)
 	batchSvc := service.NewBatchService(batchRepo, h.ChatFnForBatch())
 	h.SetBatchService(batchSvc)
-
-	sandboxSvc := service.NewSandboxService(providerSvc, creditSvc)
-	_ = sandboxSvc
-
-	experimentSvc := service.NewExperimentService(llmRegistry, providerSvc)
-	_ = experimentSvc
-
-	compressor := llmcontext.NewCompressor()
-	_ = compressor
 
 	// Router
 	r := chi.NewRouter()
