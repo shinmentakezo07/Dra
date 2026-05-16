@@ -4,6 +4,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "./SettingsForm";
+import { BudgetSettings } from "./BudgetSettings";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -27,6 +28,7 @@ export default async function SettingsPage() {
       </div>
       
       <SettingsForm user={user} />
+      <BudgetSettings />
     </div>
   );
 }

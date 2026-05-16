@@ -135,6 +135,25 @@ export interface BudgetConfig {
   updatedAt: string;
 }
 
+export interface BudgetAlert {
+  id: string;
+  userId: string;
+  thresholdPercent: number;
+  alertType: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface BudgetCap {
+  id: string;
+  userId: string;
+  hardLimit: number;
+  softLimit?: number;
+  actionOnExceed: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface Conversation {
   id: string;
   userId: string;
@@ -324,6 +343,7 @@ class DraSDK {
   private headers(): HeadersInit {
     const h: Record<string, string> = {
       "Content-Type": "application/json",
+      "x-request-id": crypto.randomUUID(),
     };
     if (this.apiKey) {
       h["x-api-key"] = this.apiKey;
@@ -682,6 +702,36 @@ class DraSDK {
 
   setBudget(data: Partial<BudgetConfig>) {
     return this.request<BudgetConfig>("PUT", "/api/credits/budget", data);
+  }
+
+  // Budget Alerts & Caps
+
+  listBudgetAlerts() {
+    return this.request<BudgetAlert[]>("GET", "/api/budget/alerts");
+  }
+
+  createBudgetAlert(data: { thresholdPercent: number; alertType?: string }) {
+    return this.request<BudgetAlert>("POST", "/api/budget/alerts", data);
+  }
+
+  deleteBudgetAlert(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/budget/alerts/${encodeURIComponent(id)}`);
+  }
+
+  getBudgetCap() {
+    return this.request<BudgetCap>("GET", "/api/budget/cap");
+  }
+
+  createBudgetCap(data: { hardLimit: number; softLimit?: number; actionOnExceed?: string }) {
+    return this.request<BudgetCap>("POST", "/api/budget/cap", data);
+  }
+
+  updateBudgetCap(data: { hardLimit: number; softLimit?: number; actionOnExceed?: string }) {
+    return this.request<BudgetCap>("PUT", "/api/budget/cap", data);
+  }
+
+  deleteBudgetCap() {
+    return this.request<{ deleted: boolean }>("DELETE", "/api/budget/cap");
   }
 
   // Conversations

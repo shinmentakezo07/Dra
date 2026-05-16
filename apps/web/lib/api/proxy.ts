@@ -14,6 +14,13 @@ export async function proxyToBackend(request: Request, path: string): Promise<Re
     }
   });
 
+  // Generate or forward request ID for distributed tracing
+  let requestId = request.headers.get("x-request-id");
+  if (!requestId) {
+    requestId = crypto.randomUUID();
+  }
+  headers.set("x-request-id", requestId);
+
   // Explicitly forward cookies if present
   const cookie = request.headers.get("cookie");
   if (cookie) {

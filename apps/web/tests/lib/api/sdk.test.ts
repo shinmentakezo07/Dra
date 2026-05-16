@@ -354,6 +354,590 @@ describe("DraSDK", () => {
     });
   });
 
+  describe("auth extended", () => {
+    it("oauth login", async () => {
+      const user = { id: "1", name: "Alice", email: "alice@example.com", role: "user", createdAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { user, token: "oauth-token" } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.oauthLogin({ provider: "github", code: "auth-code" });
+      expect(result.token).toBe("oauth-token");
+    });
+
+    it("forgot password", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { sent: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.forgotPassword({ email: "alice@example.com" });
+      expect(result.sent).toBe(true);
+    });
+
+    it("reset password", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { updated: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.resetPassword({ token: "reset-token", newPassword: "newpass123" });
+      expect(result.updated).toBe(true);
+    });
+  });
+
+  describe("budget", () => {
+    it("gets budget config", async () => {
+      const budget = { id: "1", userId: "u1", monthlyLimit: 1000, dailyLimit: 50, notifyAtPercent: 80, updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: budget }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.getBudget();
+      expect(result.monthlyLimit).toBe(1000);
+    });
+
+    it("sets budget config", async () => {
+      const budget = { id: "1", userId: "u1", monthlyLimit: 2000, dailyLimit: 100, notifyAtPercent: 90, updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: budget }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.setBudget({ monthlyLimit: 2000 });
+      expect(result.monthlyLimit).toBe(2000);
+    });
+  });
+
+  describe("conversations", () => {
+    it("lists conversations", async () => {
+      const conversations = [{ id: "c1", userId: "u1", title: "Test", model: "gpt-4", createdAt: "2024-01-01", updatedAt: "2024-01-01" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: conversations, meta: { total: 1, page: 1, limit: 20, totalPages: 1 } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.listConversations(1, 20);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].title).toBe("Test");
+    });
+
+    it("creates a conversation", async () => {
+      const conversation = { id: "c1", userId: "u1", title: "New Chat", model: "gpt-4", createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: conversation }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.createConversation({ title: "New Chat", model: "gpt-4" });
+      expect(result.title).toBe("New Chat");
+    });
+
+    it("gets a conversation", async () => {
+      const conversation = { id: "c1", userId: "u1", title: "Chat", model: "gpt-4", createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: conversation }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.getConversation("c1");
+      expect(result.id).toBe("c1");
+    });
+
+    it("deletes a conversation", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { deleted: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.deleteConversation("c1");
+      expect(result.deleted).toBe(true);
+    });
+
+    it("adds a message", async () => {
+      const message = { id: "m1", conversationId: "c1", role: "user", content: "Hello", createdAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: message }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.addMessage("c1", { role: "user", content: "Hello" });
+      expect(result.content).toBe("Hello");
+    });
+  });
+
+  describe("prompts", () => {
+    it("lists prompts", async () => {
+      const prompts = [{ name: "greeting", content: "Hello {{name}}", template: true, createdAt: "2024-01-01", updatedAt: "2024-01-01" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: prompts }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.listPrompts();
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("greeting");
+    });
+
+    it("creates a prompt", async () => {
+      const prompt = { name: "greeting", content: "Hello", description: "A greeting prompt", template: false, createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: prompt }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.createPrompt({ name: "greeting", content: "Hello", description: "A greeting prompt" });
+      expect(result.name).toBe("greeting");
+    });
+
+    it("gets a prompt", async () => {
+      const prompt = { name: "greeting", content: "Hello", template: false, createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: prompt }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.getPrompt("greeting");
+      expect(result.name).toBe("greeting");
+    });
+
+    it("renders a prompt", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { rendered: "Hello Alice" } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.renderPrompt("greeting", { name: "Alice" });
+      expect(result.rendered).toBe("Hello Alice");
+    });
+
+    it("deletes a prompt", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { deleted: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.deletePrompt("greeting");
+      expect(result.deleted).toBe(true);
+    });
+  });
+
+  describe("webhooks", () => {
+    it("lists webhooks", async () => {
+      const webhooks = [{ id: "w1", userId: "u1", name: "My Hook", url: "https://example.com/hook", events: ["log.created"], active: true, createdAt: "2024-01-01", updatedAt: "2024-01-01" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: webhooks }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.listWebhooks();
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("My Hook");
+    });
+
+    it("creates a webhook", async () => {
+      const webhook = { id: "w1", userId: "u1", name: "My Hook", url: "https://example.com/hook", events: ["log.created"], active: true, createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: webhook }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.createWebhook({ name: "My Hook", url: "https://example.com/hook", events: ["log.created"] });
+      expect(result.url).toBe("https://example.com/hook");
+    });
+
+    it("gets a webhook", async () => {
+      const webhook = { id: "w1", userId: "u1", name: "My Hook", url: "https://example.com/hook", events: ["log.created"], active: true, createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: webhook }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.getWebhook("w1");
+      expect(result.id).toBe("w1");
+    });
+
+    it("updates a webhook", async () => {
+      const webhook = { id: "w1", userId: "u1", name: "Updated Hook", url: "https://example.com/hook", events: ["log.created"], active: true, createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: webhook }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.updateWebhook("w1", { name: "Updated Hook" });
+      expect(result.name).toBe("Updated Hook");
+    });
+
+    it("deletes a webhook", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { deleted: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.deleteWebhook("w1");
+      expect(result.deleted).toBe(true);
+    });
+  });
+
+  describe("organizations", () => {
+    it("lists organizations", async () => {
+      const orgs = [{ id: "o1", name: "Acme", ownerId: "u1", createdAt: "2024-01-01", updatedAt: "2024-01-01" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: orgs }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.listOrganizations();
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Acme");
+    });
+
+    it("creates an organization", async () => {
+      const org = { id: "o1", name: "Acme", ownerId: "u1", createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: org }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.createOrganization({ name: "Acme" });
+      expect(result.name).toBe("Acme");
+    });
+
+    it("gets an organization", async () => {
+      const org = { id: "o1", name: "Acme", ownerId: "u1", createdAt: "2024-01-01", updatedAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: org }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.getOrganization("o1");
+      expect(result.id).toBe("o1");
+    });
+
+    it("invites a member", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { invited: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.inviteMember("o1", { email: "bob@example.com", role: "member" });
+      expect(result.invited).toBe(true);
+    });
+
+    it("removes a member", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { removed: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.removeMember("o1", "u2");
+      expect(result.removed).toBe(true);
+    });
+
+    it("lists members", async () => {
+      const members = [{ userId: "u2", name: "Bob", email: "bob@example.com", role: "member" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: members }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.listMembers("o1");
+      expect(result).toHaveLength(1);
+      expect(result[0].email).toBe("bob@example.com");
+    });
+
+    it("accepts an invite", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { accepted: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.acceptInvite({ token: "invite-token" });
+      expect(result.accepted).toBe(true);
+    });
+  });
+
+  describe("batch", () => {
+    it("submits a batch job", async () => {
+      const job = { id: "b1", userId: "u1", status: "pending" as const, total: 2, completed: 0, failed: 0, createdAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: job }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.submitBatch({
+        requests: [
+          { model: "gpt-4", messages: [{ role: "user", content: "Hello" }] },
+        ],
+      });
+      expect(result.status).toBe("pending");
+    });
+
+    it("gets a batch job", async () => {
+      const job = { id: "b1", userId: "u1", status: "completed" as const, total: 2, completed: 2, failed: 0, createdAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: job }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.getBatchJob("b1");
+      expect(result.completed).toBe(2);
+    });
+  });
+
+  describe("files", () => {
+    it("uploads a file", async () => {
+      const fileInfo = { id: "f1", userId: "u1", name: "test.txt", size: 1024, mimeType: "text/plain", createdAt: "2024-01-01" };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: fileInfo }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const blob = new Blob(["test content"], { type: "text/plain" });
+      const result = await sdk.uploadFile(blob, "test.txt");
+      expect(result.name).toBe("test.txt");
+    });
+
+    it("lists files", async () => {
+      const files = [{ id: "f1", userId: "u1", name: "test.txt", size: 1024, mimeType: "text/plain", createdAt: "2024-01-01" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: files }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.listFiles();
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("test.txt");
+    });
+  });
+
+  describe("embeddings", () => {
+    it("returns embeddings", async () => {
+      const response = { model: "text-embedding-3", embeddings: [[0.1, 0.2, 0.3]], usage: { promptTokens: 10, totalTokens: 10 } };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: response }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.embed({ model: "text-embedding-3", input: ["hello"] });
+      expect(result.embeddings).toHaveLength(1);
+    });
+  });
+
+  describe("validate", () => {
+    it("returns valid result", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { valid: true } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.validate({ schema: { type: "object" }, data: { name: "Alice" } });
+      expect(result.valid).toBe(true);
+    });
+
+    it("returns invalid with errors", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { valid: false, errors: ["name is required"] } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.validate({ schema: { type: "object" }, data: {} });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("name is required");
+    });
+  });
+
+  describe("openai proxy", () => {
+    it("chat completions", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { id: "chat-1", choices: [{ message: { content: "Hi" } }] } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.openaiChatCompletions({ model: "gpt-4", messages: [{ role: "user", content: "Hello" }] });
+      expect(result).toBeDefined();
+    });
+
+    it("embeddings", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { data: [{ embedding: [0.1] }] } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.openaiEmbeddings({ model: "text-embedding-3", input: "hello" });
+      expect(result).toBeDefined();
+    });
+
+    it("list models", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: { data: [{ id: "gpt-4" }] } }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.openaiListModels();
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe("admin extended", () => {
+    it("circuit breakers", async () => {
+      const breakers = [{ provider: "openai", state: "closed", failureCount: 0 }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: breakers }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.adminCircuitBreakers();
+      expect(result[0].provider).toBe("openai");
+    });
+
+    it("provider health", async () => {
+      const health = [{ provider: "openai", healthy: true, latency: 120, lastCheck: "2024-01-01" }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: health }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.adminProviderHealth();
+      expect(result[0].healthy).toBe(true);
+    });
+  });
+
+  describe("public health", () => {
+    it("provider health summary", async () => {
+      const summary = [{ provider: "openai", status: "healthy", models: 10 }];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ success: true, data: summary }),
+      });
+
+      const sdk = new DraSDK({ baseUrl: "http://localhost:3000" });
+      const result = await sdk.providerHealth();
+      expect(result[0].models).toBe(10);
+    });
+  });
+
   describe("integration: authenticated auth flow", () => {
     it("login → me → api keys", async () => {
       // Login

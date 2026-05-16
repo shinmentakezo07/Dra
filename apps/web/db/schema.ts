@@ -191,7 +191,8 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
   statusCode: integer("status_code"),
   error: text("error"),
   attempts: integer("attempts").default(0).notNull(),
-  maxAttempts: integer("max_attempts").default(3).notNull(),
+  maxAttempts: integer("max_attempts").default(5).notNull(),
+  status: text("status", { enum: ["pending", "delivered", "failed"] }).default("pending").notNull(),
   deliveredAt: timestamp("delivered_at"),
   nextRetryAt: timestamp("next_retry_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -199,6 +200,8 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
   webhookIdIdx: index("idx_webhook_deliveries_webhook_id").on(table.webhookId),
   eventTypeIdx: index("idx_webhook_deliveries_event_type").on(table.eventType),
   createdAtIdx: index("idx_webhook_deliveries_created_at").on(table.createdAt),
+  statusIdx: index("idx_webhook_deliveries_status").on(table.status),
+  nextRetryIdx: index("idx_webhook_deliveries_next_retry").on(table.nextRetryAt),
 }));
 
 export const webhookDeliveryLogs = pgTable("webhook_delivery_logs", {
@@ -210,6 +213,7 @@ export const webhookDeliveryLogs = pgTable("webhook_delivery_logs", {
   durationMs: integer("duration_ms").default(0).notNull(),
   success: boolean("success").default(false).notNull(),
   attempt: integer("attempt").default(1).notNull(),
+  idempotencyKey: text("idempotency_key"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
