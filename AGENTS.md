@@ -12,6 +12,7 @@ npm run test:web             # Frontend only
 npm run test:backend         # Go test -race -cover ./...
 npm run format               # Prettier — write
 npm run build                # Full build
+bash scripts/smoke-test.sh   # Post-change wiring verification
 
 # Frontend (apps/web/)
 npm run dev                  # Next.js on :3000
@@ -123,9 +124,9 @@ Each app has its own instruction file: `apps/backend/AGENTS.md` (Go layer rules)
 - **Root `.env`**: used by docker-compose, has `BACKEND_URL=http://backend:8080` (Docker network). Local dev needs `.env.local` with `BACKEND_URL=http://localhost:8080`
 - **MongoDB** in `docker-compose.yml` is behind a `mongo` profile — NOT started by default. Only `postgres` starts with `docker-compose up -d`. Start with: `docker-compose --profile mongo up -d`
 - **DB_TYPE modes**: `dev.sh` detects `DB_TYPE` from `.env.local` — supports `postgres` (default), `neon` (cloud, skips local container), and `mongodb` (backend auto-setup)
-- **Security headers**: `next.config.ts` sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`
-- **ECC rules** active for this repo: `.claude/rules/golang/` (patterns, testing, hooks, coding-style, security) and `.claude/rules/typescript/` (patterns, testing, hooks, coding-style, security) — these load automatically for matching file types
 - **`opencode.json`** configures the project to use its own Yapapa instance (`https://yapa.up.railway.app/v1`) as the LLM provider via `@ai-sdk/openai-compatible`
+- **ECC rules** active for this repo: `.claude/rules/golang/` (patterns, testing, hooks, coding-style, security) and `.claude/rules/typescript/` (patterns, testing, hooks, coding-style, security) — these load automatically for matching file types
+- **Security headers**: `next.config.ts` sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`
 
 ## Constraints
 
