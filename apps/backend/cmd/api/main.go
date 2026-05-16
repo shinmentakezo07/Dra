@@ -324,6 +324,7 @@ func main() {
 	logSvc := service.NewLogService(logRepo)
 	providerSvc := service.NewProviderServiceWithFeatures(llmRegistry, llmCache, llmWatcher)
 	webhookSvc := service.NewWebhookService(repository.NewWebhookRepo(database))
+	webhookSvc.StartRetryWorker(ctx, 10*time.Second)
 	orgSvc := service.NewOrganizationService(repository.NewOrganizationRepo(database), userRepo)
 
 	// Admin service
@@ -360,7 +361,6 @@ func main() {
 	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc, providerSvc, webhookSvc, nil, orgSvc)
 	h.SetEmailSender(emailSender)
 	h.SetStripeService(stripeSvc)
-	h.SetLLMRegistry(llmRegistry)
 	h.SetGuard(guard)
 	h.SetModelRouter(modelRouter)
 	h.SetBudgetRouter(budgetRouter)

@@ -240,9 +240,23 @@ type WebhookDelivery struct {
 	Error       string     `json:"error,omitempty"`
 	Attempts    int        `json:"attempts"`
 	MaxAttempts int        `json:"maxAttempts"`
+	Status      string     `json:"status"`
 	DeliveredAt *time.Time `json:"deliveredAt,omitempty"`
 	NextRetryAt *time.Time `json:"nextRetryAt,omitempty"`
 	CreatedAt   time.Time  `json:"createdAt"`
+}
+
+type WebhookDeliveryLog struct {
+	ID             int64     `json:"id"`
+	WebhookID      string    `json:"webhookId"`
+	EventType      string    `json:"eventType"`
+	Payload        []byte    `json:"payload,omitempty"`
+	ResponseStatus *int      `json:"responseStatus,omitempty"`
+	DurationMs     int       `json:"durationMs"`
+	Success        bool      `json:"success"`
+	Attempt        int       `json:"attempt"`
+	IdempotencyKey string    `json:"idempotencyKey,omitempty"`
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 type Organization struct {

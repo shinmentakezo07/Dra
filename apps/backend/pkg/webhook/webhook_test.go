@@ -253,3 +253,33 @@ func TestNewDispatcher(t *testing.T) {
 		t.Errorf("client timeout = %v, want 30s", d.client.Timeout)
 	}
 }
+
+func TestDispatcher_SendWithIdempotency(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Idempotency-Key") != "test-key-123" {
+			t.Errorf("X-Idempotency-Key = %q, want test-key-123", r.Header.Get("X-Idempotency-Key"))
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	d := NewDispatcher()
+	cfg := Config{
+		URL:    server.URL,
+		Secret: "test-secret",
+		Events: []string{"chat.completed"},
+	}
+	event := Event{
+		Type:      "chat.completed",
+		Timestamp: time.Now(),
+		Payload:   map[string]interface{}{"model": "gpt-4o"},
+	}
+
+	delivery, err := d.SendWithIdempotency(context.Background(), cfg, event, "test-key-123")
+	if err != nil {
+		t.Fatalf("SendWithIdempotency() error = %v", err)
+	}
+	if delivery.Status != http.StatusOK {
+		t.Errorf("Status = %d, want %d", delivery.Status, http.StatusOK)
+	}
+}

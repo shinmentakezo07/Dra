@@ -11,6 +11,7 @@ import (
 	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/cache"
+	"dra-platform/backend/pkg/llm/circuitbreaker"
 	"dra-platform/backend/pkg/llm/pipeline"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
 	"dra-platform/backend/pkg/llm/watcher"
@@ -312,6 +313,30 @@ func (s *ProviderService) GetContextWindow(ctx context.Context, modelID string) 
 		}
 	}
 	return 128000
+}
+
+// CircuitBreakerStatuses returns circuit breaker states for all registered providers.
+func (s *ProviderService) CircuitBreakerStatuses() []map[string]interface{} {
+	if s.registry == nil {
+		return []map[string]interface{}{}
+	}
+
+	var result []map[string]interface{}
+	for _, name := range s.registry.Providers() {
+		p, ok := s.registry.Get(name)
+		if !ok {
+			continue
+		}
+		item := map[string]interface{}{
+			"provider": name,
+			"state":    "unknown",
+		}
+		if cb, ok := p.(*circuitbreaker.CircuitBreaker); ok {
+			item["state"] = cb.State().String()
+		}
+		result = append(result, item)
+	}
+	return result
 }
 
 // ValidateRequest validates a chat request using the pipeline.

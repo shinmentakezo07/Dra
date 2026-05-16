@@ -19,10 +19,8 @@ import (
 	"dra-platform/backend/internal/service"
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/cache"
-	"dra-platform/backend/pkg/llm/circuitbreaker"
 	"dra-platform/backend/pkg/llm/guardrails"
 	"dra-platform/backend/pkg/llm/moderation"
-	llmprovider "dra-platform/backend/pkg/llm/provider"
 	"dra-platform/backend/pkg/llm/router"
 	"dra-platform/backend/pkg/webhook"
 	"dra-platform/backend/pkg/email"
@@ -59,7 +57,6 @@ type Handler struct {
 	moderator       moderation.Moderator
 	guard           *guardrails.Guard
 	notificationHub *NotificationHub
-	llmRegistry     *llmprovider.Registry
 	modelRouter     *router.Router
 	budgetRouter    *router.BudgetRouter
 	dedupCache      *cache.DedupCache
@@ -92,11 +89,6 @@ func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service
 		moderator:         moderation.NewLocalModerator(),
 		notificationHub:   NewNotificationHub(),
 	}
-}
-
-// SetLLMRegistry sets the pkg/llm provider registry for OpenAI-compatible proxy endpoints.
-func (h *Handler) SetLLMRegistry(r *llmprovider.Registry) {
-	h.llmRegistry = r
 }
 
 // SetModelRouter sets the intelligent model router.
@@ -851,27 +843,7 @@ func (h *Handler) ProviderHealth(w http.ResponseWriter, r *http.Request) {
 
 // AdminCircuitBreakers returns circuit breaker states for all proxy providers.
 func (h *Handler) AdminCircuitBreakers(w http.ResponseWriter, r *http.Request) {
-	if h.llmRegistry == nil {
-		response.OK(w, []map[string]interface{}{})
-		return
-	}
-
-	var result []map[string]interface{}
-	for _, name := range h.llmRegistry.Providers() {
-		p, ok := h.llmRegistry.Get(name)
-		if !ok {
-			continue
-		}
-		item := map[string]interface{}{
-			"provider": name,
-			"state":    "unknown",
-		}
-		if cb, ok := p.(*circuitbreaker.CircuitBreaker); ok {
-			item["state"] = cb.State().String()
-		}
-		result = append(result, item)
-	}
-	response.OK(w, result)
+	response.OK(w, h.providerSvc.CircuitBreakerStatuses())
 }
 
 func (h *Handler) MyPermissions(w http.ResponseWriter, r *http.Request) {

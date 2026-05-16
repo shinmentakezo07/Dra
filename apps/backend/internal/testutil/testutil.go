@@ -195,7 +195,7 @@ func BearerHeader(userID, email, name string) http.Header {
 func CleanTables(d *db.DB) error {
 	ctx := context.Background()
 	_, err := d.Pool.Exec(ctx, `
-		TRUNCATE TABLE users, api_keys, user_credits, credit_transactions, api_logs, files, webhooks, batch_jobs, conversations, conversation_messages, prompts, organizations, org_members, invites, stripe_customers, stripe_invoices RESTART IDENTITY CASCADE
+		TRUNCATE TABLE users, api_keys, user_credits, credit_transactions, api_logs, files, webhooks, webhook_deliveries, webhook_delivery_logs, webhook_tests, batch_jobs, conversations, conversation_messages, prompts, organizations, org_members, invites, stripe_customers, stripe_invoices RESTART IDENTITY CASCADE
 	`)
 	return err
 }

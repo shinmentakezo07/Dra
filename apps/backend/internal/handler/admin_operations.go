@@ -37,40 +37,20 @@ func (h *Handler) AdminClearCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AdminListWebhookLogs(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(r.Context(), `
-		SELECT id, webhook_id, event_type, response_status, duration_ms, success, attempt, created_at
-		FROM webhook_delivery_logs ORDER BY created_at DESC LIMIT 50`)
+	logs, err := h.webhookSvc.ListDeliveryLogs(r.Context(), 50)
 	if err != nil {
-		response.OK(w, []map[string]interface{}{})
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
 		return
-	}
-	defer rows.Close()
-	type wl struct {
-		ID           int64     `json:"id"`
-		WebhookID    string    `json:"webhookId"`
-		EventType    string    `json:"eventType"`
-		ResponseCode int       `json:"responseCode"`
-		DurationMs   int       `json:"durationMs"`
-		Success      bool      `json:"success"`
-		Attempt      int       `json:"attempt"`
-		CreatedAt    time.Time `json:"createdAt"`
-	}
-	var logs []wl
-	for rows.Next() {
-		var l wl
-		if err := rows.Scan(&l.ID, &l.WebhookID, &l.EventType, &l.ResponseCode,
-			&l.DurationMs, &l.Success, &l.Attempt, &l.CreatedAt); err != nil {
-			continue
-		}
-		logs = append(logs, l)
 	}
 	response.OK(w, logs)
 }
 
 func (h *Handler) AdminRetryWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	_, _ = h.db.Exec(r.Context(),
-		`UPDATE webhook_delivery_logs SET attempt=0, success=false WHERE id=$1`, id)
+	if err := h.webhookSvc.RetryDelivery(r.Context(), id); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
 	response.OK(w, map[string]string{"status": "retried", "id": id})
 }
 

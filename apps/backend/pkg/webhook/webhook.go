@@ -56,6 +56,11 @@ func NewDispatcher() *Dispatcher {
 
 // Send delivers a webhook event.
 func (d *Dispatcher) Send(ctx context.Context, cfg Config, event Event) (*Delivery, error) {
+	return d.SendWithIdempotency(ctx, cfg, event, "")
+}
+
+// SendWithIdempotency delivers a webhook event with an idempotency key.
+func (d *Dispatcher) SendWithIdempotency(ctx context.Context, cfg Config, event Event, idempotencyKey string) (*Delivery, error) {
 	if !isEventAllowed(event.Type, cfg.Events) {
 		return nil, fmt.Errorf("event type %s not subscribed", event.Type)
 	}
@@ -82,6 +87,9 @@ func (d *Dispatcher) Send(ctx context.Context, cfg Config, event Event) (*Delive
 	req.Header.Set("X-Webhook-ID", delivery.ID)
 	req.Header.Set("X-Event-Type", event.Type)
 	req.Header.Set("X-Webhook-Timestamp", fmt.Sprintf("%d", event.Timestamp.Unix()))
+	if idempotencyKey != "" {
+		req.Header.Set("X-Idempotency-Key", idempotencyKey)
+	}
 
 	if cfg.Secret != "" {
 		sig := signPayload(payload, cfg.Secret)

@@ -73,19 +73,28 @@ func (r *WebhookRepo) ToggleActive(ctx context.Context, userID, id string, activ
 	return err
 }
 
+// Delivery CRUD
+
 func (r *WebhookRepo) CreateDelivery(ctx context.Context, d *domain.WebhookDelivery) error {
 	_, err := r.db.Exec(ctx,
-		`INSERT INTO webhook_deliveries (id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, delivered_at, next_retry_at, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-		d.ID, d.WebhookID, d.EventType, d.Payload, d.StatusCode, d.Error, d.Attempts, d.MaxAttempts, d.DeliveredAt, d.NextRetryAt, d.CreatedAt)
+		`INSERT INTO webhook_deliveries (id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, status, delivered_at, next_retry_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		d.ID, d.WebhookID, d.EventType, d.Payload, d.StatusCode, d.Error, d.Attempts, d.MaxAttempts, d.Status, d.DeliveredAt, d.NextRetryAt, d.CreatedAt)
 	return err
 }
 
 func (r *WebhookRepo) UpdateDelivery(ctx context.Context, d *domain.WebhookDelivery) error {
 	_, err := r.db.Exec(ctx,
-		`UPDATE webhook_deliveries SET status_code = $1, error = $2, attempts = $3, delivered_at = $4, next_retry_at = $5 WHERE id = $6`,
-		d.StatusCode, d.Error, d.Attempts, d.DeliveredAt, d.NextRetryAt, d.ID)
+		`UPDATE webhook_deliveries SET status_code = $1, error = $2, attempts = $3, status = $4, delivered_at = $5, next_retry_at = $6 WHERE id = $7`,
+		d.StatusCode, d.Error, d.Attempts, d.Status, d.DeliveredAt, d.NextRetryAt, d.ID)
 	return err
+}
+
+func (r *WebhookRepo) GetDeliveryByID(ctx context.Context, id string) (*domain.WebhookDelivery, error) {
+	row := r.db.QueryRow(ctx,
+		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, status, delivered_at, next_retry_at, created_at
+		FROM webhook_deliveries WHERE id = $1`, id)
+	return scanDelivery(row)
 }
 
 func (r *WebhookRepo) ListDeliveries(ctx context.Context, webhookID string, limit int) ([]domain.WebhookDelivery, error) {
@@ -93,7 +102,7 @@ func (r *WebhookRepo) ListDeliveries(ctx context.Context, webhookID string, limi
 		limit = 50
 	}
 	rows, err := r.db.Query(ctx,
-		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, delivered_at, next_retry_at, created_at
+		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, status, delivered_at, next_retry_at, created_at
 		FROM webhook_deliveries WHERE webhook_id = $1 ORDER BY created_at DESC LIMIT $2`, webhookID, limit)
 	if err != nil {
 		return nil, err
@@ -109,6 +118,102 @@ func (r *WebhookRepo) ListDeliveries(ctx context.Context, webhookID string, limi
 		result = append(result, *d)
 	}
 	return result, rows.Err()
+}
+
+func (r *WebhookRepo) ListPendingRetries(ctx context.Context, batchSize int) ([]domain.WebhookDelivery, error) {
+	if batchSize <= 0 {
+		batchSize = 10
+	}
+	rows, err := r.db.Query(ctx,
+		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, status, delivered_at, next_retry_at, created_at
+		FROM webhook_deliveries
+		WHERE status = 'pending' AND delivered_at IS NULL AND next_retry_at IS NOT NULL AND next_retry_at <= NOW()
+		ORDER BY next_retry_at ASC
+		LIMIT $1`, batchSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.WebhookDelivery
+	for rows.Next() {
+		d, err := scanDelivery(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *d)
+	}
+	return result, rows.Err()
+}
+
+func (r *WebhookRepo) ListFailedDeliveries(ctx context.Context, limit int) ([]domain.WebhookDelivery, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	rows, err := r.db.Query(ctx,
+		`SELECT id, webhook_id, event_type, payload, status_code, error, attempts, max_attempts, status, delivered_at, next_retry_at, created_at
+		FROM webhook_deliveries
+		WHERE status = 'failed'
+		ORDER BY created_at DESC LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.WebhookDelivery
+	for rows.Next() {
+		d, err := scanDelivery(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *d)
+	}
+	return result, rows.Err()
+}
+
+// Delivery Logs
+
+func (r *WebhookRepo) CreateDeliveryLog(ctx context.Context, log *domain.WebhookDeliveryLog) error {
+	_, err := r.db.Exec(ctx,
+		`INSERT INTO webhook_delivery_logs (webhook_id, event_type, payload, response_status, duration_ms, success, attempt, idempotency_key, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		log.WebhookID, log.EventType, log.Payload, log.ResponseStatus, log.DurationMs, log.Success, log.Attempt, log.IdempotencyKey, log.CreatedAt)
+	return err
+}
+
+func (r *WebhookRepo) ListDeliveryLogs(ctx context.Context, limit int) ([]domain.WebhookDeliveryLog, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	rows, err := r.db.Query(ctx,
+		`SELECT id, webhook_id, event_type, payload, response_status, duration_ms, success, attempt, idempotency_key, created_at
+		FROM webhook_delivery_logs ORDER BY created_at DESC LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.WebhookDeliveryLog
+	for rows.Next() {
+		l, err := scanDeliveryLog(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *l)
+	}
+	return result, rows.Err()
+}
+
+// Idempotency
+
+func (r *WebhookRepo) HasSuccessfulIdempotencyKey(ctx context.Context, key string) (bool, error) {
+	var count int
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM webhook_delivery_logs WHERE idempotency_key = $1 AND success = true`, key).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 type scanner interface {
@@ -132,8 +237,22 @@ func scanWebhook(row scanner) (*domain.Webhook, error) {
 
 func scanDelivery(row scanner) (*domain.WebhookDelivery, error) {
 	var d domain.WebhookDelivery
-	if err := row.Scan(&d.ID, &d.WebhookID, &d.EventType, &d.Payload, &d.StatusCode, &d.Error, &d.Attempts, &d.MaxAttempts, &d.DeliveredAt, &d.NextRetryAt, &d.CreatedAt); err != nil {
+	if err := row.Scan(&d.ID, &d.WebhookID, &d.EventType, &d.Payload, &d.StatusCode, &d.Error, &d.Attempts, &d.MaxAttempts, &d.Status, &d.DeliveredAt, &d.NextRetryAt, &d.CreatedAt); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &d, nil
+}
+
+func scanDeliveryLog(row scanner) (*domain.WebhookDeliveryLog, error) {
+	var l domain.WebhookDeliveryLog
+	if err := row.Scan(&l.ID, &l.WebhookID, &l.EventType, &l.Payload, &l.ResponseStatus, &l.DurationMs, &l.Success, &l.Attempt, &l.IdempotencyKey, &l.CreatedAt); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &l, nil
 }
