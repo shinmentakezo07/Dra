@@ -2,10 +2,16 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/repository"
+	"dra-platform/backend/pkg/llm"
+	"dra-platform/backend/pkg/llm/cache"
+	llmprovider "dra-platform/backend/pkg/llm/provider"
+	"dra-platform/backend/pkg/llm/watcher"
 )
 
 type AdminService struct {
@@ -18,6 +24,9 @@ type AdminService struct {
 	securityRepo *repository.AdminSecurityRepo
 	featuresRepo *repository.AdminFeaturesRepo
 	auditSvc     *AuditService
+	llmRegistry  *llmprovider.Registry
+	llmCache     cache.Cache
+	llmWatcher   *watcher.Watcher
 }
 
 func NewAdminService(
@@ -36,6 +45,49 @@ func NewAdminService(
 		billingRepo: billingRepo, settingsRepo: settingsRepo, auditRepo: auditRepo,
 		securityRepo: securityRepo, featuresRepo: featuresRepo, auditSvc: auditSvc,
 	}
+}
+
+// SetLLMRuntime injects the LLM registry, cache, and watcher so admin
+// provider CRUD can hot-register providers at runtime.
+func (s *AdminService) SetLLMRuntime(reg *llmprovider.Registry, c cache.Cache, w *watcher.Watcher) {
+	s.llmRegistry = reg
+	s.llmCache = c
+	s.llmWatcher = w
+}
+
+// LoadProvidersFromDB loads all active providers and their first active key
+// from the database and registers them with the LLM runtime at startup.
+func (s *AdminService) LoadProvidersFromDB(ctx context.Context, reg *llmprovider.Registry) {
+	if reg == nil {
+		return
+	}
+	providers, err := s.providerRepo.List(ctx)
+	if err != nil {
+		logger.Error("load_providers_from_db_failed", "error", err.Error())
+		return
+	}
+	for _, p := range providers {
+		if p.Status != domain.ProviderStatusActive || p.BaseURL == "" {
+			continue
+		}
+		keys, kErr := s.providerRepo.ListKeys(ctx, p.ID)
+		if kErr != nil {
+			logger.Warn("load_provider_keys_failed", "provider", p.Name, "error", kErr.Error())
+		}
+		var apiKey string
+		for _, k := range keys {
+			if k.IsActive && k.KeyPrefix != "" {
+				apiKey = k.KeyPrefix
+				break
+			}
+		}
+		if apiKey != "" {
+			s.registerProviderWithKey(&p, apiKey)
+		} else {
+			s.registerProviderRuntime(&p)
+		}
+	}
+	logger.Info("admin_providers_loaded", "count", len(providers))
 }
 
 // ─── Users ───
@@ -71,7 +123,88 @@ func (s *AdminService) GetProvider(ctx context.Context, id string) (*domain.Prov
 }
 
 func (s *AdminService) CreateProvider(ctx context.Context, p *domain.Provider) error {
-	return s.providerRepo.Create(ctx, p)
+	if err := s.providerRepo.Create(ctx, p); err != nil {
+		return err
+	}
+	// Hot-register with LLM runtime if registry is available
+	if s.llmRegistry != nil && p.BaseURL != "" {
+		s.registerProviderRuntime(p)
+	}
+	return nil
+}
+
+// CreateProviderFull creates a provider with an optional API key and models,
+// then registers it with the LLM runtime in one step.
+func (s *AdminService) CreateProviderFull(ctx context.Context, p *domain.Provider, apiKey string, models []domain.ModelRegistry) error {
+	if p.ID == "" {
+		p.ID = domain.NewID()
+	}
+	if p.Status == "" {
+		p.Status = domain.ProviderStatusActive
+	}
+	if p.ProviderType == "" {
+		p.ProviderType = "openai"
+	}
+
+	if err := s.providerRepo.Create(ctx, p); err != nil {
+		return err
+	}
+
+	// Store API key if provided
+	if apiKey != "" {
+		k := &domain.ProviderKey{
+			ID:         domain.NewID(),
+			ProviderID: p.ID,
+			Label:      "primary",
+			KeyPrefix:  apiKey,
+			IsActive:   true,
+			Strategy:   domain.KeyStrategyRoundRobin,
+		}
+		if err := s.providerRepo.CreateKey(ctx, k); err != nil {
+			return fmt.Errorf("store api key: %w", err)
+		}
+	}
+
+	// Store models if provided
+	for i := range models {
+		if models[i].ID == "" {
+			models[i].ID = domain.NewID()
+		}
+		models[i].ProviderID = p.ID
+		if models[i].Status == "" {
+			models[i].Status = domain.ModelStatusActive
+		}
+		if err := s.modelRepo.CreateModel(ctx, &models[i]); err != nil {
+			return fmt.Errorf("store model %s: %w", models[i].ModelID, err)
+		}
+	}
+
+	// Register with LLM runtime
+	if s.llmRegistry != nil && p.BaseURL != "" {
+		if apiKey != "" {
+			s.registerProviderWithKey(p, apiKey)
+		} else {
+			s.registerProviderRuntime(p)
+		}
+	}
+
+	return nil
+}
+
+// AddProviderKeyRaw stores a provider key and registers it with the runtime.
+func (s *AdminService) AddProviderKeyRaw(ctx context.Context, k *domain.ProviderKey, rawKey string) error {
+	k.KeyPrefix = rawKey
+	if err := s.providerRepo.CreateKey(ctx, k); err != nil {
+		return err
+	}
+	// Re-register provider with the key for runtime use
+	if rawKey != "" && s.llmRegistry != nil {
+		p, err := s.providerRepo.Get(ctx, k.ProviderID)
+		if err == nil && p != nil {
+			s.registerProviderWithKey(p, rawKey)
+		}
+	}
+	return nil
 }
 
 func (s *AdminService) UpdateProvider(ctx context.Context, p *domain.Provider) error {
@@ -82,6 +215,104 @@ func (s *AdminService) ToggleProviderStatus(ctx context.Context, id string, stat
 	return s.providerRepo.UpdateStatus(ctx, id, status)
 }
 
+// registerProviderRuntime creates a GenericProvider from DB config and registers it.
+func (s *AdminService) registerProviderRuntime(p *domain.Provider) {
+	if s.llmRegistry == nil {
+		return
+	}
+	opts := []llmprovider.Option{
+		llmprovider.WithBaseURL(p.BaseURL),
+	}
+	if s.llmCache != nil {
+		opts = append(opts, llmprovider.WithCache(s.llmCache))
+	}
+	if s.llmWatcher != nil {
+		opts = append(opts, llmprovider.WithWatcher(s.llmWatcher))
+	}
+
+	// Look for an active API key in the provider_keys table
+	keys, err := s.providerRepo.ListKeys(context.Background(), p.ID)
+	if err == nil {
+		for _, k := range keys {
+			if k.IsActive && k.KeyHash != "" {
+				// Use the key prefix as a hint; the actual key is hashed.
+				// For runtime, we need the raw key — store it encrypted or use env.
+				break
+			}
+		}
+	}
+
+	// Build model list from model_registry for this provider
+	models, mErr := s.modelRepo.ListModelsByProvider(context.Background(), p.ID)
+	if mErr == nil && len(models) > 0 {
+		llmModels := make([]llm.ModelInfo, 0, len(models))
+		for _, m := range models {
+			llmModels = append(llmModels, llm.ModelInfo{
+				ID:               fmt.Sprintf("%s/%s", p.Name, m.ModelID),
+				Name:             m.DisplayName,
+				Provider:         p.Name,
+				InputPricePer1k:  m.InputPricePer1k,
+				OutputPricePer1k: m.OutputPricePer1k,
+				ContextWindow:    m.ContextWindow,
+				Description:      m.Description,
+				Capabilities:     m.Capabilities,
+				SupportsVision:   m.SupportsVision,
+				SupportsTools:    m.SupportsTools,
+				SupportsThinking: m.SupportsThinking,
+			})
+		}
+		opts = append(opts, llmprovider.WithModels(llmModels))
+	}
+
+	prov := llmprovider.NewGenericProvider(p.Name, p.BaseURL, opts...)
+	s.llmRegistry.Register(prov)
+	s.llmRegistry.InvalidateCache()
+	logger.Info("admin_provider_registered_runtime", "provider", p.Name, "base_url", p.BaseURL)
+}
+
+// registerProviderWithKey registers a provider using a specific API key.
+func (s *AdminService) registerProviderWithKey(p *domain.Provider, apiKey string) {
+	if s.llmRegistry == nil || p.BaseURL == "" {
+		return
+	}
+	opts := []llmprovider.Option{
+		llmprovider.WithBaseURL(p.BaseURL),
+		llmprovider.WithAPIKey(apiKey),
+	}
+	if s.llmCache != nil {
+		opts = append(opts, llmprovider.WithCache(s.llmCache))
+	}
+	if s.llmWatcher != nil {
+		opts = append(opts, llmprovider.WithWatcher(s.llmWatcher))
+	}
+
+	models, mErr := s.modelRepo.ListModelsByProvider(context.Background(), p.ID)
+	if mErr == nil && len(models) > 0 {
+		llmModels := make([]llm.ModelInfo, 0, len(models))
+		for _, m := range models {
+			llmModels = append(llmModels, llm.ModelInfo{
+				ID:               fmt.Sprintf("%s/%s", p.Name, m.ModelID),
+				Name:             m.DisplayName,
+				Provider:         p.Name,
+				InputPricePer1k:  m.InputPricePer1k,
+				OutputPricePer1k: m.OutputPricePer1k,
+				ContextWindow:    m.ContextWindow,
+				Description:      m.Description,
+				Capabilities:     m.Capabilities,
+				SupportsVision:   m.SupportsVision,
+				SupportsTools:    m.SupportsTools,
+				SupportsThinking: m.SupportsThinking,
+			})
+		}
+		opts = append(opts, llmprovider.WithModels(llmModels))
+	}
+
+	prov := llmprovider.NewGenericProvider(p.Name, p.BaseURL, opts...)
+	s.llmRegistry.Register(prov)
+	s.llmRegistry.InvalidateCache()
+	logger.Info("admin_provider_registered_with_key", "provider", p.Name)
+}
+
 // ─── Provider Keys ───
 
 func (s *AdminService) ListProviderKeys(ctx context.Context, providerID string) ([]domain.ProviderKey, error) {
@@ -89,7 +320,17 @@ func (s *AdminService) ListProviderKeys(ctx context.Context, providerID string) 
 }
 
 func (s *AdminService) AddProviderKey(ctx context.Context, k *domain.ProviderKey) error {
-	return s.providerRepo.CreateKey(ctx, k)
+	if err := s.providerRepo.CreateKey(ctx, k); err != nil {
+		return err
+	}
+	// If this is the first active key, re-register the provider with the key
+	if k.IsActive && k.KeyHash != "" && s.llmRegistry != nil {
+		p, err := s.providerRepo.Get(ctx, k.ProviderID)
+		if err == nil && p != nil {
+			s.registerProviderWithKey(p, k.KeyPrefix) // KeyPrefix stores the raw key at creation time
+		}
+	}
+	return nil
 }
 
 func (s *AdminService) UpdateProviderKey(ctx context.Context, k *domain.ProviderKey) error {

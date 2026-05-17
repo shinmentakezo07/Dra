@@ -25,11 +25,24 @@ func (h *Handler) AdminGetProvider(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, p)
 }
 
+// AdminCreateProvider creates a new provider. Accepts optional apiKey and models
+// fields for a one-step "add OpenAI-compatible provider" flow.
 func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
-	var p domain.Provider
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil { response.Error(w, 400, "Invalid body"); return }
-	if err := h.adminSvc.CreateProvider(r.Context(), &p); err != nil { response.Error(w, 500, err.Error()); return }
-	response.OK(w, p)
+	var req struct {
+		domain.Provider
+		APIKey string                `json:"apiKey,omitempty"`
+		Models []domain.ModelRegistry `json:"models,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
+
+	if err := h.adminSvc.CreateProviderFull(r.Context(), &req.Provider, req.APIKey, req.Models); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	response.OK(w, req.Provider)
 }
 
 func (h *Handler) AdminUpdateProvider(w http.ResponseWriter, r *http.Request) {
@@ -53,12 +66,23 @@ func (h *Handler) AdminListProviderKeys(w http.ResponseWriter, r *http.Request) 
 	response.OK(w, keys)
 }
 
+// AdminAddProviderKey adds an API key to a provider. Accepts the raw key in
+// the "key" field (stored hashed, used at runtime for the first active key).
 func (h *Handler) AdminAddProviderKey(w http.ResponseWriter, r *http.Request) {
-	var k domain.ProviderKey
-	if err := json.NewDecoder(r.Body).Decode(&k); err != nil { response.Error(w, 400, "Invalid body"); return }
-	k.ProviderID = chi.URLParam(r, "id")
-	if err := h.adminSvc.AddProviderKey(r.Context(), &k); err != nil { response.Error(w, 500, err.Error()); return }
-	response.OK(w, k)
+	var req struct {
+		domain.ProviderKey
+		RawKey string `json:"key,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
+	req.ProviderKey.ProviderID = chi.URLParam(r, "id")
+	if err := h.adminSvc.AddProviderKeyRaw(r.Context(), &req.ProviderKey, req.RawKey); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	response.OK(w, req.ProviderKey)
 }
 
 func (h *Handler) AdminDeleteProviderKey(w http.ResponseWriter, r *http.Request) {

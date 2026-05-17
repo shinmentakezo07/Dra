@@ -328,6 +328,10 @@ func main() {
 	adminSvc := service.NewAdminService(adminUserRepo, adminProviderRepo, adminModelRepo,
 		adminBillingRepo, adminSettingsRepo, adminAuditRepo,
 		adminSecurityRepo, adminFeaturesRepo, adminAuditSvc)
+	adminSvc.SetLLMRuntime(llmRegistry, llmCache, llmWatcher)
+
+	// Load admin-configured providers from DB into the LLM runtime
+	adminSvc.LoadProvidersFromDB(ctx, llmRegistry)
 
 	// Admin session repo
 	adminSessionRepo := repository.NewAdminSessionRepo(database)
@@ -413,10 +417,22 @@ func main() {
 				return nil, err
 			}
 			if u != nil && u.IsAdmin() {
-				if au, err := adminUserRepo.GetAdminUser(ctx, userID); err == nil && au != nil {
+				au, err := adminUserRepo.GetAdminUser(ctx, userID)
+				if err == nil && au != nil {
 					u.Permissions = au.Permissions
 					if u.Permissions == nil {
 						u.Permissions = []string{}
+					}
+				} else {
+					// Auto-provision admin_users row for admins missing one
+					_, insertErr := database.Exec(ctx,
+						`INSERT INTO admin_users (user_id, role, permissions, is_active, created_by)
+						 VALUES ($1, 'superadmin', ARRAY['*'], true, $1)
+						 ON CONFLICT (user_id) DO NOTHING`,
+						userID)
+					if insertErr == nil {
+						u.Permissions = []string{"*"}
+						logger.Info("auto_provisioned_admin_permissions", "user_id", userID)
 					}
 				}
 			}

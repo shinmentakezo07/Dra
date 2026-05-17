@@ -96,6 +96,34 @@ func (r *AdminModelRepo) GetModel(ctx context.Context, id string) (*domain.Model
 	return &m, nil
 }
 
+// ListModelsByProvider returns active models for a given provider.
+func (r *AdminModelRepo) ListModelsByProvider(ctx context.Context, providerID string) ([]domain.ModelRegistry, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, model_id, provider_id, display_name, description,
+			context_window, max_output, input_price_per_1k, output_price_per_1k,
+			capabilities, supports_vision, supports_tools, supports_thinking,
+			status, sunset_date, replacement_model_id, created_at
+		FROM model_registry WHERE provider_id = $1 AND status = 'active'
+		ORDER BY display_name ASC`, providerID)
+	if err != nil {
+		return nil, fmt.Errorf("list models by provider: %w", err)
+	}
+	defer rows.Close()
+
+	var models []domain.ModelRegistry
+	for rows.Next() {
+		var m domain.ModelRegistry
+		if err := rows.Scan(&m.ID, &m.ModelID, &m.ProviderID, &m.DisplayName, &m.Description,
+			&m.ContextWindow, &m.MaxOutput, &m.InputPricePer1k, &m.OutputPricePer1k,
+			&m.Capabilities, &m.SupportsVision, &m.SupportsTools, &m.SupportsThinking,
+			&m.Status, &m.SunsetDate, &m.ReplacementModelID, &m.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan model: %w", err)
+		}
+		models = append(models, m)
+	}
+	return models, nil
+}
+
 func (r *AdminModelRepo) CreateModel(ctx context.Context, m *domain.ModelRegistry) error {
 	_, err := r.db.Exec(ctx, `
 		INSERT INTO model_registry (id, model_id, provider_id, display_name, description,

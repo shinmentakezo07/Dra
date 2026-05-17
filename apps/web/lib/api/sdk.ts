@@ -1269,12 +1269,31 @@ class DraSDK {
     return this.request<ProviderSummary[]>("GET", "/api/admin/providers");
   }
 
-  adminCreateProvider(data: { name: string; type: string; config: Record<string, unknown> }) {
-    return this.request<{ created: boolean }>("POST", "/api/admin/providers", data);
+  adminCreateProvider(data: {
+    name: string;
+    displayName?: string;
+    providerType?: string;
+    baseUrl: string;
+    apiKey?: string;
+    models?: Array<{
+      modelId: string;
+      displayName: string;
+      description?: string;
+      contextWindow?: number;
+      inputPricePer1k?: number;
+      outputPricePer1k?: number;
+      capabilities?: string[];
+    }>;
+  }) {
+    return this.request<{ id: string; name: string }>("POST", "/api/admin/providers", data);
   }
 
-  adminFetchModels(data: { provider: string }) {
-    return this.request<{ models: string[] }>("POST", "/api/admin/providers/fetch-models", data);
+  adminFetchModels(data: { baseUrl: string; apiKey?: string }) {
+    return this.request<{ models: Array<{ id: string; object?: string; owned_by?: string }>; total: number }>("POST", "/api/admin/providers/fetch-models", data);
+  }
+
+  adminAddProviderKey(providerId: string, data: { label: string; key: string; strategy?: string; weight?: number }) {
+    return this.request<{ id: string }>("POST", `/api/admin/providers/${encodeURIComponent(providerId)}/keys`, data);
   }
 
   // Public Health
