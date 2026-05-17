@@ -262,6 +262,40 @@ export interface ProviderSummary {
   models: number;
 }
 
+export interface Comparison {
+  id: string;
+  userId: string;
+  prompt: string;
+  models: string[];
+  ratings: Record<string, number>;
+  createdAt: string;
+}
+
+export interface FineTuningJob {
+  id: string;
+  userId: string;
+  model: string;
+  status: "pending" | "running" | "succeeded" | "failed";
+  datasetFileId?: string;
+  resultModelId?: string;
+  progress: number;
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExportJob {
+  id: string;
+  userId: string;
+  type: string;
+  format: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  downloadUrl?: string;
+  recordCount?: number;
+  createdAt: string;
+  completedAt?: string;
+}
+
 export interface AdminMessage {
   id: string;
   title: string;
@@ -1037,6 +1071,104 @@ class DraSDK {
 
   markAllMessagesRead() {
     return this.request<{ marked: number }>("POST", "/api/messages/read-all");
+  }
+
+  // Comparisons
+
+  listComparisons(page?: number, limit?: number) {
+    return this.paginatedRequest<Comparison>("/api/comparisons", { page, limit });
+  }
+
+  createComparison(data: { prompt: string; models: string[] }) {
+    return this.request<Comparison>("POST", "/api/comparisons", data);
+  }
+
+  getComparison(id: string) {
+    return this.request<Comparison>("GET", `/api/comparisons/${encodeURIComponent(id)}`);
+  }
+
+  deleteComparison(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/comparisons/${encodeURIComponent(id)}`);
+  }
+
+  // Fine-tuning
+
+  listFineTuningJobs(page?: number, limit?: number) {
+    return this.paginatedRequest<FineTuningJob>("/api/fine-tuning/jobs", { page, limit });
+  }
+
+  getFineTuningJob(jobId: string) {
+    return this.request<FineTuningJob>("GET", `/api/fine-tuning/jobs/${encodeURIComponent(jobId)}`);
+  }
+
+  // Exports
+
+  listExportJobs(page?: number, limit?: number) {
+    return this.paginatedRequest<ExportJob>("/api/exports", { page, limit });
+  }
+
+  createExportJob(data: { type: string; format: string; dateFrom?: string; dateTo?: string }) {
+    return this.request<ExportJob>("POST", "/api/exports", data);
+  }
+
+  getExportJob(id: string) {
+    return this.request<ExportJob>("GET", `/api/exports/${encodeURIComponent(id)}`);
+  }
+
+  // Promo Codes
+
+  redeemPromoCode(code: string) {
+    return this.request<{ success: boolean; credits: number }>("POST", "/api/promos/redeem", { code });
+  }
+
+  // Admin — Extended
+
+  adminDashboard() {
+    return this.request<PlatformStats>("GET", "/api/admin/dashboard");
+  }
+
+  adminGetUser(id: string) {
+    return this.request<User>("GET", `/api/admin/users/${encodeURIComponent(id)}`);
+  }
+
+  adminUpdateUserStatus(id: string, status: string) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(id)}/status`, { status });
+  }
+
+  adminUpdateUserRole(id: string, role: string) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(id)}/role`, { role });
+  }
+
+  adminStartImpersonation(id: string) {
+    return this.request<{ token: string }>("POST", `/api/admin/users/${encodeURIComponent(id)}/impersonate`);
+  }
+
+  adminStopImpersonation(sessionId: string) {
+    return this.request<{ stopped: boolean }>("POST", `/api/admin/impersonations/${encodeURIComponent(sessionId)}/stop`);
+  }
+
+  adminBulkSuspendUsers(userIds: string[]) {
+    return this.request<{ suspended: number }>("POST", "/api/admin/users/bulk/suspend", { userIds });
+  }
+
+  adminListUserKeys(userId: string) {
+    return this.request<APIKey[]>("GET", `/api/admin/users/${encodeURIComponent(userId)}/keys`);
+  }
+
+  adminListUserUsage(userId: string) {
+    return this.request<AnalyticsData>("GET", `/api/admin/users/${encodeURIComponent(userId)}/usage`);
+  }
+
+  adminListProviders() {
+    return this.request<ProviderSummary[]>("GET", "/api/admin/providers");
+  }
+
+  adminCreateProvider(data: { name: string; type: string; config: Record<string, unknown> }) {
+    return this.request<{ created: boolean }>("POST", "/api/admin/providers", data);
+  }
+
+  adminFetchModels(data: { provider: string }) {
+    return this.request<{ models: string[] }>("POST", "/api/admin/providers/fetch-models", data);
   }
 
   // Public Health

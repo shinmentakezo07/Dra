@@ -166,14 +166,113 @@ Also added `ModelInfo` import from SDK types.
 
 ---
 
-## 5. Remaining Work
+## 5. SDK Coverage — Already Complete
+
+Both SDKs already implement all ~40 methods listed in `docs/missing.md`. The gap analysis is outdated from a prior session.
+
+### TypeScript SDK (`apps/web/lib/api/sdk.ts`) — 1060 lines
+All methods present:
+- **Auth extended**: `oauthLogin`, `forgotPassword`, `resetPassword`
+- **Budget**: `getBudget`, `setBudget`
+- **Budget Alerts & Caps**: `listBudgetAlerts`, `createBudgetAlert`, `deleteBudgetAlert`, `getBudgetCap`, `createBudgetCap`, `updateBudgetCap`, `deleteBudgetCap`
+- **Conversations**: `listConversations`, `createConversation`, `getConversation`, `deleteConversation`, `addMessage`
+- **Prompts**: `listPrompts`, `createPrompt`, `getPrompt`, `renderPrompt`, `deletePrompt`
+- **Webhooks**: `listWebhooks`, `createWebhook`, `getWebhook`, `updateWebhook`, `deleteWebhook`
+- **Organizations**: `listOrganizations`, `createOrganization`, `getOrganization`, `inviteMember`, `removeMember`, `listMembers`, `acceptInvite`
+- **Batch**: `submitBatch`, `getBatchJob`
+- **Files**: `uploadFile`, `listFiles` (with `FormData` helper)
+- **Embeddings**: `embed`
+- **Validate**: `validate`
+- **Notifications**: `notificationsStream` (AsyncGenerator SSE)
+- **OpenAI Proxy**: `openaiChatCompletions`, `openaiEmbeddings`, `openaiListModels`
+- **Admin Extended**: `adminCircuitBreakers`, `adminProviderHealth`
+- **Admin Messages**: `adminListMessages`, `adminCreateMessage`, `adminGetMessage`, `adminUpdateMessage`, `adminDeleteMessage`
+- **User Messages**: `getUserMessages`, `getUserMessageUnreadCount`, `markMessageRead`, `markAllMessagesRead`
+- **Public Health**: `providerHealth`
+- **Architectural**: `uploadFormData` helper, rate limit header extraction, request ID tracing, jittered retry
+
+### Go SDK (`apps/backend/pkg/sdk/client.go`) — 1083 lines
+All methods present:
+- **Auth extended**: `OAuthLogin`, `ForgotPassword`, `ResetPassword`
+- **Budget**: `GetBudget`, `SetBudget`
+- **Conversations**: `ListConversations`, `CreateConversation`, `GetConversation`, `DeleteConversation`, `AddMessage`
+- **Prompts**: `ListPrompts`, `CreatePrompt`, `GetPrompt`, `RenderPrompt`, `DeletePrompt`
+- **Webhooks**: `ListWebhooks`, `CreateWebhook`, `GetWebhook`, `UpdateWebhook`, `DeleteWebhook`
+- **Organizations**: `ListOrganizations`, `CreateOrganization`, `GetOrganization`, `InviteMember`, `RemoveMember`, `ListMembers`, `AcceptInvite`
+- **Batch**: `SubmitBatch`, `GetBatchJob`
+- **Files**: `UploadFile`, `ListFiles` (with `doUpload` multipart helper)
+- **Embeddings**: `Embed`
+- **Validate**: `Validate`
+- **Notifications**: `NotificationsStream` (channel-based SSE)
+- **OpenAI Proxy**: `OpenAIChatCompletions`, `OpenAIEmbeddings`, `OpenAIListModels`
+- **Admin Extended**: `AdminCircuitBreakers`, `AdminProviderHealth`
+- **Public Health**: `ProviderHealth`
+- **Architectural**: `doUpload` helper, rate limit header extraction, request ID tracing, jittered backoff retry
+
+### Types — Both SDKs
+All types from `docs/missing.md` section E are present:
+`BudgetConfig`, `Conversation`, `ConversationMessage`, `Prompt`, `Webhook`, `Organization`, `OrgMember`, `BatchJob`, `FileInfo`, `CircuitBreakerStatus`, `ProviderHealthStatus`
+
+**Action**: `docs/missing.md` should be marked as resolved or deleted in a future cleanup pass.
+
+---
+
+## 7. Session 2 — P2 Test Implementation (2026-05-17)
+
+### New Test Files (2 files, +300 lines)
+
+| File | Lines | What |
+|------|-------|------|
+| `apps/backend/internal/handler/admin_providers_test.go` | 189 | 6 unit tests for `AdminFetchModels` handler |
+| `apps/web/tests/lib/api/hooks.test.ts` | 111 | 6 wiring verification tests for React Query hooks |
+
+### AdminFetchModels Handler Tests (Go)
+
+| Test | What It Verifies | Result |
+|------|-----------------|--------|
+| `TestAdminFetchModels_InvalidBody` | Returns 400 on malformed JSON | PASS |
+| `TestAdminFetchModels_MissingBaseURL` | Returns 400 when baseUrl empty | PASS |
+| `TestAdminFetchModels_Success` | Fetches models from mock provider, parses OpenAI-compatible response, returns transformed list with count | PASS |
+| `TestAdminFetchModels_StripsTrailingV1` | Normalizes baseUrl with trailing `/v1` before appending `/v1/models` | PASS |
+| `TestAdminFetchModels_ProviderError` | Propagates provider HTTP status (401) to client | PASS |
+| `TestAdminFetchModels_TransformsModelFields` | Strips extra fields (`created`, `permission`) from model response, keeps only `id`, `object`, `owned_by` | PASS |
+
+**Key design**: Tests use `&handler.Handler{}` directly since `AdminFetchModels` is a pure HTTP handler with no service dependencies — it makes an outbound HTTP call to the provider's `/v1/models` endpoint. Mock providers use `httptest.NewServer`.
+
+### Hook-SDK Wiring Tests (TypeScript)
+
+| Test | What It Verifies | Result |
+|------|-----------------|--------|
+| `all query hooks call their corresponding SDK methods` | 22 query hooks (useKeys, useAnalytics, useModels, etc.) each call their SDK method | PASS |
+| `all mutation hooks call their corresponding SDK methods` | 26 mutation hooks (useCreateKey, useDeleteKey, etc.) each call their SDK method | PASS |
+| `hooks file imports getSDK from sdk module` | Correct import path | PASS |
+| `hooks file calls getSDK() at module level` | SDK initialized once at module scope | PASS |
+| `no hardcoded mock data in hooks` | No `const mock` patterns in hooks.ts | PASS |
+| `useNotificationsStream uses sdk.notificationsStream` | SSE stream hook wired correctly | PASS |
+
+### Test Results Summary
+
+```
+Go (make test-unit):    ALL PASS (race detector enabled)
+  - handler tests:      6/6 pass (AdminFetchModels)
+  - existing tests:     All pass
+  - integration tests:  Skipped (TEST_DATABASE_URL not set — expected)
+
+Frontend (npx vitest run):  87/87 pass across 4 files
+  - wiring-verification:  6/6 pass
+  - sdk.test:            64/64 pass
+  - errors.test:         11/11 pass
+  - hooks.test:           6/6 pass (NEW)
+```
+
+---
+
+## 8. Remaining Work
 
 | Priority | Task | Status |
 |----------|------|--------|
-| P1 | SDK coverage gap (Go + TypeScript) — ~40 missing methods per `docs/missing.md` | Not started |
 | P2 | E2E tests | Not started |
-| P2 | Handler tests for new `AdminFetchModels` | Not started |
-| P2 | Component tests for wired dashboard | Not started |
 | P3 | Cache directive audit | Not started |
 | P3 | Webhook UI improvements | Not started |
 | P3 | Provider health UI polish | Not started |
+| P3 | Delete `docs/missing.md` (resolved) | Not started |
