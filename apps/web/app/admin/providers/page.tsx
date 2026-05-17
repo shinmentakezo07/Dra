@@ -55,7 +55,7 @@ function ProviderKeysPanel({
     setLoading(true);
     try {
       const data = await getAdminSDK().listProviderKeys(providerId);
-      setKeys(data);
+      setKeys(data ?? []);
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ function ProviderKeysPanel({
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => {
-            if (keys.length === 0) loadKeys();
+            if (!keys || keys.length === 0) loadKeys();
             setShowAddForm(!showAddForm);
           }}
           className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
