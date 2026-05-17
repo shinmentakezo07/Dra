@@ -16,6 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Server,
+  Search,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -222,8 +224,89 @@ function ProviderKeysPanel({
   );
 }
 
+function FetchModelsPanel({ baseUrl }: { baseUrl: string }) {
+  const [apiKey, setApiKey] = useState("");
+  const [models, setModels] = useState<{ id: string; object?: string; owned_by?: string }[]>([]);
+  const [fetching, setFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFetch = async () => {
+    if (!baseUrl) {
+      setError("No base URL configured for this provider");
+      return;
+    }
+    setFetching(true);
+    setError(null);
+    setModels([]);
+    try {
+      const result = await getAdminSDK().fetchModels(baseUrl, apiKey);
+      setModels(result.models);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch models");
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  return (
+    <div className="border-t border-white/5 pt-4 mt-4">
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          type="password"
+          placeholder="API Key (optional)"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          className="flex-1 px-3 py-1.5 text-xs bg-white/5 border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50"
+        />
+        <button
+          onClick={handleFetch}
+          disabled={fetching}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-md hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+        >
+          {fetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+          {fetching ? "Fetching..." : "Fetch Models"}
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-3 p-2 rounded-md bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400/60 hover:text-red-400">
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      {models.length > 0 && (
+        <div className="max-h-48 overflow-y-auto rounded-lg border border-white/5">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-[#0a0a0f]">
+              <tr className="border-b border-white/5 text-white/40">
+                <th className="text-left font-medium py-1.5 pr-2">Model ID</th>
+                <th className="text-left font-medium py-1.5 pr-2">Owned By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {models.map((m) => (
+                <tr key={m.id} className="border-b border-white/[0.02] text-white/70">
+                  <td className="py-1.5 pr-2 font-mono text-white/80">{m.id}</td>
+                  <td className="py-1.5 pr-2 text-white/50">{m.owned_by || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="py-1.5 px-2 text-[10px] text-white/30 text-right">
+            {models.length} model{models.length !== 1 ? "s" : ""} found
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProviderCard({ provider, onToggleStatus }: ProviderCardProps) {
   const [showKeys, setShowKeys] = useState(false);
+  const [showModels, setShowModels] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     displayName: provider.displayName,
@@ -351,11 +434,22 @@ function ProviderCard({ provider, onToggleStatus }: ProviderCardProps) {
         <button
           onClick={() => {
             setShowKeys(!showKeys);
+            setShowModels(false);
           }}
           className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-md transition-colors"
         >
           <Activity className="h-3.5 w-3.5" />
           {showKeys ? "Hide Keys" : "View Keys"}
+        </button>
+        <button
+          onClick={() => {
+            setShowModels(!showModels);
+            setShowKeys(false);
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-md transition-colors"
+        >
+          <Search className="h-3.5 w-3.5" />
+          {showModels ? "Hide Models" : "Fetch Models"}
         </button>
         <button
           onClick={() => setEditing(!editing)}
@@ -379,6 +473,7 @@ function ProviderCard({ provider, onToggleStatus }: ProviderCardProps) {
       </div>
 
       {showKeys && <ProviderKeysPanel providerId={provider.id} />}
+      {showModels && <FetchModelsPanel baseUrl={provider.baseUrl} />}
     </div>
   );
 }

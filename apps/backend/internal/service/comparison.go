@@ -26,20 +26,6 @@ func (s *ComparisonService) Create(ctx context.Context, userID string, req domai
 	return c, nil
 }
 
-func (s *ComparisonService) UpdateResult(ctx context.Context, id, model, result string, latency, cost, tokens int) *domain.AppError {
-	if err := s.repo.UpdateResult(ctx, id, model, result, latency, cost, tokens); err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to update comparison result", err)
-	}
-	return nil
-}
-
-func (s *ComparisonService) UpdateStatus(ctx context.Context, id, status string) *domain.AppError {
-	if err := s.repo.UpdateStatus(ctx, id, status); err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to update comparison status", err)
-	}
-	return nil
-}
-
 func (s *ComparisonService) GetByID(ctx context.Context, userID, id string) (*domain.ABComparison, *domain.AppError) {
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {

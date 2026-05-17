@@ -19,7 +19,6 @@ import (
 	"dra-platform/backend/internal/service"
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/cache"
-	"dra-platform/backend/pkg/llm/guardrails"
 	"dra-platform/backend/pkg/llm/moderation"
 	"dra-platform/backend/pkg/llm/router"
 	"dra-platform/backend/pkg/webhook"
@@ -55,21 +54,13 @@ type Handler struct {
 	providerPluginSvc *service.ProviderPluginService
 	exportSvc         *service.ExportService
 	moderator       moderation.Moderator
-	guard           *guardrails.Guard
 	notificationHub *NotificationHub
 	modelRouter     *router.Router
 	budgetRouter    *router.BudgetRouter
-	dedupCache      *cache.DedupCache
-	semanticCache   *cache.SemanticCache
 	llmCache        cache.Cache
 	abRouter        *router.ABRouter
 	emailSender     email.Sender
 	stripeSvc       *service.StripeService
-}
-
-// SetGuard sets the guardrails guard.
-func (h *Handler) SetGuard(g *guardrails.Guard) {
-	h.guard = g
 }
 
 func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService, p *service.ProviderService, w *service.WebhookService, b *service.BatchService, o *service.OrganizationService) *Handler {
@@ -104,18 +95,6 @@ func (h *Handler) SetBudgetRouter(r *router.BudgetRouter) {
 // SetBatchService sets the batch service (used for late wiring in main).
 func (h *Handler) SetBatchService(b *service.BatchService) {
 	h.batchSvc = b
-}
-
-
-// SetDedupCache sets the deduplication cache.
-
-func (h *Handler) SetDedupCache(d *cache.DedupCache) {
-	h.dedupCache = d
-}
-
-// SetSemanticCache sets the semantic cache.
-func (h *Handler) SetSemanticCache(s *cache.SemanticCache) {
-	h.semanticCache = s
 }
 
 // SetABRouter sets the A/B test router.
@@ -1015,34 +994,6 @@ func (h *Handler) DeleteComparison(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if err := h.comparisonSvc.Delete(r.Context(), u.ID, id); err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
 	response.OK(w, map[string]bool{"deleted": true})
-}
-
-func (h *Handler) ListFineTuningDatasets(w http.ResponseWriter, r *http.Request) {
-	u := middleware.GetUser(r)
-	if u == nil { response.Error(w, 401, "Authentication required"); return }
-	datasets, err := h.fineTuningSvc.ListDatasets(r.Context(), u.ID)
-	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
-	response.OK(w, datasets)
-}
-
-func (h *Handler) GetFineTuningDataset(w http.ResponseWriter, r *http.Request) {
-	u := middleware.GetUser(r)
-	if u == nil { response.Error(w, 401, "Authentication required"); return }
-	id := chi.URLParam(r, "datasetId")
-	d, err := h.fineTuningSvc.GetDataset(r.Context(), u.ID, id)
-	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
-	response.OK(w, d)
-}
-
-func (h *Handler) CreateFineTuningJob(w http.ResponseWriter, r *http.Request) {
-	u := middleware.GetUser(r)
-	if u == nil { response.Error(w, 401, "Authentication required"); return }
-	var req domain.CreateFineTuningJobRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
-	dsID := req.DatasetID
-	j, err := h.fineTuningSvc.CreateJob(r.Context(), u.ID, req.BaseModel, &dsID, req.Hyperparams)
-	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
-	response.Created(w, j)
 }
 
 func (h *Handler) GetFineTuningJob(w http.ResponseWriter, r *http.Request) {

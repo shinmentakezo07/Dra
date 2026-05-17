@@ -89,21 +89,6 @@ func (s *ProviderService) setupPipeline() {
 	s.pipeline = p
 }
 
-// SetCache sets the response cache.
-func (s *ProviderService) SetCache(c cache.Cache) {
-	s.cache = c
-}
-
-// SetWatcher sets the error watcher.
-func (s *ProviderService) SetWatcher(w *watcher.Watcher) {
-	s.watcher = w
-}
-
-// SetPipeline sets the processing pipeline.
-func (s *ProviderService) SetPipeline(p *pipeline.Pipeline) {
-	s.pipeline = p
-}
-
 func (s *ProviderService) ListModels(ctx context.Context) ([]llm.ModelInfo, *domain.AppError) {
 	models, err := s.registry.AllModels(ctx)
 	if err != nil {

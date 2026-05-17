@@ -2,10 +2,8 @@ package pipeline
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
 	"dra-platform/backend/pkg/llm"
 )
@@ -58,17 +56,6 @@ func (p *Pipeline) RunAfter(ctx context.Context, req *llm.ChatRequest, resp *llm
 	return nil
 }
 
-// StandardPipeline returns a pipeline with common steps.
-func StandardPipeline() *Pipeline {
-	p := New()
-	p.AddBefore(&ValidationStep{})
-	p.AddBefore(&TokenCheckStep{})
-	p.AddBefore(&SanitizationStep{})
-	p.AddAfter(&LoggingStep{})
-	p.AddAfter(&MetricsStep{})
-	return p
-}
-
 // ValidationStep validates incoming requests.
 type ValidationStep struct{}
 
@@ -79,32 +66,6 @@ func (s *ValidationStep) Before(ctx context.Context, req *llm.ChatRequest) error
 }
 
 func (s *ValidationStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	return nil
-}
-
-// TokenCheckStep checks if the request fits within context window.
-type TokenCheckStep struct {
-	GetContextWindow func(model string) int
-}
-
-func (s *TokenCheckStep) Name() string { return "token_check" }
-
-func (s *TokenCheckStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	if s.GetContextWindow == nil {
-		return nil
-	}
-	window := s.GetContextWindow(req.Model)
-	if window == 0 {
-		return nil
-	}
-	if !llm.IsWithinContextWindow(req, window) {
-		return fmt.Errorf("request estimated at %d tokens exceeds context window of %d",
-			llm.EstimateRequestTokens(req), window)
-	}
-	return nil
-}
-
-func (s *TokenCheckStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
 	return nil
 }
 
@@ -151,24 +112,6 @@ func (s *LoggingStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm
 	return nil
 }
 
-// MetricsStep records usage metrics.
-type MetricsStep struct {
-	OnMetrics func(model, provider string, usage llm.Usage, latency time.Duration)
-}
-
-func (s *MetricsStep) Name() string { return "metrics" }
-
-func (s *MetricsStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	return nil
-}
-
-func (s *MetricsStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	if s.OnMetrics != nil {
-		s.OnMetrics(req.Model, resp.Provider, resp.Usage, 0)
-	}
-	return nil
-}
-
 // ThinkingStep handles thinking/reasoning configuration.
 type ThinkingStep struct{}
 
@@ -211,163 +154,4 @@ func (s *ToolStep) Before(ctx context.Context, req *llm.ChatRequest) error {
 
 func (s *ToolStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
 	return nil
-}
-
-// FormatStep formats responses according to configured output format.
-type FormatStep struct{}
-
-func (s *FormatStep) Name() string { return "format" }
-
-func (s *FormatStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	return nil
-}
-
-func (s *FormatStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	if req.ResponseFormat == nil || req.ResponseFormat.Type != "json_object" {
-		return nil
-	}
-	// Validate JSON output
-	if len(resp.Choices) > 0 {
-		content := resp.Choices[0].Message.Content
-		var dummy interface{}
-		if err := json.Unmarshal([]byte(content), &dummy); err != nil {
-			// Wrap invalid JSON in a JSON structure
-			resp.Choices[0].Message.Content = fmt.Sprintf(`{"content": %q}`, content)
-		}
-	}
-	return nil
-}
-
-// StreamingAdapterStep adapts responses for streaming consumers.
-type StreamingAdapterStep struct {
-	Format string // "openai", "anthropic", "unified"
-}
-
-func (s *StreamingAdapterStep) Name() string { return "streaming_adapter" }
-
-func (s *StreamingAdapterStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	return nil
-}
-
-func (s *StreamingAdapterStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	return nil
-}
-
-// CostTrackingStep tracks costs.
-type CostTrackingStep struct {
-	GetPrices func(model string) (inputPrice, outputPrice float64)
-	OnCost    func(model string, cost float64, usage llm.Usage)
-}
-
-func (s *CostTrackingStep) Name() string { return "cost_tracking" }
-
-func (s *CostTrackingStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	return nil
-}
-
-func (s *CostTrackingStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	if s.GetPrices == nil || s.OnCost == nil {
-		return nil
-	}
-	inputPrice, outputPrice := s.GetPrices(req.Model)
-	if inputPrice > 0 || outputPrice > 0 {
-		cost := llm.Cost(resp.Usage.PromptTokens, resp.Usage.CompletionTokens, inputPrice, outputPrice)
-		s.OnCost(req.Model, cost, resp.Usage)
-	}
-	return nil
-}
-
-// RateLimitStep enforces rate limits.
-type RateLimitStep struct {
-	CheckLimit func(ctx context.Context, key string) (allowed bool, remaining int, resetAt time.Time, err error)
-	KeyFunc    func(req *llm.ChatRequest) string
-}
-
-func (s *RateLimitStep) Name() string { return "rate_limit" }
-
-func (s *RateLimitStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	if s.CheckLimit == nil {
-		return nil
-	}
-	key := "global"
-	if s.KeyFunc != nil {
-		key = s.KeyFunc(req)
-	}
-	allowed, _, _, err := s.CheckLimit(ctx, key)
-	if err != nil {
-		return fmt.Errorf("rate limit check failed: %w", err)
-	}
-	if !allowed {
-		return fmt.Errorf("rate limit exceeded")
-	}
-	return nil
-}
-
-func (s *RateLimitStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	return nil
-}
-
-// TruncationStep truncates messages if they exceed token budget.
-type TruncationStep struct {
-	MaxTokens int
-}
-
-func (s *TruncationStep) Name() string { return "truncation" }
-
-func (s *TruncationStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	if s.MaxTokens <= 0 {
-		return nil
-	}
-	req.Messages = llm.TruncateMessages(req.Messages, s.MaxTokens)
-	return nil
-}
-
-func (s *TruncationStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	return nil
-}
-
-// AuditStep logs detailed audit information.
-type AuditStep struct {
-	OnAudit func(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse, err error)
-}
-
-func (s *AuditStep) Name() string { return "audit" }
-
-func (s *AuditStep) Before(ctx context.Context, req *llm.ChatRequest) error {
-	return nil
-}
-
-func (s *AuditStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	if s.OnAudit != nil {
-		s.OnAudit(ctx, req, resp, nil)
-	}
-	return nil
-}
-
-// Helper function to build pipeline with custom steps
-func BuildPipeline(steps ...Step) *Pipeline {
-	p := New()
-	for _, step := range steps {
-		if step != nil {
-			p.AddBefore(step)
-			p.AddAfter(step)
-		}
-	}
-	return p
-}
-
-// ChainPipelines chains multiple pipelines together.
-func ChainPipelines(pipelines ...*Pipeline) *Pipeline {
-	combined := New()
-	for _, p := range pipelines {
-		if p != nil {
-			for _, step := range p.before {
-				combined.AddBefore(step)
-			}
-			for _, step := range p.after {
-				combined.AddAfter(step)
-			}
-		}
-	}
-	return combined
 }

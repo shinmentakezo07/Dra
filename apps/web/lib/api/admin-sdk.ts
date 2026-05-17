@@ -96,6 +96,10 @@ export class AdminSDK {
     await this.api.request<{ status: string }>("PUT", `/api/admin/providers/${providerId}/keys/reorder`, { keyIds });
   }
 
+  async fetchModels(baseUrl: string, apiKey: string): Promise<{ models: { id: string; object?: string; owned_by?: string }[]; total: number }> {
+    return this.api.request("POST", "/api/admin/providers/fetch-models", { baseUrl, apiKey });
+  }
+
   async listModels(status?: string): Promise<ModelRegistry[]> {
     return this.api.request<ModelRegistry[]>("GET", "/api/admin/models", undefined, status ? { status } : undefined);
   }

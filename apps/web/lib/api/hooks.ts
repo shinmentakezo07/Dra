@@ -22,6 +22,7 @@ import type {
   ProviderHealthStatus,
   CircuitBreakerStatus,
   ProviderSummary,
+  ModelInfo,
 } from "./sdk";
 
 const sdk = getSDK();
@@ -177,6 +178,17 @@ export function useLogs(page: number, limit: number) {
     queryKey: ["logs", page, limit],
     queryFn: () => sdk.listLogs(page, limit),
     placeholderData: (previousData) => previousData,
+  });
+}
+
+// ============================================================================
+// Models
+// ============================================================================
+
+export function useModels() {
+  return useQuery<ModelInfo[]>({
+    queryKey: ["models"],
+    queryFn: () => sdk.listModels(),
   });
 }
 

@@ -18,6 +18,8 @@ import { useEffect, useRef, useState } from "react";
 import { Message, ChatSession, EnrichedModel } from "./types";
 import { getProviderColor, getProviderColorClass } from "./ProviderColors";
 
+type ModelInfo = EnrichedModel;
+
 interface ChatInterfaceProps {
   sessions: ChatSession[];
   sharedMessages: Message[];
@@ -27,6 +29,8 @@ interface ChatInterfaceProps {
   onSend: () => void;
   onReset: () => void;
   onAddModel: () => void;
+  streamingContent?: Record<string, string>;
+  streamErrors?: Record<string, string>;
 }
 
 function EmptyState({ onAddModel }: { onAddModel: () => void }) {
@@ -34,35 +38,41 @@ function EmptyState({ onAddModel }: { onAddModel: () => void }) {
     <div className="h-full flex items-center justify-center relative overflow-hidden">
       {/* Orbital animation background */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="relative w-[400px] h-[400px]">
+        <div className="relative w-[500px] h-[500px]">
           {/* Outer ring */}
-          <div className="absolute inset-0 rounded-full border border-white/[0.03]" />
+          <div className="absolute inset-0 rounded-full border border-white/[0.02]" />
           <motion.div
-            className="absolute inset-0 rounded-full border border-white/[0.03]"
+            className="absolute inset-0 rounded-full border border-white/[0.02]"
             animate={{ rotate: 360 }}
-            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500/30" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500/20" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1.5 h-1.5 rounded-full bg-violet-500/15" />
           </motion.div>
           {/* Middle ring */}
           <motion.div
-            className="absolute inset-8 rounded-full border border-white/[0.04]"
+            className="absolute inset-10 rounded-full border border-white/[0.03]"
             animate={{ rotate: -360 }}
-            transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 55, repeat: Infinity, ease: "linear" }}
           >
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1.5 h-1.5 rounded-full bg-violet-500/30" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1.5 h-1.5 rounded-full bg-violet-500/20" />
+            <div className="absolute top-1/4 right-0 translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-cyan-500/15" />
           </motion.div>
           {/* Inner ring */}
           <motion.div
-            className="absolute inset-16 rounded-full border border-white/[0.05]"
+            className="absolute inset-20 rounded-full border border-white/[0.04]"
             animate={{ rotate: 360 }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
           >
-            <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-cyan-500/30" />
+            <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-cyan-500/20" />
           </motion.div>
           {/* Center glow */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500/10 to-violet-500/10 blur-xl" />
+            <motion.div
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/8 to-violet-500/8 blur-2xl"
+              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
           </div>
         </div>
       </div>
@@ -70,27 +80,44 @@ function EmptyState({ onAddModel }: { onAddModel: () => void }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
         className="relative z-10 text-center max-w-md mx-auto px-4"
       >
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-blue-500/20 flex items-center justify-center mx-auto mb-6"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+          className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/15 to-violet-500/15 border border-blue-500/15 flex items-center justify-center mx-auto mb-6"
         >
-          <Orbit className="w-8 h-8 text-blue-400" />
-        </div>
-        <h2 className="text-2xl font-bold text-white tracking-tight mb-3">
+          <Orbit className="w-8 h-8 text-blue-400/80" />
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
+          className="text-2xl font-bold text-white/90 tracking-tight mb-3"
+        >
           Neural Command Center
-        </h2>
-        <p className="text-sm text-gray-400 leading-relaxed mb-8">
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 }}
+          className="text-sm text-gray-500 leading-relaxed mb-8"
+        >
           Select AI models to compare their responses side-by-side.
           Test prompts across multiple providers simultaneously.
-        </p>
+        </motion.p>
         <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.6 }}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={onAddModel}
-          className="relative inline-flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 rounded-xl font-semibold text-sm text-white shadow-[0_0_24px_rgba(59,130,246,0.25)] hover:shadow-[0_0_32px_rgba(59,130,246,0.4)] transition-shadow overflow-hidden group"
+          className="relative inline-flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-blue-600/90 to-violet-600/90 hover:from-blue-500 hover:to-violet-500 rounded-xl font-semibold text-sm text-white shadow-[0_0_28px_rgba(59,130,246,0.15)] hover:shadow-[0_0_36px_rgba(59,130,246,0.3)] transition-shadow overflow-hidden group"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           <Zap className="w-4 h-4 relative z-10" />
           <span className="relative z-10">Select Models to Start</span>
         </motion.button>
@@ -108,14 +135,14 @@ function UserMessageBubble({ message }: { message: Message }) {
       className="flex justify-end mb-6"
     >
       <div className="relative max-w-[85%] sm:max-w-[75%] lg:max-w-[65%]">
-        <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-2xl blur-sm opacity-60" />
-        <div className="relative px-5 py-3.5 bg-gradient-to-br from-[#0d1117] to-[#0a0e14] border border-cyan-500/20 rounded-2xl rounded-tr-sm"
+        <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-500/15 to-blue-500/8 rounded-2xl blur-sm opacity-50" />
+        <div className="relative px-5 py-3.5 bg-gradient-to-br from-[#0d1117] to-[#0a0e14] border border-cyan-500/15 rounded-2xl rounded-tr-sm"
         >
           <p className="text-sm text-gray-100 leading-relaxed whitespace-pre-wrap"
           >
             {message.content}
           </p>
-          <span className="block text-[10px] text-gray-600 font-mono mt-2 text-right"
+          <span className="block text-[10px] text-gray-700 font-mono mt-2 text-right"
           >
             {new Date(message.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
@@ -129,22 +156,188 @@ function UserMessageBubble({ message }: { message: Message }) {
 }
 
 function ModelResponseCard({
+  model,
+  message,
+  streamingContent,
+  isStreaming,
+  error,
+}: {
+  model: ModelInfo;
+  message?: Message;
+  streamingContent: string;
+  isStreaming: boolean;
+  error?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const content = message?.content || streamingContent;
+
+  const handleCopy = async () => {
+    if (!content) return;
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const providerColor = getProviderColor(model.id);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+      className="relative group"
+    >
+      <div
+        className="absolute -inset-[1px] rounded-2xl blur-md opacity-30 group-hover:opacity-50 transition-opacity"
+        style={{
+          background: `linear-gradient(135deg, ${providerColor}20, ${providerColor}08)`,
+        }}
+      />
+      <div className="relative rounded-2xl overflow-hidden border border-white/[0.04] bg-[#060608]/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+      >
+        {/* Header */}
+        <div
+          className="relative flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04]"
+          style={{
+            background: `linear-gradient(135deg, ${providerColor}08, transparent 60%)`,
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            {model.logo && (
+              <div className="relative w-5 h-5 rounded-full overflow-hidden bg-white/[0.03] ring-1 ring-white/[0.06]"
+              >
+                <Image
+                  src={model.logo}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            )}
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-white/80 truncate max-w-[120px]">
+                {model.name.split(":")[0]}
+              </span>
+              <span className="text-[10px] text-gray-600 font-mono truncate max-w-[120px]">
+                {model.id.split(":").slice(-1)[0]}
+              </span>
+            </div>
+          </div>
+
+          {content && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleCopy}
+              className="relative p-1.5 rounded-lg text-gray-600 hover:text-white/80 hover:bg-white/[0.04] transition-all"
+              title="Copy response"
+            >
+              {copied ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </motion.button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="px-4 py-3 min-h-[120px]">
+          {!content && !isStreaming && (
+            <div className="flex items-center justify-center h-[120px] text-gray-700 text-sm">
+              Waiting for response...
+            </div>
+          )}
+
+          {isStreaming && !content && (
+            <div className="flex items-center gap-2 py-2">
+              <div className="flex gap-1">
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-gray-600"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-gray-600"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.15,
+                  }}
+                />
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-gray-600"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.3,
+                  }}
+                />
+              </div>
+              <span className="text-xs text-gray-700">Thinking...</span>
+            </div>
+          )}
+
+          {error && !content && (
+            <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-red-500/5 border border-red-500/10">
+              <span className="text-xs text-red-400">Error: {error}</span>
+            </div>
+          )}
+
+          {content && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                {content}
+              </p>
+              {isStreaming && (
+                <motion.span
+                  className="inline-block w-0.5 h-4 bg-blue-500 ml-0.5 align-middle"
+                  animate={{ opacity: [1, 0] }}
+                  transition={{
+                    duration: 0.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              )}
+            </motion.div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ChatSessionCard({
   session,
   message,
 }: {
   session: ChatSession;
   message?: Message;
 }) {
+  const [copied, setCopied] = useState(false);
   const color = getProviderColor(session.model.id);
   const colorClass = getProviderColorClass(session.model.id);
-  const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    if (message?.content) {
-      navigator.clipboard.writeText(message.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const handleCopy = async () => {
+    if (!message?.content) return;
+    await navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -297,6 +490,8 @@ export default function ChatInterface({
   onSend,
   onReset,
   onAddModel,
+  streamingContent = {},
+  streamErrors = {},
 }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -364,21 +559,25 @@ export default function ChatInterface({
                           : "grid-cols-1 md:grid-cols-2"
                       }`}
                     >
-                      {sessions.map((session) => {
-                        // Find the response for this user message turn
-                        const responseIndex = sharedMessages
-                          .slice(0, idx + 1)
-                          .filter((m) => m.role === "user").length;
-                        const response = session.messages[responseIndex - 1];
+                       {sessions.map((session) => {
+                         // Find the response for this user message turn
+                         const responseIndex = sharedMessages
+                           .slice(0, idx + 1)
+                           .filter((m) => m.role === "user").length;
+                         const response = session.messages[responseIndex - 1];
+                         const isCurrentlyStreaming = session.isTyping && !!streamingContent[session.id];
 
-                        return (
-                          <ModelResponseCard
-                            key={session.id}
-                            session={session}
-                            message={response}
-                          />
-                        );
-                      })}
+                         return (
+                           <ModelResponseCard
+                             key={session.id}
+                             model={session.model}
+                             message={response}
+                             streamingContent={streamingContent[session.id] || ""}
+                             isStreaming={isCurrentlyStreaming}
+                             error={streamErrors[session.id]}
+                           />
+                         );
+                       })}
                     </div>
                   </div>
                 );
@@ -390,16 +589,13 @@ export default function ChatInterface({
       </div>
 
       {/* Input Area */}
-      <div className="shrink-0 border-t border-white/[0.06] bg-[#050505]/80 backdrop-blur-2xl px-4 sm:px-6 lg:px-8 py-4"
-      >
-        <div className="max-w-3xl mx-auto"
-        >
-          <div className="relative flex items-end gap-3"
-          >
-            <div className="relative flex-1"
+      <div className="relative border-t border-white/[0.04] bg-[#030305]/60 backdrop-blur-2xl shrink-0">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/8 to-transparent" />
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="relative group">
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-500/0 via-blue-500/0 to-violet-500/0 group-focus-within:from-cyan-500/20 group-focus-within:via-blue-500/20 group-focus-within:to-violet-500/20 transition-all duration-500 blur-sm" />
+            <div className="relative flex items-end gap-2 p-2 bg-[#0a0a0d]/90 border border-white/[0.06] group-focus-within:border-white/[0.12] rounded-2xl transition-colors"
             >
-              <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-500/10 via-violet-500/10 to-blue-500/10 rounded-2xl opacity-0 focus-within:opacity-100 transition-opacity blur-sm"
-              />
               <textarea
                 ref={inputRef}
                 value={inputMessage}
@@ -410,44 +606,31 @@ export default function ChatInterface({
                     onSend();
                   }
                 }}
-                placeholder="Enter your prompt..."
+                placeholder="Send a message..."
                 rows={1}
-                className="relative w-full bg-white/[0.03] border border-white/[0.08] hover:border-white/15 focus:border-blue-500/30 rounded-2xl px-5 py-3.5 text-sm text-white placeholder:text-gray-600 outline-none resize-none transition-all min-h-[48px] max-h-[200px]"
-                style={{ overflow: "auto" }}
+                className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-700 resize-none outline-none px-2 py-1.5 max-h-32 min-h-[40px]"
+                disabled={isLoading}
               />
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0"
-            >
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onReset}
-                className="p-3 text-gray-500 hover:text-white hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/15 rounded-xl transition-all"
-                title="Reset chat"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                type="button"
                 onClick={onSend}
                 disabled={!inputMessage.trim() || isLoading}
-                className="relative p-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl transition-all shadow-[0_0_16px_rgba(59,130,246,0.2)]"
+                whileHover={{ scale: inputMessage.trim() && !isLoading ? 1.05 : 1 }}
+                whileTap={{ scale: inputMessage.trim() && !isLoading ? 0.95 : 1 }}
+                className="relative p-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white disabled:opacity-20 disabled:cursor-not-allowed disabled:from-gray-800 disabled:to-gray-800 transition-all overflow-hidden shrink-0"
               >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-full group-focus-within:translate-x-full transition-transform duration-700" />
                 {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <Loader2 className="w-4 h-4 animate-spin relative z-10" />
                 ) : (
-                  <Send className="w-5 h-5 text-white" />
+                  <Send className="w-4 h-4 relative z-10" />
                 )}
               </motion.button>
             </div>
           </div>
-
-          <p className="text-[10px] text-gray-600 font-mono mt-2 text-center"
+          <p className="text-[10px] text-gray-800 text-center mt-2 font-mono"
           >
-            Press Enter to send, Shift + Enter for new line
+            Responses may be inaccurate. Verify critical information.
           </p>
         </div>
       </div>

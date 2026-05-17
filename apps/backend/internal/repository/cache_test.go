@@ -82,19 +82,6 @@ func TestMemoryRepoCache_DeletePrefix(t *testing.T) {
 	}
 }
 
-func TestNopRepoCache(t *testing.T) {
-	ctx := context.Background()
-	cache := NewNopRepoCache()
-
-	u := &domain.User{ID: "u1", Email: "test@example.com", Name: "Test", Role: "user"}
-	_ = cache.Set(ctx, "key", u, time.Minute)
-
-	var got domain.User
-	if cache.Get(ctx, "key", &got) {
-		t.Fatal("nop cache should never hit")
-	}
-}
-
 func TestCacheKeyHelpers(t *testing.T) {
 	if got := userCacheKey("123"); got != "user:id:123" {
 		t.Fatalf("unexpected userCacheKey: %s", got)

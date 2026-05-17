@@ -4,92 +4,29 @@ import { motion } from "framer-motion";
 import { Activity, Zap, DollarSign, TrendingUp, Clock, Cpu, Globe, Shield, ChevronRight, Sparkles, BarChart3, Code2, Server } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAnalytics, useModels, usePublicProviderHealth } from "@/lib/api/hooks";
+import type { ModelInfo } from "@/lib/api/sdk";
 
 interface GatewayDashboardProps {
   user: any;
 }
 
-// Mock data - replace with real API calls
-const models = [
-  {
-    id: "gpt-4-turbo",
-    name: "GPT-4 Turbo",
-    provider: "OpenAI",
-    contextWindow: "128K",
-    inputPrice: "$10.00",
-    outputPrice: "$30.00",
-    speed: "Fast",
-    quality: 95,
-    category: "flagship"
-  },
-  {
-    id: "claude-3-opus",
-    name: "Claude 3 Opus",
-    provider: "Anthropic",
-    contextWindow: "200K",
-    inputPrice: "$15.00",
-    outputPrice: "$75.00",
-    speed: "Medium",
-    quality: 98,
-    category: "flagship"
-  },
-  {
-    id: "gemini-pro",
-    name: "Gemini Pro",
-    provider: "Google",
-    contextWindow: "32K",
-    inputPrice: "$0.50",
-    outputPrice: "$1.50",
-    speed: "Very Fast",
-    quality: 88,
-    category: "balanced"
-  },
-  {
-    id: "llama-3-70b",
-    name: "Llama 3 70B",
-    provider: "Meta",
-    contextWindow: "8K",
-    inputPrice: "$0.70",
-    outputPrice: "$0.90",
-    speed: "Fast",
-    quality: 85,
-    category: "balanced"
-  },
-  {
-    id: "mistral-large",
-    name: "Mistral Large",
-    provider: "Mistral AI",
-    contextWindow: "32K",
-    inputPrice: "$4.00",
-    outputPrice: "$12.00",
-    speed: "Fast",
-    quality: 90,
-    category: "flagship"
-  },
-  {
-    id: "gpt-3.5-turbo",
-    name: "GPT-3.5 Turbo",
-    provider: "OpenAI",
-    contextWindow: "16K",
-    inputPrice: "$0.50",
-    outputPrice: "$1.50",
-    speed: "Very Fast",
-    quality: 75,
-    category: "budget"
-  }
-];
+function formatPricePer1M(pricePer1k: number): string {
+  return `$${(pricePer1k * 1000).toFixed(2)}`;
+}
 
-const usageStats = {
-  totalRequests: 45678,
-  totalTokens: 12456789,
-  totalCost: 234.56,
-  avgLatency: 1.2,
-  successRate: 99.8,
-  topModel: "GPT-4 Turbo"
-};
+function deriveCategory(model: ModelInfo): string {
+  const inputPrice = model.inputPricePer1k * 1000;
+  if (inputPrice >= 5) return "flagship";
+  if (inputPrice >= 1) return "balanced";
+  return "budget";
+}
 
 export default function GatewayDashboard({ user }: GatewayDashboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
+  const { data: models, isLoading: modelsLoading } = useModels();
+  const { data: providers, isLoading: providersLoading } = usePublicProviderHealth();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -104,9 +41,29 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
     visible: { opacity: 1, y: 0 }
   };
 
-  const filteredModels = selectedCategory === "all" 
-    ? models 
-    : models.filter(m => m.category === selectedCategory);
+  const usageStats = analytics ? {
+    totalRequests: analytics.summary.totalRequests,
+    totalTokens: analytics.recentLogs.reduce((sum, log) => sum + log.inputTokens + log.outputTokens, 0),
+    totalCost: analytics.recentLogs.reduce((sum, log) => sum + log.cost, 0),
+    avgLatency: analytics.recentLogs.length > 0
+      ? analytics.recentLogs.reduce((sum, log) => sum + log.latency, 0) / analytics.recentLogs.length / 1000
+      : 0,
+    successRate: analytics.summary.totalRequests > 0
+      ? (analytics.summary.successRequests / analytics.summary.totalRequests) * 100
+      : 0,
+    topModel: analytics.modelBreakdown[0]?.model || "N/A"
+  } : null;
+
+  const enrichedModels = models?.map((m) => ({
+    ...m,
+    category: deriveCategory(m),
+  })) ?? [];
+
+  const filteredModels = selectedCategory === "all"
+    ? enrichedModels
+    : enrichedModels.filter(m => m.category === selectedCategory);
+
+  const isLoading = analyticsLoading || modelsLoading || providersLoading;
 
   return (
     <div className="min-h-screen pt-6 pb-12 px-4 sm:px-6 lg:px-8 bg-[#050505] relative overflow-hidden">
@@ -119,7 +76,7 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 sm:mb-10"
@@ -135,11 +92,11 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
             LLM Gateway <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Dashboard</span>
           </h1>
           <p className="text-gray-400 text-sm sm:text-base font-light">
-            Unified access to <span className="text-white font-medium">{models.length} AI models</span> from leading providers
+            Unified access to <span className="text-white font-medium">{isLoading ? "..." : enrichedModels.length} AI models</span> from leading providers
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -147,7 +104,7 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
         >
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* Stats Overview */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-6 rounded-2xl bg-[#0A0A0A] border border-white/5 relative overflow-hidden group hover:border-blue-500/30 transition-colors shadow-lg">
@@ -157,10 +114,16 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                     <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
                       <Activity className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-mono text-green-500/50 bg-green-500/5 px-2 py-1 rounded">+24%</span>
+                    {usageStats && (
+                      <span className="text-xs font-mono text-green-500/50 bg-green-500/5 px-2 py-1 rounded">
+                        {usageStats.successRate.toFixed(1)}%
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Total Requests</p>
-                  <h3 className="text-2xl font-bold text-white">{usageStats.totalRequests.toLocaleString()}</h3>
+                  <h3 className="text-2xl font-bold text-white">
+                    {usageStats ? usageStats.totalRequests.toLocaleString() : "..."}
+                  </h3>
                   <p className="text-[10px] text-gray-500 mt-2">Last 30 days</p>
                 </div>
               </div>
@@ -172,14 +135,20 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                     <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
                       <Zap className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-mono text-purple-500/50 bg-purple-500/5 px-2 py-1 rounded">{usageStats.successRate}%</span>
+                    {usageStats && (
+                      <span className="text-xs font-mono text-purple-500/50 bg-purple-500/5 px-2 py-1 rounded">
+                        {usageStats.successRate.toFixed(1)}%
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Success Rate</p>
-                  <h3 className="text-2xl font-bold text-white">{usageStats.successRate}%</h3>
+                  <h3 className="text-2xl font-bold text-white">
+                    {usageStats ? `${usageStats.successRate.toFixed(1)}%` : "..."}
+                  </h3>
                   <div className="w-full h-1.5 bg-white/5 rounded-full mt-4 overflow-hidden relative">
                     <div
                       className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.4)]"
-                      style={{ width: `${usageStats.successRate}%` }}
+                      style={{ width: usageStats ? `${usageStats.successRate}%` : "0%" }}
                     />
                   </div>
                 </div>
@@ -194,7 +163,9 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                     </div>
                   </div>
                   <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Total Cost</p>
-                  <h3 className="text-2xl font-bold text-white">${usageStats.totalCost}</h3>
+                  <h3 className="text-2xl font-bold text-white">
+                    {usageStats ? `$${usageStats.totalCost.toFixed(2)}` : "..."}
+                  </h3>
                   <p className="text-[10px] text-gray-500 mt-2">This month</p>
                 </div>
               </div>
@@ -208,7 +179,9 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 uppercase tracking-wider">Avg Latency</p>
-                  <p className="text-lg font-bold text-white font-mono">{usageStats.avgLatency}s</p>
+                  <p className="text-lg font-bold text-white font-mono">
+                    {usageStats ? `${usageStats.avgLatency.toFixed(2)}s` : "..."}
+                  </p>
                 </div>
               </div>
 
@@ -218,7 +191,9 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 uppercase tracking-wider">Total Tokens</p>
-                  <p className="text-lg font-bold text-white font-mono">{(usageStats.totalTokens / 1000000).toFixed(1)}M</p>
+                  <p className="text-lg font-bold text-white font-mono">
+                    {usageStats ? `${(usageStats.totalTokens / 1000000).toFixed(1)}M` : "..."}
+                  </p>
                 </div>
               </div>
 
@@ -228,7 +203,9 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 uppercase tracking-wider">Top Model</p>
-                  <p className="text-sm font-bold text-white">{usageStats.topModel}</p>
+                  <p className="text-sm font-bold text-white">
+                    {usageStats ? usageStats.topModel : "..."}
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -258,6 +235,12 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
               </div>
 
               <div className="grid grid-cols-1 gap-4">
+                {isLoading && (
+                  <div className="text-center py-12 text-gray-500">Loading models...</div>
+                )}
+                {!isLoading && filteredModels.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">No models found.</div>
+                )}
                 {filteredModels.map((model) => (
                   <div
                     key={model.id}
@@ -269,7 +252,7 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                         <div className="w-16 h-16 rounded-xl bg-[#151515] border border-white/5 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform duration-300 group-hover:border-blue-500/20">
                           <Sparkles className="w-8 h-8 text-gray-500 group-hover:text-blue-400 transition-colors" />
                         </div>
-                        
+
                         <div className="flex-1 w-full">
                           <div className="flex flex-col sm:flex-row justify-between items-start mb-3">
                             <div>
@@ -280,38 +263,30 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                             </div>
                             <div className="flex gap-2 mt-2 sm:mt-0">
                               <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 text-gray-400 border border-white/5 uppercase tracking-wider">
-                                {model.contextWindow}
-                              </span>
-                              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-green-500/10 text-green-400 border border-green-500/20 uppercase tracking-wider">
-                                {model.speed}
+                                {model.contextWindow.toLocaleString()} ctx
                               </span>
                             </div>
                           </div>
 
-                          {/* Quality Bar */}
-                          <div className="mb-4">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs text-gray-400 font-mono">Quality Score</span>
-                              <span className="text-xs text-white font-mono font-bold">{model.quality}/100</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden relative">
-                              <div
-                                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.4)] transition-all duration-1000"
-                                style={{ width: `${model.quality}%` }}
-                              />
-                            </div>
-                          </div>
+                          {/* Description */}
+                          {model.description && (
+                            <p className="text-xs text-gray-500 mb-4 line-clamp-2">{model.description}</p>
+                          )}
 
                           {/* Pricing */}
                           <div className="flex items-center justify-between">
                             <div className="flex gap-4">
                               <div>
                                 <p className="text-[10px] text-gray-500 uppercase tracking-wider">Input</p>
-                                <p className="text-sm font-bold text-white font-mono">{model.inputPrice}<span className="text-xs text-gray-500">/1M</span></p>
+                                <p className="text-sm font-bold text-white font-mono">
+                                  {formatPricePer1M(model.inputPricePer1k)}<span className="text-xs text-gray-500">/1M</span>
+                                </p>
                               </div>
                               <div>
                                 <p className="text-[10px] text-gray-500 uppercase tracking-wider">Output</p>
-                                <p className="text-sm font-bold text-white font-mono">{model.outputPrice}<span className="text-xs text-gray-500">/1M</span></p>
+                                <p className="text-sm font-bold text-white font-mono">
+                                  {formatPricePer1M(model.outputPricePer1k)}<span className="text-xs text-gray-500">/1M</span>
+                                </p>
                               </div>
                             </div>
                             <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-blue-500/20 border border-white/10 hover:border-blue-500/50 text-white text-sm font-medium transition-all group/btn">
@@ -337,7 +312,7 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                 <Zap className="w-4 h-4 text-blue-500" />
                 Quick Actions
               </h3>
-              
+
               <div className="space-y-3 relative z-10">
                 <Link href="/playground" className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-500/50 transition-all group">
                   <div className="flex items-center gap-3">
@@ -349,7 +324,7 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
                 </Link>
 
-                <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 transition-all group">
+                <Link href="/dashboard/analytics" className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 transition-all group">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
                       <BarChart3 className="w-4 h-4" />
@@ -357,9 +332,9 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                     <span className="text-sm text-white font-medium">Analytics</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
-                </button>
+                </Link>
 
-                <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-green-500/50 transition-all group">
+                <Link href="/dashboard/keys" className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-green-500/50 transition-all group">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-green-500/10 text-green-400">
                       <Server className="w-4 h-4" />
@@ -367,7 +342,7 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                     <span className="text-sm text-white font-medium">API Keys</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-green-400 group-hover:translate-x-1 transition-all" />
-                </button>
+                </Link>
               </div>
             </motion.div>
 
@@ -377,20 +352,28 @@ export default function GatewayDashboard({ user }: GatewayDashboardProps) {
                 <Globe className="w-4 h-4 text-green-500" />
                 Provider Status
               </h3>
-              
+
               <div className="space-y-4">
-                {["OpenAI", "Anthropic", "Google", "Meta", "Mistral AI"].map((provider) => (
-                  <div key={provider} className="flex items-center justify-between">
+                {providersLoading && (
+                  <div className="text-xs text-gray-500">Loading...</div>
+                )}
+                {!providersLoading && providers?.map((p) => (
+                  <div key={p.provider} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${p.status === "healthy" ? "bg-green-400" : "bg-red-400"}`}></span>
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${p.status === "healthy" ? "bg-green-500" : "bg-red-500"}`}></span>
                       </div>
-                      <span className="text-sm text-gray-300">{provider}</span>
+                      <span className="text-sm text-gray-300">{p.provider}</span>
                     </div>
-                    <span className="text-xs font-mono text-green-400">ONLINE</span>
+                    <span className={`text-xs font-mono ${p.status === "healthy" ? "text-green-400" : "text-red-400"}`}>
+                      {p.status.toUpperCase()}
+                    </span>
                   </div>
                 ))}
+                {!providersLoading && (!providers || providers.length === 0) && (
+                  <div className="text-xs text-gray-500">No providers configured.</div>
+                )}
               </div>
             </motion.div>
 

@@ -20,6 +20,7 @@ import { HistoryChat, ChatSession, Message, EnrichedModel } from "@/components/p
 import ModelSelector from "@/components/playground/ModelSelector";
 import ChatInterface from "@/components/playground/ChatInterface";
 import { getProviderColor } from "@/components/playground/ProviderColors";
+import { getSDK, configureSDK, ChatMessage } from "@/lib/api/sdk";
 
 const HISTORY_KEY = "yapapa.playground.history.v2";
 const ACTIVE_KEY = "yapapa.playground.activeChatId.v2";
@@ -92,6 +93,8 @@ export default function PlaygroundPage() {
   const [chatHistory, setChatHistory] = useState<HistoryChat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [streamingContent, setStreamingContent] = useState<Record<string, string>>({});
+  const [streamErrors, setStreamErrors] = useState<Record<string, string>>({});
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -107,6 +110,7 @@ export default function PlaygroundPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    configureSDK({ baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" });
     const savedHistory = localStorage.getItem(HISTORY_KEY);
     const savedActive = localStorage.getItem(ACTIVE_KEY);
     if (savedHistory) {
@@ -251,7 +255,7 @@ export default function PlaygroundPage() {
     );
   }, [sharedMessages, saveCurrentChat]);
 
-  const sendMessage = useCallback(() => {
+  const sendMessage = useCallback(async () => {
     if (!inputMessage.trim() || selectedModels.length === 0 || isLoadingRef.current) return;
 
     const userMessage: Message = {
@@ -263,37 +267,68 @@ export default function PlaygroundPage() {
     setSharedMessages((prev) => [...prev, userMessage]);
     setInputMessage("");
     setIsLoading(true);
+    setStreamErrors({});
+    setStreamingContent({});
 
     setSessions((prev) => prev.map((s) => ({ ...s, isTyping: true })));
 
-    selectedModels.forEach((model, index) => {
-      const delay = 800 + index * 300 + Math.random() * 500;
-      setTimeout(() => {
+    // Fire all model streams in parallel
+    const promises = selectedModels.map(async (model) => {
+      const messages: ChatMessage[] = sharedMessages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role, content: m.content }))
+        .concat({ role: "user", content: inputMessage });
+
+      try {
+        const stream = getSDK().chatStream({ model: model.id, messages });
+        let accumulated = "";
+
+        for await (const chunk of stream) {
+          accumulated += chunk;
+          setStreamingContent((prev) => ({ ...prev, [model.id]: accumulated }));
+        }
+
+        // Stream complete — save to session
         const assistantMessage: Message = {
           role: "assistant",
-          content: `This is a simulated response from ${model.name}. In production, this would connect to the actual OpenRouter API.\n\nThe model would process your prompt: "${userMessage.content}" and return a real response based on its capabilities.`,
+          content: accumulated,
           timestamp: Date.now(),
           modelId: model.id,
         };
 
-        setSessions((prevSessions) =>
-          prevSessions.map((s) =>
+        setSessions((prev) =>
+          prev.map((s) =>
             s.id === model.id
               ? { ...s, messages: [...s.messages, assistantMessage], isTyping: false }
               : s
           )
         );
-
-        setSessions((prevSessions) => {
-          const allFinished = prevSessions.every((s) => !s.isTyping);
-          if (allFinished) {
-            setIsLoading(false);
-          }
-          return prevSessions;
+        // Clear streaming content since it's now in the session
+        setStreamingContent((prev) => {
+          const next = { ...prev };
+          delete next[model.id];
+          return next;
         });
-      }, delay);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+        setStreamErrors((prev) => ({ ...prev, [model.id]: errorMessage }));
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === model.id ? { ...s, isTyping: false } : s
+          )
+        );
+        setStreamingContent((prev) => {
+          const next = { ...prev };
+          delete next[model.id];
+          return next;
+        });
+      }
     });
-  }, [inputMessage, selectedModels]);
+
+    // Wait for all streams, then clear loading
+    await Promise.all(promises);
+    setIsLoading(false);
+  }, [inputMessage, selectedModels, sharedMessages]);
 
   if (!isMounted) return null;
 
@@ -301,19 +336,31 @@ export default function PlaygroundPage() {
     <div className="h-screen bg-[#020202] text-white relative overflow-hidden flex">
       {/* Atmospheric Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_60%,transparent_100%)]" />
-        <motion.div className="absolute inset-0 opacity-30" style={{ background: spotlightBackground }} />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020202_80%)]" />
-        {/* Subtle floating orbs */}
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020202] via-[#050508] to-[#020202]" />
+        {/* Grid with softer mask */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_0%,#000_40%,transparent_100%)]" />
+        {/* Noise texture overlay */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
+        {/* Spotlight follow */}
+        <motion.div className="absolute inset-0 opacity-40" style={{ background: spotlightBackground }} />
+        {/* Deep radial fade */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,transparent_0%,#020202_100%)]" />
+        {/* Floating orbs — refined */}
         <motion.div
-          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/[0.03] blur-[120px]"
-          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+          className="absolute top-[15%] left-[20%] w-[600px] h-[600px] rounded-full bg-blue-600/[0.04] blur-[140px]"
+          animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.05, 1] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-[20%] right-[15%] w-[500px] h-[500px] rounded-full bg-violet-600/[0.03] blur-[120px]"
+          animate={{ x: [0, -35, 0], y: [0, 25, 0], scale: [1, 1.08, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-violet-500/[0.03] blur-[100px]"
-          animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[60%] left-[60%] w-[300px] h-[300px] rounded-full bg-cyan-500/[0.02] blur-[100px]"
+          animate={{ x: [0, 20, 0], y: [0, -15, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
@@ -325,24 +372,24 @@ export default function PlaygroundPage() {
             animate={{ width: 288, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="relative z-20 flex flex-col border-r border-white/[0.06] bg-[#050505]/90 backdrop-blur-2xl overflow-hidden shrink-0"
+            className="relative z-20 flex flex-col border-r border-white/[0.04] bg-[#030305]/95 backdrop-blur-2xl overflow-hidden shrink-0"
           >
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.06]">
-              <Link href="/" className="flex items-center gap-3">
-                <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/[0.08]">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.04]">
+              <Link href="/" className="flex items-center gap-3 group">
+                <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/[0.06] group-hover:border-white/10 transition-colors">
                   <Image src="/nervous-cat.jpg" alt="Yapapa" fill className="object-cover" unoptimized />
                 </div>
                 <div>
                   <span className="font-bold text-sm tracking-tight">Yapapa</span>
-                  <span className="text-[9px] text-gray-500 block font-mono">AI Playground</span>
+                  <span className="text-[9px] text-gray-600 block font-mono">AI Playground</span>
                 </div>
               </Link>
               <button
                 onClick={() => setShowSidebar(false)}
-                className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors"
+                className="p-2 rounded-lg hover:bg-white/[0.04] transition-colors"
               >
-                <PanelLeftClose className="w-4 h-4 text-gray-500" />
+                <PanelLeftClose className="w-4 h-4 text-gray-600 hover:text-gray-400 transition-colors" />
               </button>
             </div>
 
@@ -352,7 +399,7 @@ export default function PlaygroundPage() {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 onClick={handleNewChat}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600/15 to-violet-600/15 hover:from-blue-600/25 hover:to-violet-600/25 border border-blue-500/15 hover:border-blue-500/25 text-sm font-semibold transition-all"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600/10 to-violet-600/10 hover:from-blue-600/20 hover:to-violet-600/20 border border-blue-500/10 hover:border-blue-500/20 text-sm font-semibold transition-all"
               >
                 <Edit3 className="w-4 h-4" />
                 New Chat
@@ -361,49 +408,50 @@ export default function PlaygroundPage() {
 
             {/* Chat History */}
             <div className="flex-1 overflow-y-auto px-3 pb-3 playground-scroll">
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {chatHistory.map((chat) => {
                   const isActive = chat.id === activeChatId;
                   return (
-                    <div
+                    <motion.div
                       key={chat.id}
                       onClick={() => handleLoadChat(chat)}
+                      whileHover={{ scale: 1.005 }}
                       className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all border ${
                         isActive
-                          ? "bg-white/[0.06] border-white/[0.08]"
-                          : "bg-transparent border-transparent hover:bg-white/[0.03]"
+                          ? "bg-white/[0.04] border-white/[0.06]"
+                          : "bg-transparent border-transparent hover:bg-white/[0.02] hover:border-white/[0.03]"
                       }`}
                     >
                       <MessageSquare
-                        className={`w-4 h-4 shrink-0 ${
-                          isActive ? "text-white" : "text-gray-600"
+                        className={`w-4 h-4 shrink-0 transition-colors ${
+                          isActive ? "text-white/80" : "text-gray-700 group-hover:text-gray-500"
                         }`}
                       />
                       <div className="flex-1 min-w-0">
                         <div
                           className={`text-xs truncate ${
-                            isActive ? "text-white font-medium" : "text-gray-400"
+                            isActive ? "text-white/90 font-medium" : "text-gray-500 group-hover:text-gray-400"
                           }`}
                         >
                           {chat.title}
                         </div>
-                        <div className="text-[10px] text-gray-600 font-mono truncate">
+                        <div className="text-[10px] text-gray-700 font-mono truncate">
                           {new Date(chat.updatedAt).toLocaleDateString()}
                         </div>
                       </div>
                       <button
                         onClick={(e) => handleDeleteChat(chat.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-red-500/10 text-gray-600 hover:text-red-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-red-500/10 text-gray-700 hover:text-red-400 transition-all"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
-                    </div>
+                    </motion.div>
                   );
                 })}
                 {chatHistory.length === 0 && (
-                  <div className="text-center py-10 text-gray-700">
-                    <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                    <p className="text-xs font-mono">No chats yet</p>
+                  <div className="text-center py-12">
+                    <MessageSquare className="w-8 h-8 mx-auto mb-3 text-gray-800" />
+                    <p className="text-xs text-gray-700 font-mono">No chats yet</p>
                   </div>
                 )}
               </div>
@@ -430,29 +478,29 @@ export default function PlaygroundPage() {
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="relative border-b border-white/[0.06] bg-[#030303]/80 backdrop-blur-2xl shrink-0">
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+        <div className="relative border-b border-white/[0.04] bg-[#030305]/70 backdrop-blur-2xl shrink-0">
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className={`flex items-center gap-4 ${!showSidebar ? "ml-14 md:ml-0" : ""}`}>
                 <div className="flex items-center gap-3">
                   <motion.div
                     whileHover={{ scale: 1.05, rotate: 1 }}
-                    className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/[0.08] shadow-[0_0_20px_rgba(59,130,246,0.1)]"
+                    className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/[0.06] shadow-[0_0_24px_rgba(59,130,246,0.08)]"
                   >
                     <Image src="/nervous-cat.jpg" alt="Yapapa" fill className="object-cover" unoptimized />
-                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl" />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-white/[0.06] rounded-xl" />
                   </motion.div>
                   <div className="flex flex-col">
-                    <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent tracking-tight">
+                    <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent tracking-tight">
                       AI Playground
                     </h1>
                     <div className="flex items-center gap-1.5">
                       <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                       </span>
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500 font-mono">
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-gray-600 font-mono">
                         Compare Models
                       </span>
                     </div>
@@ -460,8 +508,8 @@ export default function PlaygroundPage() {
                 </div>
               </div>
 
-              {/* Right: Model Pills + Actions */}
-              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Right: Model Pills + Actions */}
+                <div className="flex items-center gap-2 sm:gap-3">
                 {selectedModels.length > 0 && (
                   <div className="hidden sm:flex items-center gap-2 max-w-md overflow-hidden">
                     <AnimatePresence mode="popLayout">
@@ -473,22 +521,22 @@ export default function PlaygroundPage() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.85, y: -8 }}
                           transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                          className="group flex items-center gap-2 pl-2 pr-1.5 py-1 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/15 rounded-full transition-colors"
+                          className="group flex items-center gap-2 pl-2 pr-1.5 py-1 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08] rounded-full transition-colors"
                           style={{
-                            boxShadow: `0 0 12px ${getProviderColor(model.id)}10`,
+                            boxShadow: `0 0 16px ${getProviderColor(model.id)}08`,
                           }}
                         >
                           {model.logo && (
-                            <div className="relative w-4 h-4 rounded-full overflow-hidden bg-white/5 shrink-0">
+                            <div className="relative w-4 h-4 rounded-full overflow-hidden bg-white/[0.03] shrink-0">
                               <Image src={model.logo} alt="" fill className="object-cover" unoptimized />
                             </div>
                           )}
-                          <span className="text-[11px] font-medium text-white/80 truncate max-w-[100px]">
+                          <span className="text-[11px] font-medium text-white/70 truncate max-w-[100px]">
                             {model.name.split(":")[0]}
                           </span>
                           <button
                             onClick={() => removeModel(model.id)}
-                            className="p-0.5 rounded-full text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+                            className="p-0.5 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-colors"
                             title="Remove model"
                           >
                             <X className="w-3 h-3" />
@@ -501,7 +549,7 @@ export default function PlaygroundPage() {
 
                 {/* Mobile model count */}
                 {selectedModels.length > 0 && (
-                  <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/[0.03] border border-white/[0.06] text-xs font-medium text-white/70">
+                  <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.04] text-xs font-medium text-white/60">
                     <span className="text-emerald-400">●</span>
                     {selectedModels.length}
                   </div>
@@ -511,9 +559,9 @@ export default function PlaygroundPage() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setShowModelSelector(true)}
-                  className="relative px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_28px_rgba(59,130,246,0.3)] transition-all overflow-hidden"
+                  className="relative px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600/90 to-violet-600/90 hover:from-blue-500 hover:to-violet-500 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-[0_0_24px_rgba(59,130,246,0.12)] hover:shadow-[0_0_32px_rgba(59,130,246,0.25)] transition-all overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700" />
                   <Plus className="w-4 h-4 relative z-10" />
                   <span className="hidden sm:inline relative z-10">
                     {selectedModels.length > 0 ? "Manage Models" : "Add Models"}
@@ -522,7 +570,7 @@ export default function PlaygroundPage() {
                     {selectedModels.length > 0 ? "Manage" : "Add"}
                   </span>
                   {selectedModels.length > 0 && (
-                    <span className="ml-0.5 text-[10px] font-bold opacity-70 relative z-10">
+                    <span className="ml-0.5 text-[10px] font-bold opacity-60 relative z-10">
                       {selectedModels.length}/4
                     </span>
                   )}
@@ -542,6 +590,8 @@ export default function PlaygroundPage() {
           onSend={sendMessage}
           onReset={resetChat}
           onAddModel={() => setShowModelSelector(true)}
+          streamingContent={streamingContent}
+          streamErrors={streamErrors}
         />
       </div>
 

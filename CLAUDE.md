@@ -74,14 +74,17 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 ### Monorepo structure
 - `apps/web`: Next.js 16 canary frontend using App Router, React 19, Tailwind CSS v4, NextAuth v5, Drizzle, and React Query.
 - `apps/backend`: Go 1.25 API using chi, pgx, JWT/API-key auth, and a layered service/repository architecture.
+- `packages/`: Reserved for shared packages (currently empty).
 - `scripts/dev.sh`: Full-stack launcher that also checks dependencies, starts Postgres, pushes schema, seeds data, and runs both apps.
 - `scripts/smoke-test.sh`: Repo-specific wiring audit that checks for dashboard mock data, SDK imports, route coverage, SSE wiring, and test presence.
+- `docs/`: Implementation guides and architecture documentation.
+- `examples/llmtests/`: LLM test examples.
 - `AGENTS.md`, `apps/web/AGENTS.md`, `apps/backend/AGENTS.md`: Additional repo and app-specific guidance.
 - `ops.md`: Operational debt and known architecture issues.
 
 ### Frontend architecture
-- Next.js 16 canary is a hard requirement: consult `node_modules/next/dist/docs/` before relying on old Next.js behavior.
-- The frontend is an App Router app. `app/api/*` route handlers proxy requests to the Go backend through `lib/api/proxy.ts`.
+- **Next.js 16 canary is NOT your training data.** Read `node_modules/next/dist/docs/` before writing code. Deprecation notices matter. `"use cache"` replaces old `revalidate`/`dynamic` — implicit caching is gone.
+- The frontend is an App Router app. Routes: `app/dashboard/` (protected), `app/playground/`, `app/pricing/`, `app/models/`, `app/gateway/`, `app/admin/`, `app/login/`, `app/signup/`, `app/docs/`. API routes in `app/api/*` proxy to the Go backend through `lib/api/proxy.ts`.
 - Auth is handled by NextAuth v5 in `auth.ts`/`auth.config.ts`. JWT secrets must match the backend because the Go API validates the same tokens.
 - The dashboard is SDK-driven. Components are expected to use `getSDK()` / `DraSDK` from `apps/web/lib/api/sdk.ts`, and `tests/wiring-verification.test.ts` enforces that dashboard code does not rely on mock data.
 - `apps/web/lib/api/hooks.ts` wraps the SDK with React Query. Prefer the SDK and hooks layer over direct `fetch()` from UI components.
@@ -104,9 +107,18 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 
 ### Important architecture quirks
 - `pkg/llm/provider/` is the canonical provider registry for new LLM work. Check for any additional provider wiring before adding a backend.
-- SDK parity matters. Backend API changes often need matching updates in both the Go SDK (`apps/backend/pkg/sdk/`) and the TypeScript SDK (`apps/web/lib/api/sdk.ts`).
+- **SDK parity matters.** Backend API changes often need matching updates in both the Go SDK (`apps/backend/pkg/sdk/`) and the TypeScript SDK (`apps/web/lib/api/sdk.ts`). Implement backend → Go SDK → TS SDK in that order.
 - Webhook delivery is a first-class subsystem split across `pkg/webhook/`, `internal/service/webhook.go`, and `internal/repository/webhook.go`.
 - Batch jobs, SSE notifications, uploads, telemetry, and embeddings all have dedicated handlers/services; check for an existing subsystem before adding parallel logic.
+
+## Hard Constraints
+
+- **No `as any` or `@ts-ignore`** in TypeScript — enforced at review
+- **No mock data** in dashboard components — must use real `getSDK()`. Enforced by `tests/wiring-verification.test.ts` and `scripts/smoke-test.sh`
+- **Zod v4** — breaking changes from v3. Do not use v3 patterns
+- **Tailwind CSS v4** — PostCSS plugin `@tailwindcss/postcss`, not v3 CLI. Config is CSS-first (`globals.css @theme`), NOT `tailwind.config.ts`
+- **Go 1.25** — features may differ from training data (`iter.Seq`, `unique`, `slog` improvements). Run `go vet ./...` before committing
+- **No CI workflows** currently configured (`.github/workflows/` absent)
 
 ## Tests and verification
 
@@ -115,16 +127,36 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - `scripts/smoke-test.sh` is worth running after significant cross-stack work because it checks repo-specific invariants that type checks do not cover.
 - `internal/testutil.NewTestServer()` is the main integration-test harness entry point on the Go side.
 
+### Key test files
+
+**Frontend:**
+- `tests/wiring-verification.test.ts` — enforces no mock data in dashboard, route files proxy to backend
+- `tests/lib/api/sdk.test.ts` — SDK unit tests
+- `tests/lib/api/errors.test.ts` — error handling tests
+
+**Backend:**
+- `internal/handler/handler_test.go` — auth, CRUD handler tests
+- `internal/middleware/auth_test.go`, `quota_test.go` — middleware tests
+- `internal/domain/domain_test.go` — domain model tests
+- `pkg/llm/llm_test.go` — LLM package tests
+- `pkg/sdk/client_test.go` — Go SDK client tests
+- `tests/integration/integration_test.go` — full integration (requires `TEST_DATABASE_URL`)
+
 ## Environment and repo quirks
 
-- `AUTH_SECRET` must be identical in frontend and backend.
+- `AUTH_SECRET` must be identical in frontend and backend. Fallback chain in `auth.ts`: `process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET`.
 - Root `.env` is Docker-oriented and uses `BACKEND_URL=http://backend:8080`; local frontend development usually needs `.env.local` with `BACKEND_URL=http://localhost:8080`.
 - `.npmrc` sets `legacy-peer-deps=true`; do not remove it.
 - The backend Makefile prepends `$(HOME)/.local/go/bin` to `PATH`.
 - `apps/web/tsconfig.json` excludes `db/seed*.ts` and `scripts/**/*` from type checking.
-- `turbo.json` passes some build env vars, but `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, and `GEMINI_API_KEY` are runtime concerns and may need to be set separately.
-- `next.config.ts` enables standalone output and sets security headers.
+- `turbo.json` passes build env vars (`DATABASE_URL`, `AUTH_SECRET`, `OPENAI_API_KEY`, `NVIDIA_API_KEY`, `BACKEND_URL`, etc.) but **NOT** `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY` — these are runtime-only and must be set separately in the environment.
+- `next.config.ts` enables `output: 'standalone'` and sets security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`). Production Docker server entry is `apps/web/server.js` inside `.next/standalone/`.
+- The backend `Makefile` uses a `go list -f` filter to only test packages that have test files (required for Go 1.26+ compatibility since `covdata` was removed).
 - There are no GitHub Actions workflows in `.github/workflows/` right now.
+- **Frontend `@/` path alias** maps to `apps/web/` root. Example: `@/lib/api/sdk` → `apps/web/lib/api/sdk.ts`.
+- **Backend `ENV=development`** enables `slog.LevelDebug` logging. `ENV=production` in Docker.
+- **`DB_TYPE` modes**: `dev.sh` detects `DB_TYPE` from `.env.local` — supports `postgres` (default), `neon` (cloud, skips local container), and `mongodb` (backend auto-setup).
+- **MongoDB** in `docker-compose.yml` is behind a `mongo` profile — NOT started by default. Start with: `docker-compose --profile mongo up -d`.
 
 ## Files worth checking before non-trivial changes
 

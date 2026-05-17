@@ -120,20 +120,6 @@ func main() {
 		}
 	}
 
-	// Request deduplication cache
-	var dedupCache *cache.DedupCache
-	if llmCache != nil {
-		dedupCache = cache.NewDedupCache(llmCache)
-		logger.Info("dedup_cache_enabled")
-	}
-
-	// Semantic cache for fuzzy matching
-	var semanticCache *cache.SemanticCache
-	if cfg.EnableSemanticCache {
-		semanticCache = cache.NewSemanticCache(cfg.CacheMaxSize, cfg.SemanticCacheThreshold)
-		logger.Info("semantic_cache_enabled", "threshold", cfg.SemanticCacheThreshold)
-	}
-
 	llmWatcher := watcher.New()
 	llmWatcher.RegisterAll(func(ctx context.Context, record watcher.ErrorRecord) error {
 		logger.Error("llm_provider_error",
@@ -302,10 +288,6 @@ func main() {
 		logger.Info("ab_router_configured", "variant_a", cfg.ABTestVariantA, "variant_b", cfg.ABTestVariantB)
 	}
 
-	// Guardrails
-	guard := guardrails.New()
-	logger.Info("guardrails_initialized")
-
 	// Email sender
 	emailSender := email.Factory(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPass, cfg.SMTPFrom)
 	if cfg.SMTPHost != "" {
@@ -361,11 +343,8 @@ func main() {
 	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc, providerSvc, webhookSvc, nil, orgSvc)
 	h.SetEmailSender(emailSender)
 	h.SetStripeService(stripeSvc)
-	h.SetGuard(guard)
 	h.SetModelRouter(modelRouter)
 	h.SetBudgetRouter(budgetRouter)
-	h.SetDedupCache(dedupCache)
-	h.SetSemanticCache(semanticCache)
 	h.SetABRouter(abRouter)
 	h.SetLLMCache(llmCache)
 	h.SetAdminService(adminSvc)
@@ -585,10 +564,7 @@ func main() {
 		r.Delete("/api/comparisons/{id}", h.DeleteComparison)
 
 		// Fine-tuning
-		r.Get("/api/fine-tuning/datasets", h.ListFineTuningDatasets)
-		r.Get("/api/fine-tuning/datasets/{datasetId}", h.GetFineTuningDataset)
 		r.Get("/api/fine-tuning/jobs", h.ListFineTuningJobs)
-		r.Post("/api/fine-tuning/jobs", h.CreateFineTuningJob)
 		r.Get("/api/fine-tuning/jobs/{jobId}", h.GetFineTuningJob)
 
 		// Budget alerts & caps
@@ -640,6 +616,7 @@ func main() {
 		// Providers
 		r.Get("/api/admin/providers", appmiddleware.RequireAdmin(h.AdminListProviders))
 		r.Post("/api/admin/providers", appmiddleware.RequirePermission("providers.write")(h.AdminCreateProvider))
+		r.Post("/api/admin/providers/fetch-models", appmiddleware.RequirePermission("providers.write")(h.AdminFetchModels))
 		r.Get("/api/admin/providers/{id}", appmiddleware.RequireAdmin(h.AdminGetProvider))
 		r.Put("/api/admin/providers/{id}", appmiddleware.RequirePermission("providers.write")(h.AdminUpdateProvider))
 		r.Put("/api/admin/providers/{id}/status", appmiddleware.RequirePermission("providers.write")(h.AdminUpdateProviderStatus))

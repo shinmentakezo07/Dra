@@ -158,15 +158,6 @@ func (c *MemoryRepoCache) DeletePrefix(ctx context.Context, prefix string) error
 	return nil
 }
 
-// NopRepoCache is a no-op cache for testing or when caching is disabled.
-type NopRepoCache struct{}
-
-func NewNopRepoCache() *NopRepoCache { return &NopRepoCache{} }
-func (c *NopRepoCache) Get(ctx context.Context, key string, dest any) bool { return false }
-func (c *NopRepoCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error { return nil }
-func (c *NopRepoCache) Delete(ctx context.Context, key string) error { return nil }
-func (c *NopRepoCache) DeletePrefix(ctx context.Context, prefix string) error { return nil }
-
 // cacheKey helpers
 func userCacheKey(id string) string    { return "user:id:" + id }
 func userEmailCacheKey(email string) string { return "user:email:" + email }

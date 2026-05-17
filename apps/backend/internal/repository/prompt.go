@@ -58,18 +58,6 @@ func (r *PromptRepo) GetPrompt(ctx context.Context, name string) (*Prompt, error
 	return &p, nil
 }
 
-// GetPromptByVersion retrieves a specific version of a prompt.
-func (r *PromptRepo) GetPromptByVersion(ctx context.Context, name string, version int) (*Prompt, error) {
-	row := r.db.QueryRow(ctx,
-		`SELECT id, name, version, template, model, config, created_at FROM prompts WHERE name = $1 AND version = $2`, name, version)
-	var p Prompt
-	if err := row.Scan(&p.ID, &p.Name, &p.Version, &p.Template, &p.Model, &p.Config, &p.CreatedAt); err != nil {
-		if err == pgx.ErrNoRows { return nil, nil }
-		return nil, err
-	}
-	return &p, nil
-}
-
 // ListPrompts lists all unique prompt names with their latest version.
 func (r *PromptRepo) ListPrompts(ctx context.Context, limit, offset int) ([]Prompt, error) {
 	if limit <= 0 { limit = 20 }
