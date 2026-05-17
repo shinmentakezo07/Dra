@@ -350,6 +350,11 @@ func main() {
 	h.SetAdminService(adminSvc)
 	h.SetAdminSessionRepo(adminSessionRepo)
 
+	// Fine-tuning service
+	fineTuningRepo := repository.NewFineTuningRepo(database)
+	fineTuningSvc := service.NewFineTuningService(fineTuningRepo)
+	h.SetFineTuningService(fineTuningSvc)
+
 	// Batch service needs the handler's chat function; wire after handler creation
 	batchRepo := repository.NewBatchJobRepo(database)
 	batchSvc := service.NewBatchService(batchRepo, h.ChatFnForBatch())
@@ -493,11 +498,16 @@ func main() {
 		r.Get("/auth/me", h.Me)
 		r.Put("/auth/profile", h.UpdateProfile)
 		r.Put("/auth/password", h.ChangePassword)
+		r.Post("/auth/logout", h.Logout)
+		r.Delete("/api/account", h.DeleteAccount)
+
+		r.Get("/api/permissions/me", h.MyPermissions)
 
 		r.Get("/api/keys", h.ListKeys)
 		r.Post("/api/keys", h.CreateKey)
 		r.Delete("/api/keys/{id}", h.DeleteKey)
 		r.Post("/api/keys/{id}/revoke", h.RevokeKey)
+		r.Put("/api/keys/{id}", h.UpdateKey)
 
 		r.Get("/api/credits", h.GetCredits)
 		r.Post("/api/credits/purchase", h.PurchaseCredits)
@@ -519,6 +529,7 @@ func main() {
 		r.Get("/api/conversations/{id}", h.GetConversation)
 		r.Delete("/api/conversations/{id}", h.DeleteConversation)
 		r.Post("/api/conversations/{id}/messages", h.AddMessage)
+		r.Put("/api/conversations/{id}/title", h.UpdateConversationTitle)
 
 		// Prompts
 		r.Get("/api/prompts", h.ListPrompts)
@@ -530,6 +541,8 @@ func main() {
 		// Batch
 		r.Post("/api/batch", h.BatchChat)
 		r.Get("/api/batch/{id}", h.GetBatchJob)
+		r.Get("/api/batch", h.ListBatchJobs)
+		r.Delete("/api/batch/{id}", h.CancelBatchJob)
 
 		// File upload
 		r.Post("/api/files/upload", h.UploadFiles)
@@ -547,6 +560,7 @@ func main() {
 		r.Get("/api/webhooks/{id}", h.GetWebhook)
 		r.Put("/api/webhooks/{id}", h.UpdateWebhook)
 		r.Delete("/api/webhooks/{id}", h.DeleteWebhook)
+		r.Get("/api/webhooks/{id}/deliveries", h.GetWebhookDeliveries)
 
 		// Organizations
 		r.Get("/api/organizations", h.ListOrgs)
@@ -565,7 +579,11 @@ func main() {
 
 		// Fine-tuning
 		r.Get("/api/fine-tuning/jobs", h.ListFineTuningJobs)
+		r.Post("/api/fine-tuning/jobs", h.CreateFineTuningJob)
 		r.Get("/api/fine-tuning/jobs/{jobId}", h.GetFineTuningJob)
+		r.Get("/api/fine-tuning/datasets", h.ListFineTuningDatasets)
+		r.Post("/api/fine-tuning/datasets", h.CreateFineTuningDataset)
+		r.Delete("/api/fine-tuning/datasets/{id}", h.DeleteFineTuningDataset)
 
 		// Budget alerts & caps
 		r.Get("/api/budget/alerts", h.ListBudgetAlerts)
@@ -580,6 +598,7 @@ func main() {
 		r.Get("/api/exports", h.ListExportJobs)
 		r.Post("/api/exports", h.CreateExportJob)
 		r.Get("/api/exports/{id}", h.GetExportJob)
+		r.Get("/api/exports/{id}/download", h.DownloadExportJob)
 
 		// Admin Messages (user inbox)
 		r.Get("/api/messages", h.GetUserMessages)
@@ -719,6 +738,9 @@ func main() {
 		r.Post("/api/admin/rbac/roles/{role}/permissions", appmiddleware.RequireAdmin(h.AddRolePermission))
 		r.Delete("/api/admin/rbac/roles/{role}/permissions/{permission}", appmiddleware.RequireAdmin(h.RemoveRolePermission))
 		r.Put("/api/admin/users/{userId}/role", appmiddleware.RequireAdmin(h.UpdateUserRole))
+
+		// Billing adjustments
+		r.Get("/api/admin/users/{id}/adjustments", appmiddleware.RequireAdmin(h.AdminListAdjustments))
 
 		// Rate limit tiers
 		r.Get("/api/admin/rate-limits/tiers", appmiddleware.RequireAdmin(h.ListTiers))

@@ -140,6 +140,16 @@ func (r *APIKeyRepo) Revoke(ctx context.Context, id string) error {
 	return err
 }
 
+func (r *APIKeyRepo) Update(ctx context.Context, id string, name *string, models, ips []string, maxTokens *int) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE api_keys SET name = COALESCE($1, name), allowed_models = $2, allowed_ips = $3, max_tokens_per_request = COALESCE($4, max_tokens_per_request) WHERE id = $5`,
+		name, models, ips, maxTokens, id)
+	if err == nil && r.cache != nil {
+		_ = r.cache.Delete(ctx, apiKeyCacheKey("id:"+id))
+	}
+	return err
+}
+
 func (r *APIKeyRepo) Count(ctx context.Context) (int, error) {
 	var n int
 	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM api_keys`).Scan(&n)

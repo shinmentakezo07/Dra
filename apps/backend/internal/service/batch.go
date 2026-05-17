@@ -69,6 +69,24 @@ func (s *BatchService) List(ctx context.Context, userID string) ([]repository.Ba
 	return jobs, nil
 }
 
+// Cancel marks a pending/running batch job as cancelled.
+func (s *BatchService) Cancel(ctx context.Context, userID, id string) *domain.AppError {
+	job, err := s.repo.ByID(ctx, id)
+	if err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "database error", err)
+	}
+	if job == nil || job.UserID != userID {
+		return domain.NewError(domain.ErrNotFound, 404, "batch job not found")
+	}
+	if job.Status == string(batch.StatusCompleted) || job.Status == string(batch.StatusFailed) || job.Status == string(batch.StatusCancelled) {
+		return domain.NewError(domain.ErrBadRequest, 400, "batch job cannot be cancelled")
+	}
+	if err := s.repo.UpdateStatus(ctx, id, string(batch.StatusCancelled), nil, "cancelled by user", job.Progress); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to cancel batch job", err)
+	}
+	return nil
+}
+
 func (s *BatchService) process(jobID string, items []batch.JobItem) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()

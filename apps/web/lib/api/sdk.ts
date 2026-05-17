@@ -54,6 +54,11 @@ export interface UserCredits {
   balance: number;
   totalPurchased: number;
   totalSpent: number;
+  monthlyBudget?: number;
+  dailyBudget?: number;
+  dailySpent: number;
+  monthlySpent: number;
+  budgetResetAt?: string;
   updatedAt: string;
 }
 
@@ -183,13 +188,26 @@ export interface Prompt {
 export interface Webhook {
   id: string;
   userId: string;
-  name: string;
   url: string;
-  events: string[];
   secret?: string;
+  events: string[];
+  headers?: Record<string, string>;
   active: boolean;
   createdAt: string;
-  updatedAt: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  webhookId: string;
+  eventType: string;
+  statusCode?: number;
+  error?: string;
+  attempts: number;
+  maxAttempts: number;
+  status: string;
+  deliveredAt?: string;
+  nextRetryAt?: string;
+  createdAt: string;
 }
 
 export interface Organization {
@@ -210,11 +228,15 @@ export interface OrgMember {
 export interface BatchJob {
   id: string;
   userId: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: string;
+  items?: unknown;
+  results?: unknown;
+  error?: string;
+  progress: number;
   total: number;
-  completed: number;
-  failed: number;
   createdAt: string;
+  startedAt?: string;
+  endedAt?: string;
 }
 
 export interface FileInfo {
@@ -265,23 +287,44 @@ export interface ProviderSummary {
 export interface Comparison {
   id: string;
   userId: string;
+  modelA: string;
+  modelB: string;
   prompt: string;
-  models: string[];
-  ratings: Record<string, number>;
+  resultA?: string;
+  resultB?: string;
+  latencyA?: number;
+  latencyB?: number;
+  costA?: number;
+  costB?: number;
+  tokensA?: number;
+  tokensB?: number;
+  status: string;
   createdAt: string;
 }
 
 export interface FineTuningJob {
   id: string;
   userId: string;
-  model: string;
-  status: "pending" | "running" | "succeeded" | "failed";
-  datasetFileId?: string;
+  baseModel: string;
+  datasetId?: string;
+  status: "queued" | "running" | "completed" | "failed";
   resultModelId?: string;
+  hyperparams?: unknown;
   progress: number;
-  error?: string;
   createdAt: string;
-  updatedAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+}
+
+export interface FineTuningDataset {
+  id: string;
+  userId: string;
+  filename: string;
+  mimeType?: string;
+  size: number;
+  storageKey: string;
+  format: string;
+  createdAt: string;
 }
 
 export interface ExportJob {
@@ -290,8 +333,7 @@ export interface ExportJob {
   type: string;
   format: string;
   status: "pending" | "processing" | "completed" | "failed";
-  downloadUrl?: string;
-  recordCount?: number;
+  filePath?: string;
   createdAt: string;
   completedAt?: string;
 }
@@ -574,6 +616,18 @@ class DraSDK {
     );
   }
 
+  logout() {
+    return this.request<{ logged_out: boolean }>("POST", "/api/auth/logout");
+  }
+
+  deleteAccount() {
+    return this.request<{ deleted: boolean }>("DELETE", "/api/account");
+  }
+
+  getMyPermissions() {
+    return this.request<string[]>("GET", "/api/permissions/me");
+  }
+
   // API Keys
   listKeys() {
     return this.request<APIKey[]>("GET", "/api/keys");
@@ -594,6 +648,14 @@ class DraSDK {
     return this.request<{ revoked: boolean }>(
       "POST",
       `/api/keys/${encodeURIComponent(id)}/revoke`
+    );
+  }
+
+  updateKey(id: string, data: { name?: string; allowedModels?: string[]; allowedIPs?: string[]; maxTokensPerRequest?: number }) {
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/keys/${encodeURIComponent(id)}`,
+      data
     );
   }
 
@@ -794,6 +856,14 @@ class DraSDK {
     );
   }
 
+  updateConversationTitle(id: string, title: string) {
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/conversations/${encodeURIComponent(id)}/title`,
+      { title }
+    );
+  }
+
   // Prompts
 
   listPrompts() {
@@ -826,7 +896,7 @@ class DraSDK {
     return this.request<Webhook[]>("GET", "/api/webhooks");
   }
 
-  createWebhook(data: { name: string; url: string; events: string[] }) {
+  createWebhook(data: { url: string; secret?: string; events: string[]; headers?: Record<string, string> }) {
     return this.request<Webhook>("POST", "/api/webhooks", data);
   }
 
@@ -840,6 +910,10 @@ class DraSDK {
 
   deleteWebhook(id: string) {
     return this.request<{ deleted: boolean }>("DELETE", `/api/webhooks/${encodeURIComponent(id)}`);
+  }
+
+  listWebhookDeliveries(webhookId: string) {
+    return this.request<WebhookDelivery[]>("GET", `/api/webhooks/${encodeURIComponent(webhookId)}/deliveries`);
   }
 
   // Organizations
@@ -887,6 +961,14 @@ class DraSDK {
 
   getBatchJob(id: string) {
     return this.request<BatchJob>("GET", `/api/batch/${encodeURIComponent(id)}`);
+  }
+
+  listBatchJobs() {
+    return this.request<BatchJob[]>("GET", "/api/batch");
+  }
+
+  cancelBatchJob(id: string) {
+    return this.request<{ cancelled: boolean }>("DELETE", `/api/batch/${encodeURIComponent(id)}`);
   }
 
   // Files
@@ -1079,7 +1161,7 @@ class DraSDK {
     return this.paginatedRequest<Comparison>("/api/comparisons", { page, limit });
   }
 
-  createComparison(data: { prompt: string; models: string[] }) {
+  createComparison(data: { modelA: string; modelB: string; prompt: string }) {
     return this.request<Comparison>("POST", "/api/comparisons", data);
   }
 
@@ -1101,6 +1183,22 @@ class DraSDK {
     return this.request<FineTuningJob>("GET", `/api/fine-tuning/jobs/${encodeURIComponent(jobId)}`);
   }
 
+  createFineTuningJob(data: { baseModel: string; datasetId: string; hyperparams?: unknown }) {
+    return this.request<FineTuningJob>("POST", "/api/fine-tuning/jobs", data);
+  }
+
+  listFineTuningDatasets() {
+    return this.request<FineTuningDataset[]>("GET", "/api/fine-tuning/datasets");
+  }
+
+  createFineTuningDataset(data: { filename: string; format: string }) {
+    return this.request<FineTuningDataset>("POST", "/api/fine-tuning/datasets", data);
+  }
+
+  deleteFineTuningDataset(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/fine-tuning/datasets/${encodeURIComponent(id)}`);
+  }
+
   // Exports
 
   listExportJobs(page?: number, limit?: number) {
@@ -1113,6 +1211,14 @@ class DraSDK {
 
   getExportJob(id: string) {
     return this.request<ExportJob>("GET", `/api/exports/${encodeURIComponent(id)}`);
+  }
+
+  downloadExport(id: string): Promise<Response> {
+    return this.fetchWithTimeout(`${this.baseUrl}/api/exports/${encodeURIComponent(id)}/download`, {
+      method: "GET",
+      headers: this.headers(),
+      credentials: "include",
+    });
   }
 
   // Promo Codes

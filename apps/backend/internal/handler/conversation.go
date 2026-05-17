@@ -116,3 +116,31 @@ func (h *Handler) AddMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Created(w, msg)
 }
+
+func (h *Handler) UpdateConversationTitle(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Not authenticated")
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+	var req struct {
+		Title string `json:"title"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON")
+		return
+	}
+	if req.Title == "" {
+		response.Error(w, 400, "Title is required")
+		return
+	}
+
+	appErr := h.conversationSvc.UpdateTitle(r.Context(), u.ID, id, req.Title)
+	if appErr != nil {
+		response.Error(w, appErr.Status, appErr.Message)
+		return
+	}
+	response.OK(w, map[string]bool{"updated": true})
+}

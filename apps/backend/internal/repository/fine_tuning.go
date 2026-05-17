@@ -140,3 +140,8 @@ func (r *FineTuningRepo) ListJobs(ctx context.Context, userID string, limit, off
 	}
 	return result, rows.Err()
 }
+
+func (r *FineTuningRepo) DeleteDataset(ctx context.Context, userID, id string) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM fine_tuning_datasets WHERE id = $1 AND user_id = $2`, id, userID)
+	return err
+}

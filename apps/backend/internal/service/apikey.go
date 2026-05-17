@@ -66,3 +66,17 @@ func (s *APIKeyService) Revoke(ctx context.Context, userID, keyID string) *domai
 	}
 	return nil
 }
+
+func (s *APIKeyService) Update(ctx context.Context, userID, keyID string, name *string, models, ips []string, maxTokens *int) *domain.AppError {
+	key, err := s.repo.ByID(ctx, keyID)
+	if err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "database error", err)
+	}
+	if key == nil || key.UserID != userID {
+		return domain.ErrKeyNotFound
+	}
+	if err := s.repo.Update(ctx, keyID, name, models, ips, maxTokens); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to update key", err)
+	}
+	return nil
+}

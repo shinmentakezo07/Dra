@@ -97,6 +97,10 @@ func (h *Handler) SetBatchService(b *service.BatchService) {
 	h.batchSvc = b
 }
 
+func (h *Handler) SetFineTuningService(s *service.FineTuningService) {
+	h.fineTuningSvc = s
+}
+
 // SetABRouter sets the A/B test router.
 func (h *Handler) SetABRouter(ab *router.ABRouter) {
 	h.abRouter = ab
@@ -996,6 +1000,16 @@ func (h *Handler) DeleteComparison(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, map[string]bool{"deleted": true})
 }
 
+func (h *Handler) CreateFineTuningJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req domain.CreateFineTuningJobRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid JSON body"); return }
+	j, err := h.fineTuningSvc.CreateJob(r.Context(), u.ID, req)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, j)
+}
+
 func (h *Handler) GetFineTuningJob(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
 	if u == nil { response.Error(w, 401, "Authentication required"); return }
@@ -1075,4 +1089,114 @@ func (h *Handler) ListExportJobs(w http.ResponseWriter, r *http.Request) {
 	jobs, err := h.exportSvc.ListJobs(r.Context(), u.ID, page, limit)
 	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
 	response.OK(w, jobs)
+}
+
+func (h *Handler) DownloadExportJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	job, err := h.exportSvc.GetJob(r.Context(), u.ID, id)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	if job.Status != "completed" || job.FilePath == nil {
+		response.Error(w, 400, "Export not ready")
+		return
+	}
+	http.ServeFile(w, r, *job.FilePath)
+}
+
+func (h *Handler) ListBatchJobs(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	jobs, err := h.batchSvc.List(r.Context(), u.ID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, jobs)
+}
+
+func (h *Handler) CancelBatchJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	if err := h.batchSvc.Cancel(r.Context(), u.ID, id); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"cancelled": true})
+}
+
+func (h *Handler) GetWebhookDeliveries(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	webhookID := chi.URLParam(r, "id")
+	deliveries, err := h.webhookSvc.ListDeliveries(r.Context(), u.ID, webhookID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, deliveries)
+}
+
+func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	if err := h.userSvc.Delete(r.Context(), u.ID); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	response.OK(w, map[string]bool{"logged_out": true})
+}
+
+func (h *Handler) UpdateKey(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	var req struct {
+		Name                *string  `json:"name,omitempty"`
+		AllowedModels       []string `json:"allowedModels,omitempty"`
+		AllowedIPs          []string `json:"allowedIPs,omitempty"`
+		MaxTokensPerRequest *int     `json:"maxTokensPerRequest,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body"); return
+	}
+	if err := h.keySvc.Update(r.Context(), u.ID, id, req.Name, req.AllowedModels, req.AllowedIPs, req.MaxTokensPerRequest); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return
+	}
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) CreateFineTuningDataset(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	var req struct {
+		Filename string `json:"filename"`
+		Format   string `json:"format"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body"); return
+	}
+	if req.Filename == "" || req.Format == "" {
+		response.Error(w, 400, "filename and format are required"); return
+	}
+	ds, err := h.fineTuningSvc.CreateDataset(r.Context(), u.ID, req.Filename, req.Format)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.Created(w, ds)
+}
+
+func (h *Handler) ListFineTuningDatasets(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	datasets, err := h.fineTuningSvc.ListDatasets(r.Context(), u.ID)
+	if err != nil { response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return }
+	response.OK(w, datasets)
+}
+
+func (h *Handler) DeleteFineTuningDataset(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil { response.Error(w, 401, "Authentication required"); return }
+	id := chi.URLParam(r, "id")
+	if err := h.fineTuningSvc.DeleteDataset(r.Context(), u.ID, id); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message}); return
+	}
+	response.OK(w, map[string]bool{"deleted": true})
 }
