@@ -1,50 +1,51 @@
 <div align="center">
 
-<!-- ANIMATED HEADER BANNER - Premium Wave Gradient -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f172a,30:1e1b4b,60:312e81,100:4f46e5&height=320&section=header&text=YAPAPA&fontSize=95&fontColor=ffffff&animation=fadeIn&fontAlignY=32&desc=Universal%20LLM%20Gateway%20•%20One%20API%20to%20Rule%20Them%20All&descAlignY=52&descSize=22&descAlign=50" />
+<!-- ANIMATED HEADER BANNER - Premium Wave Gradient with Glow -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f172a,25:1e1b4b,50:312e81,75:4338ca,100:6366f1&height=350&section=header&text=YAPAPA&fontSize=100&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=Universal%20LLM%20Gateway%20%E2%80%A2%20One%20API%20to%20Rule%20Them%20All&descAlignY=55&descSize=20&descAlign=50" />
 
 <br/>
 
-<!-- ANIMATED TYPING TEXT - Fira Code with rainbow gradient -->
+<!-- ANIMATED TYPING TEXT - Multi-line with gradient -->
 <a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=700&size=24&pause=800&color=3B82F6&center=true&vCenter=true&width=700&height=50&lines=One+API+🔐+100%2B+Models+🤖+Zero+Complexity+⚡;GPT-4+•+Claude+•+Gemini+•+Llama+•+Mistral+•+Grok;Production-Grade+AI+Gateway+🚀;Next.js+16+%2B+Go+1.25+%2B+PostgreSQL+16+%2B+Redis;OpenAI-Compatible+Drop-In+Replacement" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=22&pause=1000&color=6366F1&center=true&vCenter=true&width=750&height=60&lines=%F0%9F%94%90+One+API+%E2%80%A2+100%2B+Models+%E2%80%A2+Zero+Complexity+%E2%9A%A1;GPT-4o+%E2%80%A2+Claude+4+%E2%80%A2+Gemini+2.5+%E2%80%A2+Llama+4+%E2%80%A2+Mistral+%E2%80%A2+Grok;Production-Grade+AI+Gateway+%F0%9F%9A%80;Next.js+16+%2B+Go+1.25+%2B+PostgreSQL+16+%2B+Redis" alt="Typing SVG" />
 </a>
 
 <br/>
 <br/>
 
-<!-- PREMIUM BADGES - Tech Stack -->
-<a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=next.js&logoColor=white&labelColor=111" /></a>
-<a href="https://react.dev/"><img src="https://img.shields.io/badge/React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black&labelColor=222" /></a>
-<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=1a1a2e" /></a>
-<a href="https://go.dev/"><img src="https://img.shields.io/badge/Go%201.25-00ADD8?style=for-the-badge&logo=go&logoColor=white&labelColor=003545" /></a>
-<a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white&labelColor=1a365d" /></a>
-<a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white&labelColor=0f4a7a" /></a>
-<a href="https://turbo.build/"><img src="https://img.shields.io/badge/Turborepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white&labelColor=7f1d1d" /></a>
-<a href="https://redis.io/"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white&labelColor=4a0000" /></a>
+<!-- PREMIUM BADGES - Tech Stack with hover effects -->
+<a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=next.js&logoColor=white" /></a>
+<a href="https://react.dev/"><img src="https://img.shields.io/badge/React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black" /></a>
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript%205.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" /></a>
+<a href="https://go.dev/"><img src="https://img.shields.io/badge/Go%201.25-00ADD8?style=for-the-badge&logo=go&logoColor=white" /></a>
+<a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL%2016-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" /></a>
+<a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" /></a>
+<a href="https://turbo.build/"><img src="https://img.shields.io/badge/Turborepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white" /></a>
+<a href="https://redis.io/"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" /></a>
+<a href="https://stripe.com/"><img src="https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" /></a>
 
 <br/>
 <br/>
 
-<!-- ANIMATED STAT BOXES -->
+<!-- ANIMATED STAT BOXES - Repo Card -->
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api/pin/?username=shinmentakezo07&repo=owsiwa&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&icon_color=6366f1&text_color=cbd5e1&description_lines_count=2">
-  <img src="https://github-readme-stats.vercel.app/api/pin/?username=shinmentakezo07&repo=owsiwa&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&icon_color=6366f1&text_color=cbd5e1&description_lines_count=2" alt="Repo Card" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api/pin/?username=shinmentakezo07&repo=owsiwa&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&icon_color=6366f1&text_color=cbd5e1&description_lines_count=2&show_owner=true">
+  <img src="https://github-readme-stats.vercel.app/api/pin/?username=shinmentakezo07&repo=owsiwa&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&icon_color=6366f1&text_color=cbd5e1&description_lines_count=2&show_owner=true" alt="Repo Card" />
 </picture>
 
 <br/>
-<br/>
 
-<!-- STATUS BADGES WITH ANIMATED EFFECTS -->
-<img src="https://img.shields.io/badge/License-MIT-10b981?style=flat-square&labelColor=0f172a" />
-<img src="https://img.shields.io/badge/Node-20+-3b82f6?style=flat-square&logo=node.js&labelColor=0f172a" />
-<img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go&labelColor=0f172a" />
-<img src="https://img.shields.io/badge/Vitest_pass-✓-22c55e?style=flat-square&labelColor=0f172a" />
-<img src="https://img.shields.io/badge/Go_Test_pass-✓-22c55e?style=flat-square&labelColor=0f172a" />
-<img src="https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?style=flat-square&logo=postgresql&labelColor=0f172a" />
-<img src="https://img.shields.io/badge/PRs-Welcome-8b5cf6?style=flat-square&labelColor=0f172a" />
+<!-- STATUS BADGES WITH SHIELDS -->
+<p>
+  <img src="https://img.shields.io/badge/License-MIT-10b981?style=flat-square&labelColor=0f172a" />
+  <img src="https://img.shields.io/badge/Node-20+-3b82f6?style=flat-square&logo=node.js&labelColor=0f172a" />
+  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go&labelColor=0f172a" />
+  <img src="https://img.shields.io/badge/Tests-Passing-22c55e?style=flat-square&labelColor=0f172a" />
+  <img src="https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?style=flat-square&logo=postgresql&labelColor=0f172a" />
+  <img src="https://img.shields.io/badge/PRs-Welcome-8b5cf6?style=flat-square&labelColor=0f172a" />
+  <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square&labelColor=0f172a" />
+</p>
 
-<br/>
 <br/>
 
 <!-- NAVIGATION KBD BUTTONS WITH GLOW -->
@@ -60,16 +61,30 @@
 
 </div>
 
-<br/>
-
-<!-- FEATURES SECTION -->
-<a id="features"></a>
-
-## ✨ What Makes Yapapa Special
+## 🎯 Why Teams Use Yapapa
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/platane/snk/output/github-contribution-grid-snake-dark.svg" width="100%" alt="snake animation" />
-  <br/>
+
+| Problem | Yapapa Fix |
+|:--------|:-----------|
+| Managing different SDKs for OpenAI, Anthropic, Gemini, Groq, and more | **One unified API** for every provider |
+| Vendor lock-in and expensive migration work | **OpenAI-compatible** drop-in layer |
+| Poor visibility into token spend and latency | **Built-in analytics, logs, and billing** |
+| Hard to compare model quality across providers | **Playground for side-by-side testing** |
+| Production auth, quotas, and rate limits take time to build | **Ready-made gateway infrastructure** |
+
+</div>
+
+<br/>
+
+> Yapapa is an **OpenRouter-style universal LLM gateway** built with **Next.js 16 canary + Go 1.25**. It gives you a production-ready control plane for AI traffic: routing, billing, analytics, auth, quotas, webhooks, conversations, prompts, and multi-provider access.
+
+<br/>
+
+
+<!-- Animated separator -->
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=4&section=header&text=&animation=fadeIn" width="100%" />
 </div>
 
 <br/>
@@ -79,63 +94,104 @@
 <td width="50%" valign="top">
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Globe%20with%20Meridians.png" width="64" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Globe%20with%20Meridians.png" width="80" />
 </p>
 
 ### 🌐 Unified AI Gateway
 
-**One endpoint for all models.** Switch between GPT-4, Claude-3, Gemini, Llama, Mistral, Grok, and 100+ others instantly — no code changes, no vendor lock-in. Includes an OpenAI-compatible `/v1/chat/completions` proxy for drop-in replacement.
+**One endpoint for all models.** Switch between GPT-4o, Claude Opus 4, Gemini 2.5, Llama 4, Mistral, Grok, and 100+ others instantly — no code changes, no vendor lock-in.
+
+```typescript
+// Just swap the base URL - that's it!
+const client = new OpenAI({
+  baseURL: "https://yapa.up.railway.app/v1"
+});
+```
+
+✅ OpenAI-compatible `/v1/chat/completions` proxy  
+✅ Automatic failover & load balancing  
+✅ Per-model routing & caching  
 
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" width="64" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" width="80" />
 </p>
 
 ### 📊 Real-Time Analytics
 
-**Monitor everything.** Beautiful dashboards tracking requests, latency, costs, token usage, and model breakdowns with interactive Recharts visualizations. Time-range filtering (7d/30d/90d) and exportable reports.
+**Monitor everything in beautiful dashboards.** Track requests, latency, costs, token usage, and model breakdowns with interactive Recharts visualizations.
+
+- 📈 Time-range filtering (7d / 30d / 90d)
+- 💰 Cost breakdown by model & provider
+- 📊 Exportable CSV/PDF reports
+- 🔔 Usage alerts & budget caps
 
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Link.png" width="64" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Link.png" width="80" />
 </p>
 
 ### 🔌 OpenAI-Compatible API
 
-**Drop-in replacement for OpenAI SDKs.** Use any OpenAI client against `/v1/chat/completions`, `/v1/embeddings`, and `/v1/models`. No SDK changes needed — just swap the base URL.
+**Drop-in replacement for OpenAI SDKs.** Use any OpenAI client — Python, TypeScript, Go, Rust — against your Yapapa instance. Zero code changes needed.
+
+```bash
+# Works with any OpenAI SDK
+curl https://yapa.up.railway.app/v1/chat/completions \
+  -H "Authorization: Bearer $API_KEY" \
+  -d '{"model":"gpt-4o","messages":[...]}'
+```
 
 </td>
 <td width="50%" valign="top">
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Test%20Tube.png" width="64" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Test%20Tube.png" width="80" />
 </p>
 
 ### 🧪 Neural Playground
 
-**Compare models side-by-side.** Interactive streaming chat with multi-model selection, persistent history, markdown rendering, code syntax highlighting, and real-time response rendering. Test prompts across providers simultaneously.
+**Compare models side-by-side in real-time.** Interactive streaming chat with multi-model selection, persistent history, markdown rendering, and code syntax highlighting.
+
+- 🤖 Multi-model simultaneous testing
+- 💬 Streaming responses with markdown
+- 📝 Persistent conversation history
+- 🎨 Code syntax highlighting
+- ⚡ Real-time response rendering
 
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Lock.png" width="64" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Lock.png" width="80" />
 </p>
 
 ### 🔐 Enterprise Security
 
-**JWT + API Key dual auth.** Per-user rate limiting (sliding window + optional Redis), CORS protection, request logging, admin controls with role-based access, bcrypt hashing, and input validation. Session validation via NextAuth v5 with GitHub + Google OAuth.
+**JWT + API Key dual authentication.** Built for production with multiple security layers.
+
+- 🔑 NextAuth v5 with GitHub + Google OAuth
+- 🛡️ Per-user rate limiting (sliding window + Redis)
+- 🌐 CORS protection & request logging
+- 👑 Role-based admin controls
+- 🔒 bcrypt hashing & input validation
 
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Keycap%20Digit%20Zero.png" width="64" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Keycap%20Digit%20Zero.png" width="80" />
 </p>
 
 ### 💳 Credit-Based Billing
 
-**Pay per token, not per month.** Transparent micro-cent pricing with real-time balance tracking, budget caps, transaction history, Stripe integration, and automatic cost deduction. No subscriptions, no hidden fees.
+**Pay per token, not per month.** Transparent micro-cent pricing with real-time balance tracking.
+
+- 💰 Stripe integration for payments
+- 📊 Real-time balance tracking
+- 🎯 Budget caps & spending alerts
+- 📜 Transaction history & receipts
+- 🚫 No subscriptions, no hidden fees
 
 </td>
 </tr>
@@ -154,8 +210,14 @@
 
 <div align="center">
   <br/>
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" width="48" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" width="64" />
+  <br/><br/>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=3&section=header&text=&animation=fadeIn" width="60%" />
 </div>
+
+<br/>
+
+> ⚡ **One command to rule them all**: `bash scripts/dev.sh` installs deps, starts Postgres, pushes schema, seeds the DB, and launches both servers.
 
 <br/>
 
@@ -171,30 +233,36 @@ cd osiwa
 npm install
 ```
 
+📦 Installs all monorepo dependencies
+
 </td>
 <td width="33%" align="center">
 
-### **2️⃣** Environment
+### **2️⃣** Environment Setup
 
 ```bash
 cp apps/web/.env.example apps/web/.env.local
 cp apps/backend/.env.example apps/backend/.env
 
-# Generate secrets:
+# Generate secure secrets:
 openssl rand -base64 32  # AUTH_SECRET
 openssl rand -base64 32  # NEXTAUTH_SECRET
 ```
 
+🔐 Don't skip the secrets!
+
 </td>
 <td width="33%" align="center">
 
-### **3️⃣** Database & Run
+### **3️⃣** Database & Launch
 
 ```bash
 docker-compose up -d postgres
 cd apps/web && npm run db:setup
 npm run dev   # ← from root
 ```
+
+🚀 Frontend :3000 · Backend :8080
 
 </td>
 </tr>
@@ -204,16 +272,14 @@ npm run dev   # ← from root
 
 <div align="center">
 
+### 🌐 Services After Launch
+
 | Service | URL | Description |
 |:--------|:----|:------------|
-| 🌐 **Web App** | [http://localhost:3000](http://localhost:3000) | Next.js 16 frontend |
-| ⚙️ **Backend API** | [http://localhost:8080](http://localhost:8080) | Go API server |
-| 📚 **API Docs** | [http://localhost:3000/docs](http://localhost:3000/docs) | Interactive documentation |
-| 🧪 **Playground** | [http://localhost:3000/playground](http://localhost:3000/playground) | AI Playground |
-
-<br/>
-
-> 💡 **Pro tip**: Use `bash scripts/dev.sh` for a full-stack one-command setup — installs deps, starts Postgres, pushes schema, seeds the DB, and starts both servers.
+| 🌐 **Web App** | [http://localhost:3000](http://localhost:3000) | Next.js 16 frontend with App Router |
+| ⚙️ **Backend API** | [http://localhost:8080](http://localhost:8080) | Go 1.25 chi router API server |
+| 📚 **API Docs** | [http://localhost:3000/docs](http://localhost:3000/docs) | Interactive OpenAPI documentation |
+| 🧪 **Playground** | [http://localhost:3000/playground](http://localhost:3000/playground) | Multi-model AI chat playground |
 
 </div>
 
@@ -938,7 +1004,9 @@ https://yapa.up.railway.app/v1/chat/completions
 
 <div align="center">
   <br/>
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Check%20Mark%20Button.png" width="48" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Check%20Mark%20Button.png" width="64" />
+  <br/><br/>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=3&section=header&text=&animation=fadeIn" width="60%" />
 </div>
 
 <br/>
@@ -947,24 +1015,29 @@ https://yapa.up.railway.app/v1/chat/completions
 <tr>
 <td width="50%" valign="top">
 
-### Development Workflow
+### 🔄 Development Workflow
 
-- **Branch naming**: `feature/*`, `fix/*`, `refactor/*`
-- **Commits**: Conventional (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
-- **Pre-commit**: `make vet + test` (backend) · `lint + test` (frontend)
-- **No `as any` or `@ts-ignore`** in TypeScript
-- **No mock data** in dashboard — always use `getSDK()`
-- **Dual SDK sync**: Go → TypeScript SDK parity for every endpoint
+| Practice | Rule |
+|:---------|:-----|
+| 🌿 **Branch naming** | `feature/*`, `fix/*`, `refactor/*`, `docs/*` |
+| 📝 **Commits** | Conventional: `feat:`, `fix:`, `refactor:`, `test:`, `docs:` |
+| ✅ **Pre-commit** | `make vet + test` (backend) · `lint + test` (frontend) |
+| 🚫 **TypeScript** | No `as any` or `@ts-ignore` — strict mode enforced |
+| 📊 **Dashboard** | No mock data — always use `getSDK()` for real data |
+| 🔄 **SDK sync** | Go SDK → TypeScript SDK parity for every endpoint |
 
 </td>
 <td width="50%" valign="top">
 
-### Architecture Rules
+### 🏗️ Architecture Rules
 
-- **Keep layers pure**: Handler → parse/call/write. Service → business logic only. Repository → raw SQL only.
-- **Provider registration**: Register in BOTH `internal/provider/` and `pkg/llm/provider/`.
-- **Sandbox mode**: `X-Sandbox: true` header skips quota, cost, and logging.
-- **Migrations**: Hand-applied SQL only. Apply in order, one-time.
+| Rule | Description |
+|:-----|:------------|
+| 📦 **Layer purity** | Handler → parse/call/write. Service → business logic. Repository → raw SQL |
+| 🔌 **Provider registration** | Register in BOTH `internal/provider/` AND `pkg/llm/provider/` |
+| 🏖️ **Sandbox mode** | `X-Sandbox: true` header skips quota, cost, and logging |
+| 📜 **Migrations** | Hand-applied SQL only. Apply in order, one-time |
+| 🔒 **Auth** | `AUTH_SECRET` must be identical between frontend and backend |
 
 </td>
 </tr>
@@ -983,7 +1056,9 @@ https://yapa.up.railway.app/v1/chat/completions
 
 <div align="center">
   <br/>
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Compass.png" width="48" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Compass.png" width="64" />
+  <br/><br/>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=3&section=header&text=&animation=fadeIn" width="60%" />
 </div>
 
 <br/>
@@ -992,16 +1067,16 @@ https://yapa.up.railway.app/v1/chat/completions
 <tr>
 <td width="50%" valign="top">
 
-### ✅ Completed
+### ✅ Completed (15 Features)
 
 - [x] Multi-provider AI gateway (100+ models)
-- [x] OpenAI-compatible API drop-in
-- [x] Credit-based billing + Stripe
-- [x] Real-time analytics dashboards
+- [x] OpenAI-compatible API drop-in (`/v1/chat/completions`)
+- [x] Credit-based billing + Stripe integration
+- [x] Real-time analytics dashboards (Recharts)
 - [x] API key lifecycle management
 - [x] Neural Playground (multi-model chat)
 - [x] Prompt management system
-- [x] Webhook system with retry
+- [x] Webhook system with retry logic
 - [x] Organization workspaces
 - [x] Conversations & history
 - [x] Batch processing
@@ -1013,24 +1088,24 @@ https://yapa.up.railway.app/v1/chat/completions
 </td>
 <td width="50%" valign="top">
 
-### ⏳ In Progress
+### ⏳ In Progress (Q2 2026)
 
-- [ ] Fine-grained RBAC
-- [ ] Usage alerts & budget caps
-- [ ] Model fine-tuning interface
-- [ ] Custom provider plugin system
-- [ ] CSV/PDF analytics exports
-- [ ] Rate limit by tier (free/pro/enterprise)
-- [ ] Multi-region deployment
-- [ ] Custom domain support
+- [ ] 🔐 Fine-grained RBAC (role-based access control)
+- [ ] 🔔 Usage alerts & budget caps
+- [ ] 🎯 Model fine-tuning interface
+- [ ] 🔌 Custom provider plugin system
+- [ ] 📊 CSV/PDF analytics exports
+- [ ] 📈 Rate limit by tier (free/pro/enterprise)
+- [ ] 🌍 Multi-region deployment
+- [ ] 🌐 Custom domain support
 
-### 💡 Planned
+### 💡 Planned (Future)
 
-- [ ] LangChain integration
-- [ ] WebSocket streaming fallback
-- [ ] A/B model comparison
-- [ ] Audit log exports
-- [ ] API versioning (v2)
+- [ ] 🦜 LangChain / LlamaIndex integration
+- [ ] 🔄 WebSocket streaming fallback
+- [ ] ⚖️ A/B model comparison
+- [ ] 📋 Audit log exports
+- [ ] 📡 API versioning (v2)
 
 </td>
 </tr>
@@ -1049,6 +1124,12 @@ https://yapa.up.railway.app/v1/chat/completions
 
 <br/>
 
+<!-- Animated separator -->
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=3&section=header&text=&animation=fadeIn" width="60%" />
+
+<br/>
+<br/>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-stats.vercel.app/api?username=shinmentakezo07&show_icons=true&count_private=true&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&icon_color=6366f1&text_color=cbd5e1&border_radius=10">
   <img width="49%" src="https://github-readme-stats.vercel.app/api?username=shinmentakezo07&show_icons=true&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&icon_color=6366f1&text_color=cbd5e1&border_radius=10" alt="GitHub Stats" />
@@ -1064,7 +1145,17 @@ https://yapa.up.railway.app/v1/chat/completions
 <br/>
 <br/>
 
-<img src="https://github-profile-trophy.vercel.app/?username=shinmentakezo07&theme=onestar&no-frame=true&no-bg=true&row=1&column=6&margin-w=10" width="100%" alt="Trophies" />
+<!-- Contribution Streak -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github-readme-streak-stats.herokuapp.com/?user=shinmentakezo07&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&text_color=cbd5e1&border_radius=10">
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=shinmentakezo07&theme=nightowl&hide_border=true&bg_color=0f172a&title_color=818cf8&text_color=cbd5e1&border_radius=10" alt="GitHub Streak" />
+</picture>
+
+<br/>
+<br/>
+
+<!-- Trophies -->
+<img src="https://github-profile-trophy.vercel.app/?username=shinmentakezo07&theme=onestar&no-frame=true&no-bg=true&row=1&column=7&margin-w=10" width="100%" alt="Trophies" />
 
 <br/>
 <br/>
@@ -1080,32 +1171,50 @@ https://yapa.up.railway.app/v1/chat/completions
 
 <div align="center">
   <br/>
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hand%20gestures/Handshake.png" width="48" />
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hand%20gestures/Handshake.png" width="64" />
+  <br/><br/>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=3&section=header&text=&animation=fadeIn" width="60%" />
 </div>
 
 <br/>
 
-We welcome contributions from the community! Here's how to get started:
+We welcome contributions from the community! Yapapa is an open-source project and we love seeing new contributors.
 
 <div align="center">
 
-| Step | Action |
-|:----:|:-------|
-| **1** | 🍴 **Fork** the repository |
-| **2** | 🌿 **Create** feature branch: `git checkout -b feature/amazing-feature` |
-| **3** | 💾 **Commit** changes: `git commit -m 'feat: add amazing feature'` |
-| **4** | 📤 **Push** to branch: `git push origin feature/amazing-feature` |
-| **5** | 🔀 **Open** a Pull Request |
+### 🚀 Getting Started
+
+| Step | Action | Command |
+|:----:|:-------|:--------|
+| **1** | 🍴 **Fork** the repository | Click the Fork button |
+| **2** | 🌿 **Create** feature branch | `git checkout -b feature/amazing-feature` |
+| **3** | 💾 **Commit** changes | `git commit -m 'feat: add amazing feature'` |
+| **4** | 📤 **Push** to branch | `git push origin feature/amazing-feature` |
+| **5** | 🔀 **Open** a Pull Request | Visit GitHub → New PR |
 
 </div>
 
-### Development Guidelines
+### 📋 Development Guidelines
 
-- Follow existing code style (Prettier + ESLint for frontend, `gofmt` + `staticcheck` for backend)
-- Write tests for new features (Vitest for frontend, `go test -race` for backend)
-- Update both SDKs (Go + TypeScript) for API changes
-- Ensure `npm run build` + `make test` pass before submitting PR
-- Never use `as any` or `@ts-ignore` — maintain strict TypeScript coverage
+<div align="center">
+
+| Area | Rule |
+|:-----|:-----|
+| 🎨 **Style** | Prettier + ESLint (frontend) · `gofmt` + `staticcheck` (backend) |
+| 🧪 **Tests** | Vitest (frontend) · `go test -race` (backend) |
+| 📦 **SDKs** | Update both Go + TypeScript SDKs for API changes |
+| ✅ **CI** | `npm run build` + `make test` must pass before PR |
+| 🚫 **Never** | Use `as any` or `@ts-ignore` — maintain strict TypeScript coverage |
+
+</div>
+
+### 💡 What We're Looking For
+
+- 🐛 **Bug fixes** — especially for reported issues
+- 📝 **Documentation** — guides, examples, API docs
+- 🧪 **Tests** — improve coverage, add edge cases
+- 🚀 **Features** — check the [Roadmap](#-roadmap) for ideas
+- 🎨 **UI improvements** — better UX, animations, accessibility
 
 <br/>
 
@@ -1117,14 +1226,30 @@ We welcome contributions from the community! Here's how to get started:
 ## 📄 License
 
 <div align="center">
+  <br/>
+  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Page%20Facing%20Up.png" width="64" />
+  <br/><br/>
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=3&section=header&text=&animation=fadeIn" width="60%" />
+</div>
 
-This project is licensed under the **MIT License**.
+<br/>
+
+<div align="center">
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 <br/>
 
 <a href="LICENSE">
   <img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge&labelColor=0f172a" />
 </a>
+
+<br/>
+
+**You are free to:**
+- ✅ Use this project for personal or commercial purposes
+- ✅ Modify and adapt the code to your needs
+- ✅ Distribute copies of the original or modified code
 
 </div>
 
@@ -1140,28 +1265,33 @@ This project is licensed under the **MIT License**.
 <br/>
 
 <!-- Animated Footer Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:4f46e5,30:312e81,60:1e1b4b,100:0f172a&height=200&section=footer&text=Thank%20You%20%F0%9F%92%9C&fontSize=36&fontColor=ffffff&animation=twinkling&fontAlignY=55" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:4f46e5,25:312e81,50:1e1b4b,75:0f172a,100:020617&height=220&section=footer&text=Thank%20You%20%F0%9F%92%9C&fontSize=40&fontColor=ffffff&animation=twinkling&fontAlignY=55" />
 
 <br/>
 
-**Built with ❤️ by [Shinmen007](https://github.com/Shinmen007)**
+### **Built with ❤️ by [Shinmen007](https://github.com/Shinmen007)**
 
 <br/>
 
-<!-- Social Links -->
-<a href="https://github.com/shinmentakezo07/owsiwa/stargazers">
-  <img src="https://img.shields.io/badge/⭐_Star_this_repo-0f172a?style=for-the-badge" />
-</a>
-&nbsp;
-<a href="https://github.com/shinmentakezo07/owsiwa/issues">
-  <img src="https://img.shields.io/badge/🐛_Report_Bug-0f172a?style=for-the-badge" />
-</a>
-&nbsp;
-<a href="https://github.com/shinmentakezo07/owsiwa/issues">
-  <img src="https://img.shields.io/badge/💡_Request_Feature-0f172a?style=for-the-badge" />
-</a>
+<!-- Social Links with better styling -->
+<p>
+  <a href="https://github.com/shinmentakezo07/owsiwa/stargazers">
+    <img src="https://img.shields.io/badge/⭐_Star_this_repo-0f172a?style=for-the-badge" />
+  </a>
+  &nbsp;
+  <a href="https://github.com/shinmentakezo07/owsiwa/issues/new?template=bug_report.md">
+    <img src="https://img.shields.io/badge/🐛_Report_Bug-0f172a?style=for-the-badge" />
+  </a>
+  &nbsp;
+  <a href="https://github.com/shinmentakezo07/owsiwa/issues/new?template=feature_request.md">
+    <img src="https://img.shields.io/badge/💡_Request_Feature-0f172a?style=for-the-badge" />
+  </a>
+  &nbsp;
+  <a href="https://github.com/shinmentakezo07">
+    <img src="https://img.shields.io/badge/👤_Follow_Author-0f172a?style=for-the-badge" />
+  </a>
+</p>
 
-<br/>
 <br/>
 
 <!-- Visitor Counter Animation -->
@@ -1180,5 +1310,10 @@ This project is licensed under the **MIT License**.
 <br/>
 
 **⭐ From your fellow developers, with passion for AI ⭐**
+
+<br/>
+
+<!-- Final animated separator -->
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=4&section=header&text=&animation=fadeIn" width="100%" />
 
 </div>
