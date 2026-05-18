@@ -7,10 +7,10 @@ import (
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/pkg/logger"
+	"dra-platform/backend/internal/pkg/password"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"golang.org/x/crypto/bcrypt"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -28,8 +28,8 @@ func AutoSeed(ctx context.Context, database *DB) error {
 
 	logger.Info("auto_seed_starting")
 
-	adminPass, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
-	userPass, _ := bcrypt.GenerateFromPassword([]byte("user123"), bcrypt.DefaultCost)
+	adminPass, _ := password.Hash("admin123")
+	userPass, _ := password.Hash("user123")
 
 	// Deterministic IDs so re-seeding doesn't invalidate existing dev tokens
 	adminID := uuid.NewSHA1(uuid.NameSpaceURL, []byte("dra-platform:user:admin@example.com")).String()
@@ -138,8 +138,8 @@ func seedPostgres(ctx context.Context, database *DB, adminID, user1ID, user2ID, 
 	}
 	for _, k := range apiKeys {
 		_, err := database.Pool.Exec(ctx,
-			`INSERT INTO api_keys (id, user_id, name, key_hash, scopes, rate_limit, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-			k.ID, k.UserID, k.Name, k.Key, []string{"all"}, 1000, now)
+			`INSERT INTO api_keys (id, user_id, name, key, created_at) VALUES ($1, $2, $3, $4, $5)`,
+			k.ID, k.UserID, k.Name, k.Key, now)
 		if err != nil {
 			return fmt.Errorf("seed api key: %w", err)
 		}

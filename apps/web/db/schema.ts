@@ -2,6 +2,7 @@ import {
   pgTable,
   text,
   timestamp,
+  date,
   uuid,
   integer,
   boolean,
@@ -40,6 +41,7 @@ export const users = pgTable("users", {
   password: text("password"),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
   status: text("status").default("active").notNull(),
+  tier: text("tier").notNull().default("free"),
   rateLimitTierId: uuid("rate_limit_tier_id").references(() => rateLimitTiers.id),
   rateLimitOverrides: jsonb("rate_limit_overrides").default("{}"),
   lastLoginIp: text("last_login_ip").default(""),
@@ -191,7 +193,7 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
   statusCode: integer("status_code"),
   error: text("error"),
   attempts: integer("attempts").default(0).notNull(),
-  maxAttempts: integer("max_attempts").default(5).notNull(),
+  maxAttempts: integer("max_attempts").default(3).notNull(),
   status: text("status", { enum: ["pending", "delivered", "failed"] }).default("pending").notNull(),
   deliveredAt: timestamp("delivered_at"),
   nextRetryAt: timestamp("next_retry_at"),
@@ -517,7 +519,7 @@ export const usageRecords = pgTable("usage_records", {
 }));
 
 export const usageDaily = pgTable("usage_daily", {
-  date: timestamp("date").notNull(),
+  date: date("date").notNull(),
   userId: text("user_id").default("").notNull(),
   providerId: uuid("provider_id"),
   modelId: text("model_id").default("").notNull(),
@@ -901,7 +903,7 @@ export const modelRoutingRules = pgTable("model_routing_rules", {
 
 export const usageForecasts = pgTable("usage_forecasts", {
   id: uuid("id").defaultRandom().primaryKey(),
-  forecastDate: timestamp("forecast_date").notNull(),
+  forecastDate: date("forecast_date").notNull(),
   predictedTokens: bigint("predicted_tokens", { mode: "number" }).default(0).notNull(),
   predictedCost: integer("predicted_cost").default(0).notNull(),
   confidence: doublePrecision("confidence").default(0.5).notNull(),
@@ -933,7 +935,7 @@ export const providerAbTests = pgTable("provider_ab_tests", {
 export const providerSla = pgTable("provider_sla", {
   id: uuid("id").defaultRandom().primaryKey(),
   providerId: uuid("provider_id").references(() => providers.id).notNull(),
-  date: timestamp("date").notNull(),
+  date: date("date").notNull(),
   uptime: doublePrecision("uptime").default(100).notNull(),
   latencyAvgMs: doublePrecision("latency_avg_ms").default(0).notNull(),
   errorRate: doublePrecision("error_rate").default(0).notNull(),
@@ -1011,6 +1013,131 @@ export const cacheStats = pgTable("cache_stats", {
   sizeBytes: bigint("size_bytes", { mode: "number" }).default(0).notNull(),
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
+
+// ============================================================================
+// Budget Alerts & Caps
+// ============================================================================
+
+export const budgetAlerts = pgTable("budget_alerts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  thresholdPercent: integer("threshold_percent").notNull(),
+  alertType: text("alert_type").notNull().default("email"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_budget_alerts_user").on(table.userId, table.isActive),
+}));
+
+export const budgetCaps = pgTable("budget_caps", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  hardLimit: integer("hard_limit").notNull(),
+  softLimit: integer("soft_limit"),
+  actionOnExceed: text("action_on_exceed").notNull().default("block"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_budget_caps_user").on(table.userId, table.isActive),
+  userIdUnique: uniqueIndex("idx_budget_caps_user_unique").on(table.userId),
+}));
+
+// ============================================================================
+// A/B Model Comparison
+// ============================================================================
+
+export const abComparisons = pgTable("ab_comparisons", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  modelA: text("model_a").notNull(),
+  modelB: text("model_b").notNull(),
+  prompt: text("prompt").notNull(),
+  resultA: text("result_a"),
+  resultB: text("result_b"),
+  latencyA: integer("latency_a"),
+  latencyB: integer("latency_b"),
+  costA: integer("cost_a"),
+  costB: integer("cost_b"),
+  tokensA: integer("tokens_a"),
+  tokensB: integer("tokens_b"),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_ab_comparisons_user").on(table.userId, table.createdAt),
+  statusIdx: index("idx_ab_comparisons_status").on(table.status),
+}));
+
+// ============================================================================
+// Fine-Tuning
+// ============================================================================
+
+export const fineTuningDatasets = pgTable("fine_tuning_datasets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type"),
+  size: bigint("size", { mode: "number" }).notNull(),
+  storageKey: text("storage_key").notNull(),
+  format: text("format").notNull().default("jsonl"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_ft_datasets_user").on(table.userId, table.createdAt),
+}));
+
+export const fineTuningJobs = pgTable("fine_tuning_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  baseModel: text("base_model").notNull(),
+  datasetId: uuid("dataset_id").references(() => fineTuningDatasets.id),
+  status: text("status").notNull().default("pending"),
+  resultModelId: uuid("result_model_id"),
+  hyperparams: jsonb("hyperparams"),
+  progress: integer("progress").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  startedAt: timestamp("started_at"),
+  finishedAt: timestamp("finished_at"),
+}, (table) => ({
+  userIdx: index("idx_ft_jobs_user").on(table.userId, table.createdAt),
+  statusIdx: index("idx_ft_jobs_status").on(table.status),
+}));
+
+// ============================================================================
+// Provider Plugins
+// ============================================================================
+
+export const providerPlugins = pgTable("provider_plugins", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  type: text("type").notNull().default("custom"),
+  baseUrl: text("base_url").notNull(),
+  apiKeyEnv: text("api_key_env"),
+  modelListEndpoint: text("model_list_endpoint").default("/v1/models"),
+  chatEndpoint: text("chat_endpoint").default("/v1/chat/completions"),
+  embeddingEndpoint: text("embedding_endpoint").default("/v1/embeddings"),
+  headers: jsonb("headers"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  activeIdx: index("idx_provider_plugins_active").on(table.isActive),
+}));
+
+// ============================================================================
+// Export Jobs
+// ============================================================================
+
+export const exportJobs = pgTable("export_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(),
+  format: text("format").notNull().default("csv"),
+  status: text("status").notNull().default("pending"),
+  filePath: text("file_path"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  userIdx: index("idx_export_jobs_user").on(table.userId, table.createdAt),
+  statusIdx: index("idx_export_jobs_status").on(table.status),
+}));
 
 // ============================================================================
 // Relations

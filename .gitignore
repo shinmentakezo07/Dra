@@ -21,9 +21,10 @@ yarn-error.log*
 
 # Environment variables
 .env
-.env.development.local
-.env.test.local
-.env.production.local
+.env.local
+.env.*.local
+apps/web/.env.local
+apps/backend/.env
 
 # Turborepo
 .turbo

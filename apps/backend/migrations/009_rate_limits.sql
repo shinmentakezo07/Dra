@@ -1,16 +1,4 @@
--- Rate limit tiers with per-tier limits
-CREATE TABLE IF NOT EXISTS rate_limit_tiers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(50) NOT NULL UNIQUE,
-    rpm INT NOT NULL DEFAULT 10,
-    tpm INT NOT NULL DEFAULT 1000,
-    rpd INT NOT NULL DEFAULT 1000,
-    concurrent INT NOT NULL DEFAULT 1,
-    monthly_budget BIGINT NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- User tier assignment
+-- User tier assignment (rate_limit_tiers table already created in 007_admin_schema.sql)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS tier VARCHAR(50) NOT NULL DEFAULT 'free';
 CREATE INDEX idx_users_tier ON users(tier);
 

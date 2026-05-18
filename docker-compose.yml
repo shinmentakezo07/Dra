@@ -57,12 +57,29 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ENV=production
       - RATE_LIMIT_RPM=60
+      - REDIS_URL=redis://redis:6379
     env_file:
-      - apps/web/.env.local
+      - apps/backend/.env
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    container_name: dra_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   mongodb:
     image: mongo:7
@@ -80,3 +97,4 @@ services:
 volumes:
   postgres_data:
   mongodb_data:
+  redis_data:
