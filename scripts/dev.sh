@@ -570,8 +570,16 @@ seed_database() {
 # ============================================================
 run_backend() {
   if command -v go >/dev/null 2>&1; then
+    # Always rebuild before starting to pick up code changes
+    build_backend_binary
+
     log_info "Starting Go backend on http://localhost:8080 ..."
     cd "$BACKEND_DIR"
+
+    if [ ! -f "./api" ]; then
+      log_error "Backend binary not found after build — check for compilation errors above"
+      exit 1
+    fi
 
     local env_file=""
     if [ -f "$WEB_DIR/.env.local" ]; then

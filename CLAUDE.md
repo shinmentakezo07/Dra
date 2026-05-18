@@ -85,11 +85,13 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 ### Frontend architecture
 - **Next.js 16 canary is NOT your training data.** Read `node_modules/next/dist/docs/` before writing code. Deprecation notices matter. `"use cache"` replaces old `revalidate`/`dynamic` — implicit caching is gone.
 - The frontend is an App Router app. Routes: `app/dashboard/` (protected), `app/playground/`, `app/pricing/`, `app/models/`, `app/gateway/`, `app/admin/`, `app/login/`, `app/signup/`, `app/docs/`. API routes in `app/api/*` proxy to the Go backend through `lib/api/proxy.ts`.
-- Auth is handled by NextAuth v5 in `auth.ts`/`auth.config.ts`. JWT secrets must match the backend because the Go API validates the same tokens.
+- Auth is handled by NextAuth v5 in `auth.ts`/`auth.config.ts`. JWT HS256 secrets must match the backend because the Go API validates the same tokens. OAuth: GitHub + Google. Fallback chain: `process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET`.
+- Proxy middleware (`proxy.ts`) matches `/((?!api|_next/static|_next/image|.*\.png$).*)` — redirects unauthenticated `/dashboard/*` to login, authenticated `/login`/`/signup` to dashboard.
 - The dashboard is SDK-driven. Components are expected to use `getSDK()` / `DraSDK` from `apps/web/lib/api/sdk.ts`, and `tests/wiring-verification.test.ts` enforces that dashboard code does not rely on mock data.
 - `apps/web/lib/api/hooks.ts` wraps the SDK with React Query. Prefer the SDK and hooks layer over direct `fetch()` from UI components.
 - Drizzle schema lives in `apps/web/db/schema.ts`. The project uses `@neondatabase/serverless` even against local Postgres.
-- Styling uses Tailwind CSS v4 with CSS-first configuration, not the old Tailwind v3 config style.
+- Styling uses Tailwind CSS v4 with CSS-first configuration, not the old Tailwind v3 config style. Uses `cva` + `tailwind-merge` for variants.
+- Charts: Recharts. Animations: Framer Motion (components) + GSAP (scroll-triggered).
 
 ### Backend architecture
 - The backend is layered: `cmd/api/main.go` wires dependencies and routes, `internal/handler/` owns HTTP concerns, `internal/service/` owns business logic, `internal/repository/` owns data access, and `internal/domain/` holds shared models and typed errors.
@@ -98,11 +100,14 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - Errors flow through `domain.AppError` rather than ad-hoc HTTP errors.
 - Middleware covers JWT/API-key auth, CORS, rate limiting, quota enforcement, request logging, tracing, metrics, body limits, and validation.
 - The backend accepts three auth modes: `Authorization: Bearer <jwt>`, `authjs.session-token` cookie, and `x-api-key`.
+- Go module path: `dra-platform/backend`.
+- Raw SQL migrations in `migrations/`, numbered sequentially (`001_*.sql`…`007_*.sql`). Hand-applied, no auto-migrator.
 
 ### LLM gateway architecture
 - The OpenAI-compatible proxy endpoints (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`) are built on `apps/backend/pkg/llm/`.
 - The LLM stack is a pipeline of provider registry, routing, translation, caching, moderation, guardrails, token handling, telemetry, circuit breaking, embeddings, batch processing, and tool support.
-- Anthropic compatibility is implemented separately at `/v1/messages` via `internal/handler/anthropic_messages.go` and `pkg/llm/anthropic/`, but it reuses the same auth/quota/billing path as the OpenAI-compatible proxy.
+- Anthropic compatibility is implemented separately at `/v1/messages` via `internal/handler/anthropic_messages.go` and `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline as the OpenAI-compatible proxy.
+- Official Go SDKs in `go.mod`: `github.com/openai/openai-go/v3` and `github.com/anthropics/anthropic-sdk-go`. Internal provider wrappers also use `sashabaranov/go-openai`.
 - `X-Sandbox: true` on `/v1/chat/completions` disables quota, cost, and logging for testing.
 
 ### Important architecture quirks

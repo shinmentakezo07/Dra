@@ -94,6 +94,17 @@ func seedPostgres(ctx context.Context, database *DB, adminID, user1ID, user2ID, 
 	}
 	logger.Info("seed_users_created", "count", len(users))
 
+	// Grant the seeded admin full permissions via admin_users table
+	_, err := database.Pool.Exec(ctx,
+		`INSERT INTO admin_users (user_id, role, permissions, is_active, created_by)
+		 VALUES ($1, 'superadmin', ARRAY['*'], true, $1)
+		 ON CONFLICT (user_id) DO UPDATE SET permissions=ARRAY['*'], role='superadmin', is_active=true`,
+		adminID)
+	if err != nil {
+		return fmt.Errorf("seed admin_users: %w", err)
+	}
+	logger.Info("seed_admin_permissions_granted")
+
 	credits := []struct {
 		ID             string
 		UserID         string
@@ -218,6 +229,22 @@ func seedMongoDB(ctx context.Context, mdb *mongo.Database, adminID, user1ID, use
 		return fmt.Errorf("seed users: %w", err)
 	}
 	logger.Info("seed_users_created", "count", len(users))
+
+	// Grant the seeded admin full permissions via admin_users collection
+	adminUserDoc := bson.M{
+		"_id":         domain.NewID(),
+		"user_id":     adminID,
+		"role":        "superadmin",
+		"permissions": []string{"*"},
+		"is_active":   true,
+		"created_by":  adminID,
+		"created_at":  now,
+		"updated_at":  now,
+	}
+	if _, err := mdb.Collection("admin_users").InsertOne(ctx, adminUserDoc); err != nil {
+		return fmt.Errorf("seed admin_users: %w", err)
+	}
+	logger.Info("seed_admin_permissions_granted")
 
 	credits := []bson.M{
 		{"_id": domain.NewID(), "id": domain.NewID(), "user_id": adminID, "balance": 1000000, "total_purchased": 1000000, "total_spent": 0},
