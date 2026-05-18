@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS webhook_deliveries (
   status_code INT,
   error TEXT,
   attempts INT NOT NULL DEFAULT 0,
-  max_attempts INT NOT NULL DEFAULT 3,
+  max_attempts INT NOT NULL DEFAULT 5,
   delivered_at TIMESTAMP,
   next_retry_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
