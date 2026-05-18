@@ -151,7 +151,7 @@ export async function signOutAction() {
 
 export async function updateProfile(prevState: any, formData: FormData) {
   const session = await auth();
-  const backendToken = (session?.user as any)?.backendToken;
+  const backendToken = session?.user?.backendToken;
   if (!backendToken) {
     return { message: "Not authenticated with backend" };
   }
@@ -192,7 +192,7 @@ export async function updateProfile(prevState: any, formData: FormData) {
 
 export async function changePassword(prevState: any, formData: FormData) {
   const session = await auth();
-  const backendToken = (session?.user as any)?.backendToken;
+  const backendToken = session?.user?.backendToken;
   if (!backendToken) {
     return { message: "Not authenticated with backend" };
   }

@@ -241,6 +241,18 @@ func main() {
 		llmRegistry.Register(circuitbreaker.New(geminiProvFinal, cbConfig))
 		logger.Info("gemini_provider_registered")
 	}
+	if cfg.YapaAPIKey != "" {
+		yapaProv := llmprovider.NewGenericProvider("yapa", "https://yapa.up.railway.app/v1",
+			llmprovider.WithAPIKey(cfg.YapaAPIKey),
+			llmprovider.WithCache(llmCache),
+			llmprovider.WithWatcher(llmWatcher),
+			llmprovider.WithModels([]llm.ModelInfo{
+				{ID: "yapa/mimo-v2.5-pro", Name: "Mimo V2.5 Pro", Provider: "yapa", InputPricePer1k: 0.0001, OutputPricePer1k: 0.0004, ContextWindow: 128000, Description: "Mimo V2.5 Pro via Yapa gateway.", Capabilities: []string{"text", "code"}, SupportsThinking: false, SupportsVision: false, SupportsTools: true},
+			}),
+		)
+		llmRegistry.Register(circuitbreaker.New(yapaProv, cbConfig))
+		logger.Info("yapa_provider_registered")
+	}
 
 	// Sandbox provider for test mode
 	if cfg.IsDevelopment() {
@@ -440,6 +452,10 @@ func main() {
 		},
 	)
 
+	// Token blacklist for server-side logout
+	tokenBlacklistSvc := service.NewTokenBlacklistService(repository.NewTokenBlacklistRepo(database))
+	tokenBlacklistMW := appmiddleware.TokenBlacklist(tokenBlacklistSvc)
+
 	// Quota tracker for API key scoping (Redis-backed if available)
 	var quotaTracker appmiddleware.QuotaTrackerInterface
 	if redisClient != nil {
@@ -510,6 +526,7 @@ func main() {
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
+		r.Use(tokenBlacklistMW)
 		r.Use(quotaMW)
 		r.Get("/auth/me", h.Me)
 		r.Put("/auth/profile", h.UpdateProfile)

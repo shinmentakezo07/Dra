@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertCircle, RefreshCw } from "lucide-react";
 
 export default function AdminError({
   error,
@@ -15,19 +14,19 @@ export default function AdminError({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-8">
-      <div className="flex items-center gap-3 text-red-400">
-        <AlertCircle className="w-6 h-6" />
-        <h2 className="text-lg font-semibold">Admin panel error</h2>
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center space-y-4">
+        <h2 className="text-xl font-semibold text-white">Admin Panel Error</h2>
+        <p className="text-gray-400 text-sm max-w-md">
+          An error occurred while loading the admin panel. Please try again.
+        </p>
+        <button
+          onClick={reset}
+          className="px-4 py-2 bg-[#3b82f6] text-black font-medium rounded-lg hover:bg-[#3b82f6]/90 transition-colors"
+        >
+          Try again
+        </button>
       </div>
-      <p className="text-sm text-gray-400 font-mono">{error.message}</p>
-      <button
-        onClick={reset}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition-colors"
-      >
-        <RefreshCw className="w-4 h-4" />
-        Try again
-      </button>
     </div>
   );
 }

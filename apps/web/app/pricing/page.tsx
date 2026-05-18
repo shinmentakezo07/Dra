@@ -1,5 +1,4 @@
 
-import { PricingHero } from "@/components/pricing/PricingHero";
 import { ModelShowcase } from "@/components/pricing/ModelShowcase";
 import { CostCalculator } from "@/components/pricing/CostCalculator";
 import { CreditPackages } from "@/components/pricing/CreditPackages";
@@ -14,7 +13,6 @@ export const metadata = {
 export default function PricingPage() {
     return (
         <div className="flex flex-col items-center w-full overflow-hidden bg-[#000000] text-foreground selection:bg-primary/30 selection:text-white">
-            <PricingHero />
             <ModelShowcase />
             <CostCalculator />
             <CreditPackages />

@@ -193,7 +193,7 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
   statusCode: integer("status_code"),
   error: text("error"),
   attempts: integer("attempts").default(0).notNull(),
-  maxAttempts: integer("max_attempts").default(3).notNull(),
+  maxAttempts: integer("max_attempts").default(5).notNull(),
   status: text("status", { enum: ["pending", "delivered", "failed"] }).default("pending").notNull(),
   deliveredAt: timestamp("delivered_at"),
   nextRetryAt: timestamp("next_retry_at"),
@@ -261,7 +261,7 @@ export const invites = pgTable("invites", {
   email: text("email").notNull(),
   role: text("role").default("member").notNull(),
   token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
@@ -314,7 +314,7 @@ export const passwordResets = pgTable("password_resets", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull(),
   token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
@@ -574,7 +574,7 @@ export const adminSessions = pgTable("admin_sessions", {
   ipAddress: text("ip_address").default("").notNull(),
   userAgent: text("user_agent").default("").notNull(),
   status: text("status").default("active").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   revokedAt: timestamp("revoked_at"),
   revokedBy: uuid("revoked_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1297,4 +1297,19 @@ export const stripeInvoicesRelations = relations(stripeInvoices, ({ one }) => ({
     fields: [stripeInvoices.userId],
     references: [users.id],
   }),
+}));
+
+// ============================================================================
+// Token Blacklist (Server-side Logout)
+// ============================================================================
+
+export const tokenBlacklist = pgTable("token_blacklist", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tokenHash: text("token_hash").notNull().unique(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  tokenHashIdx: index("idx_token_blacklist_hash").on(table.tokenHash),
+  expiresIdx: index("idx_token_blacklist_expires").on(table.expiresAt),
 }));

@@ -4,8 +4,8 @@
         "ptcider": {
             "npm": "@ai-sdk/openai-compatible",
             "options": {
-                "apiKey": "123",
-                "baseURL": "https://yapa.up.railway.app/v1"
+                "apiKey": "ogw_live_36ecf75ee617585fa95546ee265beadf",
+                "baseURL": "https://opengateway.gitlawb.com/v1"
             },
             "models": {
                 "mimo-v2.5-pro": { "name": "mimo-v2.5-pro" },

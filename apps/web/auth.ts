@@ -75,8 +75,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       // On initial sign-in (credentials or OAuth), user is present
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.backendToken = (user as any).backendToken;
+        token.role = user.role;
+        token.backendToken = user.backendToken;
       }
 
       // For OAuth providers, sync with backend if we don't have a backend token yet
@@ -98,8 +98,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        (session.user as any).role = token.role;
-        (session.user as any).backendToken = token.backendToken;
+        session.user.role = token.role;
+        session.user.backendToken = token.backendToken;
       }
       return session;
     },

@@ -30,7 +30,7 @@ export async function proxyToBackend(request: Request, path: string): Promise<Re
   // Inject backend Bearer token from NextAuth session
   try {
     const session = await auth();
-    const backendToken = (session?.user as any)?.backendToken;
+    const backendToken = session?.user?.backendToken;
     if (backendToken) {
       headers.set("Authorization", `Bearer ${backendToken}`);
     }
@@ -68,7 +68,7 @@ export async function proxyToBackend(request: Request, path: string): Promise<Re
       headers,
       body,
       credentials: "include",
-      // @ts-ignore
+      // duplex is required for streaming fetch but not in standard types
       duplex: "half",
     });
 

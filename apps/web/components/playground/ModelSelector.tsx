@@ -478,8 +478,8 @@ export default function ModelSelector({
 
     if (categoryFilter === "latest") {
       filtered = [...filtered].sort((a, b) => {
-        const dateA = parseInt(String((a as any).created || "0"));
-        const dateB = parseInt(String((b as any).created || "0"));
+        const dateA = parseInt(String(a?.created || "0"));
+        const dateB = parseInt(String(b?.created || "0"));
         return dateB - dateA;
       });
     }

@@ -127,7 +127,7 @@ function ProviderKeysPanel({
           <div className="flex gap-2">
             <select
               value={form.strategy}
-              onChange={(e) => setForm({ ...form, strategy: e.target.value })}
+              onChange={(e) => setForm({ ...form, strategy: e.target.value as typeof form.strategy })}
               className="flex-1 px-3 py-1.5 text-xs bg-white/5 border border-white/10 rounded-md text-white focus:outline-none focus:border-blue-500/50"
             >
               <option value="round-robin">Round Robin</option>

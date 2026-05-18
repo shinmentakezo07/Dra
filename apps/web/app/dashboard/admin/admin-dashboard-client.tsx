@@ -137,7 +137,7 @@ export default function AdminDashboardClient() {
         method: "DELETE",
       });
       if (!r.ok) {
-        const data = await r.json().catch(() => ({}));
+        const data = await r.json().catch(() => { throw new Error("Failed to parse server response"); });
         throw new Error(data.error || "Failed to delete user");
       }
       setDeleteConfirm(null);

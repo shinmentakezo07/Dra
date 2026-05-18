@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"time"
 )
@@ -153,7 +154,8 @@ func (d *Dispatcher) SendWithRetry(ctx context.Context, cfg Config, event Event)
 
 func exponentialBackoff(attempt int) time.Duration {
 	base := math.Pow(2, float64(attempt))
-	jitter := rand.Float64() * 0.5 * base
+	n, _ := rand.Int(rand.Reader, big.NewInt(1<<53))
+	jitter := (float64(n.Int64()) / float64(1<<53)) * 0.5 * base
 	duration := time.Duration((base + jitter) * float64(time.Second))
 	if duration > 60*time.Second {
 		duration = 60 * time.Second
@@ -180,5 +182,7 @@ func isEventAllowed(eventType string, allowed []string) bool {
 }
 
 func generateID() string {
-	return fmt.Sprintf("wh_%d", time.Now().UnixNano())
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("wh_%x", b)
 }

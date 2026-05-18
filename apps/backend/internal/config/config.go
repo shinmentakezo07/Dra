@@ -25,6 +25,7 @@ type Config struct {
 	GroqSecondaryAPIKeys   []string
 	GeminiAPIKey           string
 	GeminiSecondaryAPIKeys []string
+	YapaAPIKey             string
 	Env             string
 	RedisURL        string
 	AllowedOrigins  []string
@@ -92,6 +93,7 @@ func Load() (*Config, error) {
 		GroqSecondaryAPIKeys:      getEnvSlice("GROQ_API_KEY_2"),
 		GeminiAPIKey:              getEnv("GEMINI_API_KEY", ""),
 		GeminiSecondaryAPIKeys:    getEnvSlice("GEMINI_API_KEY_2"),
+		YapaAPIKey:                getEnv("YAPA_API_KEY", ""),
 		Env:             getEnv("ENV", "development"),
 		AllowedOrigins:  getEnvSlice("ALLOWED_ORIGINS"),
 		RateLimitRPM:    getEnvInt("RATE_LIMIT_RPM", 60),

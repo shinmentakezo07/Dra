@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import type { AdminUserDetail } from "@/types/admin";
+import type { AdminUserDetail, PaginatedResponse } from "@/types/admin";
 import AdminPageHeader from "../AdminPageHeader";
 
 const STATUS_OPTIONS = [

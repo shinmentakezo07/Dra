@@ -19,7 +19,7 @@ export async function requireAdmin(request: Request): Promise<Response | null> {
       headers: { "Content-Type": "application/json" },
     });
   }
-  if ((session.user as any).role !== "admin") {
+  if (session.user.role !== "admin") {
     return new Response(JSON.stringify({ success: false, error: "Admin access required" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },

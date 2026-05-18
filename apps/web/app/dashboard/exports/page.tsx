@@ -97,7 +97,7 @@ export default function ExportJobsPage() {
 
   const { data: logsData } = useQuery({
     queryKey: ["logs-export-preview"],
-    queryFn: () => getSDK().getLogs(1, 1),
+    queryFn: () => getSDK().listLogs(1, 1),
     refetchInterval: 30000,
   });
 

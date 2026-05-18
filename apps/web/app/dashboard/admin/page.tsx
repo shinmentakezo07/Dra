@@ -4,7 +4,7 @@ import AdminDashboardClient from "./admin-dashboard-client";
 
 export default async function AdminDashboardPage() {
   const session = await auth();
-  if ((session?.user as any)?.role !== "admin") {
+  if (session?.user?.role !== "admin") {
     redirect("/dashboard");
   }
   return <AdminDashboardClient />;

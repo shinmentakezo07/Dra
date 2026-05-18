@@ -24,9 +24,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 function statusBadge(status: FineTuningJob["status"]) {
   const config: Record<FineTuningJob["status"], { icon: typeof Clock; color: string }> = {
-    pending: { icon: Clock, color: "bg-gray-500/10 text-gray-400" },
+    queued: { icon: Clock, color: "bg-gray-500/10 text-gray-400" },
     running: { icon: Loader2, color: "bg-blue-500/10 text-blue-400" },
-    succeeded: { icon: CheckCircle, color: "bg-emerald-500/10 text-emerald-400" },
+    completed: { icon: CheckCircle, color: "bg-emerald-500/10 text-emerald-400" },
     failed: { icon: XCircle, color: "bg-red-500/10 text-red-400" },
   };
   const { icon: Icon, color } = config[status];
@@ -55,7 +55,7 @@ export default function FineTuningPage() {
     queryFn: () => getSDK().listFineTuningJobs(1, 50),
     refetchInterval: (query) => {
       const jobs = query.state.data?.data ?? [];
-      return jobs.some((j) => j.status === "running" || j.status === "pending") ? 15000 : false;
+      return jobs.some((j) => j.status === "running" || j.status === "queued") ? 15000 : false;
     },
   });
 
@@ -77,8 +77,8 @@ export default function FineTuningPage() {
     try {
       const uploaded = await getSDK().uploadFile(selectedFile, selectedFile.name);
       await getSDK().createFineTuningJob?.({
-        model: selectedModel,
-        datasetFileId: uploaded.id,
+        baseModel: selectedModel,
+        datasetId: uploaded.id,
       });
       setSelectedFile(null);
       setSelectedModel("");
@@ -251,7 +251,7 @@ export default function FineTuningPage() {
                     </div>
                   )}
 
-                  {job.status === "succeeded" && job.resultModelId && (
+                  {job.status === "completed" && job.resultModelId && (
                     <div className="mt-2 flex items-center gap-2">
                       <span className="text-xs text-gray-500">Result:</span>
                       <code className="text-xs text-emerald-400 bg-emerald-500/5 px-2 py-0.5 rounded font-mono">

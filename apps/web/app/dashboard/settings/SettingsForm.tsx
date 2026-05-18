@@ -19,9 +19,9 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
     );
 }
 
-export function SettingsForm({ user }: { user: any }) {
-    const [profileState, profileAction] = useActionState(updateProfile, { message: "", errors: {} } as any);
-    const [passwordState, passwordAction] = useActionState(changePassword, { message: "" } as any);
+export function SettingsForm({ user }: { user: { name: string; email: string } }) {
+    const [profileState, profileAction] = useActionState(updateProfile, { message: "", errors: {} } as { message: string; errors: Record<string, string[]> });
+    const [passwordState, passwordAction] = useActionState(changePassword, { message: "" } as { message: string });
 
     return (
         <div className="space-y-8">

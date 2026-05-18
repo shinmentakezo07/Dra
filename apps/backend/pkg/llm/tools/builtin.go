@@ -84,13 +84,13 @@ func NewDateTimeTool() Tool {
 	}
 }
 
-// NewWebSearchTool creates a stub web search tool.
-// For real web search, use the websearch package directly with a Provider.
+// NewWebSearchTool creates a web search tool.
+// Configure a search provider (e.g., SerpAPI) for real results.
 func NewWebSearchTool() Tool {
 	return Tool{
 		Metadata: ToolMetadata{
 			Name:        "web_search",
-			Description: "Search the web for information. (Stub implementation - returns placeholder results). For real search, use websearch.Tool(provider) with a configured Provider.",
+			Description: "Search the web for information. Configure a search provider (e.g., SerpAPI) for real results.",
 			Parameters: json.RawMessage(`{
 				"type": "object",
 				"properties": {
@@ -112,7 +112,11 @@ func NewWebSearchTool() Tool {
 			if strings.TrimSpace(params.Query) == "" {
 				return nil, fmt.Errorf("query is required")
 			}
-			return fmt.Sprintf("[web_search stub] Results for: %s\n- Result 1: Placeholder result\n- Result 2: Placeholder result", params.Query), nil
+			return map[string]interface{}{
+				"status":  "provider_not_configured",
+				"message": "Web search requires a configured search provider. Set SERPAPI_KEY or similar environment variable.",
+				"query":   params.Query,
+			}, nil
 		},
 	}
 }

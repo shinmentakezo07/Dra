@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   if (!authHeader) {
     try {
       const session = await auth();
-      const backendToken = (session?.user as any)?.backendToken;
+      const backendToken = session?.user?.backendToken;
       if (backendToken) {
         headers.set("Authorization", `Bearer ${backendToken}`);
       }

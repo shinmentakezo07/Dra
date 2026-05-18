@@ -53,6 +53,7 @@ type Handler struct {
 	fineTuningSvc     *service.FineTuningService
 	providerPluginSvc *service.ProviderPluginService
 	exportSvc         *service.ExportService
+	tokenBlacklistRepo *repository.TokenBlacklistRepo
 	moderator       moderation.Moderator
 	notificationHub *NotificationHub
 	modelRouter     *router.Router
@@ -77,6 +78,7 @@ func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service
 		fineTuningSvc:     service.NewFineTuningService(repository.NewFineTuningRepo(database)),
 		providerPluginSvc: service.NewProviderPluginService(repository.NewProviderPluginRepo(database)),
 		exportSvc:         service.NewExportService(repository.NewExportRepo(database), repository.NewLogRepo(database)),
+		tokenBlacklistRepo: repository.NewTokenBlacklistRepo(database),
 		moderator:         moderation.NewLocalModerator(),
 		notificationHub:   NewNotificationHub(),
 	}
@@ -1143,6 +1145,51 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	// Extract token from request
+	tokenStr := ""
+	if auth := r.Header.Get("Authorization"); auth != "" && len(auth) > 7 && auth[:7] == "Bearer " {
+		tokenStr = auth[7:]
+	}
+	if tokenStr == "" {
+		for _, name := range []string{"authjs.session-token", "__Secure-authjs.session-token", "next-auth.session-token", "__Secure-next-auth.session-token"} {
+			if c, err := r.Cookie(name); err == nil {
+				tokenStr = c.Value
+				break
+			}
+		}
+	}
+
+	if tokenStr != "" {
+		u := middleware.GetUser(r)
+		userID := ""
+		if u != nil {
+			userID = u.ID
+		}
+		// Blacklist token with 24h expiry (typical JWT lifetime)
+		if err := h.tokenBlacklistRepo.Blacklist(r.Context(), tokenStr, userID, time.Now().Add(24*time.Hour)); err != nil {
+			logger.Warn("logout_blacklist_failed", "error", err.Error())
+		}
+	}
+
+	// Clear session cookies
+	http.SetCookie(w, &http.Cookie{
+		Name:     "authjs.session-token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "__Secure-authjs.session-token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	response.OK(w, map[string]bool{"logged_out": true})
 }
 

@@ -68,7 +68,7 @@ function deriveTitle(messages: StoredMessage[]): string {
 export default function ChatPlayground() {
   const { messages, status, sendMessage, stop, setMessages } = useChat({
     api: "/api/chat",
-  } as any) as any;
+  });
 
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -465,7 +465,7 @@ export default function ChatPlayground() {
 
           <AnimatePresence initial={false}>
             {messages.map((mRaw: any) => {
-              const m = mRaw as any;
+              const m = mRaw;
               return (
                 <motion.div
                   key={m.id}
@@ -491,7 +491,7 @@ export default function ChatPlayground() {
                           : "bg-black/40 border border-white/5 text-gray-200 rounded-tl-none"
                       }`}
                     >
-                      {(m as any).toolInvocations?.map((toolInvocation: any) => {
+                      {(m as { toolInvocations?: Array<{ toolCallId: string }> }).toolInvocations?.map((toolInvocation: any) => {
                         const toolCallId = toolInvocation.toolCallId;
                         return null;
                       })}
@@ -503,7 +503,7 @@ export default function ChatPlayground() {
                           <ReactMarkdown
                             components={{
                               code(props) {
-                                const { children, className, ...rest } = props as any;
+                                const { children, className, ...rest } = props as { children: React.ReactNode; className?: string; [key: string]: unknown };
                                 const match = /language-(\w+)/.exec(className || "");
                                 const language = match ? match[1] : "";
 
@@ -592,7 +592,7 @@ export default function ChatPlayground() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    handleSubmit(e as any);
+                    handleSubmit(e as React.FormEvent);
                   }
                 }}
                 placeholder="Ask Shinmen complex technical questions..."

@@ -108,12 +108,15 @@ func TestWebSearchTool(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	str, ok := result.(string)
+	m, ok := result.(map[string]interface{})
 	if !ok {
-		t.Fatalf("expected string, got %T", result)
+		t.Fatalf("expected map, got %T", result)
 	}
-	if !strings.Contains(str, "stub") {
-		t.Errorf("expected stub result, got %q", str)
+	if m["status"] != "provider_not_configured" {
+		t.Errorf("expected status provider_not_configured, got %q", m["status"])
+	}
+	if m["query"] != "golang" {
+		t.Errorf("expected query golang, got %q", m["query"])
 	}
 }
 

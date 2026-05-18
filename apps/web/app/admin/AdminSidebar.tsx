@@ -86,12 +86,12 @@ const containerVariants = {
     opacity: 1,
     transition: { staggerChildren: 0.03, delayChildren: 0.1 },
   },
-}
+} as const
 
 const itemVariants = {
   hidden: { opacity: 0, x: -12 },
-  visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 120, damping: 20 } },
-}
+  visible: { opacity: 1, x: 0, transition: { type: 'spring' as const, stiffness: 120, damping: 20 } },
+} as const
 
 export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false)

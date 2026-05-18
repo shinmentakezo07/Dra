@@ -2,9 +2,10 @@ package router
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"math"
-	"math/rand"
+	"math/big"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -160,7 +161,8 @@ func (r *Router) Route(ctx context.Context, req *llm.ChatRequest) (llm.Provider,
 	case StrategyCapability:
 		return r.routeByCapability(candidates, req)
 	case StrategyRandom:
-		return candidates[rand.Intn(len(candidates))], nil
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(candidates))))
+		return candidates[n.Int64()], nil
 	default:
 		return candidates[0], nil
 	}
@@ -339,7 +341,8 @@ func (ab *ABRouter) Route(ctx context.Context) (llm.Provider, string, error) {
 	}
 
 	// Simple weighted random selection
-	r := rand.Float64()
+	n, _ := rand.Int(rand.Reader, big.NewInt(1<<53))
+	r := float64(n.Int64()) / float64(1<<53)
 	cumulative := 0.0
 	for _, v := range ab.variants {
 		cumulative += v.TrafficPct

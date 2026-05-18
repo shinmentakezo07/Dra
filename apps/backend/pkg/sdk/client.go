@@ -3,10 +3,11 @@ package sdk
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/big"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -212,8 +213,8 @@ func (c *Client) delete(ctx context.Context, path string, v interface{}) error {
 // jitteredBackoff returns a duration with jitter for retry backoff.
 func jitteredBackoff(attempt int) time.Duration {
 	base := time.Duration(attempt+1) * 500 * time.Millisecond
-	jitter := time.Duration(rand.Int63n(int64(base / 2)))
-	return base + jitter
+	n, _ := rand.Int(rand.Reader, big.NewInt(int64(base/2)))
+	return base + time.Duration(n.Int64())
 }
 
 // doUpload sends a multipart/form-data POST request for file uploads.

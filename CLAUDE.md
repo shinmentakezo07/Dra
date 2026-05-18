@@ -80,7 +80,7 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - `docs/`: Implementation guides and architecture documentation.
 - `examples/llmtests/`: LLM test examples.
 - `AGENTS.md`, `apps/web/AGENTS.md`, `apps/backend/AGENTS.md`: Additional repo and app-specific guidance.
-- `ops.md`: Operational debt and known architecture issues.
+- `ops.md`: Operational debt and known architecture issues (P0–P3 priority tracking, testing gaps, dependency audits). This is the canonical source for "what's broken or missing."
 
 ### Frontend architecture
 - **Next.js 16 canary is NOT your training data.** Read `node_modules/next/dist/docs/` before writing code. Deprecation notices matter. `"use cache"` replaces old `revalidate`/`dynamic` — implicit caching is gone.
@@ -151,13 +151,15 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 
 - `AUTH_SECRET` must be identical in frontend and backend. Fallback chain in `auth.ts`: `process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET`.
 - Root `.env` is Docker-oriented and uses `BACKEND_URL=http://backend:8080`; local frontend development usually needs `.env.local` with `BACKEND_URL=http://localhost:8080`.
-- `.npmrc` sets `legacy-peer-deps=true`; do not remove it.
 - The backend Makefile prepends `$(HOME)/.local/go/bin` to `PATH`.
 - `apps/web/tsconfig.json` excludes `db/seed*.ts` and `scripts/**/*` from type checking.
 - `turbo.json` passes build env vars (`DATABASE_URL`, `AUTH_SECRET`, `OPENAI_API_KEY`, `NVIDIA_API_KEY`, `BACKEND_URL`, etc.) but **NOT** `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY` — these are runtime-only and must be set separately in the environment.
 - `next.config.ts` enables `output: 'standalone'` and sets security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`). Production Docker server entry is `apps/web/server.js` inside `.next/standalone/`.
 - The backend `Makefile` uses a `go list -f` filter to only test packages that have test files (required for Go 1.26+ compatibility since `covdata` was removed).
 - There are no GitHub Actions workflows in `.github/workflows/` right now.
+- `.npmrc` sets `legacy-peer-deps=true`; do not remove it — npm install will fail without it.
+- **`opencode.json`** configures the project to use its own Yapapa instance (`https://yapa.up.railway.app/v1`) as the LLM provider via `@ai-sdk/openai-compatible`.
+- **ECC rules** are active for this repo: `.claude/rules/golang/` and `.claude/rules/typescript/` — these load automatically for matching file types.
 - **Frontend `@/` path alias** maps to `apps/web/` root. Example: `@/lib/api/sdk` → `apps/web/lib/api/sdk.ts`.
 - **Backend `ENV=development`** enables `slog.LevelDebug` logging. `ENV=production` in Docker.
 - **`DB_TYPE` modes**: `dev.sh` detects `DB_TYPE` from `.env.local` — supports `postgres` (default), `neon` (cloud, skips local container), and `mongodb` (backend auto-setup).
