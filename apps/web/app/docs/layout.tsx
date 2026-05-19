@@ -60,8 +60,6 @@ const navGroups: NavGroup[] = [
 
 const allNavItems = navGroups.flatMap((g) => g.items);
 
-const SIDEBAR_WIDTH = "w-72";
-
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -130,18 +128,18 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                     onClick={() => navigateTo(item.id)}
                     className={`relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm w-full text-left transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? "text-violet-300 font-medium bg-violet-500/[0.06]"
+                        ? "text-white font-medium bg-white/[0.04]"
                         : "text-white/30 hover:text-white/50 hover:bg-white/[0.02]"
                     }`}
                   >
                     {isActive && !mobile && (
                       <motion.div
                         layoutId="activeIndicator"
-                        className="absolute left-0 top-1 bottom-1 w-px bg-gradient-to-b from-violet-400 via-fuchsia-400 to-violet-400 rounded-full shadow-[0_0_10px_rgba(139,92,246,0.3)]"
+                        className="absolute left-0 top-1 bottom-1 w-px bg-white/30 rounded-full"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
-                    <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-400" : "text-white/15"}`} />
+                    <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-white/50" : "text-white/15"}`} />
                     <span className="truncate text-[13px]">{item.label}</span>
                   </button>
                 );
@@ -157,37 +155,15 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-[#050505] text-foreground relative">
       <ScrollProgress />
 
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-        <motion.div
-          animate={{
-            x: [0, 80, -40, 0],
-            y: [0, -60, 40, 0],
-            scale: [1, 1.2, 0.9, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] left-1/4 w-[800px] h-[800px] bg-violet-600/[0.04] rounded-full blur-[180px]"
-        />
-        <motion.div
-          animate={{
-            x: [0, -60, 50, 0],
-            y: [0, 70, -30, 0],
-            scale: [1, 1.15, 0.85, 1],
-          }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] right-1/4 w-[700px] h-[700px] bg-fuchsia-600/[0.03] rounded-full blur-[180px]"
-        />
-      </div>
-
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} items={allNavItems} onNavigate={navigateTo} />
 
       <div className="fixed bottom-6 right-6 z-40 lg:hidden">
         <button
           onClick={() => setSidebarOpen(true)}
           aria-label="Open navigation"
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/25 flex items-center justify-center text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+          className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/40 hover:text-white/70 transition-colors cursor-pointer"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-4 h-4" />
         </button>
       </div>
 
@@ -217,26 +193,21 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         )}
       </AnimatePresence>
 
-      <aside className={`hidden lg:flex flex-col fixed left-0 top-0 bottom-0 ${SIDEBAR_WIDTH} border-r border-white/[0.04] bg-[#050505]/90 backdrop-blur-sm z-30`}>
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.04]">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/15 to-fuchsia-500/10 flex items-center justify-center text-violet-400 ring-1 ring-violet-500/[0.15]">
-            <Book className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <span className="text-sm font-semibold text-white/70">Yapapa API</span>
-            <span className="text-[10px] text-white/20 ml-1.5 font-mono">docs</span>
-          </div>
+      <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-60 border-r border-white/[0.04] bg-[#050505]/90 backdrop-blur-sm z-30">
+        <div className="flex items-center gap-2.5 px-5 py-5 border-b border-white/[0.04]">
+          <Book className="w-4 h-4 text-white/30" />
+          <span className="text-sm font-medium text-white/50">Docs</span>
         </div>
 
         <div className="px-3 pt-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/15" />
             <input
               type="text"
               placeholder="Filter..."
               value={sidebarFilter}
               onChange={(e) => setSidebarFilter(e.target.value)}
-              className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg pl-9 pr-3 py-2 text-xs text-white/50 placeholder:text-white/15 font-mono outline-none focus:border-violet-500/20 focus:bg-violet-500/[0.02] transition-all"
+              className="w-full bg-white/[0.02] border border-white/[0.04] rounded-md pl-9 pr-3 py-1.5 text-xs text-white/40 placeholder:text-white/12 font-mono outline-none focus:border-white/[0.08] transition-colors"
             />
           </div>
         </div>
@@ -257,18 +228,18 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                         onClick={() => navigateTo(item.id)}
                         className={`relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm w-full text-left transition-all duration-150 cursor-pointer ${
                           isActive
-                            ? "text-violet-300 font-medium bg-violet-500/[0.06]"
+                            ? "text-white font-medium bg-white/[0.04]"
                             : "text-white/30 hover:text-white/50 hover:bg-white/[0.02]"
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="absolute left-0 top-1 bottom-1 w-px bg-gradient-to-b from-violet-400 via-fuchsia-400 to-violet-400 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)]"
+                            className="absolute left-0 top-1 bottom-1 w-px bg-white/30 rounded-full"
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                           />
                         )}
-                        <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-400" : "text-white/15"}`} />
+                        <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-white/50" : "text-white/15"}`} />
                         <span className="truncate text-[13px]">{item.label}</span>
                       </button>
                     );
@@ -282,7 +253,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         </nav>
       </aside>
 
-      <div className={`lg:ml-72 relative z-10`}>
+      <div className="lg:ml-60 relative z-10">
         <header className="sticky top-0 z-20 border-b border-white/[0.04] bg-[#050505]/80 backdrop-blur-md">
           <div className="flex items-center justify-between px-4 sm:px-6 h-14">
             <div className="flex items-center gap-3">
@@ -294,18 +265,18 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             </div>
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-xs text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/[0.02] border border-white/[0.04] text-xs text-white/25 hover:text-white/40 transition-colors cursor-pointer"
             >
               <Search className="w-3.5 h-3.5" />
               <span>Search</span>
-              <kbd className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-white/15">
+              <kbd className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/[0.03] border border-white/[0.04] text-[9px] font-mono text-white/12">
                 <span>⌘</span>K
               </kbd>
             </button>
           </div>
         </header>
 
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+        <main className="max-w-3xl mx-auto px-4 sm:px-8 py-12">
           {children}
         </main>
       </div>

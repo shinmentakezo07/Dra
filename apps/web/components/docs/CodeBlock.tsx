@@ -1,15 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState } from "react";
-import { CheckCircle, Copy } from "lucide-react";
-
-/* ------------------------------------------------------------------ */
-/*  Syntax Highlighting Helpers                                        */
-/* ------------------------------------------------------------------ */
+import { Check, Copy } from "lucide-react";
 
 export function highlightJson(code: string): JSX.Element {
-  // Basic JSON/keyword highlighting via regex
   const parts: JSX.Element[] = [];
   const regex = /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(\btrue\b|\bfalse\b|\bnull\b)|(\b\d+\.?\d*\b)|(\/\/.*)/g;
   let lastIndex = 0;
@@ -21,7 +15,6 @@ export function highlightJson(code: string): JSX.Element {
       parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
     }
     if (match[1]) {
-      // key
       parts.push(<span key={key++} className="text-sky-300">{match[1]}</span>);
       parts.push(<span key={key++}>:</span>);
     } else if (match[2]) {
@@ -42,7 +35,6 @@ export function highlightJson(code: string): JSX.Element {
 }
 
 export function highlightBash(code: string): JSX.Element {
-  // Basic bash highlighting
   const parts: JSX.Element[] = [];
   const regex = /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go)(?=\s|$)|("(?:[^"\\]|\\.)*")|(-[a-zA-Z]|--[a-zA-Z-]+)|((?:https?:\/\/|localhost)\S*)/gm;
   let lastIndex = 0;
@@ -164,10 +156,6 @@ export function getHighlighted(code: string, lang: string): JSX.Element | string
   return code;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
-
 export type Lang = "curl" | "js" | "python" | "go";
 
 export interface CodeExample {
@@ -183,10 +171,6 @@ export interface CodeBlockProps {
   examples?: CodeExample;
   title?: string;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Code Block with Language Tabs + Line Numbers                       */
-/* ------------------------------------------------------------------ */
 
 export const CodeBlock = ({
   code,
@@ -220,106 +204,62 @@ export const CodeBlock = ({
     go: "go",
   };
 
-  const lines = displayCode.split("\n");
-  const lineNumWidth = String(lines.length).length;
-
   const highlightedCode = (() => {
     const langKey = examples ? langMap[activeLang] : language;
     return getHighlighted(displayCode, langKey);
   })();
 
   return (
-    <motion.div
-      layout
-      className="relative group rounded-2xl overflow-hidden"
-    >
-      <div
-        className="absolute inset-0 rounded-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-500"
-        style={{
-          padding: "1px",
-          background: "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(236,72,153,0.15), rgba(139,92,246,0.05))",
-          WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-          WebkitMaskComposite: "xor",
-          maskComposite: "exclude",
-        }}
-      />
-
-      <div className="relative rounded-2xl backdrop-blur-xl bg-[#0a0a0a]/80 border border-white/[0.06] overflow-hidden shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] transition-all duration-300 group-hover:border-white/[0.1] group-hover:shadow-[0_8px_40px_-8px_rgba(139,92,246,0.1)]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-white/[0.015]">
-          <div className="flex items-center gap-2">
-            {examples ? (
-              (Object.keys(examples) as Lang[]).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setActiveLang(lang)}
-                  className={`relative text-xs font-mono font-medium px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
-                    activeLang === lang
-                      ? "text-violet-300 bg-violet-500/10 shadow-sm"
-                      : "text-white/35 hover:text-white/60 hover:bg-white/[0.03]"
-                  }`}
-                >
-                  {activeLang === lang && (
-                    <motion.div
-                      layoutId="langTab"
-                      className="absolute inset-0 rounded-lg bg-violet-500/10"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10">{langLabels[lang]}</span>
-                </button>
-              ))
+    <div className="relative rounded-lg overflow-hidden bg-zinc-950 border border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.04]">
+        <div className="flex items-center gap-1">
+          {examples ? (
+            (Object.keys(examples) as Lang[]).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setActiveLang(lang)}
+                className={`text-xs font-mono px-2.5 py-1 rounded transition-colors ${
+                  activeLang === lang
+                    ? "text-white/80 bg-white/[0.06]"
+                    : "text-white/30 hover:text-white/50"
+                }`}
+              >
+                {langLabels[lang]}
+              </button>
+            ))
+          ) : (
+            <span className="text-xs font-mono text-white/25 uppercase tracking-wider">
+              {language}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {title && (
+            <span className="text-[11px] text-white/20 font-mono hidden sm:block">{title}</span>
+          )}
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono text-white/30 hover:text-white/60 transition-colors"
+          >
+            {copied ? (
+              <span className="flex items-center gap-1 text-emerald-400">
+                <Check className="w-3 h-3" />
+                <span>Copied</span>
+              </span>
             ) : (
-              <span className="text-xs font-mono font-medium text-white/30 uppercase tracking-wider">
-                {language}
+              <span className="flex items-center gap-1">
+                <Copy className="w-3 h-3" />
+                <span>Copy</span>
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            {title && (
-              <span className="text-[11px] text-white/20 font-mono hidden sm:block">{title}</span>
-            )}
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-[11px] font-mono text-white/40 hover:text-white/70 transition-all duration-200 cursor-pointer"
-            >
-              {copied ? (
-                <motion.span
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  className="flex items-center gap-1.5"
-                >
-                  <CheckCircle className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400">Copied</span>
-                </motion.span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <Copy className="w-3 h-3" />
-                  <span>Copy</span>
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-        {/* Code with line numbers */}
-        <div className="flex">
-          {/* Line numbers */}
-          <div
-            className="flex-shrink-0 text-right pr-4 pl-4 py-5 select-none font-mono text-[13px] leading-relaxed text-white/[0.08] border-r border-white/[0.03]"
-            style={{ minWidth: `${lineNumWidth + 2}ch` }}
-          >
-            {lines.map((_, i) => (
-              <div key={i}>{i + 1}</div>
-            ))}
-          </div>
-          {/* Code content */}
-          <pre className="flex-1 p-5 overflow-x-auto font-mono text-[13px] leading-relaxed">
-            <code className="text-green-400/85">
-              {typeof highlightedCode === "string" ? displayCode : highlightedCode}
-            </code>
-          </pre>
+          </button>
         </div>
       </div>
-    </motion.div>
+      <pre className="p-4 overflow-x-auto font-mono text-[13px] leading-relaxed text-white/70">
+        <code>
+          {typeof highlightedCode === "string" ? displayCode : highlightedCode}
+        </code>
+      </pre>
+    </div>
   );
 };
