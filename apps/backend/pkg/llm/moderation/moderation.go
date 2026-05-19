@@ -1,14 +1,12 @@
 package moderation
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
-	"time"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 // Result holds moderation analysis for a piece of content.
@@ -23,70 +21,69 @@ type Moderator interface {
 	Moderate(ctx context.Context, content string) (*Result, error)
 }
 
-// OpenAIModerator uses OpenAI's moderation API.
+// OpenAIModerator uses OpenAI's moderation API via the official SDK.
 type OpenAIModerator struct {
-	apiKey  string
-	baseURL string
-	client  *http.Client
+	client *openai.Client
 }
 
 // NewOpenAIModerator creates a new OpenAI moderator.
 func NewOpenAIModerator(apiKey string) *OpenAIModerator {
+	cfg := openai.DefaultConfig(apiKey)
 	return &OpenAIModerator{
-		apiKey:  apiKey,
-		baseURL: "https://api.openai.com/v1",
-		client:  &http.Client{Timeout: 15 * time.Second},
+		client: openai.NewClientWithConfig(cfg),
 	}
+}
+
+// NewOpenAIModeratorWithClient creates a moderator with an existing SDK client.
+func NewOpenAIModeratorWithClient(client *openai.Client) *OpenAIModerator {
+	return &OpenAIModerator{client: client}
 }
 
 // Moderate checks content via OpenAI moderation endpoint.
 func (m *OpenAIModerator) Moderate(ctx context.Context, content string) (*Result, error) {
-	if m.apiKey == "" {
-		return nil, fmt.Errorf("moderation: API key not configured")
+	if m.client == nil {
+		return nil, fmt.Errorf("moderation: client not configured")
 	}
 
-	body, _ := json.Marshal(map[string]string{"input": content})
-	req, err := http.NewRequestWithContext(ctx, "POST", m.baseURL+"/moderations", bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+m.apiKey)
-
-	resp, err := m.client.Do(req)
+	resp, err := m.client.Moderations(ctx, openai.ModerationRequest{
+		Input: content,
+		Model: "omni-moderation-latest",
+	})
 	if err != nil {
 		return nil, fmt.Errorf("moderation: request failed: %w", err)
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("moderation: HTTP %d", resp.StatusCode)
-	}
-
-	var result struct {
-		Results []struct {
-			Flagged    bool               `json:"flagged"`
-			Categories map[string]bool    `json:"categories"`
-			Scores     map[string]float64 `json:"category_scores"`
-		} `json:"results"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("moderation: decode: %w", err)
-	}
-
-	if len(result.Results) == 0 {
+	if len(resp.Results) == 0 {
 		return &Result{Flagged: false}, nil
 	}
 
-	r := result.Results[0]
+	r := resp.Results[0]
 	var cats []string
 	maxScore := 0.0
-	for cat, flagged := range r.Categories {
-		if flagged {
-			cats = append(cats, cat)
+	type catEntry struct {
+		name  string
+		flag  bool
+		score float32
+	}
+	entries := []catEntry{
+		{"hate", r.Categories.Hate, r.CategoryScores.Hate},
+		{"hate/threatening", r.Categories.HateThreatening, r.CategoryScores.HateThreatening},
+		{"harassment", r.Categories.Harassment, r.CategoryScores.Harassment},
+		{"harassment/threatening", r.Categories.HarassmentThreatening, r.CategoryScores.HarassmentThreatening},
+		{"self-harm", r.Categories.SelfHarm, r.CategoryScores.SelfHarm},
+		{"self-harm/intent", r.Categories.SelfHarmIntent, r.CategoryScores.SelfHarmIntent},
+		{"self-harm/instructions", r.Categories.SelfHarmInstructions, r.CategoryScores.SelfHarmInstructions},
+		{"sexual", r.Categories.Sexual, r.CategoryScores.Sexual},
+		{"sexual/minors", r.Categories.SexualMinors, r.CategoryScores.SexualMinors},
+		{"violence", r.Categories.Violence, r.CategoryScores.Violence},
+		{"violence/graphic", r.Categories.ViolenceGraphic, r.CategoryScores.ViolenceGraphic},
+	}
+	for _, e := range entries {
+		if e.flag {
+			cats = append(cats, e.name)
 		}
-		if s, ok := r.Scores[cat]; ok && s > maxScore {
-			maxScore = s
+		if float64(e.score) > maxScore {
+			maxScore = float64(e.score)
 		}
 	}
 
@@ -174,11 +171,4 @@ func (l *LocalModerator) SanitizePII(content string) string {
 		content = re.ReplaceAllString(content, "[REDACTED]")
 	}
 	return content
-}
-
-func max(a, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
 }

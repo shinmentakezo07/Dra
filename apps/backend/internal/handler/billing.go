@@ -5,9 +5,12 @@ import (
 	"io"
 	"net/http"
 
+	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/pkg/response"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stripe/stripe-go/v76"
 )
 
@@ -57,4 +60,117 @@ func (h *Handler) StripeWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, map[string]bool{"received": true})
+}
+
+// --- Budget Alerts & Caps ---
+
+func (h *Handler) CreateBudgetAlert(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	var req domain.CreateBudgetAlertRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body")
+		return
+	}
+	alert, err := h.budgetSvc.CreateAlert(r.Context(), u.ID, req)
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.Created(w, alert)
+}
+
+func (h *Handler) ListBudgetAlerts(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	alerts, err := h.budgetSvc.GetUserAlerts(r.Context(), u.ID)
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, alerts)
+}
+
+func (h *Handler) DeleteBudgetAlert(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	id := chi.URLParam(r, "id")
+	if err := h.budgetSvc.DeleteAlert(r.Context(), u.ID, id); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"deleted": true})
+}
+
+func (h *Handler) CreateBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	var req domain.CreateBudgetCapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body")
+		return
+	}
+	cap, err := h.budgetSvc.CreateCap(r.Context(), u.ID, req)
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.Created(w, cap)
+}
+
+func (h *Handler) GetBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	cap, err := h.budgetSvc.GetUserCap(r.Context(), u.ID)
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, cap)
+}
+
+func (h *Handler) UpdateBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	var req domain.CreateBudgetCapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid JSON body")
+		return
+	}
+	if err := h.budgetSvc.UpdateCap(r.Context(), u.ID, req); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"updated": true})
+}
+
+func (h *Handler) DeleteBudgetCap(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	if err := h.budgetSvc.DeleteCap(r.Context(), u.ID); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"deleted": true})
 }

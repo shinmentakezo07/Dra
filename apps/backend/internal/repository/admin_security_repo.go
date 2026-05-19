@@ -52,6 +52,18 @@ func (r *AdminSecurityRepo) RemoveIPEntry(ctx context.Context, id string) error 
 	return nil
 }
 
+// paginatedQuery builds a paginated SELECT with parameterized LIMIT/OFFSET.
+// n is the next available parameter index. Returns the query and the next index after LIMIT/OFFSET.
+func paginatedQuery(selectCols, from, where string, n int) (string, int) {
+	q := fmt.Sprintf("SELECT %s FROM %s %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d", selectCols, from, where, n, n+1)
+	return q, n + 2
+}
+
+// countQuery builds a COUNT query with the same WHERE clause.
+func countQuery(from, where string) string {
+	return fmt.Sprintf("SELECT COUNT(*) FROM %s %s", from, where)
+}
+
 func (r *AdminSecurityRepo) ListSuspicious(ctx context.Context, f domain.SuspiciousFilter) ([]domain.SuspiciousActivity, int, error) {
 	offset := (f.Page - 1) * f.Limit
 	if offset < 0 { offset = 0 }
@@ -60,8 +72,9 @@ func (r *AdminSecurityRepo) ListSuspicious(ctx context.Context, f domain.Suspici
 	if f.Severity != "" { w += fmt.Sprintf(" AND severity=$%d", n); args = append(args, f.Severity); n++ }
 	if f.Reviewed != nil { w += fmt.Sprintf(" AND reviewed=$%d", n); args = append(args, *f.Reviewed); n++ }
 	var total int
-	r.db.QueryRow(ctx, "SELECT COUNT(*) FROM suspicious_activities "+w, args...).Scan(&total)
-	q := fmt.Sprintf(`SELECT id,category,severity,COALESCE(user_id,''),COALESCE(api_key_id,''),COALESCE(ip,''),details,auto_blocked,reviewed,resolved,created_at FROM suspicious_activities %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, w, n, n+1)
+	r.db.QueryRow(ctx, countQuery("suspicious_activities", w), args...).Scan(&total)
+	cols := "id,category,severity,COALESCE(user_id,''),COALESCE(api_key_id,''),COALESCE(ip,''),details,auto_blocked,reviewed,resolved,created_at"
+	q, _ := paginatedQuery(cols, "suspicious_activities", w, n)
 	rows, err := r.db.Query(ctx, q, append(args, f.Limit, offset)...)
 	if err != nil { return nil, 0, fmt.Errorf("list suspicious: %w", err) }
 	defer rows.Close()
@@ -100,8 +113,9 @@ func (r *AdminSecurityRepo) ListIPAccessLogs(ctx context.Context, f domain.IPAcc
 	if f.UserID != "" { w += fmt.Sprintf(" AND user_id=$%d", n); args = append(args, f.UserID); n++ }
 	if f.Blocked != nil { w += fmt.Sprintf(" AND blocked=$%d", n); args = append(args, *f.Blocked); n++ }
 	var total int
-	r.db.QueryRow(ctx, "SELECT COUNT(*) FROM ip_access_logs "+w, args...).Scan(&total)
-	q := fmt.Sprintf(`SELECT id,ip_address,COALESCE(user_id,''),COALESCE(api_key_id,''),method,path,COALESCE(user_agent,''),COALESCE(country,''),is_proxy,blocked,rate_limited,created_at FROM ip_access_logs %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, w, n, n+1)
+	r.db.QueryRow(ctx, countQuery("ip_access_logs", w), args...).Scan(&total)
+	cols := "id,ip_address,COALESCE(user_id,''),COALESCE(api_key_id,''),method,path,COALESCE(user_agent,''),COALESCE(country,''),is_proxy,blocked,rate_limited,created_at"
+	q, _ := paginatedQuery(cols, "ip_access_logs", w, n)
 	rows, err := r.db.Query(ctx, q, append(args, f.Limit, offset)...)
 	if err != nil { return nil, 0, fmt.Errorf("list ip access: %w", err) }
 	defer rows.Close()

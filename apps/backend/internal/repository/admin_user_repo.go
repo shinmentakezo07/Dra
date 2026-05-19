@@ -33,11 +33,12 @@ func (r *AdminUserRepo) ListUsers(ctx context.Context, f domain.UserFilter) ([]d
 	}
 
 	var total int
-	if err := r.db.QueryRow(ctx, "SELECT COUNT(*) FROM users u "+w, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, countQuery("users u", w), args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count: %w", err)
 	}
 
-	q := fmt.Sprintf(`SELECT u.id,u.name,u.email,u.role,COALESCE(u.status,'active'),u.created_at,u.last_login_at,COALESCE(u.last_login_ip,''),COALESCE(u.notes,''),COALESCE(u.tags,'{}') FROM users u %s ORDER BY u.created_at DESC LIMIT $%d OFFSET $%d`, w, n, n+1)
+	cols := "u.id,u.name,u.email,u.role,COALESCE(u.status,'active'),u.created_at,u.last_login_at,COALESCE(u.last_login_ip,''),COALESCE(u.notes,''),COALESCE(u.tags,'{}')"
+	q, _ := paginatedQuery(cols, "users u", w, n)
 	rows, err := r.db.Query(ctx, q, append(args, f.Limit, offset)...)
 	if err != nil { return nil, 0, fmt.Errorf("query: %w", err) }
 	defer rows.Close()

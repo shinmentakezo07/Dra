@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
@@ -255,7 +256,9 @@ func (p *AnthropicProvider) Chat(ctx context.Context, req *llm.ChatRequest) (*ll
 	// Cache response
 	if p.cache != nil {
 		key := llm.CacheKey(req)
-		_ = p.cache.Set(ctx, key, result, 5*time.Minute)
+		if err := p.cache.Set(ctx, key, result, 5*time.Minute); err != nil {
+			slog.Warn("cache_write_failed", "key", key, "error", err.Error())
+		}
 	}
 
 	return result, nil

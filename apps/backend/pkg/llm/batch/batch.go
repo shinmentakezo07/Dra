@@ -2,6 +2,7 @@ package batch
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"sync"
 	"time"
@@ -70,8 +71,8 @@ func NewProcessor(workerCount int, chatFn func(ctx context.Context, req *llm.Cha
 	}
 }
 
-// Submit creates and queues a new batch job.
-func (p *Processor) Submit(items []JobItem) *Job {
+// Submit creates and queues a new batch job. The ctx is used as the parent context for processing.
+func (p *Processor) Submit(ctx context.Context, items []JobItem) *Job {
 	job := &Job{
 		ID:        generateID(),
 		Status:    StatusPending,
@@ -85,7 +86,7 @@ func (p *Processor) Submit(items []JobItem) *Job {
 	p.jobs[job.ID] = job
 	p.mu.Unlock()
 
-	go p.process(job)
+	go p.process(ctx, job)
 	return job
 }
 
@@ -161,7 +162,7 @@ func (p *Processor) Cancel(id string) bool {
 	return false
 }
 
-func (p *Processor) process(job *Job) {
+func (p *Processor) process(ctx context.Context, job *Job) {
 	job.mu.Lock()
 	if job.Status == StatusCancelled {
 		job.mu.Unlock()
@@ -172,7 +173,7 @@ func (p *Processor) process(job *Job) {
 	job.StartedAt = &now
 	job.mu.Unlock()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
 	results := make([]JobResult, len(job.Items))
@@ -250,5 +251,7 @@ func (p *Processor) process(job *Job) {
 }
 
 func generateID() string {
-	return fmt.Sprintf("batch_%d", time.Now().UnixNano())
+	b := make([]byte, 8)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("batch_%x", b)
 }

@@ -11,6 +11,9 @@ import (
 	"dra-platform/backend/internal/pkg/response"
 )
 
+// maxClientsPerUser limits concurrent SSE subscriptions per user to prevent resource exhaustion.
+const maxClientsPerUser = 10
+
 // NotificationHub manages SSE connections.
 type NotificationHub struct {
 	mu          sync.RWMutex
@@ -49,12 +52,15 @@ func (hub *NotificationHub) broadcast() {
 	}
 }
 
-// Subscribe adds a client channel for a user.
+// Subscribe adds a client channel for a user. Returns nil if the user has reached the max client limit.
 func (hub *NotificationHub) Subscribe(userID string) chan SSEEvent {
-	ch := make(chan SSEEvent, 10)
 	hub.mu.Lock()
+	defer hub.mu.Unlock()
+	if len(hub.clients[userID]) >= maxClientsPerUser {
+		return nil
+	}
+	ch := make(chan SSEEvent, 10)
 	hub.clients[userID] = append(hub.clients[userID], ch)
-	hub.mu.Unlock()
 	return ch
 }
 
@@ -106,6 +112,10 @@ func (h *Handler) NotificationsStream(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	ch := h.notificationHub.Subscribe(u.ID)
+	if ch == nil {
+		response.Error(w, 429, "Too many concurrent connections")
+		return
+	}
 	defer h.notificationHub.Unsubscribe(u.ID, ch)
 
 	// Send initial connected event

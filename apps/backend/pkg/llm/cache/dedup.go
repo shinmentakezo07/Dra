@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"dra-platform/backend/pkg/llm"
@@ -61,7 +62,9 @@ func (d *DedupCache) Do(ctx context.Context, key string, ttl time.Duration, fn f
 
 		// Cache the result
 		if d.cache != nil && resp != nil {
-			_ = d.cache.Set(ctx, key, resp, ttl)
+			if err := d.cache.Set(ctx, key, resp, ttl); err != nil {
+				slog.Warn("dedup_cache_write_failed", "key", key, "error", err.Error())
+			}
 		}
 		return resp, nil
 	})

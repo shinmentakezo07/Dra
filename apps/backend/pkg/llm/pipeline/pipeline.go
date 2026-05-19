@@ -3,7 +3,7 @@ package pipeline
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"dra-platform/backend/pkg/llm"
 )
@@ -88,7 +88,7 @@ func (s *SanitizationStep) After(ctx context.Context, req *llm.ChatRequest, resp
 
 // LoggingStep logs request/response metadata.
 type LoggingStep struct {
-	Logger *log.Logger
+	Logger *slog.Logger
 }
 
 func (s *LoggingStep) Name() string { return "logging" }
@@ -98,16 +98,16 @@ func (s *LoggingStep) Before(ctx context.Context, req *llm.ChatRequest) error {
 }
 
 func (s *LoggingStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
-	logger := s.Logger
-	if logger == nil {
-		logger = log.Default()
+	log := s.Logger
+	if log == nil {
+		log = slog.Default()
 	}
 
-	logger.Printf("[LLM] model=%s provider=%s tokens=%+v finish=%s",
-		req.Model,
-		resp.Provider,
-		resp.Usage,
-		resp.FinishReason,
+	log.Info("[LLM]",
+		"model", req.Model,
+		"provider", resp.Provider,
+		"tokens", resp.Usage,
+		"finish", resp.FinishReason,
 	)
 	return nil
 }

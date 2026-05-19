@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CreditCard, Zap, Check, Ticket, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { usePurchaseCredits, useRedeemPromoCode } from "@/lib/api/hooks";
 
 const creditPackages = [
   { amount: 10000, price: 10, label: "Starter" },
@@ -12,21 +13,16 @@ const creditPackages = [
 
 export default function BillingPage() {
   const [selected, setSelected] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const purchaseCredits = usePurchaseCredits();
 
   const handlePurchase = async (pkg: typeof creditPackages[0]) => {
     setSelected(pkg.amount);
-    setLoading(true);
 
     try {
-      const res = await fetch("/api/credits/purchase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: pkg.amount, description: `${pkg.label} Package` }),
-      });
-      const json = await res.json();
-      if (res.ok && json.data?.checkoutUrl) {
-        const url = json.data.checkoutUrl as string;
+      const result = await purchaseCredits.mutateAsync({ amount: pkg.amount, description: `${pkg.label} Package` });
+      const data = (result as any)?.data ?? result;
+      if (data?.checkoutUrl) {
+        const url = data.checkoutUrl as string;
         if (
           typeof url === "string" &&
           (url.startsWith("https://checkout.stripe.com/") ||
@@ -39,15 +35,10 @@ export default function BillingPage() {
         alert("Invalid checkout URL received.");
         return;
       }
-      if (res.ok) {
-        alert(`Purchased ${pkg.amount.toLocaleString()} credits!`);
-      } else {
-        alert(json.error || "Purchase failed. Please try again.");
-      }
+      alert(`Purchased ${pkg.amount.toLocaleString()} credits!`);
     } catch {
       alert("Purchase failed. Please try again.");
     } finally {
-      setLoading(false);
       setSelected(null);
     }
   };
@@ -93,14 +84,14 @@ export default function BillingPage() {
               <p className="text-gray-400 text-sm mb-6">{pkg.amount.toLocaleString()} credits</p>
               <button
                 onClick={() => handlePurchase(pkg)}
-                disabled={loading && selected === pkg.amount}
+                disabled={purchaseCredits.isPending && selected === pkg.amount}
                 className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all ${
                   pkg.popular
                     ? "bg-primary text-white hover:bg-primary/90"
                     : "bg-white/5 text-white hover:bg-white/10"
                 } disabled:opacity-50`}
               >
-                {loading && selected === pkg.amount ? "Processing..." : "Purchase"}
+                {purchaseCredits.isPending && selected === pkg.amount ? "Processing..." : "Purchase"}
               </button>
             </motion.div>
           ))}
@@ -126,29 +117,19 @@ export default function BillingPage() {
 function PromoCodeSection() {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const redeemPromo = useRedeemPromoCode();
 
   const handleRedeem = async () => {
     if (!code.trim()) return;
-    setLoading(true);
     setStatus(null);
     try {
-      const res = await fetch("/api/promos/redeem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code.trim().toUpperCase() }),
-      });
-      const json = await res.json();
-      if (res.ok && json.success) {
-        setStatus({ type: "success", msg: `Redeemed! ${json.data.credits.toLocaleString()} credits added to your account.` });
-        setCode("");
-      } else {
-        setStatus({ type: "error", msg: json.error || "Invalid or expired promo code." });
-      }
-    } catch {
-      setStatus({ type: "error", msg: "Failed to redeem code. Try again." });
-    } finally {
-      setLoading(false);
+      const result = await redeemPromo.mutateAsync(code.trim().toUpperCase());
+      const data = (result as any)?.data ?? result;
+      setStatus({ type: "success", msg: `Redeemed! ${data.credits?.toLocaleString() ?? ""} credits added to your account.` });
+      setCode("");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Invalid or expired promo code.";
+      setStatus({ type: "error", msg });
     }
   };
 
@@ -169,10 +150,10 @@ function PromoCodeSection() {
         />
         <button
           onClick={handleRedeem}
-          disabled={loading || !code.trim()}
+          disabled={redeemPromo.isPending || !code.trim()}
           className="px-5 py-2.5 bg-purple-500/10 text-purple-400 rounded-lg text-sm font-medium hover:bg-purple-500/20 ring-1 ring-purple-500/20 transition-all duration-200 disabled:opacity-30 flex items-center gap-2"
         >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+          {redeemPromo.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
           Redeem
         </button>
       </div>

@@ -46,7 +46,7 @@ func NewProviderServiceWithFeatures(registry *llmprovider.Registry, c cache.Cach
 }
 
 func (s *ProviderService) initHealthChecker() {
-	hc := llmprovider.NewHealthChecker(30*time.Second, 10*time.Second)
+	hc := llmprovider.NewHealthChecker(context.Background(), 30*time.Second, 10*time.Second)
 	for _, name := range s.registry.Providers() {
 		p, ok := s.registry.Get(name)
 		if !ok {

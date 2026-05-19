@@ -97,3 +97,18 @@ func (h *Handler) DeleteWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	response.OK(w, map[string]bool{"deleted": true})
 }
+
+func (h *Handler) GetWebhookDeliveries(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	webhookID := chi.URLParam(r, "id")
+	deliveries, err := h.webhookSvc.ListDeliveries(r.Context(), u.ID, webhookID)
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, deliveries)
+}

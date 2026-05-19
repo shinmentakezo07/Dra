@@ -47,6 +47,7 @@ type HealthChecker struct {
 	checkers  map[string]HealthCheckFunc
 	interval  time.Duration
 	timeout   time.Duration
+	ctx       context.Context
 	stopCh    chan struct{}
 	wg        sync.WaitGroup
 }
@@ -54,15 +55,19 @@ type HealthChecker struct {
 // HealthCheckFunc checks if a provider is healthy.
 type HealthCheckFunc func(ctx context.Context) (HealthStatus, error)
 
-// NewHealthChecker creates a new health checker.
-func NewHealthChecker(interval, timeout time.Duration) *HealthChecker {
+// NewHealthChecker creates a new health checker. The ctx is used as the parent for health check timeouts.
+func NewHealthChecker(ctx context.Context, interval, timeout time.Duration) *HealthChecker {
 	if interval <= 0 {
 		interval = 30 * time.Second
 	}
 	if timeout <= 0 {
 		timeout = 10 * time.Second
 	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	return &HealthChecker{
+		ctx:      ctx,
 		statuses: make(map[string]*ProviderHealth),
 		checkers: make(map[string]HealthCheckFunc),
 		interval: interval,

@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"time"
 )
 
@@ -282,7 +283,9 @@ func (c *Client) Chat(ctx context.Context, req *ChatRequest) (*ChatResponse, err
 
 	if c.cache != nil && !req.Stream {
 		key := CacheKey(req)
-		_ = c.cache.Set(ctx, key, resp, 5*time.Minute)
+		if err := c.cache.Set(ctx, key, resp, 5*time.Minute); err != nil {
+			slog.Warn("cache_write_failed", "key", key, "error", err.Error())
+		}
 	}
 
 	if c.pipeline != nil {

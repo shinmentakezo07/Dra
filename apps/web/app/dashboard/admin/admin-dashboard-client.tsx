@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import {
   Shield,
   Users,
@@ -15,138 +15,39 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface AdminStats {
-  totalUsers: number;
-  totalRequests: number;
-  totalCredits: number;
-  activeProviders: string[];
-}
-
-interface ProviderHealth {
-  provider: string;
-  status: string;
-  latency_ms?: number;
-  last_error?: string;
-}
-
-interface CircuitBreakerState {
-  provider: string;
-  state: string;
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  created_at?: string;
-}
+import {
+  useAdminStats,
+  useAdminUsers,
+  useAdminDeleteUser,
+  useProviderHealth,
+  useCircuitBreakers,
+} from "@/lib/api/hooks";
 
 export default function AdminDashboardClient() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [health, setHealth] = useState<ProviderHealth[]>([]);
-  const [circuitBreakers, setCircuitBreakers] = useState<
-    CircuitBreakerState[]
-  >([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [userPage, setUserPage] = useState(1);
-  const [userTotal, setUserTotal] = useState(0);
-  const [loading, setLoading] = useState({
-    stats: true,
-    health: true,
-    circuitBreakers: true,
-    users: true,
-    deleting: false,
-  });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   const userLimit = 10;
 
-  const fetchStats = useCallback(async () => {
-    setLoading((l) => ({ ...l, stats: true }));
-    try {
-      const r = await fetch("/api/admin/stats");
-      const data = await r.json();
-      setStats(data.data || data);
-    } catch {
-      /* ignore */
-    } finally {
-      setLoading((l) => ({ ...l, stats: false }));
-    }
-  }, []);
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
+  const { data: health, isLoading: healthLoading, refetch: refetchHealth } = useProviderHealth();
+  const { data: circuitBreakers, isLoading: cbLoading, refetch: refetchCB } = useCircuitBreakers();
+  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useAdminUsers(userPage, userLimit);
+  const deleteUser = useAdminDeleteUser();
 
-  const fetchHealth = useCallback(async () => {
-    setLoading((l) => ({ ...l, health: true }));
-    try {
-      const r = await fetch("/api/providers/health");
-      const data = await r.json();
-      setHealth(data.data || data || []);
-    } catch {
-      /* ignore */
-    } finally {
-      setLoading((l) => ({ ...l, health: false }));
-    }
-  }, []);
-
-  const fetchCircuitBreakers = useCallback(async () => {
-    setLoading((l) => ({ ...l, circuitBreakers: true }));
-    try {
-      const r = await fetch("/api/admin/circuit-breakers");
-      const data = await r.json();
-      setCircuitBreakers(data.data || data || []);
-    } catch {
-      /* ignore */
-    } finally {
-      setLoading((l) => ({ ...l, circuitBreakers: false }));
-    }
-  }, []);
-
-  const fetchUsers = useCallback(async () => {
-    setLoading((l) => ({ ...l, users: true }));
-    try {
-      const r = await fetch(
-        `/api/admin/users?page=${userPage}&limit=${userLimit}`
-      );
-      const data = await r.json();
-      setUsers(data.data || []);
-      setUserTotal(data.meta?.total || data.data?.length || 0);
-    } catch {
-      /* ignore */
-    } finally {
-      setLoading((l) => ({ ...l, users: false }));
-    }
-  }, [userPage]);
-
-  useEffect(() => {
-    fetchStats();
-    fetchHealth();
-    fetchCircuitBreakers();
-  }, [fetchStats, fetchHealth, fetchCircuitBreakers]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const users = (usersData as any)?.data ?? [];
+  const userTotal = (usersData as any)?.meta?.total ?? (usersData as any)?.total ?? 0;
 
   const handleDelete = async (userId: string) => {
-    setLoading((l) => ({ ...l, deleting: true }));
     setError(null);
     try {
-      const r = await fetch(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-      });
-      if (!r.ok) {
-        const data = await r.json().catch(() => { throw new Error("Failed to parse server response"); });
-        throw new Error(data.error || "Failed to delete user");
-      }
+      await deleteUser.mutateAsync(userId);
       setDeleteConfirm(null);
-      fetchUsers();
-      fetchStats();
-    } catch (err: any) {
-      setError(err.message || "Failed to delete user");
-    } finally {
-      setLoading((l) => ({ ...l, deleting: false }));
+      refetchUsers();
+      refetchStats();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete user";
+      setError(msg);
     }
   };
 
@@ -161,10 +62,10 @@ export default function AdminDashboardClient() {
         </div>
         <button
           onClick={() => {
-            fetchStats();
-            fetchHealth();
-            fetchCircuitBreakers();
-            fetchUsers();
+            refetchStats();
+            refetchHealth();
+            refetchCB();
+            refetchUsers();
           }}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all"
         >
@@ -189,20 +90,20 @@ export default function AdminDashboardClient() {
         <StatCard
           icon={Users}
           label="Total Users"
-          value={stats?.totalUsers ?? "-"}
-          loading={loading.stats}
+          value={stats?.users?.total ?? "-"}
+          loading={statsLoading}
         />
         <StatCard
           icon={Activity}
           label="Total Requests"
-          value={stats?.totalRequests ?? "-"}
-          loading={loading.stats}
+          value={stats?.logs?.total ?? "-"}
+          loading={statsLoading}
         />
         <StatCard
           icon={Server}
           label="Total Credits"
-          value={stats?.totalCredits ?? "-"}
-          loading={loading.stats}
+          value={stats?.credits?.totalBalance ?? "-"}
+          loading={statsLoading}
         />
       </div>
 
@@ -213,7 +114,7 @@ export default function AdminDashboardClient() {
             <Activity className="w-5 h-5 text-primary" />
             Provider Health
           </h2>
-          {loading.health ? (
+          {healthLoading ? (
             <LoadingRows count={3} />
           ) : health.length === 0 ? (
             <p className="text-gray-500 text-sm">
@@ -249,7 +150,7 @@ export default function AdminDashboardClient() {
             <Zap className="w-5 h-5 text-primary" />
             Circuit Breakers
           </h2>
-          {loading.circuitBreakers ? (
+          {cbLoading ? (
             <LoadingRows count={3} />
           ) : circuitBreakers.length === 0 ? (
             <p className="text-gray-500 text-sm">
@@ -285,7 +186,7 @@ export default function AdminDashboardClient() {
           </span>
         </div>
 
-        {loading.users ? (
+        {usersLoading ? (
           <LoadingRows count={5} />
         ) : (
           <>
@@ -326,10 +227,10 @@ export default function AdminDashboardClient() {
                               </button>
                               <button
                                 onClick={() => handleDelete(u.id)}
-                                disabled={loading.deleting}
+                                disabled={deleteUser.isPending}
                                 className="bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs px-3 py-1.5 rounded flex items-center gap-1 disabled:opacity-50"
                               >
-                                {loading.deleting ? (
+                                {deleteUser.isPending ? (
                                   <Loader2 className="w-3 h-3 animate-spin" />
                                 ) : (
                                   <Trash2 className="w-3 h-3" />

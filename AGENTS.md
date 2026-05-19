@@ -135,6 +135,6 @@ Each app has its own instruction file: `apps/backend/AGENTS.md` (Go layer rules)
 - **Go 1.25** — features differ from training data (iter.Seq, unique, slog improvements). Run `go vet ./...` before committing
 - **Tailwind CSS v4** — PostCSS plugin `@tailwindcss/postcss`, not v3 CLI. Config is CSS-first (globals.css @theme), NOT `tailwind.config.ts`
 - **Zod v4** — breaking changes from v3. Do not use v3 patterns
-- **No CI workflows** currently configured (`.github/workflows/` absent)
+- CI workflows exist in `.github/workflows/`: `ci.yml` (lint, frontend tests, backend tests, build) and `e2e.yml` (Playwright E2E). Both run on push/PR to `main`.
 - **Dual SDK sync**: Go SDK (`pkg/sdk/`) and TypeScript SDK (`lib/api/sdk.ts`) must be kept in sync — implement backend → Go SDK → TS SDK
 - **Keys validation**: `AUTH_SECRET` fallback chain in `auth.ts`: `process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET`

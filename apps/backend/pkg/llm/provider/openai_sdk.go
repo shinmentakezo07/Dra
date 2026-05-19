@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"dra-platform/backend/pkg/llm"
@@ -231,7 +232,9 @@ func chatWithSDK(ctx context.Context, p *BaseProvider, req *llm.ChatRequest) (*l
 	// Cache response
 	if p.cache != nil {
 		key := llm.CacheKey(req)
-		_ = p.cache.Set(ctx, key, result, 5*time.Minute)
+		if err := p.cache.Set(ctx, key, result, 5*time.Minute); err != nil {
+			slog.Warn("cache_write_failed", "key", key, "error", err.Error())
+		}
 	}
 
 	return result, nil

@@ -29,7 +29,7 @@ func TestHealthStatus_String(t *testing.T) {
 }
 
 func TestNewHealthChecker_Defaults(t *testing.T) {
-	hc := NewHealthChecker(0, 0)
+	hc := NewHealthChecker(context.Background(), 0, 0)
 	if hc.interval != 30*time.Second {
 		t.Errorf("interval = %v, want %v", hc.interval, 30*time.Second)
 	}
@@ -39,7 +39,7 @@ func TestNewHealthChecker_Defaults(t *testing.T) {
 }
 
 func TestHealthChecker_RegisterAndStatus(t *testing.T) {
-	hc := NewHealthChecker(time.Hour, time.Second)
+	hc := NewHealthChecker(context.Background(), time.Hour, time.Second)
 
 	checkFn := func(ctx context.Context) (HealthStatus, error) {
 		return HealthHealthy, nil
@@ -61,7 +61,7 @@ func TestHealthChecker_RegisterAndStatus(t *testing.T) {
 }
 
 func TestHealthChecker_Unregister(t *testing.T) {
-	hc := NewHealthChecker(time.Hour, time.Second)
+	hc := NewHealthChecker(context.Background(), time.Hour, time.Second)
 	hc.Register("test", func(ctx context.Context) (HealthStatus, error) {
 		return HealthHealthy, nil
 	})
@@ -75,7 +75,7 @@ func TestHealthChecker_Unregister(t *testing.T) {
 }
 
 func TestHealthChecker_IsHealthy(t *testing.T) {
-	hc := NewHealthChecker(time.Hour, time.Second)
+	hc := NewHealthChecker(context.Background(), time.Hour, time.Second)
 
 	// Before check
 	if hc.IsHealthy("test") {
@@ -96,7 +96,7 @@ func TestHealthChecker_IsHealthy(t *testing.T) {
 }
 
 func TestHealthChecker_CheckProvider_Error(t *testing.T) {
-	hc := NewHealthChecker(time.Hour, time.Second)
+	hc := NewHealthChecker(context.Background(), time.Hour, time.Second)
 	hc.Register("test", func(ctx context.Context) (HealthStatus, error) {
 		return HealthHealthy, nil
 	})
@@ -177,7 +177,7 @@ func TestHTTPHealthCheck(t *testing.T) {
 }
 
 func TestHealthChecker_StartStop(t *testing.T) {
-	hc := NewHealthChecker(50*time.Millisecond, time.Second)
+	hc := NewHealthChecker(context.Background(), 50*time.Millisecond, time.Second)
 	checked := make(chan string, 1)
 
 	hc.Register("test", func(ctx context.Context) (HealthStatus, error) {

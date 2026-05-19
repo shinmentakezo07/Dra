@@ -111,10 +111,11 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - `X-Sandbox: true` on `/v1/chat/completions` disables quota, cost, and logging for testing.
 
 ### Important architecture quirks
-- `pkg/llm/provider/` is the canonical provider registry for new LLM work. Check for any additional provider wiring before adding a backend.
+- `pkg/llm/provider/` is the canonical provider registry. The legacy `internal/provider/` has been eliminated (consolidated 2026-05-15 — see `ops.md`).
 - **SDK parity matters.** Backend API changes often need matching updates in both the Go SDK (`apps/backend/pkg/sdk/`) and the TypeScript SDK (`apps/web/lib/api/sdk.ts`). Implement backend → Go SDK → TS SDK in that order.
 - Webhook delivery is a first-class subsystem split across `pkg/webhook/`, `internal/service/webhook.go`, and `internal/repository/webhook.go`.
 - Batch jobs, SSE notifications, uploads, telemetry, and embeddings all have dedicated handlers/services; check for an existing subsystem before adding parallel logic.
+- `internal/pkg/` contains shared backend packages: `logger/` (slog), `response/` (standardized HTTP envelope), `token/` (JWT). Use these instead of rolling your own.
 
 ## Hard Constraints
 
@@ -123,7 +124,7 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - **Zod v4** — breaking changes from v3. Do not use v3 patterns
 - **Tailwind CSS v4** — PostCSS plugin `@tailwindcss/postcss`, not v3 CLI. Config is CSS-first (`globals.css @theme`), NOT `tailwind.config.ts`
 - **Go 1.25** — features may differ from training data (`iter.Seq`, `unique`, `slog` improvements). Run `go vet ./...` before committing
-- **No CI workflows** currently configured (`.github/workflows/` absent)
+- CI workflows exist in `.github/workflows/`: `ci.yml` (lint, frontend tests, backend tests, build) and `e2e.yml` (Playwright E2E). Both run on push/PR to `main`.
 
 ## Tests and verification
 
@@ -156,7 +157,6 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - `turbo.json` passes build env vars (`DATABASE_URL`, `AUTH_SECRET`, `OPENAI_API_KEY`, `NVIDIA_API_KEY`, `BACKEND_URL`, etc.) but **NOT** `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY` — these are runtime-only and must be set separately in the environment.
 - `next.config.ts` enables `output: 'standalone'` and sets security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`). Production Docker server entry is `apps/web/server.js` inside `.next/standalone/`.
 - The backend `Makefile` uses a `go list -f` filter to only test packages that have test files (required for Go 1.26+ compatibility since `covdata` was removed).
-- There are no GitHub Actions workflows in `.github/workflows/` right now.
 - `.npmrc` sets `legacy-peer-deps=true`; do not remove it — npm install will fail without it.
 - **`opencode.json`** configures the project to use its own Yapapa instance (`https://yapa.up.railway.app/v1`) as the LLM provider via `@ai-sdk/openai-compatible`.
 - **ECC rules** are active for this repo: `.claude/rules/golang/` and `.claude/rules/typescript/` — these load automatically for matching file types.

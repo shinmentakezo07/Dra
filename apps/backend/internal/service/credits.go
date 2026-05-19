@@ -48,18 +48,29 @@ func (s *CreditService) Purchase(ctx context.Context, userID string, req domain.
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
-	if err := s.creditsRepo.Upsert(ctx, userID, req.Amount, req.Amount); err != nil {
-		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to update credits", err)
-	}
-	desc := req.Description
-	if desc == "" {
-		desc = "Credit purchase"
-	}
-	tx, err := s.txRepo.Create(ctx, userID, req.Amount, "purchase", desc, nil)
+	var result *domain.CreditTransaction
+	err := s.db.WithTx(ctx, func(tx db.Querier) error {
+		if err := s.creditsRepo.Upsert(ctx, userID, req.Amount, req.Amount); err != nil {
+			return domain.Wrap(domain.ErrInternal, 500, "failed to update credits", err)
+		}
+		desc := req.Description
+		if desc == "" {
+			desc = "Credit purchase"
+		}
+		txn, err := s.txRepo.Create(ctx, userID, req.Amount, "purchase", desc, nil)
+		if err != nil {
+			return domain.Wrap(domain.ErrInternal, 500, "failed to record transaction", err)
+		}
+		result = txn
+		return nil
+	})
 	if err != nil {
-		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to record transaction", err)
+		if appErr, ok := err.(*domain.AppError); ok {
+			return nil, appErr
+		}
+		return nil, domain.Wrap(domain.ErrInternal, 500, "purchase transaction failed", err)
 	}
-	return tx, nil
+	return result, nil
 }
 
 func (s *CreditService) DeductForUsage(ctx context.Context, userID string, amount int, logID string) *domain.AppError {

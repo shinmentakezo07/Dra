@@ -63,3 +63,31 @@ func (h *Handler) GetBatchJob(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, job)
 }
+
+func (h *Handler) ListBatchJobs(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	jobs, err := h.batchSvc.List(r.Context(), u.ID)
+	if err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, jobs)
+}
+
+func (h *Handler) CancelBatchJob(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
+		return
+	}
+	id := chi.URLParam(r, "id")
+	if err := h.batchSvc.Cancel(r.Context(), u.ID, id); err != nil {
+		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
+		return
+	}
+	response.OK(w, map[string]bool{"cancelled": true})
+}

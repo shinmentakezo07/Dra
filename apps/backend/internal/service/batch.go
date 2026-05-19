@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"dra-platform/backend/internal/domain"
@@ -32,7 +34,7 @@ func (s *BatchService) Submit(ctx context.Context, userID string, items []batch.
 		return nil, domain.NewError(domain.ErrBadRequest, 400, "Maximum 100 items per batch")
 	}
 
-	id := fmt.Sprintf("batch_%d", time.Now().UnixNano())
+	id := generateBatchID()
 	itemsJSON, err := json.Marshal(items)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to marshal items", err)
@@ -92,7 +94,9 @@ func (s *BatchService) process(jobID string, items []batch.JobItem) {
 	defer cancel()
 
 	if err := s.repo.UpdateRunning(ctx, jobID); err != nil {
-		_ = s.repo.UpdateCompleted(ctx, jobID, string(batch.StatusFailed), []byte("[]"), "failed to start job", 0)
+		if err := s.repo.UpdateCompleted(ctx, jobID, string(batch.StatusFailed), []byte("[]"), "failed to start job", 0); err != nil {
+			slog.Warn("batch_update_failed", "jobID", jobID, "error", err.Error())
+		}
 		return
 	}
 
@@ -143,7 +147,9 @@ func (s *BatchService) process(jobID string, items []batch.JobItem) {
 			results[r.idx] = r.res
 			progress++
 			resultsJSON, _ := json.Marshal(results)
-			_ = s.repo.UpdateStatus(ctx, jobID, string(batch.StatusRunning), resultsJSON, "", progress)
+			if err := s.repo.UpdateStatus(ctx, jobID, string(batch.StatusRunning), resultsJSON, "", progress); err != nil {
+					slog.Warn("batch_status_update_failed", "jobID", jobID, "error", err.Error())
+				}
 		}
 		close(done)
 	}()
@@ -170,5 +176,13 @@ func (s *BatchService) process(jobID string, items []batch.JobItem) {
 	}
 
 	resultsJSON, _ := json.Marshal(results)
-	_ = s.repo.UpdateCompleted(ctx, jobID, status, resultsJSON, errMsg, progress)
+	if err := s.repo.UpdateCompleted(ctx, jobID, status, resultsJSON, errMsg, progress); err != nil {
+		slog.Warn("batch_complete_update_failed", "jobID", jobID, "error", err.Error())
+	}
+}
+
+func generateBatchID() string {
+	b := make([]byte, 8)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("batch_%x", b)
 }

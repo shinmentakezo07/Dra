@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -75,10 +76,22 @@ func (rl *RateLimiter) cleanup() {
 	}
 }
 
+// clientIP extracts the real client IP from X-Real-IP or X-Forwarded-For headers,
+// falling back to RemoteAddr when neither is present.
+func clientIP(r *http.Request) string {
+	if ip := strings.TrimSpace(r.Header.Get("X-Real-IP")); ip != "" {
+		return ip
+	}
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		return strings.TrimSpace(strings.SplitN(xff, ",", 2)[0])
+	}
+	return r.RemoteAddr
+}
+
 func RateLimit(rl *RateLimiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			key := r.RemoteAddr
+			key := clientIP(r)
 			if u := GetUser(r); u != nil {
 				key = u.ID
 			}

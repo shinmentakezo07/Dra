@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -247,7 +248,9 @@ func (ch *cachedHandler) TranslateRequest(req *llm.ChatRequest, fromProvider, to
 		return nil, err
 	}
 
-	_ = ch.cache.Set(context.Background(), key, result)
+	if err := ch.cache.Set(context.Background(), key, result); err != nil {
+		slog.Warn("translator_cache_write_failed", "key", key, "error", err.Error())
+	}
 	return result, nil
 }
 

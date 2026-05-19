@@ -23,6 +23,7 @@ import type {
   CircuitBreakerStatus,
   ProviderSummary,
   ModelInfo,
+  PlatformStats,
 } from "./sdk";
 
 const sdk = getSDK();
@@ -491,5 +492,45 @@ export function useCircuitBreakers() {
     queryKey: ["circuit-breakers"],
     queryFn: () => sdk.adminCircuitBreakers(),
     refetchInterval: 30_000,
+  });
+}
+
+// ============================================================================
+// Admin
+// ============================================================================
+
+export function useAdminStats() {
+  return useQuery<PlatformStats>({
+    queryKey: ["admin-stats"],
+    queryFn: () => sdk.adminStats(),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useAdminUsers(page: number, limit: number = 10) {
+  return useQuery({
+    queryKey: ["admin-users", page, limit],
+    queryFn: () => sdk.adminListUsers(page, limit),
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useAdminDeleteUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sdk.adminDeleteUser(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+  });
+}
+
+// ============================================================================
+// Promo Codes
+// ============================================================================
+
+export function useRedeemPromoCode() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => sdk.redeemPromoCode(code),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["credits", "transactions"] }),
   });
 }
