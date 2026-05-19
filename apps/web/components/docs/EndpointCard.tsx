@@ -10,15 +10,15 @@ import { Lock, ChevronRight } from "lucide-react";
 
 export const MethodBadge = ({ method }: { method: string }) => {
   const colors: Record<string, string> = {
-    GET: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5",
-    POST: "bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-blue-500/5",
-    PUT: "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-amber-500/5",
-    PATCH: "bg-orange-500/10 text-orange-400 border-orange-500/20 shadow-orange-500/5",
-    DELETE: "bg-red-500/10 text-red-400 border-red-500/20 shadow-red-500/5",
+    GET: "bg-emerald-500/8 text-emerald-400 border-emerald-500/15",
+    POST: "bg-blue-500/8 text-blue-400 border-blue-500/15",
+    PUT: "bg-amber-500/8 text-amber-400 border-amber-500/15",
+    PATCH: "bg-orange-500/8 text-orange-400 border-orange-500/15",
+    DELETE: "bg-red-500/8 text-red-400 border-red-500/15",
   };
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border shadow-sm ${
+      className={`inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] font-bold border ${
         colors[method] || colors.GET
       }`}
     >
@@ -49,19 +49,20 @@ export const EndpointCard = ({
   return (
     <motion.div
       layout
-      className="rounded-xl border border-white/[0.08] bg-[#0A0A0A] overflow-hidden transition-all duration-300 hover:border-white/[0.14] hover:bg-white/[0.01]"
+      className="rounded-xl border border-white/[0.06] bg-[#0c0c0e] overflow-hidden transition-all duration-200 hover:border-white/[0.12]"
     >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-4 p-4 text-left group"
+        className="w-full flex items-center gap-4 px-4 py-3.5 text-left group"
       >
         <MethodBadge method={method} />
-        <code className="text-white font-mono text-sm tracking-tight group-hover:text-white/90 transition-colors">
+        <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors">
           {path}
         </code>
-        <div className="ml-auto flex items-center gap-2">
+        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/15 truncate pl-4">{description}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
           {auth && (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06] text-[10px] font-medium text-white/20">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.05] text-[10px] font-medium text-white/20">
               <Lock className="w-2.5 h-2.5" />
               Auth
             </span>
@@ -70,7 +71,7 @@ export const EndpointCard = ({
             animate={{ rotate: open ? 90 : 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40 transition-colors" />
+            <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/35 transition-colors" />
           </motion.div>
         </div>
       </button>
@@ -84,11 +85,11 @@ export const EndpointCard = ({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-4 border-t border-white/[0.04] pt-4">
-              <p className="text-sm text-muted-foreground flex items-start gap-2">
-                <span className="text-white/20 mt-px">▸</span>
+              <p className="text-sm text-white/40 flex items-start gap-2">
+                <span className="text-blue-400/40 mt-px text-[10px]">●</span>
                 <span>{description}</span>
               </p>
-              <div className="pl-3 border-l border-white/[0.06]">
+              <div className="pl-4 border-l-2 border-blue-500/[0.12]">
                 {children}
               </div>
             </div>

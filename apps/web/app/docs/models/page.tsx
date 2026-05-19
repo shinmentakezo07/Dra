@@ -19,7 +19,7 @@ export default function ModelsPage() {
         <div className="overflow-x-auto mt-6">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06]">
+              <tr className="border-b border-white/[0.05]">
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">Provider</th>
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">Prefix</th>
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">Example Models</th>
@@ -38,7 +38,7 @@ export default function ModelsPage() {
                   <td className="py-3 px-4">
                     <code className="text-blue-400 font-mono text-xs">{row.prefix}</code>
                   </td>
-                  <td className="py-3 px-4 text-muted-foreground">{row.models}</td>
+                  <td className="py-3 px-4 text-white/30">{row.models}</td>
                 </tr>
               ))}
             </tbody>

@@ -17,21 +17,21 @@ export default function ConversationsPage() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
             <h4 className="text-white font-semibold text-sm mb-2">Create</h4>
-            <p className="text-xs text-muted-foreground">POST /api/conversations</p>
+            <p className="text-xs text-white/30">POST /api/conversations</p>
           </div>
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
             <h4 className="text-white font-semibold text-sm mb-2">List</h4>
-            <p className="text-xs text-muted-foreground">GET /api/conversations</p>
+            <p className="text-xs text-white/30">GET /api/conversations</p>
           </div>
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
             <h4 className="text-white font-semibold text-sm mb-2">Send Message</h4>
-            <p className="text-xs text-muted-foreground">POST /api/conversations/{`{id}`}/messages</p>
+            <p className="text-xs text-white/30">POST /api/conversations/{`{id}`}/messages</p>
           </div>
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
             <h4 className="text-white font-semibold text-sm mb-2">Delete</h4>
-            <p className="text-xs text-muted-foreground">DELETE /api/conversations/{`{id}`}</p>
+            <p className="text-xs text-white/30">DELETE /api/conversations/{`{id}`}</p>
           </div>
         </div>
       </Section>

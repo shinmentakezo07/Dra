@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
   Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, ArrowRight, Book, Users, Webhook,
+  BarChart3, Lock, Terminal, ArrowRight, Users, Webhook,
 } from "lucide-react";
 import type { NavItem } from "@/components/docs/types";
 
@@ -41,12 +41,12 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.03 },
+    transition: { staggerChildren: 0.04 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
@@ -60,47 +60,51 @@ export default function DocsIndexPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="mb-20"
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-24"
       >
-        <p className="text-xs font-mono text-white/20 mb-6">Documentation</p>
-        <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-white mb-4 leading-[1.1]">
-          Build with Yapapa
+        <div className="flex items-center gap-2.5 mb-6">
+          <div className="w-8 h-8 rounded-lg bg-blue-500/[0.08] border border-blue-500/[0.12] flex items-center justify-center">
+            <Zap className="w-4 h-4 text-blue-400/70" />
+          </div>
+          <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.2em]">Documentation</span>
+        </div>
+        <h1 className="text-4xl md:text-[3.5rem] font-bold tracking-tight text-white mb-5 leading-[1.05]">
+          Build with<br />
+          <span className="bg-gradient-to-r from-blue-400/90 to-blue-300/60 bg-clip-text text-transparent">Yapapa</span>
         </h1>
-        <p className="text-[15px] text-white/35 max-w-lg leading-relaxed">
+        <p className="text-[16px] text-white/35 max-w-lg leading-[1.7]">
           One unified API for 100+ AI models. OpenAI-compatible drop-in replacement with credit-based billing and real-time analytics.
         </p>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="mb-20"
+        transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-24"
       >
-        <div className="flex items-center gap-3 mb-8">
-          <h2 className="text-xs font-mono text-white/15 uppercase tracking-widest">Quick Start</h2>
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-[10px] font-mono text-white/20 uppercase tracking-[0.2em]">Quick Start</h2>
           <div className="h-px flex-1 bg-white/[0.04]" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { step: "1", title: "Sign up", desc: "Create an account" },
-            { step: "2", title: "Get a key", desc: "Generate an API key" },
-            { step: "3", title: "Make a request", desc: "Call any model" },
+            { step: "01", title: "Sign up", desc: "Create an account" },
+            { step: "02", title: "Get a key", desc: "Generate an API key" },
+            { step: "03", title: "Make a request", desc: "Call any model" },
           ].map((item) => (
             <Link
               key={item.step}
               href="/docs/quickstart"
-              className="group flex items-start gap-4 p-5 rounded-lg border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02] transition-colors"
+              className="group relative p-5 rounded-xl border border-white/[0.05] bg-white/[0.01] hover:border-blue-500/[0.15] hover:bg-blue-500/[0.02] transition-all duration-300 cursor-pointer"
             >
-              <span className="text-lg font-mono text-white/10 group-hover:text-white/20 transition-colors flex-shrink-0">
+              <span className="text-2xl font-mono font-bold text-white/[0.06] group-hover:text-blue-400/20 transition-colors duration-300">
                 {item.step}
               </span>
-              <div>
-                <p className="text-sm font-medium text-white/60 group-hover:text-white/80 transition-colors">{item.title}</p>
-                <p className="text-xs text-white/20 mt-0.5">{item.desc}</p>
-              </div>
+              <p className="text-sm font-medium text-white/60 group-hover:text-white/80 transition-colors mt-1">{item.title}</p>
+              <p className="text-xs text-white/20 mt-0.5">{item.desc}</p>
             </Link>
           ))}
         </div>
@@ -108,42 +112,53 @@ export default function DocsIndexPage() {
 
       {categories.map((category, catIdx) => {
         const categorySections = sections.filter((s) => s.category === category);
+        const categoryColors: Record<string, string> = {
+          "Getting Started": "text-emerald-400/50",
+          "Core Features": "text-blue-400/50",
+          "Platform": "text-amber-400/50",
+          "Reference": "text-violet-400/50",
+        };
 
         return (
           <motion.div
             key={category}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 + catIdx * 0.06, duration: 0.4 }}
+            transition={{ delay: 0.12 + catIdx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-16 last:mb-0"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <h3 className="text-xs font-mono text-white/15 uppercase tracking-widest">
+            <div className="flex items-center gap-3 mb-5">
+              <h3 className={`text-[10px] font-mono uppercase tracking-[0.2em] ${categoryColors[category] || "text-white/20"}`}>
                 {category}
               </h3>
               <div className="h-px flex-1 bg-white/[0.04]" />
+              <span className="text-[10px] font-mono text-white/10">{categorySections.length}</span>
             </div>
 
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="space-y-0"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
             >
               {categorySections.map((section) => (
                 <motion.div key={section.id} variants={itemVariants}>
                   <Link
                     href={`/docs/${section.id}`}
-                    className="group flex items-center gap-4 py-3.5 border-b border-white/[0.03] hover:border-white/[0.06] transition-colors"
+                    className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] hover:bg-white/[0.02] transition-all duration-200 cursor-pointer"
                   >
-                    <section.icon className="w-3.5 h-3.5 text-white/15 group-hover:text-white/25 transition-colors flex-shrink-0" />
-                    <span className="text-sm text-white/40 group-hover:text-white/70 transition-colors flex-1">
-                      {section.label}
-                    </span>
-                    <span className="text-xs text-white/10 group-hover:text-white/20 transition-colors hidden sm:block">
-                      {section.desc}
-                    </span>
-                    <ArrowRight className="w-3 h-3 text-white/5 group-hover:text-white/15 group-hover:translate-x-0.5 transition-all" />
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/[0.06] group-hover:border-blue-500/[0.1] transition-all duration-200">
+                      <section.icon className="w-3.5 h-3.5 text-white/20 group-hover:text-blue-400/60 transition-colors duration-200" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-medium text-white/50 group-hover:text-white/80 transition-colors duration-200 truncate">
+                        {section.label}
+                      </p>
+                      <p className="text-[11px] text-white/20 truncate mt-0.5">
+                        {section.desc}
+                      </p>
+                    </div>
+                    <ArrowRight className="w-3 h-3 text-white/[0.06] group-hover:text-white/20 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
                   </Link>
                 </motion.div>
               ))}

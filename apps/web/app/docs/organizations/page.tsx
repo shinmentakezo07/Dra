@@ -29,16 +29,16 @@ export default function OrganizationsPage() {
             { title: "Role Management", icon: Users, desc: "Owners and admins can manage members, invite collaborators, and remove users." },
             { title: "Invite by Email", icon: Mail, desc: "Send email invitations with magic links. New members accept and join automatically." },
           ].map((item) => (
-            <div key={item.title} className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.1] transition-all duration-200">
+            <div key={item.title} className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05] hover:border-white/[0.1] transition-all duration-200">
               <item.icon className="w-5 h-5 text-blue-400 mb-3" />
               <h3 className="text-white font-semibold text-sm mb-1">{item.title}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              <p className="text-xs text-white/30 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
 
         <h3 className="text-lg font-bold text-white mb-4 mt-10">Organization Model</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+        <p className="text-sm text-white/30 leading-relaxed mb-4">
           Each organization has the following structure:
         </p>
         <CodeBlock
@@ -93,12 +93,12 @@ export default function OrganizationsPage() {
 
         <h3 className="text-lg font-bold text-white mb-4 mt-10">Members & Invitations</h3>
 
-        <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] mb-6">
+        <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05] mb-6">
           <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <UserPlus className="w-4 h-4 text-blue-400" />
             Invitation Flow
           </h4>
-          <ol className="space-y-3 text-sm text-muted-foreground">
+          <ol className="space-y-3 text-sm text-white/30">
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 text-[10px] font-bold font-mono">1</span>
               <span>Admin calls <code className="text-white/60">POST /api/organizations/{'{id}'}/invite</code> with the invitee&apos;s email and role.</span>
@@ -145,7 +145,7 @@ export default function OrganizationsPage() {
         <div className="overflow-x-auto mt-4">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06]">
+              <tr className="border-b border-white/[0.05]">
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">Role</th>
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">Invite Members</th>
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">Remove Members</th>
@@ -159,7 +159,7 @@ export default function OrganizationsPage() {
                 { role: "Admin", invite: "Yes", remove: "Yes", use: "Yes", delete: "No" },
                 { role: "Member", invite: "No", remove: "No", use: "Yes", delete: "No" },
               ].map((row) => (
-                <tr key={row.role} className="text-muted-foreground text-xs hover:bg-white/[0.01] transition-colors">
+                <tr key={row.role} className="text-white/30 text-xs hover:bg-white/[0.01] transition-colors">
                   <td className="py-3 px-4 text-white font-medium">{row.role}</td>
                   <td className="py-3 px-4">{row.invite}</td>
                   <td className="py-3 px-4">{row.remove}</td>

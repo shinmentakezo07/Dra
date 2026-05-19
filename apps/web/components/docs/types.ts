@@ -6,4 +6,4 @@ export interface NavItem {
   icon: ElementType;
 }
 
-export type TipVariant = "tip" | "warning" | "critical";
+export type TipVariant = "tip" | "warning" | "critical" | "info";

@@ -23,7 +23,7 @@ export default function DashboardPage() {
             "Credit balance and transaction history",
             "Model performance and latency monitoring",
           ].map((item, i) => (
-            <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+            <li key={i} className="flex items-start gap-3 text-sm text-white/30">
               <CheckCircle className="w-4 h-4 text-emerald-400/70 mt-0.5 flex-shrink-0" />
               <span>{item}</span>
             </li>

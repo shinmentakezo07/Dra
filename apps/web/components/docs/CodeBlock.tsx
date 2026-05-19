@@ -210,39 +210,39 @@ export const CodeBlock = ({
   })();
 
   return (
-    <div className="relative rounded-lg overflow-hidden bg-zinc-950 border border-white/[0.06]">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.04]">
+    <div className="relative rounded-xl overflow-hidden bg-[#0c0c0e] border border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04]">
         <div className="flex items-center gap-1">
           {examples ? (
             (Object.keys(examples) as Lang[]).map((lang) => (
               <button
                 key={lang}
                 onClick={() => setActiveLang(lang)}
-                className={`text-xs font-mono px-2.5 py-1 rounded transition-colors ${
+                className={`text-[11px] font-mono px-2.5 py-1 rounded-md transition-all duration-200 ${
                   activeLang === lang
-                    ? "text-white/80 bg-white/[0.06]"
-                    : "text-white/30 hover:text-white/50"
+                    ? "text-white/80 bg-white/[0.06] border border-white/[0.08]"
+                    : "text-white/25 hover:text-white/50 border border-transparent"
                 }`}
               >
                 {langLabels[lang]}
               </button>
             ))
           ) : (
-            <span className="text-xs font-mono text-white/25 uppercase tracking-wider">
+            <span className="text-[11px] font-mono text-white/20 uppercase tracking-wider">
               {language}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {title && (
-            <span className="text-[11px] text-white/20 font-mono hidden sm:block">{title}</span>
+            <span className="text-[11px] text-white/15 font-mono hidden sm:block">{title}</span>
           )}
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono text-white/30 hover:text-white/60 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-white/25 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer"
           >
             {copied ? (
-              <span className="flex items-center gap-1 text-emerald-400">
+              <span className="flex items-center gap-1 text-emerald-400/80">
                 <Check className="w-3 h-3" />
                 <span>Copied</span>
               </span>
@@ -255,7 +255,7 @@ export const CodeBlock = ({
           </button>
         </div>
       </div>
-      <pre className="p-4 overflow-x-auto font-mono text-[13px] leading-relaxed text-white/70">
+      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.65] text-white/65">
         <code>
           {typeof highlightedCode === "string" ? displayCode : highlightedCode}
         </code>

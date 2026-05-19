@@ -30,9 +30,9 @@ export default function WebhooksPage() {
             { event: "request.completed", desc: "An API chat or embedding request finished processing. Includes model, token counts, and cost." },
             { event: "credits.purchased", desc: "Credits were added to your account via purchase or admin grant. Includes amount and new balance." },
           ].map((evt) => (
-            <div key={evt.event} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.1] transition-all duration-200">
+            <div key={evt.event} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05] hover:border-white/[0.1] transition-all duration-200">
               <code className="text-blue-400 font-mono text-xs font-bold">{evt.event}</code>
-              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{evt.desc}</p>
+              <p className="text-xs text-white/30 mt-1.5 leading-relaxed">{evt.desc}</p>
             </div>
           ))}
         </div>
@@ -60,8 +60,8 @@ export default function WebhooksPage() {
         <div className="space-y-2">
           <EndpointCard method="GET" path="/api/webhooks" description="List all configured webhook endpoints for your account, including their event subscriptions, active status, and recent delivery status." />
           <EndpointCard method="POST" path="/api/webhooks" description="Create a new webhook endpoint. Requires a target URL and at least one event type. Optionally set a secret for HMAC signing and custom headers.">
-            <p className="text-sm text-muted-foreground mb-3">Request body fields:</p>
-            <ul className="text-xs text-muted-foreground space-y-1 mb-4 pl-4 list-disc">
+            <p className="text-sm text-white/30 mb-3">Request body fields:</p>
+            <ul className="text-xs text-white/30 space-y-1 mb-4 pl-4 list-disc">
               <li><code className="text-white/60">url</code> (required) — Target URL that receives POST requests</li>
               <li><code className="text-white/60">events</code> (required) — Array of event types to subscribe to</li>
               <li><code className="text-white/60">secret</code> (optional) — Secret key for HMAC-SHA256 signature generation</li>
@@ -100,40 +100,40 @@ export default function WebhooksPage() {
         </div>
 
         <h3 className="text-lg font-bold text-white mb-4 mt-10">Delivery & Retry Mechanism</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <p className="text-sm text-white/30 leading-relaxed">
           Webhook deliveries use HTTP POST with a 30-second timeout. Failed deliveries are retried
           up to 3 times using exponential backoff with jitter. Client errors (4xx) other than 429
           abort the retry cycle immediately, while server errors (5xx) and timeouts are retried.
         </p>
 
-        <div className="mt-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+        <div className="mt-6 p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
           <h4 className="text-white font-semibold text-sm mb-3">Retry Schedule</h4>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06]">
+                <tr className="border-b border-white/[0.05]">
                   <th className="text-left py-2 px-3 text-white/40 font-medium text-xs uppercase tracking-wider">Attempt</th>
                   <th className="text-left py-2 px-3 text-white/40 font-medium text-xs uppercase tracking-wider">Delay</th>
                   <th className="text-left py-2 px-3 text-white/40 font-medium text-xs uppercase tracking-wider">Trigger</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
-                <tr className="text-muted-foreground text-xs">
+                <tr className="text-white/30 text-xs">
                   <td className="py-2 px-3 font-mono">1</td>
                   <td className="py-2 px-3 font-mono">~2s + jitter</td>
                   <td className="py-2 px-3">Initial delivery</td>
                 </tr>
-                <tr className="text-muted-foreground text-xs">
+                <tr className="text-white/30 text-xs">
                   <td className="py-2 px-3 font-mono">2</td>
                   <td className="py-2 px-3 font-mono">~4s + jitter</td>
                   <td className="py-2 px-3">5xx, timeout, or 429</td>
                 </tr>
-                <tr className="text-muted-foreground text-xs">
+                <tr className="text-white/30 text-xs">
                   <td className="py-2 px-3 font-mono">3</td>
                   <td className="py-2 px-3 font-mono">~8s + jitter</td>
                   <td className="py-2 px-3">5xx, timeout, or 429</td>
                 </tr>
-                <tr className="text-muted-foreground text-xs">
+                <tr className="text-white/30 text-xs">
                   <td className="py-2 px-3 font-mono">4</td>
                   <td className="py-2 px-3 font-mono">~16s + jitter (capped at 60s)</td>
                   <td className="py-2 px-3">Final attempt — aborts on failure</td>
@@ -144,26 +144,26 @@ export default function WebhooksPage() {
         </div>
 
         <h3 className="text-lg font-bold text-white mb-4 mt-10">Security & Headers</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <p className="text-sm text-white/30 leading-relaxed">
           Each webhook delivery includes security headers to help you verify authenticity.
           When a secret is configured, the payload is signed using HMAC-SHA256 and the
           signature is sent in the request headers.
         </p>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
             <h4 className="text-white font-semibold text-sm mb-2">Request Headers</h4>
             <dl className="space-y-2 text-xs">
-              <div><dt className="text-white/60 font-mono">Content-Type</dt><dd className="text-muted-foreground">application/json</dd></div>
-              <div><dt className="text-white/60 font-mono">X-Webhook-ID</dt><dd className="text-muted-foreground">Unique delivery identifier</dd></div>
-              <div><dt className="text-white/60 font-mono">X-Event-Type</dt><dd className="text-muted-foreground">The event type being delivered</dd></div>
-              <div><dt className="text-white/60 font-mono">X-Webhook-Timestamp</dt><dd className="text-muted-foreground">Unix timestamp of the event</dd></div>
-              <div><dt className="text-white/60 font-mono">X-Webhook-Signature</dt><dd className="text-muted-foreground">HMAC-SHA256 signature (<code className="text-white/40">sha256=...</code>)</dd></div>
+              <div><dt className="text-white/60 font-mono">Content-Type</dt><dd className="text-white/30">application/json</dd></div>
+              <div><dt className="text-white/60 font-mono">X-Webhook-ID</dt><dd className="text-white/30">Unique delivery identifier</dd></div>
+              <div><dt className="text-white/60 font-mono">X-Event-Type</dt><dd className="text-white/30">The event type being delivered</dd></div>
+              <div><dt className="text-white/60 font-mono">X-Webhook-Timestamp</dt><dd className="text-white/30">Unix timestamp of the event</dd></div>
+              <div><dt className="text-white/60 font-mono">X-Webhook-Signature</dt><dd className="text-white/30">HMAC-SHA256 signature (<code className="text-white/40">sha256=...</code>)</dd></div>
             </dl>
           </div>
-          <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
             <h4 className="text-white font-semibold text-sm mb-2">Signature Verification</h4>
-            <p className="text-xs text-muted-foreground mb-3">Verify incoming webhooks using your secret:</p>
+            <p className="text-xs text-white/30 mb-3">Verify incoming webhooks using your secret:</p>
             <CodeBlock
               language="javascript"
               code={`const crypto = require("crypto");
@@ -188,9 +188,9 @@ function verifyWebhook(payload, signature, secret) {
             { title: "Delivery Status", desc: "Each webhook tracks delivery status, attempt count, HTTP response codes, and error messages for debugging." },
             { title: "Concurrency Limit", desc: "A maximum of 20 concurrent webhook deliveries are allowed across all endpoints to prevent overwhelming your servers." },
           ].map((item) => (
-            <div key={item.title} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <div key={item.title} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
               <h4 className="text-white font-semibold text-sm mb-1">{item.title}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              <p className="text-xs text-white/30 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>

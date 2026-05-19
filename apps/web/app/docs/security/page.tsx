@@ -23,11 +23,11 @@ export default function SecurityPage() {
             { title: "Rate Limiting", desc: "Per-user sliding window rate limits", icon: Activity },
             { title: "CORS Protection", desc: "Strict CORS policy with allowed origins", icon: Globe },
           ].map((item) => (
-            <div key={item.title} className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <div key={item.title} className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
               <item.icon className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="text-white font-semibold text-sm">{item.title}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                <p className="text-xs text-white/30 mt-0.5">{item.desc}</p>
               </div>
             </div>
           ))}

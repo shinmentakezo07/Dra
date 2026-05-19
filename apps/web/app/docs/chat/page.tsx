@@ -94,12 +94,12 @@ func main() {
           }}
         />
 
-        <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.01] p-5">
+        <div className="mt-6 rounded-xl border border-white/[0.05] bg-white/[0.01] p-5">
           <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
             <span className="px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 text-[11px] font-mono font-bold">SSE</span>
             Streaming Response
           </h4>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/30">
             Set <code className="text-white/60">stream: true</code> in your request body to enable SSE. Each chunk is prefixed with <code className="text-white/60">data:</code> and the stream ends with <code className="text-white/60">data: [DONE]</code>.
           </p>
         </div>

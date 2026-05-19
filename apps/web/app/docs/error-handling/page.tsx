@@ -27,11 +27,11 @@ export default function ErrorHandlingPage() {
             { code: "502", title: "Bad Gateway", desc: "Upstream LLM provider returned an error." },
             { code: "503", title: "Service Unavailable", desc: "Service temporarily unavailable." },
           ].map((err) => (
-            <div key={err.code} className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.06]">
+            <div key={err.code} className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
               <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 text-xs font-bold font-mono">{err.code}</span>
               <div className="min-w-0">
                 <div className="text-white font-medium text-sm">{err.title}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{err.desc}</div>
+                <div className="text-xs text-white/30 mt-0.5">{err.desc}</div>
               </div>
             </div>
           ))}
