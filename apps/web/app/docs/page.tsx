@@ -82,8 +82,8 @@ export default function DocsIndexPage() {
         className="relative mb-16"
       >
         <div className="absolute inset-0 overflow-hidden rounded-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(56,189,248,0.08),transparent)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_60%,rgba(139,92,246,0.05),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(139,92,246,0.08),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_60%,rgba(236,72,153,0.05),transparent)]" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
         </div>
 
@@ -95,8 +95,8 @@ export default function DocsIndexPage() {
             className="inline-flex items-center gap-2 mb-8"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-400" />
             </span>
             <span className="text-xs font-medium text-white/40 tracking-wide">API Documentation</span>
           </motion.div>
@@ -109,7 +109,7 @@ export default function DocsIndexPage() {
           >
             <span className="text-white">Build with</span>
             <br />
-            <span className="bg-gradient-to-r from-sky-300 via-violet-300 to-fuchsia-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent">
               Yapapa
             </span>
           </motion.h1>
@@ -151,7 +151,7 @@ export default function DocsIndexPage() {
       >
         <button
           onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-          className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.1] hover:bg-white/[0.03] transition-all duration-200 text-sm text-white/25 hover:text-white/40"
+          className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.1] hover:bg-white/[0.03] transition-all duration-200 text-sm text-white/25 hover:text-white/40 cursor-pointer"
         >
           <Search className="w-4 h-4 text-white/20" />
           <span>Search docs...</span>
@@ -330,7 +330,7 @@ export default function DocsIndexPage() {
         transition={{ duration: 0.5, delay: 0.5 }}
         className="relative rounded-xl border border-white/[0.04] bg-white/[0.01] overflow-hidden group"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_50%_0%,rgba(56,189,248,0.06),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_80%_at_50%_0%,rgba(139,92,246,0.06),transparent)]" />
 
         <div className="relative z-10 px-8 py-12 md:px-12 md:py-16 text-center">
           <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">Ready to Build?</h3>
@@ -340,14 +340,14 @@ export default function DocsIndexPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/signup"
-              className="group/btn relative px-6 py-3 rounded-lg bg-white text-black hover:bg-white/90 font-semibold text-sm transition-all flex items-center gap-2"
+              className="group/btn relative px-6 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500 font-semibold text-sm transition-all flex items-center gap-2 shadow-[0_0_20px_-6px_rgba(139,92,246,0.4)] hover:shadow-[0_0_30px_-6px_rgba(139,92,246,0.5)] cursor-pointer"
             >
               <span>Sign Up Free</span>
               <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/docs/quickstart"
-              className="px-6 py-3 rounded-lg border border-white/[0.08] text-white/40 hover:text-white/60 hover:border-white/[0.12] font-medium text-sm transition-all flex items-center gap-2"
+              className="px-6 py-3 rounded-lg border border-white/[0.08] text-white/40 hover:text-white/60 hover:border-white/[0.12] font-medium text-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <span>Quick Start</span>
               <ArrowRight className="w-3.5 h-3.5" />

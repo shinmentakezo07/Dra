@@ -111,7 +111,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           <button
             onClick={() => setSidebarOpen(false)}
             aria-label="Close navigation"
-            className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40 hover:text-white/70 transition-colors"
+            className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40 hover:text-white/70 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -120,29 +120,29 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       <div className={`p-3 space-y-4 ${mobile ? "" : "pt-4"}`}>
         {navGroups.map((group) => (
           <div key={group.label}>
-            <h3 className="text-[10px] uppercase tracking-widest text-white/20 font-mono px-3 pb-1">{group.label}</h3>
-            <div className="space-y-1">
+            <h3 className="text-[10px] uppercase tracking-widest text-white/15 font-mono px-3 pb-1">{group.label}</h3>
+            <div className="space-y-0.5">
               {group.items.map((item) => {
                 const isActive = currentSectionId === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => navigateTo(item.id)}
-                    className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm w-full text-left transition-all duration-200 ${
+                    className={`relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm w-full text-left transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? "text-blue-400 font-medium bg-blue-500/[0.04]"
-                        : "text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
+                        ? "text-violet-300 font-medium bg-violet-500/[0.06]"
+                        : "text-white/30 hover:text-white/50 hover:bg-white/[0.02]"
                     }`}
                   >
                     {isActive && !mobile && (
                       <motion.div
                         layoutId="activeIndicator"
-                        className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-400 via-purple-400 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                        className="absolute left-0 top-1 bottom-1 w-px bg-gradient-to-b from-violet-400 via-fuchsia-400 to-violet-400 rounded-full shadow-[0_0_10px_rgba(139,92,246,0.3)]"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
-                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-400" : "text-white/15"}`} />
-                    <span className="truncate">{item.label}</span>
+                    <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-400" : "text-white/15"}`} />
+                    <span className="truncate text-[13px]">{item.label}</span>
                   </button>
                 );
               })}
@@ -158,9 +158,25 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       <ScrollProgress />
 
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[length:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-        <div className="absolute top-[-10%] left-1/4 w-[800px] h-[800px] bg-blue-500/[0.04] rounded-full blur-[180px] animate-pulse-slow" style={{ animationDuration: "8s" }} />
-        <div className="absolute bottom-[-10%] right-1/4 w-[700px] h-[700px] bg-violet-500/[0.03] rounded-full blur-[180px] animate-pulse-slow" style={{ animationDuration: "10s", animationDelay: "2s" }} />
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
+        <motion.div
+          animate={{
+            x: [0, 80, -40, 0],
+            y: [0, -60, 40, 0],
+            scale: [1, 1.2, 0.9, 1],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] left-1/4 w-[800px] h-[800px] bg-violet-600/[0.04] rounded-full blur-[180px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, -60, 50, 0],
+            y: [0, 70, -30, 0],
+            scale: [1, 1.15, 0.85, 1],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-10%] right-1/4 w-[700px] h-[700px] bg-fuchsia-600/[0.03] rounded-full blur-[180px]"
+        />
       </div>
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} items={allNavItems} onNavigate={navigateTo} />
@@ -169,7 +185,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         <button
           onClick={() => setSidebarOpen(true)}
           aria-label="Open navigation"
-          className="w-12 h-12 rounded-full bg-blue-500 shadow-lg shadow-blue-500/25 flex items-center justify-center text-white transition-all duration-200 hover:scale-105 active:scale-95"
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/25 flex items-center justify-center text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -203,7 +219,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
       <aside className={`hidden lg:flex flex-col fixed left-0 top-0 bottom-0 ${SIDEBAR_WIDTH} border-r border-white/[0.04] bg-[#050505]/90 backdrop-blur-sm z-30`}>
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.04]">
-          <div className="w-7 h-7 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 ring-1 ring-blue-500/[0.15]">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/15 to-fuchsia-500/10 flex items-center justify-center text-violet-400 ring-1 ring-violet-500/[0.15]">
             <Book className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -220,7 +236,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
               placeholder="Filter..."
               value={sidebarFilter}
               onChange={(e) => setSidebarFilter(e.target.value)}
-              className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg pl-9 pr-3 py-2 text-xs text-white/50 placeholder:text-white/15 font-mono outline-none focus:border-blue-500/20 focus:bg-blue-500/[0.02] transition-all"
+              className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg pl-9 pr-3 py-2 text-xs text-white/50 placeholder:text-white/15 font-mono outline-none focus:border-violet-500/20 focus:bg-violet-500/[0.02] transition-all"
             />
           </div>
         </div>
@@ -229,7 +245,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           {filteredNavGroups.length > 0 ? (
             filteredNavGroups.map((group) => (
               <div key={group.label} className="mb-2">
-                <div className="text-[10px] uppercase tracking-widest text-white/15 font-mono px-3 pt-3 pb-1">
+                <div className="text-[10px] uppercase tracking-widest text-white/10 font-mono px-3 pt-3 pb-1">
                   {group.label}
                 </div>
                 <div className="space-y-0.5">
@@ -239,20 +255,20 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                       <button
                         key={item.id}
                         onClick={() => navigateTo(item.id)}
-                        className={`relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm w-full text-left transition-all duration-150 ${
+                        className={`relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm w-full text-left transition-all duration-150 cursor-pointer ${
                           isActive
-                            ? "text-blue-400 font-medium bg-blue-500/[0.04]"
+                            ? "text-violet-300 font-medium bg-violet-500/[0.06]"
                             : "text-white/30 hover:text-white/50 hover:bg-white/[0.02]"
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="absolute left-0 top-1 bottom-1 w-px bg-blue-400 rounded-full"
+                            className="absolute left-0 top-1 bottom-1 w-px bg-gradient-to-b from-violet-400 via-fuchsia-400 to-violet-400 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)]"
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                           />
                         )}
-                        <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-blue-400" : "text-white/15"}`} />
+                        <item.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-violet-400" : "text-white/15"}`} />
                         <span className="truncate text-[13px]">{item.label}</span>
                       </button>
                     );
@@ -278,7 +294,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             </div>
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-xs text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-xs text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-all cursor-pointer"
             >
               <Search className="w-3.5 h-3.5" />
               <span>Search</span>
