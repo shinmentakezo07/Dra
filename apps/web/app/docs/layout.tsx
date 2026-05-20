@@ -7,7 +7,7 @@ import {
   Book, Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
   Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
   BarChart3, Lock, Terminal, Search, Menu, Users, Webhook, X,
-  ChevronRight, ArrowUpRight,
+  ChevronRight, ArrowUpRight, Globe,
 } from "lucide-react";
 import { ScrollProgress } from "@/components/docs/ScrollProgress";
 import { SearchModal } from "@/components/docs/SearchModal";
@@ -26,6 +26,7 @@ const navGroups: NavGroup[] = [
       { id: "quickstart", label: "Quick Start", icon: Zap },
       { id: "authentication", label: "Authentication", icon: Key },
       { id: "api-reference", label: "API Reference", icon: Code2 },
+      { id: "self-hosting", label: "Self-Hosting", icon: Globe },
     ],
   },
   {

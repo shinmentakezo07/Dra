@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
   Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, ArrowRight, Users, Webhook,
+  BarChart3, Lock, Terminal, ArrowRight, Users, Webhook, Globe,
 } from "lucide-react";
 import type { NavItem } from "@/components/docs/types";
 
@@ -18,6 +18,7 @@ const sections: DocSection[] = [
   { id: "quickstart", label: "Quick Start", icon: Zap, desc: "Get up and running in under 5 minutes.", category: "Getting Started" },
   { id: "authentication", label: "Authentication", icon: Key, desc: "API keys, JWT, and bearer token auth.", category: "Getting Started" },
   { id: "api-reference", label: "API Reference", icon: Code2, desc: "Complete endpoint documentation.", category: "Getting Started" },
+  { id: "self-hosting", label: "Self-Hosting", icon: Globe, desc: "Configure base URL for your deployment.", category: "Getting Started" },
   { id: "chat", label: "Chat & Streaming", icon: MessageSquare, desc: "SSE streaming and standard chat.", category: "Core Features" },
   { id: "embeddings", label: "Embeddings", icon: Database, desc: "Generate text embeddings.", category: "Core Features" },
   { id: "conversations", label: "Conversations", icon: Boxes, desc: "Multi-turn conversation management.", category: "Core Features" },
