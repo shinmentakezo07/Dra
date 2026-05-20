@@ -5,7 +5,9 @@ import { Terminal } from "lucide-react";
 import { Section } from "@/components/docs/Section";
 import { CodeBlock } from "@/components/docs/CodeBlock";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+import { getDocsBaseUrl } from "@/lib/docs-config";
+
+const BASE_URL = getDocsBaseUrl();
 
 const fadeIn = {
   hidden: { opacity: 0, y: 10 },

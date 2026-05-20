@@ -5,7 +5,9 @@ import { MessageSquare } from "lucide-react";
 import { Section } from "@/components/docs/Section";
 import { CodeBlock } from "@/components/docs/CodeBlock";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+import { getDocsBaseUrl } from "@/lib/docs-config";
+
+const BASE_URL = getDocsBaseUrl();
 
 export default function ChatPage() {
   return (

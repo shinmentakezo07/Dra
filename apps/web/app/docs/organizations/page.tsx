@@ -7,7 +7,9 @@ import { EndpointCard } from "@/components/docs/EndpointCard";
 import { CodeBlock } from "@/components/docs/CodeBlock";
 import { TipBox } from "@/components/docs/TipBox";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+import { getDocsBaseUrl } from "@/lib/docs-config";
+
+const BASE_URL = getDocsBaseUrl();
 
 export default function OrganizationsPage() {
   return (
