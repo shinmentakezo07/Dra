@@ -224,6 +224,21 @@ func (r *AdminProviderRepo) ReorderKeys(ctx context.Context, providerID string, 
 	return nil
 }
 
+func (r *AdminProviderRepo) Delete(ctx context.Context, id string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM providers WHERE id=$1`, id)
+	if err != nil {
+		return fmt.Errorf("delete provider: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("provider not found: %s", id)
+	}
+	if r.cache != nil {
+		_ = r.cache.Delete(ctx, providerCacheKey(id))
+		_ = r.cache.Delete(ctx, providerListCacheKey())
+	}
+	return nil
+}
+
 func (r *AdminProviderRepo) GetHealthChecks(ctx context.Context, providerID string, since time.Time) ([]domain.ProviderHealthCheck, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT status, latency_ms, error, checked_at

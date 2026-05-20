@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 interface ProviderCardProps {
   provider: Provider;
   onToggleStatus: (id: string, status: ProviderStatus) => void;
+  onDelete: (id: string, name: string) => void;
 }
 
 const statusStyle: Record<ProviderStatus, string> = {
@@ -76,6 +77,7 @@ function ProviderKeysPanel({
       getAdminSDK().deleteProviderKey(providerId, keyId),
     onSuccess: () => {
       loadKeys();
+      queryClient.invalidateQueries({ queryKey: ["admin", "providers"] });
     },
   });
 
@@ -206,7 +208,7 @@ function ProviderKeysPanel({
                   </td>
                   <td className="py-1.5 text-right">
                     <button
-                      onClick={() => deleteKey.mutate(key.id)}
+                      onClick={() => { if (confirm("Delete this key?")) deleteKey.mutate(key.id); }}
                       className="text-red-400/60 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -304,7 +306,7 @@ function FetchModelsPanel({ baseUrl }: { baseUrl: string }) {
   );
 }
 
-function ProviderCard({ provider, onToggleStatus }: ProviderCardProps) {
+function ProviderCard({ provider, onToggleStatus, onDelete }: ProviderCardProps) {
   const [showKeys, setShowKeys] = useState(false);
   const [showModels, setShowModels] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -465,10 +467,17 @@ function ProviderCard({ provider, onToggleStatus }: ProviderCardProps) {
               provider.status === "active" ? "inactive" : "active",
             )
           }
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-white/50 hover:text-white/70 hover:bg-white/5 rounded-md transition-colors ml-auto"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-white/50 hover:text-white/70 hover:bg-white/5 rounded-md transition-colors"
         >
           <ArrowUpDown className="h-3.5 w-3.5" />
-          Toggle Status
+          Toggle
+        </button>
+        <button
+          onClick={() => onDelete(provider.id, provider.name)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors ml-auto"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Delete
         </button>
       </div>
 
@@ -480,6 +489,7 @@ function ProviderCard({ provider, onToggleStatus }: ProviderCardProps) {
 
 export default function AdminProvidersPage() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
@@ -508,6 +518,14 @@ export default function AdminProvidersPage() {
       getAdminSDK().updateProviderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "providers"] });
+    },
+  });
+
+  const deleteProvider = useMutation({
+    mutationFn: (id: string) => getAdminSDK().deleteProvider(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "providers"] });
+      setDeleteConfirm(null);
     },
   });
 
@@ -661,12 +679,38 @@ export default function AdminProvidersPage() {
         </div>
       )}
 
+      {deleteConfirm && (
+        <div className="mb-6 p-5 rounded-xl border border-red-500/20 bg-red-500/[0.03]">
+          <h3 className="text-sm font-semibold text-white mb-2">Delete Provider</h3>
+          <p className="text-sm text-white/60 mb-4">
+            Are you sure you want to delete <span className="text-white font-mono">{deleteConfirm.name}</span>?
+            This will remove all keys and unregister it from the runtime. This cannot be undone.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => deleteProvider.mutate(deleteConfirm.id)}
+              disabled={deleteProvider.isPending}
+              className="px-4 py-2 text-sm font-medium bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50"
+            >
+              {deleteProvider.isPending ? "Deleting..." : "Delete"}
+            </button>
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="px-4 py-2 text-sm text-white/50 hover:text-white/70 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {paginated.map((provider) => (
           <ProviderCard
             key={provider.id}
             provider={provider}
             onToggleStatus={(id, status) => updateStatus.mutate({ id, status })}
+            onDelete={(id, name) => setDeleteConfirm({ id, name })}
           />
         ))}
         {paginated.length === 0 && (

@@ -160,6 +160,21 @@ func (r *AdminModelRepo) UpdateModel(ctx context.Context, m *domain.ModelRegistr
 	return nil
 }
 
+func (r *AdminModelRepo) DeleteModel(ctx context.Context, id string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM model_registry WHERE id=$1`, id)
+	if err != nil {
+		return fmt.Errorf("delete model: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("model not found: %s", id)
+	}
+	if r.cache != nil {
+		_ = r.cache.Delete(ctx, modelCacheKey(id))
+		_ = r.cache.DeletePrefix(ctx, modelListCacheKey())
+	}
+	return nil
+}
+
 func (r *AdminModelRepo) UpdateModelStatus(ctx context.Context, id string, status domain.ModelStatus, replacementID *string) error {
 	_, err := r.db.Exec(ctx, `
 		UPDATE model_registry SET status=$2, replacement_model_id=$3 WHERE id=$1`,

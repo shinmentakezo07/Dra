@@ -402,6 +402,14 @@ func (r *Registry) Register(p llm.Provider) {
 	r.models = nil // invalidate cache
 }
 
+// Unregister removes a provider from the registry by name.
+func (r *Registry) Unregister(name string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.providers, name)
+	r.models = nil // invalidate cache
+}
+
 // Get retrieves a provider by name.
 func (r *Registry) Get(name string) (llm.Provider, bool) {
 	r.mu.RLock()

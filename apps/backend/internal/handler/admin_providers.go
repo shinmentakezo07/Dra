@@ -90,6 +90,15 @@ func (h *Handler) AdminDeleteProviderKey(w http.ResponseWriter, r *http.Request)
 	response.OK(w, map[string]string{"status": "deleted"})
 }
 
+func (h *Handler) AdminDeleteProvider(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.adminSvc.DeleteProvider(r.Context(), id); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	response.OK(w, map[string]string{"status": "deleted"})
+}
+
 func (h *Handler) AdminReorderProviderKeys(w http.ResponseWriter, r *http.Request) {
 	var req struct{ KeyIDs []string }
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid body"); return }

@@ -22,6 +22,15 @@ func (h *Handler) AdminCreateModel(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, m)
 }
 
+func (h *Handler) AdminDeleteModel(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.adminSvc.DeleteModel(r.Context(), id); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	response.OK(w, map[string]string{"status": "deleted"})
+}
+
 func (h *Handler) AdminUpdateModelStatus(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var req struct{ Status string }

@@ -208,11 +208,76 @@ func (s *AdminService) AddProviderKeyRaw(ctx context.Context, k *domain.Provider
 }
 
 func (s *AdminService) UpdateProvider(ctx context.Context, p *domain.Provider) error {
-	return s.providerRepo.Update(ctx, p)
+	if err := s.providerRepo.Update(ctx, p); err != nil {
+		return err
+	}
+	// Hot-reload: re-register provider with updated config
+	if s.llmRegistry != nil {
+		refreshed, err := s.providerRepo.Get(ctx, p.ID)
+		if err == nil && refreshed != nil {
+			if refreshed.Status == domain.ProviderStatusActive && refreshed.BaseURL != "" {
+				keys, kErr := s.providerRepo.ListKeys(ctx, refreshed.ID)
+				if kErr == nil {
+					for _, k := range keys {
+						if k.IsActive && k.KeyPrefix != "" {
+							s.registerProviderWithKey(refreshed, k.KeyPrefix)
+							return nil
+						}
+					}
+				}
+				s.registerProviderRuntime(refreshed)
+			} else {
+				s.llmRegistry.Unregister(refreshed.Name)
+			}
+		}
+	}
+	return nil
 }
 
 func (s *AdminService) ToggleProviderStatus(ctx context.Context, id string, status domain.ProviderStatus) error {
-	return s.providerRepo.UpdateStatus(ctx, id, status)
+	if err := s.providerRepo.UpdateStatus(ctx, id, status); err != nil {
+		return err
+	}
+	// Hot-swap: register or unregister based on new status
+	if s.llmRegistry != nil {
+		p, err := s.providerRepo.Get(ctx, id)
+		if err == nil && p != nil {
+			if status == domain.ProviderStatusActive && p.BaseURL != "" {
+				keys, kErr := s.providerRepo.ListKeys(ctx, p.ID)
+				if kErr == nil {
+					for _, k := range keys {
+						if k.IsActive && k.KeyPrefix != "" {
+							s.registerProviderWithKey(p, k.KeyPrefix)
+							return nil
+						}
+					}
+				}
+				s.registerProviderRuntime(p)
+			} else {
+				s.llmRegistry.Unregister(p.Name)
+			}
+		}
+	}
+	return nil
+}
+
+// DeleteProvider removes a provider, its keys, and unregisters from runtime.
+func (s *AdminService) DeleteProvider(ctx context.Context, id string) error {
+	p, err := s.providerRepo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if p == nil {
+		return fmt.Errorf("provider not found: %s", id)
+	}
+	if s.llmRegistry != nil {
+		s.llmRegistry.Unregister(p.Name)
+	}
+	keys, _ := s.providerRepo.ListKeys(ctx, id)
+	for _, k := range keys {
+		_ = s.providerRepo.DeleteKey(ctx, k.ID)
+	}
+	return s.providerRepo.Delete(ctx, id)
 }
 
 // registerProviderRuntime creates a GenericProvider from DB config and registers it.
@@ -338,7 +403,34 @@ func (s *AdminService) UpdateProviderKey(ctx context.Context, k *domain.Provider
 }
 
 func (s *AdminService) DeleteProviderKey(ctx context.Context, id string) error {
-	return s.providerRepo.DeleteKey(ctx, id)
+	// Find the provider so we can refresh runtime after key deletion
+	var providerID string
+	// We need to find which provider this key belongs to; scan all keys
+	// A better approach would be to store providerID on the key, but for now
+	// we iterate providers to find it
+	providers, _ := s.providerRepo.List(context.Background())
+	for _, p := range providers {
+		keys, _ := s.providerRepo.ListKeys(context.Background(), p.ID)
+		for _, k := range keys {
+			if k.ID == id {
+				providerID = p.ID
+				break
+			}
+		}
+		if providerID != "" {
+			break
+		}
+	}
+
+	if err := s.providerRepo.DeleteKey(ctx, id); err != nil {
+		return err
+	}
+
+	// Refresh provider in runtime (may need to pick up a different key)
+	if providerID != "" {
+		s.refreshProviderModels(ctx, providerID)
+	}
+	return nil
 }
 
 func (s *AdminService) ReorderProviderKeys(ctx context.Context, providerID string, keyIDs []string) error {
@@ -360,15 +452,68 @@ func (s *AdminService) GetModel(ctx context.Context, id string) (*domain.ModelRe
 }
 
 func (s *AdminService) CreateModel(ctx context.Context, m *domain.ModelRegistry) error {
-	return s.modelRepo.CreateModel(ctx, m)
+	if err := s.modelRepo.CreateModel(ctx, m); err != nil {
+		return err
+	}
+	s.refreshProviderModels(ctx, m.ProviderID)
+	return nil
 }
 
 func (s *AdminService) UpdateModel(ctx context.Context, m *domain.ModelRegistry) error {
-	return s.modelRepo.UpdateModel(ctx, m)
+	if err := s.modelRepo.UpdateModel(ctx, m); err != nil {
+		return err
+	}
+	s.refreshProviderModels(ctx, m.ProviderID)
+	return nil
 }
 
 func (s *AdminService) UpdateModelStatus(ctx context.Context, id string, status domain.ModelStatus, replacementID *string) error {
-	return s.modelRepo.UpdateModelStatus(ctx, id, status, replacementID)
+	m, err := s.modelRepo.GetModel(ctx, id)
+	if err != nil || m == nil {
+		return fmt.Errorf("model not found: %s", id)
+	}
+	if err := s.modelRepo.UpdateModelStatus(ctx, id, status, replacementID); err != nil {
+		return err
+	}
+	s.refreshProviderModels(ctx, m.ProviderID)
+	return nil
+}
+
+// DeleteModel removes a model and refreshes the provider's runtime model list.
+func (s *AdminService) DeleteModel(ctx context.Context, id string) error {
+	m, err := s.modelRepo.GetModel(ctx, id)
+	if err != nil || m == nil {
+		return fmt.Errorf("model not found: %s", id)
+	}
+	if err := s.modelRepo.DeleteModel(ctx, id); err != nil {
+		return err
+	}
+	s.refreshProviderModels(ctx, m.ProviderID)
+	return nil
+}
+
+// refreshProviderModels rebuilds the provider's model list in the LLM registry.
+func (s *AdminService) refreshProviderModels(ctx context.Context, providerID string) {
+	if s.llmRegistry == nil {
+		return
+	}
+	p, err := s.providerRepo.Get(ctx, providerID)
+	if err != nil || p == nil || p.Status != domain.ProviderStatusActive || p.BaseURL == "" {
+		return
+	}
+	keys, _ := s.providerRepo.ListKeys(ctx, p.ID)
+	var apiKey string
+	for _, k := range keys {
+		if k.IsActive && k.KeyPrefix != "" {
+			apiKey = k.KeyPrefix
+			break
+		}
+	}
+	if apiKey != "" {
+		s.registerProviderWithKey(p, apiKey)
+	} else {
+		s.registerProviderRuntime(p)
+	}
 }
 
 // ─── Aliases ───

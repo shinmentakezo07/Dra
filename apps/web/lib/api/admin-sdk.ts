@@ -100,6 +100,10 @@ export class AdminSDK {
     return this.api.request("POST", "/api/admin/providers/fetch-models", { baseUrl, apiKey });
   }
 
+  async deleteProvider(id: string): Promise<void> {
+    await this.api.request<{ status: string }>("DELETE", `/api/admin/providers/${id}`);
+  }
+
   async listModels(status?: string): Promise<ModelRegistry[]> {
     return this.api.request<ModelRegistry[]>("GET", "/api/admin/models", undefined, status ? { status } : undefined);
   }
@@ -108,8 +112,16 @@ export class AdminSDK {
     return this.api.request<ModelRegistry>("POST", "/api/admin/models", data);
   }
 
+  async updateModel(id: string, data: Partial<ModelRegistry>): Promise<void> {
+    await this.api.request<{ status: string }>("PUT", `/api/admin/models/${id}`, data);
+  }
+
   async updateModelStatus(id: string, status: string): Promise<void> {
     await this.api.request<{ status: string }>("PUT", `/api/admin/models/${id}/status`, { status });
+  }
+
+  async deleteModel(id: string): Promise<void> {
+    await this.api.request<{ status: string }>("DELETE", `/api/admin/models/${id}`);
   }
 
   async listAliases(): Promise<ModelAlias[]> {
@@ -118,6 +130,10 @@ export class AdminSDK {
 
   async createAlias(data: Partial<ModelAlias>): Promise<ModelAlias> {
     return this.api.request<ModelAlias>("POST", "/api/admin/aliases", data);
+  }
+
+  async updateAlias(id: string, data: Partial<ModelAlias>): Promise<void> {
+    await this.api.request<{ status: string }>("PUT", `/api/admin/aliases/${id}`, data);
   }
 
   async deleteAlias(id: string): Promise<void> {
