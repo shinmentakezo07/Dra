@@ -345,6 +345,104 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 # ============================================================
+# Auto-Install Go (if missing)
+# ============================================================
+ensure_go_installed() {
+  if command -v go >/dev/null 2>&1; then
+    log_ok "Go already installed: $(go version 2>&1 | grep -oP 'go\S+' || echo 'unknown')"
+    return 0
+  fi
+
+  log_warn "Go is not installed — installing Go automatically..."
+
+  local go_version="1.25.0"
+  local os arch tarball url
+
+  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  arch="$(uname -m)"
+
+  case "$arch" in
+    x86_64)  arch="amd64" ;;
+    aarch64|arm64) arch="arm64" ;;
+    *)
+      log_error "Unsupported architecture: $arch — cannot auto-install Go"
+      log_info "Please install Go manually from https://go.dev/dl/"
+      return 1
+      ;;
+  esac
+
+  case "$os" in
+    linux|darwin) ;;
+    *)
+      log_error "Unsupported OS: $os — cannot auto-install Go"
+      log_info "Please install Go manually from https://go.dev/dl/"
+      return 1
+      ;;
+  esac
+
+  tarball="go${go_version}.${os}-${arch}.tar.gz"
+  url="https://go.dev/dl/${tarball}"
+
+  log_info "Downloading Go ${go_version} (${os}/${arch})..."
+  log_info "  ${url}"
+
+  local download_dir
+  download_dir="$(mktemp -d)"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$download_dir/$tarball" 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}curl>${NC} $line"; done
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "$url" -O "$download_dir/$tarball" 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}wget>${NC} $line"; done
+  else
+    log_error "Neither curl nor wget found — cannot download Go"
+    rm -rf "$download_dir"
+    return 1
+  fi
+
+  if [ ! -f "$download_dir/$tarball" ]; then
+    log_error "Download failed — Go tarball not found at $url"
+    rm -rf "$download_dir"
+    return 1
+  fi
+
+  log_info "Extracting Go to /usr/local/go..."
+  sudo rm -rf /usr/local/go
+  sudo tar -C /usr/local -xzf "$download_dir/$tarball" 2>&1 | while IFS= read -r line; do echo -e "  ${DIM}tar>${NC} $line"; done
+  rm -rf "$download_dir"
+
+  # Ensure /usr/local/go/bin is on PATH
+  if ! echo "$PATH" | tr ':' '\n' | grep -qx '/usr/local/go/bin'; then
+    export PATH="/usr/local/go/bin:$PATH"
+    log_info "Added /usr/local/go/bin to PATH"
+
+    # Persist in shell config if not already present
+    local shell_rc
+    case "${SHELL:-$0}" in
+      */zsh) shell_rc="$HOME/.zshrc" ;;
+      */bash) shell_rc="$HOME/.bashrc" ;;
+      *) shell_rc="$HOME/.profile" ;;
+    esac
+
+    if [ -f "$shell_rc" ]; then
+      if ! grep -q 'export PATH="/usr/local/go/bin:$PATH"' "$shell_rc" 2>/dev/null; then
+        echo '' >> "$shell_rc"
+        echo '# Go (auto-installed by dev.sh)' >> "$shell_rc"
+        echo 'export PATH="/usr/local/go/bin:$PATH"' >> "$shell_rc"
+        log_info "Persisted Go path in $shell_rc"
+      fi
+    fi
+  fi
+
+  if command -v go >/dev/null 2>&1; then
+    log_ok "Go installed successfully: $(go version)"
+    return 0
+  else
+    log_error "Go installation failed — please install manually from https://go.dev/dl/"
+    return 1
+  fi
+}
+
+# ============================================================
 # Install Dependencies
 # ============================================================
 install_root_deps() {
@@ -680,6 +778,9 @@ main() {
 
   # ── Dependency check (always runs) ──
   check_deps
+
+  # ── Auto-install Go if missing ──
+  ensure_go_installed
 
   # ── Check-only mode ──
   if [ "$CHECK_MODE" = true ]; then
