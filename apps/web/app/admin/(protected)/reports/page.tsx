@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAdminSDK } from '@/lib/api/admin-sdk'
-import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
+import { Info, CheckCircle, XCircle } from 'lucide-react'
 import type { ScheduledReport } from '@/types/admin'
+import AdminPageHeader from '../../AdminPageHeader'
 
-import AdminPageHeader from "../../AdminPageHeader";
 export default function AdminReportsPage() {
   const { data: reports, isLoading, error } = useQuery<ScheduledReport[]>({
     queryKey: ['admin', 'reports'],
@@ -16,7 +15,10 @@ export default function AdminReportsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
+          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+        </div>
       </div>
     )
   }
@@ -24,59 +26,52 @@ export default function AdminReportsPage() {
   if (error) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-red-400">{error instanceof Error ? error.message : 'Failed to load reports'}</p>
+        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : 'Failed to load reports'}</p>
       </div>
     )
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Scheduled Reports</h1>
-        <p className="mt-1 text-sm text-white/50">Automated report scheduling and delivery</p>
-      </div>
-
+    <AdminPageHeader title="Scheduled Reports" subtitle="Automated report scheduling and delivery">
       {!reports || reports.length === 0 ? (
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <Info className="mx-auto h-12 w-12 text-white/20" />
-            <p className="mt-4 text-lg font-medium text-white/40">No scheduled reports</p>
-            <p className="mt-1 text-sm text-white/30">Create your first scheduled report to automate data delivery</p>
+            <Info className="mx-auto h-9 w-9 text-[var(--admin-text-dim)]" />
+            <p className="mt-3 text-[14px] font-medium text-[var(--admin-text-muted)]">No scheduled reports</p>
+            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">Create your first scheduled report to automate data delivery</p>
           </div>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-white/10">
+        <div className="admin-table">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Frequency</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Format</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Recipients</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Next Send</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Last Sent</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/40">Status</th>
+              <tr>
+                <th>Name</th>
+                <th>Frequency</th>
+                <th>Format</th>
+                <th>Recipients</th>
+                <th>Next Send</th>
+                <th>Last Sent</th>
+                <th className="text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {reports.map((report: ScheduledReport) => (
-                <tr key={report.id} className="text-sm transition-colors hover:bg-white/[0.04]">
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-white">{report.name}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <span className="rounded-md bg-white/5 px-2 py-0.5 text-xs font-medium text-white/60 capitalize">{report.frequency}</span>
+                <tr key={report.id}>
+                  <td className="font-medium text-[var(--admin-text)]">{report.name}</td>
+                  <td>
+                    <span className="admin-badge bg-white/[0.03] text-[var(--admin-text-muted)] border border-white/[0.04] capitalize">{report.frequency}</span>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-white/60 uppercase">{report.format}</td>
-                  <td className="max-w-[200px] truncate px-4 py-3 text-white/60">{report.recipients.join(', ')}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-white/40">
+                  <td className="text-[var(--admin-text-muted)] uppercase text-[12px]">{report.format}</td>
+                  <td className="max-w-[200px] truncate text-[var(--admin-text-muted)]">{report.recipients.join(', ')}</td>
+                  <td className="text-[var(--admin-text-dim)]">
                     {report.nextSendAt ? new Date(report.nextSendAt).toLocaleDateString() : '—'}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-white/40">
+                  <td className="text-[var(--admin-text-dim)]">
                     {report.lastSentAt ? new Date(report.lastSentAt).toLocaleDateString() : 'Never'}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      report.isActive ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'
-                    }`}>
+                  <td className="text-right">
+                    <span className={`admin-badge ${report.isActive ? 'text-emerald-400 bg-emerald-500/8 border border-emerald-500/15' : 'text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]'}`}>
                       {report.isActive ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                       {report.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -87,6 +82,6 @@ export default function AdminReportsPage() {
           </table>
         </div>
       )}
-    </div>
+    </AdminPageHeader>
   )
 }

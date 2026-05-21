@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAdminSDK } from '@/lib/api/admin-sdk'
-import { Gift, RefreshCw, Check, X, Loader2, Copy, Tag } from 'lucide-react'
+import { Gift, RefreshCw, Check, Loader2, Copy, Tag } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PromoCode } from '@/types/admin'
+import AdminPageHeader from '../../AdminPageHeader'
 
-import AdminPageHeader from "../../AdminPageHeader";
 function generateCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let code = ''
@@ -50,44 +50,42 @@ export default function AdminPromosPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Promo Codes</h1>
-          <p className="text-sm text-white/30 mt-1 font-mono">Create and manage promotional codes</p>
-        </div>
+    <AdminPageHeader
+      title="Promo Codes"
+      subtitle="Create and manage promotional codes"
+      action={
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 rounded-[14px] bg-blue-500/10 text-blue-400 text-sm font-medium hover:bg-blue-500/20 ring-1 ring-blue-500/20 transition-all duration-200 flex items-center gap-2"
+          className="admin-btn admin-btn-primary text-[12px]"
         >
-          <Tag className="w-4 h-4" />
+          <Tag className="w-3.5 h-3.5" />
           {showForm ? 'Cancel' : 'New Code'}
         </button>
-      </div>
-
+      }
+    >
       {showForm && (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[24px] bg-black/40 backdrop-blur-xl border border-white/[0.05] p-6 space-y-4"
+          className="admin-card p-6 border-indigo-500/15 bg-indigo-500/[0.015] space-y-4"
         >
-          <h2 className="text-sm font-bold text-white tracking-tight">Create Promo Code</h2>
+          <h2 className="text-[13px] font-semibold text-[var(--admin-text)]">Create Promo Code</h2>
 
-          <div className="flex items-center gap-3">
-            <button onClick={() => setRandom(true)} className={`px-4 py-2 rounded-[12px] text-xs font-mono font-bold tracking-wider transition-all duration-200 ${random ? 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20' : 'text-white/30 hover:text-white/50'}`}>Random Generate</button>
-            <button onClick={() => setRandom(false)} className={`px-4 py-2 rounded-[12px] text-xs font-mono font-bold tracking-wider transition-all duration-200 ${!random ? 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20' : 'text-white/30 hover:text-white/50'}`}>Custom Code</button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setRandom(true)} className={`admin-btn text-[11px] py-[5px] ${random ? 'admin-btn-primary' : 'admin-btn-ghost'}`}>Random Generate</button>
+            <button onClick={() => setRandom(false)} className={`admin-btn text-[11px] py-[5px] ${!random ? 'admin-btn-primary' : 'admin-btn-ghost'}`}>Custom Code</button>
           </div>
 
           {random ? (
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-black/60 border border-white/[0.05] rounded-[14px] px-4 py-3 font-mono text-lg tracking-[0.3em] text-blue-400 font-bold select-all">
+              <div className="flex-1 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-[12px] px-4 py-3 font-mono text-[16px] tracking-[0.3em] text-indigo-400 font-bold select-all">
                 {genCode}
               </div>
-              <button onClick={() => setGenCode(generateCode)} className="p-3 rounded-[12px] hover:bg-white/[0.03] text-white/30 hover:text-white/60 transition-all">
-                <RefreshCw className="w-4 h-4" />
+              <button onClick={() => setGenCode(generateCode)} className="admin-btn admin-btn-ghost p-2.5" aria-label="Regenerate code">
+                <RefreshCw className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => { navigator.clipboard.writeText(genCode); setCopied(genCode); setTimeout(() => setCopied(''), 1500) }} className="p-3 rounded-[12px] hover:bg-white/[0.03] text-white/30 hover:text-white/60 transition-all">
-                {copied === genCode ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              <button onClick={() => { navigator.clipboard.writeText(genCode); setCopied(genCode); setTimeout(() => setCopied(''), 1500) }} className="admin-btn admin-btn-ghost p-2.5" aria-label="Copy code">
+                {copied === genCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           ) : (
@@ -96,82 +94,83 @@ export default function AdminPromosPage() {
               value={customCode}
               onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
               placeholder="ENTER CUSTOM CODE"
-              className="w-full bg-black/60 border border-white/[0.05] rounded-[14px] px-4 py-3 font-mono tracking-widest text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/30"
+              className="admin-input w-full font-mono tracking-[0.2em] py-3"
             />
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider text-white/30 mb-1.5">Type</label>
-              <select value={promoType} onChange={(e) => setPromoType(e.target.value)} className="w-full bg-black/60 border border-white/[0.05] rounded-[12px] px-3 py-2.5 text-sm text-white/70 focus:outline-none focus:border-blue-500/30">
+              <label className="admin-label block mb-1.5">Type</label>
+              <select value={promoType} onChange={(e) => setPromoType(e.target.value)} className="admin-input w-full text-[12px] py-[7px]">
                 <option value="credits">Credits</option>
                 <option value="percentage">Percentage</option>
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider text-white/30 mb-1.5">Value</label>
-              <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} className="w-full bg-black/60 border border-white/[0.05] rounded-[12px] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/30" />
+              <label className="admin-label block mb-1.5">Value</label>
+              <input type="number" value={value} onChange={(e) => setValue(Number(e.target.value))} className="admin-input w-full text-[12px] py-[7px]" />
             </div>
             <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider text-white/30 mb-1.5">Max Uses</label>
-              <input type="number" value={maxUses} onChange={(e) => setMaxUses(Number(e.target.value))} className="w-full bg-black/60 border border-white/[0.05] rounded-[12px] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/30" />
+              <label className="admin-label block mb-1.5">Max Uses</label>
+              <input type="number" value={maxUses} onChange={(e) => setMaxUses(Number(e.target.value))} className="admin-input w-full text-[12px] py-[7px]" />
             </div>
             <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider text-white/30 mb-1.5">Expires</label>
-              <input type="date" value={expires} onChange={(e) => setExpires(e.target.value)} className="w-full bg-black/60 border border-white/[0.05] rounded-[12px] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/30" />
+              <label className="admin-label block mb-1.5">Expires</label>
+              <input type="date" value={expires} onChange={(e) => setExpires(e.target.value)} className="admin-input w-full text-[12px] py-[7px]" />
             </div>
           </div>
 
-          <button onClick={handleCreate} disabled={createMutation.isPending} className="px-6 py-2.5 rounded-[14px] bg-blue-500/10 text-blue-400 text-sm font-medium hover:bg-blue-500/20 ring-1 ring-blue-500/20 transition-all duration-200 disabled:opacity-30 flex items-center gap-2">
-            {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+          <button onClick={handleCreate} disabled={createMutation.isPending} className="admin-btn admin-btn-primary text-[12px] disabled:opacity-30">
+            {createMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
             Create Promo Code
           </button>
         </motion.div>
       )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-blue-400 animate-spin" /></div>
+        <div className="flex items-center justify-center py-20">
+          <div className="relative w-10 h-10">
+            <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
+            <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+          </div>
+        </div>
       ) : !promos || promos.length === 0 ? (
-        <div className="rounded-[24px] bg-black/40 backdrop-blur-xl border border-white/[0.05] p-12 text-center">
-          <Gift className="w-8 h-8 text-white/10 mx-auto mb-3" />
-          <p className="text-sm text-white/20">No promo codes yet</p>
+        <div className="admin-card p-12 text-center">
+          <Gift className="w-8 h-8 text-[var(--admin-text-dim)] mx-auto mb-3" />
+          <p className="text-[13px] text-[var(--admin-text-dim)]">No promo codes yet</p>
         </div>
       ) : (
-        <div className="rounded-[24px] bg-black/40 backdrop-blur-xl border border-white/[0.05] overflow-hidden">
+        <div className="admin-table">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/[0.05]">
-                {['Code', 'Type', 'Value', 'Uses', 'Expires', 'Status', ''].map(h => (
-                  <th key={h} className="px-5 py-4 text-[10px] font-mono font-bold tracking-[0.15em] uppercase text-white/30 text-left">{h}</th>
-                ))}
+              <tr>
+                <th>Code</th>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Uses</th>
+                <th>Expires</th>
+                <th>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.03]">
-              {promos.map((p, i) => (
-                <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: i * 0.03 } }} className="hover:bg-white/[0.015] transition-colors">
-                  <td className="px-5 py-3.5">
-                    <span className="font-mono text-sm font-bold text-blue-400/80 tracking-wider">{p.code}</span>
-                  </td>
-                  <td className="px-5 py-3.5 text-xs font-mono text-white/30 uppercase">{p.type}</td>
-                  <td className="px-5 py-3.5 text-sm text-white/70 font-medium">{p.value.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 text-xs text-white/40">{p.currentUses}/{p.maxUses}</td>
-                  <td className="px-5 py-3.5 text-xs text-white/30 font-mono">{p.expiresAt ? new Date(p.expiresAt).toLocaleDateString() : '—'}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={`text-[9px] font-mono font-bold tracking-wider uppercase rounded-full px-2.5 py-1 ${p.isActive ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
+            <tbody>
+              {promos.map((p) => (
+                <tr key={p.id}>
+                  <td className="font-mono font-bold text-indigo-400/80 tracking-wider">{p.code}</td>
+                  <td className="font-mono text-[var(--admin-text-dim)] uppercase text-[11px]">{p.type}</td>
+                  <td className="text-[var(--admin-text)] font-medium">{p.value.toLocaleString()}</td>
+                  <td className="text-[var(--admin-text-muted)]">{p.currentUses}/{p.maxUses}</td>
+                  <td className="font-mono text-[var(--admin-text-dim)]">{p.expiresAt ? new Date(p.expiresAt).toLocaleDateString() : '—'}</td>
+                  <td>
+                    <span className={`admin-badge ${p.isActive ? 'text-emerald-400 bg-emerald-500/8 border border-emerald-500/15' : 'text-red-400 bg-red-500/8 border border-red-500/15'}`}>
                       {p.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-right">
-                    <button className="rounded-[10px] p-2 text-white/20 hover:bg-white/[0.03] hover:text-blue-400/70 transition-all duration-200">
-                      <RefreshCw className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-    </div>
+    </AdminPageHeader>
   )
 }

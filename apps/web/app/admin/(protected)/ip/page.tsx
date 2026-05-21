@@ -3,20 +3,21 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAdminSDK } from '@/lib/api/admin-sdk'
-import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
+import { CheckCircle, XCircle } from 'lucide-react'
 import type { IPListEntry, IPAccessLog } from '@/types/admin'
+import AdminPageHeader from '../../AdminPageHeader'
+import { cn } from '@/lib/utils'
 
-import AdminPageHeader from "../../AdminPageHeader";
 const TABS = ['IP Lists', 'Access Logs'] as const
 
 function ActionBadge({ action }: { action: string }) {
   const styles: Record<string, string> = {
-    allow: 'bg-green-500/10 text-green-400',
-    block: 'bg-red-500/10 text-red-400',
-    challenge: 'bg-yellow-500/10 text-yellow-400',
+    allow: 'text-emerald-400 bg-emerald-500/8 border border-emerald-500/15',
+    block: 'text-red-400 bg-red-500/8 border border-red-500/15',
+    challenge: 'text-amber-400 bg-amber-500/8 border border-amber-500/15',
   }
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[action] ?? 'bg-gray-500/10 text-gray-400'}`}>
+    <span className={`admin-badge ${styles[action] ?? 'text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]'}`}>
       {action}
     </span>
   )
@@ -40,17 +41,15 @@ export default function AdminIPPage() {
   const isLoading = activeTab === 'IP Lists' ? entriesLoading : logsLoading
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">IP Management</h1>
-        <p className="mt-1 text-sm text-white/50">IP allow/block lists and access logs</p>
-      </div>
-
-      <div className="mb-6 flex gap-1 rounded-lg border border-white/10 bg-white/[0.02] p-1">
+    <AdminPageHeader title="IP Management" subtitle="IP allow/block lists and access logs">
+      {/* Tabs */}
+      <div className="flex items-center gap-1 rounded-[12px] border border-[var(--admin-border)] bg-white/[0.01] p-1 w-fit">
         {TABS.map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'
+            className={`rounded-[9px] px-4 py-2 text-[12px] font-medium transition-all duration-200 ${
+              activeTab === tab
+                ? 'bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10'
+                : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent'
             }`}>
             {tab}
           </button>
@@ -59,31 +58,34 @@ export default function AdminIPPage() {
 
       {isLoading ? (
         <div className="flex min-h-[400px] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <div className="relative w-10 h-10">
+            <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
+            <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+          </div>
         </div>
       ) : activeTab === 'IP Lists' ? (
-        <div className="overflow-hidden rounded-xl border border-white/10">
+        <div className="admin-table">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">IP/CIDR</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Reason</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/40">Expires</th>
+              <tr>
+                <th>IP/CIDR</th>
+                <th>Action</th>
+                <th>Reason</th>
+                <th className="text-right">Expires</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {(!ipEntries || ipEntries.length === 0) ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-sm text-white/30">No IP entries configured</td>
+                  <td colSpan={4} className="text-center py-12 text-[12px] text-[var(--admin-text-dim)]">No IP entries configured</td>
                 </tr>
               ) : (
                 ipEntries.map((entry: IPListEntry) => (
-                  <tr key={entry.id} className="text-sm transition-colors hover:bg-white/[0.04]">
-                    <td className="whitespace-nowrap px-4 py-3 font-mono text-white">{entry.ipOrCidr}</td>
-                    <td className="whitespace-nowrap px-4 py-3"><ActionBadge action={entry.action} /></td>
-                    <td className="whitespace-nowrap px-4 py-3 text-white/60">{entry.reason ?? '—'}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-white/40">
+                  <tr key={entry.id}>
+                    <td className="font-mono text-[var(--admin-text)]">{entry.ipOrCidr}</td>
+                    <td><ActionBadge action={entry.action} /></td>
+                    <td className="text-[var(--admin-text-muted)]">{entry.reason ?? '—'}</td>
+                    <td className="text-right text-[var(--admin-text-dim)]">
                       {entry.expiresAt ? new Date(entry.expiresAt).toLocaleDateString() : 'Never'}
                     </td>
                   </tr>
@@ -93,45 +95,43 @@ export default function AdminIPPage() {
           </table>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-white/10">
+        <div className="admin-table">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">IP</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Method</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Path</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Country</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/40">Blocked</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/40">Timestamp</th>
+              <tr>
+                <th>IP</th>
+                <th>Method</th>
+                <th>Path</th>
+                <th>Country</th>
+                <th>Blocked</th>
+                <th className="text-right">Timestamp</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {(!accessLogs?.data || accessLogs.data.length === 0) ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-white/30">No access logs recorded</td>
+                  <td colSpan={6} className="text-center py-12 text-[12px] text-[var(--admin-text-dim)]">No access logs recorded</td>
                 </tr>
               ) : (
                 (accessLogs.data as IPAccessLog[]).map((log: IPAccessLog) => (
-                  <tr key={log.id} className="text-sm transition-colors hover:bg-white/[0.04]">
-                    <td className="whitespace-nowrap px-4 py-3 font-mono text-white">{log.ipAddress}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-white/80">{log.method}</td>
-                    <td className="max-w-[200px] truncate px-4 py-3 text-white/60">{log.path}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-white/60">{log.country ?? '—'}</td>
-                    <td className="whitespace-nowrap px-4 py-3">
+                  <tr key={log.id}>
+                    <td className="font-mono text-[var(--admin-text)]">{log.ipAddress}</td>
+                    <td className="text-[var(--admin-text)]">{log.method}</td>
+                    <td className="max-w-[200px] truncate text-[var(--admin-text-muted)]">{log.path}</td>
+                    <td className="text-[var(--admin-text-muted)]">{log.country ?? '—'}</td>
+                    <td>
                       {log.blocked ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400">
+                        <span className="admin-badge text-red-400 bg-red-500/8 border border-red-500/15">
                           <XCircle className="h-3 w-3" /> Blocked
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
+                        <span className="admin-badge text-emerald-400 bg-emerald-500/8 border border-emerald-500/15">
                           <CheckCircle className="h-3 w-3" /> Allowed
                         </span>
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-white/40">
-                      {new Date(log.createdAt).toLocaleString('en-US', {
-                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                      })}
+                    <td className="text-right text-[var(--admin-text-dim)]">
+                      {new Date(log.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </td>
                   </tr>
                 ))
@@ -140,6 +140,6 @@ export default function AdminIPPage() {
           </table>
         </div>
       )}
-    </div>
+    </AdminPageHeader>
   )
 }

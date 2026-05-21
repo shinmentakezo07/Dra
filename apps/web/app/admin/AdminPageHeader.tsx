@@ -12,29 +12,29 @@ interface AdminPageHeaderProps {
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.04 } },
 } as const
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 20 } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 120, damping: 22 } },
 } as const
 
 export default function AdminPageHeader({ title, subtitle, badge, action, children }: AdminPageHeaderProps) {
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={itemVariants} className="flex items-start justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold text-white tracking-tight">{title}</h1>
+            <div className="flex items-center gap-3 mb-0.5">
+              <h1 className="text-2xl font-semibold text-[var(--admin-text)] tracking-[-0.02em]">{title}</h1>
               {badge && (
-                <span className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-blue-400/50 bg-blue-500/10 rounded-full border border-blue-500/30 px-3 py-1">
+                <span className="admin-badge bg-indigo-500/[0.08] text-indigo-400/70 border border-indigo-500/10">
                   {badge}
                 </span>
               )}
             </div>
-            {subtitle && <p className="text-sm text-white/30 font-mono tracking-wide">{subtitle}</p>}
+            {subtitle && <p className="text-[13px] text-[var(--admin-text-muted)] font-mono tracking-wide">{subtitle}</p>}
           </div>
         </div>
         {action && <motion.div variants={itemVariants}>{action}</motion.div>}

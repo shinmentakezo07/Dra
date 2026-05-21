@@ -2,16 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
-import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChangelogEntry } from "@/types/admin";
-
 import AdminPageHeader from "../../AdminPageHeader";
+
 const TYPE_STYLES: Record<string, string> = {
-  new: "text-green-400 bg-green-500/10",
-  change: "text-blue-400 bg-blue-500/10",
-  deprecation: "text-yellow-400 bg-yellow-500/10",
-  fix: "text-gray-400 bg-gray-500/10",
+  new: "text-emerald-400 bg-emerald-500/8 border border-emerald-500/15",
+  change: "text-indigo-400 bg-indigo-500/8 border border-indigo-500/15",
+  deprecation: "text-amber-400 bg-amber-500/8 border border-amber-500/15",
+  fix: "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
 };
 
 export default function AdminChangelogPage() {
@@ -22,77 +21,58 @@ export default function AdminChangelogPage() {
 
   const entries = data ?? [];
 
-  return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Changelog</h1>
-        <p className="mt-1 text-sm text-white/50">API changelog management</p>
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
+          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+        </div>
       </div>
+    );
+  }
 
-      {isLoading ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        </div>
-      ) : error ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <p className="text-red-400">
-            {error instanceof Error ? error.message : "Failed to load changelog"}
-          </p>
-        </div>
-      ) : entries.length === 0 ? (
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load changelog"}</p>
+      </div>
+    );
+  }
+
+  return (
+    <AdminPageHeader title="Changelog" subtitle="API changelog management">
+      {entries.length === 0 ? (
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <p className="text-lg font-medium text-white/40">No changelog entries</p>
-            <p className="mt-1 text-sm text-white/30">Changelog entries will appear here once published</p>
+            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">No changelog entries</p>
+            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">Changelog entries will appear here once published</p>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
-          {entries.map((entry, index) => (
-            <div
-              key={entry.id}
-              className={cn(
-                "rounded-xl border border-white/10 p-5 transition-colors hover:border-white/20",
-                index % 2 === 0 ? "bg-white/[0.02]" : "bg-transparent",
-              )}
-            >
+          {entries.map((entry) => (
+            <div key={entry.id} className="admin-card p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="truncate text-base font-semibold text-white">
-                      {entry.title}
-                    </h3>
-                    <span
-                      className={cn(
-                        "inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
-                        TYPE_STYLES[entry.type] || "bg-gray-500/10 text-gray-400",
-                      )}
-                    >
+                    <h3 className="truncate text-[14px] font-semibold text-[var(--admin-text)]">{entry.title}</h3>
+                    <span className={cn("admin-badge capitalize", TYPE_STYLES[entry.type] || "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]")}>
                       {entry.type}
                     </span>
                     {entry.isDraft && (
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-400">
-                        Draft
-                      </span>
+                      <span className="admin-badge text-orange-400 bg-orange-500/8 border border-orange-500/15">Draft</span>
                     )}
                   </div>
                   {entry.body && (
-                    <p className="mt-1.5 line-clamp-2 text-sm text-white/50">
-                      {entry.body}
-                    </p>
+                    <p className="mt-1.5 line-clamp-2 text-[12px] text-[var(--admin-text-muted)] leading-relaxed">{entry.body}</p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
-                  <span className="font-mono text-xs text-white/30">
-                    v{entry.version}
-                  </span>
+                  <span className="font-mono text-[11px] text-[var(--admin-text-dim)]">v{entry.version}</span>
                   {entry.publishedAt && (
-                    <p className="mt-1 text-xs text-white/40">
-                      {new Date(entry.publishedAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                    <p className="mt-1 text-[11px] text-[var(--admin-text-dim)]">
+                      {new Date(entry.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </p>
                   )}
                 </div>
@@ -101,6 +81,6 @@ export default function AdminChangelogPage() {
           ))}
         </div>
       )}
-    </div>
+    </AdminPageHeader>
   );
 }

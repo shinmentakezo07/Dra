@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAdminSDK } from '@/lib/api/admin-sdk'
-import { Loader2, Search, Filter, Download, RefreshCw, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
+import { RefreshCw, CheckCircle, XCircle, Info } from 'lucide-react'
 import AdminPageHeader from '../../AdminPageHeader'
 
 interface CacheStats {
@@ -47,7 +47,10 @@ export default function AdminOperationsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
+          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+        </div>
       </div>
     )
   }
@@ -55,79 +58,72 @@ export default function AdminOperationsPage() {
   const logs: WebhookLogEntry[] = Array.isArray(webhookLogs) ? webhookLogs : (webhookLogs?.data ?? [])
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Operations</h1>
-        <p className="mt-1 text-sm text-white/50">Cache management, webhooks, and tracing</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-          <h2 className="mb-4 text-lg font-semibold text-white">Cache Stats</h2>
+    <AdminPageHeader title="Operations" subtitle="Cache management, webhooks, and tracing">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* Cache Stats */}
+        <div className="admin-card p-6">
+          <h2 className="text-[15px] font-semibold text-[var(--admin-text)] mb-5">Cache Stats</h2>
           {cacheStats ? (
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <p className="text-xs uppercase tracking-wider text-white/50">Entries</p>
-                <p className="mt-1 text-2xl font-bold text-white">{cacheStats.entries.toLocaleString()}</p>
+                <p className="admin-label mb-1.5">Entries</p>
+                <p className="admin-stat-value text-[28px]">{cacheStats.entries.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wider text-white/50">Size</p>
-                <p className="mt-1 text-2xl font-bold text-white">{cacheStats.size}</p>
+                <p className="admin-label mb-1.5">Size</p>
+                <p className="admin-stat-value text-[28px]">{cacheStats.size}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wider text-white/50">Hit Rate</p>
-                <p className="mt-1 text-2xl font-bold text-green-400">{(cacheStats.hitRate * 100).toFixed(1)}%</p>
+                <p className="admin-label mb-1.5">Hit Rate</p>
+                <p className="admin-stat-value text-[28px] text-emerald-400">{(cacheStats.hitRate * 100).toFixed(1)}%</p>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-white/40">Cache stats unavailable</p>
+            <p className="text-[12px] text-[var(--admin-text-dim)]">Cache stats unavailable</p>
           )}
 
-          <h2 className="mb-3 mt-6 text-lg font-semibold text-white">Cache Control</h2>
+          <h3 className="text-[13px] font-semibold text-[var(--admin-text)] mt-6 mb-3">Cache Control</h3>
           <button onClick={handleClearCache} disabled={clearing}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50">
-            <RefreshCw className={`h-4 w-4 ${clearing ? 'animate-spin' : ''}`} />
+            className="admin-btn admin-btn-danger text-[12px]">
+            <RefreshCw className={`h-3.5 w-3.5 ${clearing ? 'animate-spin' : ''}`} />
             {clearing ? 'Clearing...' : 'Clear Cache'}
           </button>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-          <h2 className="mb-4 text-lg font-semibold text-white">Webhook Deliveries</h2>
+        {/* Webhook Deliveries */}
+        <div className="admin-card p-6">
+          <h2 className="text-[15px] font-semibold text-[var(--admin-text)] mb-5">Webhook Deliveries</h2>
           {!logs || logs.length === 0 ? (
             <div className="flex min-h-[200px] items-center justify-center">
               <div className="text-center">
-                <Info className="mx-auto h-8 w-8 text-white/20" />
-                <p className="mt-2 text-sm text-white/30">No webhook deliveries yet</p>
+                <Info className="mx-auto h-7 w-7 text-[var(--admin-text-dim)]" />
+                <p className="mt-2 text-[12px] text-[var(--admin-text-dim)]">No webhook deliveries yet</p>
               </div>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-white/10">
+            <div className="admin-table !border-0 !bg-transparent !rounded-[12px]">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/5 bg-white/[0.02]">
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-white/40">Event</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-white/40">Status</th>
-                    <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider text-white/40">Duration</th>
-                    <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider text-white/40">Time</th>
+                  <tr>
+                    <th>Event</th>
+                    <th>Status</th>
+                    <th className="text-right">Duration</th>
+                    <th className="text-right">Time</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                   {logs.slice(0, 10).map((log: WebhookLogEntry) => (
-                    <tr key={log.id} className="text-sm transition-colors hover:bg-white/[0.04]">
-                      <td className="whitespace-nowrap px-3 py-2 font-medium text-white">{log.event}</td>
-                      <td className="whitespace-nowrap px-3 py-2">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          log.status < 400 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-                        }`}>
+                    <tr key={log.id}>
+                      <td className="font-medium text-[var(--admin-text)]">{log.event}</td>
+                      <td>
+                        <span className={`admin-badge ${log.status < 400 ? 'text-emerald-400 bg-emerald-500/8 border border-emerald-500/15' : 'text-red-400 bg-red-500/8 border border-red-500/15'}`}>
                           {log.status < 400 ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                           {log.status}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-white/60">{log.duration}ms</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-white/40">
-                        {new Date(log.createdAt).toLocaleString('en-US', {
-                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                        })}
+                      <td className="text-right text-[var(--admin-text-muted)]">{log.duration}ms</td>
+                      <td className="text-right text-[var(--admin-text-dim)]">
+                        {new Date(log.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </td>
                     </tr>
                   ))}
@@ -137,6 +133,6 @@ export default function AdminOperationsPage() {
           )}
         </div>
       </div>
-    </div>
+    </AdminPageHeader>
   )
 }

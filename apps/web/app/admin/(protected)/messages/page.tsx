@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
-import { Loader2, Send, Trash2, Plus } from "lucide-react";
+import { Send, Trash2, Plus } from "lucide-react";
 
 const PRIORITY_STYLES: Record<string, string> = {
-  low: "bg-gray-500/10 text-gray-400",
-  info: "bg-blue-500/10 text-blue-400",
-  warning: "bg-yellow-500/10 text-yellow-400",
-  critical: "bg-red-500/10 text-red-400",
+  low: "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
+  info: "text-indigo-400 bg-indigo-500/8 border border-indigo-500/15",
+  warning: "text-amber-400 bg-amber-500/8 border border-amber-500/15",
+  critical: "text-red-400 bg-red-500/8 border border-red-500/15",
 };
 
 const TARGET_LABELS: Record<string, string> = {
@@ -74,7 +74,10 @@ export default function AdminMessagesPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
+          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+        </div>
       </div>
     );
   }
@@ -82,120 +85,67 @@ export default function AdminMessagesPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-red-400">
-          {error instanceof Error ? error.message : "Failed to load messages"}
-        </p>
+        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load messages"}</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Messages</h1>
-          <p className="mt-1 text-sm text-white/50">Send targeted messages to users</p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
+    <AdminPageHeader
+      title="Messages"
+      subtitle="Send targeted messages to users"
+      action={
+        <button onClick={() => setShowForm(!showForm)} className="admin-btn admin-btn-primary text-[12px]">
+          <Plus className="w-3.5 h-3.5" />
           New Message
         </button>
-      </div>
-
+      }
+    >
       {showForm && (
-        <div className="mb-6 rounded-xl border border-white/5 bg-white/5 p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="admin-card p-6 border-indigo-500/15 bg-indigo-500/[0.015] space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-mono text-white/40 mb-1.5 uppercase tracking-wider">Title</label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50"
-                placeholder="Message title"
-              />
+              <label className="admin-label block mb-1.5">Title</label>
+              <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="admin-input w-full" placeholder="Message title" />
             </div>
             <div>
-              <label className="block text-xs font-mono text-white/40 mb-1.5 uppercase tracking-wider">Priority</label>
-              <select
-                value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
-              >
-                <option value="low">Low</option>
-                <option value="info">Info</option>
-                <option value="warning">Warning</option>
-                <option value="critical">Critical</option>
+              <label className="admin-label block mb-1.5">Priority</label>
+              <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="admin-input w-full">
+                <option value="low">Low</option><option value="info">Info</option><option value="warning">Warning</option><option value="critical">Critical</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-white/40 mb-1.5 uppercase tracking-wider">Message Body</label>
-            <textarea
-              value={form.body}
-              onChange={(e) => setForm({ ...form, body: e.target.value })}
-              rows={4}
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50 resize-none"
-              placeholder="Message content..."
-            />
+            <label className="admin-label block mb-1.5">Message Body</label>
+            <textarea value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} rows={4} className="admin-input w-full resize-none" placeholder="Message content..." />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-mono text-white/40 mb-1.5 uppercase tracking-wider">Target</label>
-              <select
-                value={form.targetType}
-                onChange={(e) => setForm({ ...form, targetType: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
-              >
-                <option value="all">All Users</option>
-                <option value="user">Specific User</option>
-                <option value="tier">By Tier</option>
-                <option value="group">By Group</option>
+              <label className="admin-label block mb-1.5">Target</label>
+              <select value={form.targetType} onChange={(e) => setForm({ ...form, targetType: e.target.value })} className="admin-input w-full">
+                <option value="all">All Users</option><option value="user">Specific User</option><option value="tier">By Tier</option><option value="group">By Group</option>
               </select>
             </div>
             {form.targetType !== "all" && (
               <div>
-                <label className="block text-xs font-mono text-white/40 mb-1.5 uppercase tracking-wider">
-                  {form.targetType === "user" ? "User IDs (comma-separated)" : form.targetType === "tier" ? "Tier Names (comma-separated)" : "Group Names (comma-separated)"}
+                <label className="admin-label block mb-1.5">
+                  {form.targetType === "user" ? "User IDs (comma-sep)" : form.targetType === "tier" ? "Tier Names" : "Group Names"}
                 </label>
-                <input
-                  type="text"
-                  value={form.targetIds}
-                  onChange={(e) => setForm({ ...form, targetIds: e.target.value })}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50"
-                  placeholder={form.targetType === "user" ? "uuid1, uuid2" : "free, pro"}
-                />
+                <input type="text" value={form.targetIds} onChange={(e) => setForm({ ...form, targetIds: e.target.value })} className="admin-input w-full" placeholder={form.targetType === "user" ? "uuid1, uuid2" : "free, pro"} />
               </div>
             )}
             <div>
-              <label className="block text-xs font-mono text-white/40 mb-1.5 uppercase tracking-wider">Expires At (optional)</label>
-              <input
-                type="datetime-local"
-                value={form.expiresAt}
-                onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
-              />
+              <label className="admin-label block mb-1.5">Expires At (optional)</label>
+              <input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="admin-input w-full" />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              onClick={() => { setShowForm(false); setForm(emptyForm); }}
-              className="px-4 py-2 rounded-xl text-sm text-white/40 hover:text-white/60 hover:bg-white/5 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => createMutation.mutate(form)}
-              disabled={!form.title || !form.body || createMutation.isPending}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Send className="w-4 h-4" />
+          <div className="flex justify-end gap-2.5 pt-1">
+            <button onClick={() => { setShowForm(false); setForm(emptyForm); }} className="admin-btn admin-btn-ghost text-[12px]">Cancel</button>
+            <button onClick={() => createMutation.mutate(form)} disabled={!form.title || !form.body || createMutation.isPending} className="admin-btn admin-btn-primary text-[12px] disabled:opacity-40 disabled:cursor-not-allowed">
+              <Send className="w-3.5 h-3.5" />
               {createMutation.isPending ? "Sending..." : "Send Message"}
             </button>
           </div>
@@ -203,58 +153,35 @@ export default function AdminMessagesPage() {
       )}
 
       {!data || data.data.length === 0 ? (
-        <div className="flex items-center justify-center min-h-[300px] rounded-xl border border-white/5 bg-white/5">
+        <div className="admin-card flex items-center justify-center min-h-[300px]">
           <div className="text-center">
-            <p className="text-lg font-medium text-white/40">No messages</p>
-            <p className="mt-1 text-sm text-white/30">Send your first message to users</p>
+            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">No messages</p>
+            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">Send your first message to users</p>
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {data.data.map((msg) => (
-            <div
-              key={msg.id}
-              className="rounded-xl border border-white/5 bg-white/5 p-5"
-            >
+            <div key={msg.id} className="admin-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white truncate">{msg.title}</h3>
+                  <h3 className="font-semibold text-[var(--admin-text)] truncate text-[14px]">{msg.title}</h3>
                 </div>
                 <div className="flex items-center gap-2 ml-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                      PRIORITY_STYLES[msg.priority] || "bg-gray-500/10 text-gray-400"
-                    }`}
-                  >
+                  <span className={`admin-badge capitalize ${PRIORITY_STYLES[msg.priority] || "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]"}`}>
                     {msg.priority}
                   </span>
-                  <button
-                    onClick={() => deleteMutation.mutate(msg.id)}
-                    className="p-1 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
+                  <button onClick={() => deleteMutation.mutate(msg.id)} className="rounded-[8px] p-[6px] text-[var(--admin-text-dim)] hover:text-red-400/70 hover:bg-red-500/[0.04] transition-colors" aria-label="Delete message">
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-white/60 line-clamp-2 mb-3">{msg.body}</p>
-              <div className="flex items-center gap-4 text-xs text-white/40">
+              <p className="text-[12px] text-[var(--admin-text-muted)] line-clamp-2 mb-3 leading-relaxed">{msg.body}</p>
+              <div className="flex items-center gap-4 text-[11px] text-[var(--admin-text-dim)]">
                 <span>{TARGET_LABELS[msg.targetType] || msg.targetType}</span>
-                <span>
-                  {new Date(msg.sentAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
+                <span>{new Date(msg.sentAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                 {msg.expiresAt && (
-                  <span>
-                    Expires{" "}
-                    {new Date(msg.expiresAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
+                  <span>Expires {new Date(msg.expiresAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                 )}
                 <span className="ml-auto">{msg.readCount} read</span>
               </div>
@@ -262,6 +189,6 @@ export default function AdminMessagesPage() {
           ))}
         </div>
       )}
-    </div>
+    </AdminPageHeader>
   );
 }
