@@ -1,4 +1,13 @@
 import { ApiResponse } from "./types";
+import type {
+  Provider, ProviderKey, ModelRegistry, ModelAlias,
+  CreditAdjustment, UsageRecord, UsageDaily, SystemSetting, FeatureFlag,
+  AuditLog, IPListEntry, IPAccessLog, SuspiciousActivity,
+  Announcement, PromoCode, PromoRedemption,
+  UserGroup, ScheduledReport, ChangelogEntry, SSOConfig,
+  ProviderPlugin, RateLimitTier, RBACPermission, RBACRole,
+  CostBreakdown, DashboardStats, MessageStats,
+} from "@/types/admin";
 import {
   ApiError,
   UnauthorizedError,
@@ -460,7 +469,7 @@ class DraSDK {
     }
   }
 
-  private async request<T>(
+  public async request<T>(
     method: string,
     path: string,
     body?: unknown,
@@ -534,7 +543,7 @@ class DraSDK {
     throw lastError || new ApiError("Request failed");
   }
 
-  private async paginatedRequest<T>(
+  public async paginatedRequest<T>(
     path: string,
     query: { page?: number; limit?: number } = {}
   ): Promise<PaginatedResult<T>> {
@@ -1122,6 +1131,10 @@ class DraSDK {
     return this.request<AdminMessage>("GET", `/api/admin/messages/${encodeURIComponent(id)}`);
   }
 
+  adminGetMessageStats(id: string) {
+    return this.request<MessageStats>("GET", `/api/admin/messages/${encodeURIComponent(id)}/stats`);
+  }
+
   adminUpdateMessage(id: string, data: Partial<{
     title: string;
     body: string;
@@ -1245,16 +1258,16 @@ class DraSDK {
     return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(id)}/role`, { role });
   }
 
-  adminStartImpersonation(id: string) {
-    return this.request<{ token: string }>("POST", `/api/admin/users/${encodeURIComponent(id)}/impersonate`);
+  adminStartImpersonation(id: string, data?: { reason?: string }) {
+    return this.request<ImpersonationSession>("POST", `/api/admin/users/${encodeURIComponent(id)}/impersonate`, data);
   }
 
   adminStopImpersonation(sessionId: string) {
-    return this.request<{ stopped: boolean }>("POST", `/api/admin/impersonations/${encodeURIComponent(sessionId)}/stop`);
+    return this.request<{ ended: boolean }>("POST", `/api/admin/impersonations/${encodeURIComponent(sessionId)}/stop`);
   }
 
-  adminBulkSuspendUsers(userIds: string[]) {
-    return this.request<{ suspended: number }>("POST", "/api/admin/users/bulk/suspend", { userIds });
+  adminBulkSuspendUsers(userIds: string[], reason?: string) {
+    return this.request<{ suspended: number }>("POST", "/api/admin/users/bulk/suspend", { userIds, reason });
   }
 
   adminListUserKeys(userId: string) {
@@ -1296,6 +1309,340 @@ class DraSDK {
     return this.request<{ id: string }>("POST", `/api/admin/providers/${encodeURIComponent(providerId)}/keys`, data);
   }
 
+  adminGetProvider(id: string) {
+    return this.request<Provider>("GET", `/api/admin/providers/${encodeURIComponent(id)}`);
+  }
+
+  adminUpdateProvider(id: string, data: Partial<Provider>) {
+    return this.request<{ status: string }>("PUT", `/api/admin/providers/${encodeURIComponent(id)}`, data);
+  }
+
+  adminUpdateProviderStatus(id: string, status: string) {
+    return this.request<{ status: string }>("PUT", `/api/admin/providers/${encodeURIComponent(id)}/status`, { status });
+  }
+
+  adminListProviderKeys(providerId: string) {
+    return this.request<ProviderKey[]>("GET", `/api/admin/providers/${encodeURIComponent(providerId)}/keys`);
+  }
+
+  adminDeleteProviderKey(providerId: string, keyId: string) {
+    return this.request<{ status: string }>("DELETE", `/api/admin/providers/${encodeURIComponent(providerId)}/keys/${encodeURIComponent(keyId)}`);
+  }
+
+  adminReorderProviderKeys(providerId: string, keyIds: string[]) {
+    return this.request<{ status: string }>("PUT", `/api/admin/providers/${encodeURIComponent(providerId)}/keys/reorder`, { keyIds });
+  }
+
+  adminDeleteProvider(id: string) {
+    return this.request<{ status: string }>("DELETE", `/api/admin/providers/${encodeURIComponent(id)}`);
+  }
+
+  // Admin — Models
+
+  adminListModels(status?: string) {
+    return this.request<ModelRegistry[]>("GET", "/api/admin/models", undefined, status ? { status } : undefined);
+  }
+
+  adminCreateModel(data: Partial<ModelRegistry>) {
+    return this.request<ModelRegistry>("POST", "/api/admin/models", data);
+  }
+
+  adminGetModel(id: string) {
+    return this.request<ModelRegistry>("GET", `/api/admin/models/${encodeURIComponent(id)}`);
+  }
+
+  adminUpdateModel(id: string, data: Partial<ModelRegistry>) {
+    return this.request<{ status: string }>("PUT", `/api/admin/models/${encodeURIComponent(id)}`, data);
+  }
+
+  adminUpdateModelStatus(id: string, status: string) {
+    return this.request<{ status: string }>("PUT", `/api/admin/models/${encodeURIComponent(id)}/status`, { status });
+  }
+
+  adminDeleteModel(id: string) {
+    return this.request<{ status: string }>("DELETE", `/api/admin/models/${encodeURIComponent(id)}`);
+  }
+
+  // Admin — Aliases
+
+  adminListAliases() {
+    return this.request<ModelAlias[]>("GET", "/api/admin/aliases");
+  }
+
+  adminCreateAlias(data: Partial<ModelAlias>) {
+    return this.request<ModelAlias>("POST", "/api/admin/aliases", data);
+  }
+
+  adminUpdateAlias(id: string, data: Partial<ModelAlias>) {
+    return this.request<{ status: string }>("PUT", `/api/admin/aliases/${encodeURIComponent(id)}`, data);
+  }
+
+  adminDeleteAlias(id: string) {
+    return this.request<{ status: string }>("DELETE", `/api/admin/aliases/${encodeURIComponent(id)}`);
+  }
+
+  // Admin — Billing
+
+  adminRevenueSummary(from?: string, to?: string) {
+    return this.request<unknown[]>("GET", "/api/admin/billing/summary", undefined, { from, to } as Record<string, string | number | undefined>);
+  }
+
+  adminListTransactions(params?: Record<string, string | number | undefined>) {
+    return this.paginatedRequest<UsageRecord>("/api/admin/billing/transactions", params as { page?: number; limit?: number });
+  }
+
+  adminAdjustCredits(userId: string, amount: number, reason: string) {
+    return this.request<CreditAdjustment>("POST", "/api/admin/billing/credits/adjust", { userId, amount, reason });
+  }
+
+  adminUsageDaily(params?: Record<string, string | number | undefined>) {
+    return this.request<UsageDaily[]>("GET", "/api/admin/billing/usage-daily", undefined, params);
+  }
+
+  adminListAdjustments(userId: string, page?: number, limit?: number) {
+    return this.paginatedRequest<CreditAdjustment>(`/api/admin/users/${encodeURIComponent(userId)}/adjustments`, { page, limit });
+  }
+
+  // Admin — Settings & Feature Flags
+
+  adminListSettings(group?: string) {
+    return this.request<SystemSetting[]>("GET", "/api/admin/settings", undefined, group ? { group } : undefined);
+  }
+
+  adminUpdateSetting(key: string, value: unknown) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/settings/${encodeURIComponent(key)}`, { value });
+  }
+
+  adminListFeatureFlags() {
+    return this.request<FeatureFlag[]>("GET", "/api/admin/feature-flags");
+  }
+
+  adminCreateFeatureFlag(data: Partial<FeatureFlag>) {
+    return this.request<FeatureFlag>("POST", "/api/admin/feature-flags", data);
+  }
+
+  adminToggleFeatureFlag(id: string, enabled: boolean) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/feature-flags/${encodeURIComponent(id)}`, { enabled });
+  }
+
+  // Admin — Security
+
+  adminListSuspicious(params?: Record<string, string | number | undefined>) {
+    return this.paginatedRequest<SuspiciousActivity>("/api/admin/security/suspicious", params as { page?: number; limit?: number });
+  }
+
+  adminReviewSuspicious(id: number, action: string) {
+    return this.request<{ reviewed: boolean }>("PUT", `/api/admin/security/suspicious/${id}`, { action });
+  }
+
+  adminListIPEntries(action?: string) {
+    return this.request<IPListEntry[]>("GET", "/api/admin/ip", undefined, action ? { action } : undefined);
+  }
+
+  adminAddIPEntry(data: Partial<IPListEntry>) {
+    return this.request<{ created: boolean }>("POST", "/api/admin/ip", data);
+  }
+
+  adminRemoveIPEntry(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/ip/${encodeURIComponent(id)}`);
+  }
+
+  adminListIPAccessLogs(params?: Record<string, string | number | undefined>) {
+    return this.paginatedRequest<IPAccessLog>("/api/admin/logs/ip-access", params as { page?: number; limit?: number });
+  }
+
+  // Admin — Audit & Announcements
+
+  adminListAuditLogs(params?: Record<string, string | number | undefined>) {
+    return this.paginatedRequest<AuditLog>("/api/admin/audit", params as { page?: number; limit?: number });
+  }
+
+  adminListAnnouncements() {
+    return this.request<Announcement[]>("GET", "/api/admin/announcements");
+  }
+
+  adminCreateAnnouncement(data: Partial<Announcement>) {
+    return this.request<Announcement>("POST", "/api/admin/announcements", data);
+  }
+
+  // Admin — Promo Codes
+
+  adminListPromoCodes() {
+    return this.request<PromoCode[]>("GET", "/api/admin/promos");
+  }
+
+  adminCreatePromoCode(data: Partial<PromoCode>) {
+    return this.request<PromoCode>("POST", "/api/admin/promos", data);
+  }
+
+  adminCreatePromoCodeCustom(data: Partial<PromoCode>) {
+    return this.request<PromoCode>("POST", "/api/admin/promos/custom", data);
+  }
+
+  adminTogglePromoStatus(id: string, isActive: boolean) {
+    return this.request<{ isActive: boolean }>("PUT", `/api/admin/promos/${encodeURIComponent(id)}/toggle`, { isActive });
+  }
+
+  adminListPromoRedemptions(promoId: string) {
+    return this.request<PromoRedemption[]>("GET", `/api/admin/promos/${encodeURIComponent(promoId)}/redemptions`);
+  }
+
+  // Admin — Groups, Reports, Changelog
+
+  adminListGroups() {
+    return this.request<UserGroup[]>("GET", "/api/admin/groups");
+  }
+
+  adminCreateGroup(data: Partial<UserGroup>) {
+    return this.request<UserGroup>("POST", "/api/admin/groups", data);
+  }
+
+  adminListScheduledReports() {
+    return this.request<ScheduledReport[]>("GET", "/api/admin/reports");
+  }
+
+  adminListChangelog(drafts?: boolean) {
+    return this.request<ChangelogEntry[]>("GET", "/api/admin/changelog", undefined, drafts !== undefined ? { drafts: String(drafts) } : undefined);
+  }
+
+  adminCreateChangelog(data: Partial<ChangelogEntry>) {
+    return this.request<ChangelogEntry>("POST", "/api/admin/changelog", data);
+  }
+
+  adminPublishChangelog(id: string) {
+    return this.request<{ published: boolean }>("POST", `/api/admin/changelog/${encodeURIComponent(id)}/publish`);
+  }
+
+  // Admin — Admin Users & SSO
+
+  adminListAdminUsers() {
+    return this.request<{ userId: string; role: string }[]>("GET", "/api/admin/admins");
+  }
+
+  adminCreateAdminUser(userId: string, role: string) {
+    return this.request<{ status: string }>("POST", "/api/admin/admins", { userId, role });
+  }
+
+  adminRemoveAdmin(id: string) {
+    return this.request<{ removed: boolean }>("DELETE", `/api/admin/admins/${encodeURIComponent(id)}`);
+  }
+
+  adminListSSOConfigs() {
+    return this.request<SSOConfig[]>("GET", "/api/admin/sso");
+  }
+
+  // Admin — Cost, Cache, Webhooks
+
+  adminCostOptimizations() {
+    return this.request<unknown[]>("GET", "/api/admin/cost/optimizations");
+  }
+
+  adminCostForecast() {
+    return this.request<unknown>("GET", "/api/admin/cost/forecast");
+  }
+
+  adminCostBreakdown() {
+    return this.request<CostBreakdown>("GET", "/api/admin/cost/breakdown");
+  }
+
+  adminCacheStats() {
+    return this.request<unknown>("GET", "/api/admin/cache/stats");
+  }
+
+  adminClearCache() {
+    return this.request<{ cleared: boolean }>("POST", "/api/admin/cache/clear");
+  }
+
+  adminListWebhookLogs() {
+    return this.request<unknown>("GET", "/api/admin/webhooks/logs");
+  }
+
+  adminRetryWebhook(id: string) {
+    return this.request<{ status: string }>("POST", `/api/admin/webhooks/${encodeURIComponent(id)}/retry`);
+  }
+
+  // Admin — RBAC
+
+  adminListPermissions() {
+    return this.request<RBACPermission[]>("GET", "/api/admin/rbac/permissions");
+  }
+
+  adminListRoles() {
+    return this.request<RBACRole[]>("GET", "/api/admin/rbac/roles");
+  }
+
+  adminGetRolePermissions(role: string) {
+    return this.request<string[]>("GET", `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions`);
+  }
+
+  adminAddRolePermission(role: string, permissionName: string) {
+    return this.request<{ added: boolean }>("POST", `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions`, { permissionName });
+  }
+
+  adminRemoveRolePermission(role: string, permission: string) {
+    return this.request<{ removed: boolean }>("DELETE", `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions/${encodeURIComponent(permission)}`);
+  }
+
+  // Admin — Rate Limits
+
+  adminListRateLimitTiers() {
+    return this.request<RateLimitTier[]>("GET", "/api/admin/rate-limits/tiers");
+  }
+
+  adminUpdateTierLimits(tier: string, data: { rpm?: number; daily?: number; monthly?: number; maxTokens?: number }) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/rate-limits/tiers/${encodeURIComponent(tier)}`, data);
+  }
+
+  adminSetUserTier(userId: string, tier: string) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(userId)}/tier`, { tier });
+  }
+
+  // Admin — Provider Plugins
+
+  adminListPlugins() {
+    return this.request<ProviderPlugin[]>("GET", "/api/admin/plugins");
+  }
+
+  adminCreatePlugin(data: Partial<ProviderPlugin>) {
+    return this.request<ProviderPlugin>("POST", "/api/admin/plugins", data);
+  }
+
+  adminGetPlugin(id: string) {
+    return this.request<ProviderPlugin>("GET", `/api/admin/plugins/${encodeURIComponent(id)}`);
+  }
+
+  adminTogglePlugin(id: string, active: boolean) {
+    return this.request<{ updated: boolean }>("PUT", `/api/admin/plugins/${encodeURIComponent(id)}/toggle`, { active });
+  }
+
+  adminDeletePlugin(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/plugins/${encodeURIComponent(id)}`);
+  }
+
+  // Admin — Dashboard Stats
+
+  adminDashboardStats() {
+    return this.request<DashboardStats>("GET", "/api/admin/dashboard");
+  }
+
+  // Auth — Admin Login
+
+  adminLogin(data: { email: string; password: string }) {
+    return this.request<AuthResponse>("POST", "/api/auth/admin-login", data);
+  }
+
+  // Anthropic-Compatible Proxy
+
+  anthropicMessages(body: unknown) {
+    return this.request<unknown>("POST", "/v1/messages", body);
+  }
+
+  // Files — Delete
+
+  deleteFile(id: string) {
+    return this.request<{ deleted: boolean }>("DELETE", `/api/files/${encodeURIComponent(id)}`);
+  }
+
   // Public Health
 
   providerHealth() {
@@ -1315,3 +1662,18 @@ export function getSDK() {
 }
 
 export { DraSDK };
+
+// Re-export admin types for convenience
+export type {
+  AdminRole, ProviderStatus, ProviderKeyStrategy, ModelStatus, UserStatus, AuditSeverity,
+  AdminUser, AdminUserDetail,
+  Provider, ProviderKey, ModelRegistry, ModelAlias,
+  CreditAdjustment, UsageRecord, UsageDaily,
+  SystemSetting, FeatureFlag,
+  AuditLog, IPListEntry, IPAccessLog, SuspiciousActivity,
+  ImpersonationSession,
+  Announcement, PromoCode, PromoRedemption,
+  UserGroup, ScheduledReport, ChangelogEntry, SSOConfig,
+  ProviderPlugin, RateLimitTier, RBACPermission, RBACRole,
+  MessageStats, CostBreakdown, DashboardStats,
+} from "@/types/admin";

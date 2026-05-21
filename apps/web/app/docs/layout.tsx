@@ -202,7 +202,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         )}
       </AnimatePresence>
 
-      <aside className="hidden lg:flex flex-col fixed left-0 top-14 bottom-0 w-[260px] border-r border-white/[0.05] bg-[#08080a] z-20">
+      <aside className="hidden lg:flex flex-col fixed left-0 top-[64px] bottom-0 w-[260px] border-r border-white/[0.05] bg-[#08080a] z-20">
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.05]">
           <div className="w-7 h-7 rounded-lg bg-blue-500/[0.08] border border-blue-500/[0.12] flex items-center justify-center">
             <Book className="w-3.5 h-3.5 text-blue-400/70" />
@@ -288,7 +288,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       </aside>
 
       <div className="lg:ml-[260px] relative z-10">
-        <main className="max-w-[720px] mx-auto px-5 sm:px-8 py-14">
+        <main className="max-w-[720px] mx-auto px-5 sm:px-8 pt-[72px] pb-14">
           {children}
         </main>
       </div>

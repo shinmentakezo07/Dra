@@ -367,3 +367,50 @@ export interface ApiResponse<T> {
     totalPages: number
   }
 }
+
+export interface ProviderPlugin {
+  id: string
+  name: string
+  type: string
+  baseUrl: string
+  apiKeyEnv?: string
+  modelListEndpoint: string
+  chatEndpoint: string
+  embeddingEndpoint: string
+  headers?: Record<string, string>
+  isActive: boolean
+  createdAt: string
+}
+
+export interface RateLimitTier {
+  name: string
+  rpm: number
+  daily: number
+  monthly: number
+  maxTokens: number
+}
+
+export interface RBACPermission {
+  id: string
+  name: string
+  description: string
+  category: string
+}
+
+export interface RBACRole {
+  name: string
+  description: string
+  permissions: string[]
+}
+
+export interface MessageStats {
+  totalTargets: number
+  readCount: number
+  unreadCount: number
+}
+
+export interface CostBreakdown {
+  byModel: Array<{ name: string; count: number; totalCents: number }>
+  byUser: unknown[]
+  byProvider: unknown[]
+}

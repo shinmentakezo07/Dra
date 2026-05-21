@@ -534,3 +534,253 @@ export function useRedeemPromoCode() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["credits", "transactions"] }),
   });
 }
+
+// ============================================================================
+// File Deletion
+// ============================================================================
+
+export function useDeleteFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sdk.deleteFile(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["files"] }),
+  });
+}
+
+// ============================================================================
+// Batch Jobs — List & Cancel
+// ============================================================================
+
+export function useBatchJobs() {
+  return useQuery<BatchJob[]>({
+    queryKey: ["batch-jobs"],
+    queryFn: () => sdk.listBatchJobs(),
+  });
+}
+
+export function useCancelBatchJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sdk.cancelBatchJob(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["batch-jobs"] }),
+  });
+}
+
+// ============================================================================
+// API Key Update
+// ============================================================================
+
+export function useUpdateKey() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name?: string; allowedModels?: string[]; allowedIPs?: string[]; maxTokensPerRequest?: number } }) =>
+      sdk.updateKey(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["keys"] }),
+  });
+}
+
+// ============================================================================
+// Conversation Title
+// ============================================================================
+
+export function useUpdateConversationTitle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) => sdk.updateConversationTitle(id, title),
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["conversation", vars.id] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
+// ============================================================================
+// Webhook Deliveries
+// ============================================================================
+
+export function useWebhookDeliveries(webhookId: string) {
+  return useQuery({
+    queryKey: ["webhook-deliveries", webhookId],
+    queryFn: () => sdk.listWebhookDeliveries(webhookId),
+    enabled: !!webhookId,
+  });
+}
+
+// ============================================================================
+// User Messages (Inbox)
+// ============================================================================
+
+export function useUserMessages() {
+  return useQuery({
+    queryKey: ["user-messages"],
+    queryFn: () => sdk.getUserMessages(),
+  });
+}
+
+export function useUserMessageUnreadCount() {
+  return useQuery<{ unread: number }>({
+    queryKey: ["user-messages-unread"],
+    queryFn: () => sdk.getUserMessageUnreadCount(),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useMarkMessageRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sdk.markMessageRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-messages"] });
+      queryClient.invalidateQueries({ queryKey: ["user-messages-unread"] });
+    },
+  });
+}
+
+export function useMarkAllMessagesRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => sdk.markAllMessagesRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-messages"] });
+      queryClient.invalidateQueries({ queryKey: ["user-messages-unread"] });
+    },
+  });
+}
+
+// ============================================================================
+// Comparisons
+// ============================================================================
+
+export function useComparisons(page?: number, limit?: number) {
+  return useQuery({
+    queryKey: ["comparisons", page, limit],
+    queryFn: () => sdk.listComparisons(page, limit),
+  });
+}
+
+export function useCreateComparison() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { modelA: string; modelB: string; prompt: string }) => sdk.createComparison(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["comparisons"] }),
+  });
+}
+
+export function useComparison(id: string) {
+  return useQuery({
+    queryKey: ["comparison", id],
+    queryFn: () => sdk.getComparison(id),
+    enabled: !!id,
+  });
+}
+
+export function useDeleteComparison() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sdk.deleteComparison(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["comparisons"] }),
+  });
+}
+
+// ============================================================================
+// Fine-Tuning
+// ============================================================================
+
+export function useFineTuningJobs(page?: number, limit?: number) {
+  return useQuery({
+    queryKey: ["fine-tuning-jobs", page, limit],
+    queryFn: () => sdk.listFineTuningJobs(page, limit),
+  });
+}
+
+export function useFineTuningJob(jobId: string) {
+  return useQuery({
+    queryKey: ["fine-tuning-job", jobId],
+    queryFn: () => sdk.getFineTuningJob(jobId),
+    enabled: !!jobId,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data?.status === "queued" || data?.status === "running") return 5_000;
+      return false;
+    },
+  });
+}
+
+export function useCreateFineTuningJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { baseModel: string; datasetId: string; hyperparams?: unknown }) => sdk.createFineTuningJob(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fine-tuning-jobs"] }),
+  });
+}
+
+export function useFineTuningDatasets() {
+  return useQuery({
+    queryKey: ["fine-tuning-datasets"],
+    queryFn: () => sdk.listFineTuningDatasets(),
+  });
+}
+
+export function useCreateFineTuningDataset() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { filename: string; format: string }) => sdk.createFineTuningDataset(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fine-tuning-datasets"] }),
+  });
+}
+
+export function useDeleteFineTuningDataset() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sdk.deleteFineTuningDataset(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fine-tuning-datasets"] }),
+  });
+}
+
+// ============================================================================
+// Exports
+// ============================================================================
+
+export function useExportJobs(page?: number, limit?: number) {
+  return useQuery({
+    queryKey: ["export-jobs", page, limit],
+    queryFn: () => sdk.listExportJobs(page, limit),
+  });
+}
+
+export function useCreateExportJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { type: string; format: string; dateFrom?: string; dateTo?: string }) => sdk.createExportJob(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["export-jobs"] }),
+  });
+}
+
+export function useExportJob(id: string) {
+  return useQuery({
+    queryKey: ["export-job", id],
+    queryFn: () => sdk.getExportJob(id),
+    enabled: !!id,
+  });
+}
+
+// ============================================================================
+// Account
+// ============================================================================
+
+export function useDeleteAccount() {
+  return useMutation({
+    mutationFn: () => sdk.deleteAccount(),
+  });
+}
+
+// ============================================================================
+// Permissions
+// ============================================================================
+
+export function useMyPermissions() {
+  return useQuery<string[]>({
+    queryKey: ["my-permissions"],
+    queryFn: () => sdk.getMyPermissions(),
+  });
+}

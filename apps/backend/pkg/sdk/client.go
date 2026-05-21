@@ -171,7 +171,7 @@ func (c *Client) decodeJSON(resp *http.Response, v interface{}) error {
 func (c *Client) get(ctx context.Context, path string, query url.Values, v interface{}) error {
 	resp, err := c.doRequest(ctx, "GET", path, nil, query)
 	if err != nil {
-		return err
+		
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -184,7 +184,7 @@ func (c *Client) post(ctx context.Context, path string, body interface{}, v inte
 	}
 	resp, err := c.doRequest(ctx, "POST", path, r, nil)
 	if err != nil {
-		return err
+		
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -197,7 +197,7 @@ func (c *Client) put(ctx context.Context, path string, body interface{}, v inter
 	}
 	resp, err := c.doRequest(ctx, "PUT", path, r, nil)
 	if err != nil {
-		return err
+		
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -205,7 +205,7 @@ func (c *Client) put(ctx context.Context, path string, body interface{}, v inter
 func (c *Client) delete(ctx context.Context, path string, v interface{}) error {
 	resp, err := c.doRequest(ctx, "DELETE", path, nil, nil)
 	if err != nil {
-		return err
+		
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -1081,4 +1081,779 @@ func (c *Client) ProviderHealth(ctx context.Context) ([]ProviderSummary, error) 
 		return nil, err
 	}
 	return summaries, nil
+}
+
+// Budget Alerts & Caps
+
+// ListBudgetAlerts returns all budget alerts for the current user.
+func (c *Client) ListBudgetAlerts(ctx context.Context) ([]BudgetAlert, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/budget/alerts", nil, &r); err != nil {
+		return nil, err
+	}
+	var alerts []BudgetAlert
+	if err := unmarshalData(r.Data, &alerts); err != nil {
+		return nil, err
+	}
+	return alerts, nil
+}
+
+// CreateBudgetAlert creates a new budget alert.
+func (c *Client) CreateBudgetAlert(ctx context.Context, thresholdPercent int, alertType string) (*BudgetAlert, error) {
+	var r envelope
+	body := map[string]interface{}{"thresholdPercent": thresholdPercent}
+	if alertType != "" {
+		body["alertType"] = alertType
+	}
+	if err := c.post(ctx, "/api/budget/alerts", body, &r); err != nil {
+		return nil, err
+	}
+	var a BudgetAlert
+	if err := unmarshalData(r.Data, &a); err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+// DeleteBudgetAlert deletes a budget alert.
+func (c *Client) DeleteBudgetAlert(ctx context.Context, id string) error {
+	return c.delete(ctx, "/api/budget/alerts/"+id, nil)
+}
+
+// GetBudgetCap returns the current user's budget cap.
+func (c *Client) GetBudgetCap(ctx context.Context) (*BudgetCap, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/budget/cap", nil, &r); err != nil {
+		return nil, err
+	}
+	var cap BudgetCap
+	if err := unmarshalData(r.Data, &cap); err != nil {
+		return nil, err
+	}
+	return &cap, nil
+}
+
+// CreateBudgetCap creates a new budget cap.
+func (c *Client) CreateBudgetCap(ctx context.Context, hardLimit int, softLimit int, actionOnExceed string) (*BudgetCap, error) {
+	var r envelope
+	body := map[string]interface{}{"hardLimit": hardLimit}
+	if softLimit > 0 {
+		body["softLimit"] = softLimit
+	}
+	if actionOnExceed != "" {
+		body["actionOnExceed"] = actionOnExceed
+	}
+	if err := c.post(ctx, "/api/budget/cap", body, &r); err != nil {
+		return nil, err
+	}
+	var cap BudgetCap
+	if err := unmarshalData(r.Data, &cap); err != nil {
+		return nil, err
+	}
+	return &cap, nil
+}
+
+// UpdateBudgetCap updates the budget cap.
+func (c *Client) UpdateBudgetCap(ctx context.Context, hardLimit int, softLimit int, actionOnExceed string) (*BudgetCap, error) {
+	var r envelope
+	body := map[string]interface{}{"hardLimit": hardLimit}
+	if softLimit > 0 {
+		body["softLimit"] = softLimit
+	}
+	if actionOnExceed != "" {
+		body["actionOnExceed"] = actionOnExceed
+	}
+	if err := c.put(ctx, "/api/budget/cap", body, &r); err != nil {
+		return nil, err
+	}
+	var cap BudgetCap
+	if err := unmarshalData(r.Data, &cap); err != nil {
+		return nil, err
+	}
+	return &cap, nil
+}
+
+// DeleteBudgetCap deletes the budget cap.
+func (c *Client) DeleteBudgetCap(ctx context.Context) error {
+	return c.delete(ctx, "/api/budget/cap", nil)
+}
+
+// Webhook Deliveries
+
+// ListWebhookDeliveries returns delivery attempts for a webhook.
+func (c *Client) ListWebhookDeliveries(ctx context.Context, webhookID string) ([]WebhookDelivery, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/webhooks/"+webhookID+"/deliveries", nil, &r); err != nil {
+		return nil, err
+	}
+	var deliveries []WebhookDelivery
+	if err := unmarshalData(r.Data, &deliveries); err != nil {
+		return nil, err
+	}
+	return deliveries, nil
+}
+
+// Comparisons
+
+// ListComparisons returns paginated model comparisons.
+func (c *Client) ListComparisons(ctx context.Context, page, limit int) (*PaginatedResult[Comparison], error) {
+	var r envelope
+	if err := c.get(ctx, "/api/comparisons", paginationQuery(page, limit), &r); err != nil {
+		return nil, err
+	}
+	return paginatedResult[Comparison](&r)
+}
+
+// CreateComparison creates a new model comparison.
+func (c *Client) CreateComparison(ctx context.Context, modelA, modelB, prompt string) (*Comparison, error) {
+	var r envelope
+	if err := c.post(ctx, "/api/comparisons", map[string]string{"modelA": modelA, "modelB": modelB, "prompt": prompt}, &r); err != nil {
+		return nil, err
+	}
+	var comp Comparison
+	if err := unmarshalData(r.Data, &comp); err != nil {
+		return nil, err
+	}
+	return &comp, nil
+}
+
+// GetComparison returns a comparison by ID.
+func (c *Client) GetComparison(ctx context.Context, id string) (*Comparison, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/comparisons/"+id, nil, &r); err != nil {
+		return nil, err
+	}
+	var comp Comparison
+	if err := unmarshalData(r.Data, &comp); err != nil {
+		return nil, err
+	}
+	return &comp, nil
+}
+
+// DeleteComparison deletes a comparison by ID.
+func (c *Client) DeleteComparison(ctx context.Context, id string) error {
+	return c.delete(ctx, "/api/comparisons/"+id, nil)
+}
+
+// Fine-Tuning
+
+// ListFineTuningJobs returns paginated fine-tuning jobs.
+func (c *Client) ListFineTuningJobs(ctx context.Context, page, limit int) (*PaginatedResult[FineTuningJob], error) {
+	var r envelope
+	if err := c.get(ctx, "/api/fine-tuning/jobs", paginationQuery(page, limit), &r); err != nil {
+		return nil, err
+	}
+	return paginatedResult[FineTuningJob](&r)
+}
+
+// GetFineTuningJob returns a fine-tuning job by ID.
+func (c *Client) GetFineTuningJob(ctx context.Context, jobID string) (*FineTuningJob, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/fine-tuning/jobs/"+jobID, nil, &r); err != nil {
+		return nil, err
+	}
+	var job FineTuningJob
+	if err := unmarshalData(r.Data, &job); err != nil {
+		return nil, err
+	}
+	return &job, nil
+}
+
+// CreateFineTuningJob creates a new fine-tuning job.
+func (c *Client) CreateFineTuningJob(ctx context.Context, baseModel, datasetID string, hyperparams interface{}) (*FineTuningJob, error) {
+	var r envelope
+	body := map[string]interface{}{"baseModel": baseModel, "datasetId": datasetID}
+	if hyperparams != nil {
+		body["hyperparams"] = hyperparams
+	}
+	if err := c.post(ctx, "/api/fine-tuning/jobs", body, &r); err != nil {
+		return nil, err
+	}
+	var job FineTuningJob
+	if err := unmarshalData(r.Data, &job); err != nil {
+		return nil, err
+	}
+	return &job, nil
+}
+
+// ListFineTuningDatasets returns all fine-tuning datasets.
+func (c *Client) ListFineTuningDatasets(ctx context.Context) ([]FineTuningDataset, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/fine-tuning/datasets", nil, &r); err != nil {
+		return nil, err
+	}
+	var datasets []FineTuningDataset
+	if err := unmarshalData(r.Data, &datasets); err != nil {
+		return nil, err
+	}
+	return datasets, nil
+}
+
+// CreateFineTuningDataset creates a new fine-tuning dataset.
+func (c *Client) CreateFineTuningDataset(ctx context.Context, filename, format string) (*FineTuningDataset, error) {
+	var r envelope
+	if err := c.post(ctx, "/api/fine-tuning/datasets", map[string]string{"filename": filename, "format": format}, &r); err != nil {
+		return nil, err
+	}
+	var ds FineTuningDataset
+	if err := unmarshalData(r.Data, &ds); err != nil {
+		return nil, err
+	}
+	return &ds, nil
+}
+
+// DeleteFineTuningDataset deletes a fine-tuning dataset.
+func (c *Client) DeleteFineTuningDataset(ctx context.Context, id string) error {
+	return c.delete(ctx, "/api/fine-tuning/datasets/"+id, nil)
+}
+
+// Exports
+
+// ListExportJobs returns paginated export jobs.
+func (c *Client) ListExportJobs(ctx context.Context, page, limit int) (*PaginatedResult[ExportJob], error) {
+	var r envelope
+	if err := c.get(ctx, "/api/exports", paginationQuery(page, limit), &r); err != nil {
+		return nil, err
+	}
+	return paginatedResult[ExportJob](&r)
+}
+
+// CreateExportJob creates a new export job.
+func (c *Client) CreateExportJob(ctx context.Context, exportType, format, dateFrom, dateTo string) (*ExportJob, error) {
+	var r envelope
+	body := map[string]interface{}{"type": exportType, "format": format}
+	if dateFrom != "" {
+		body["dateFrom"] = dateFrom
+	}
+	if dateTo != "" {
+		body["dateTo"] = dateTo
+	}
+	if err := c.post(ctx, "/api/exports", body, &r); err != nil {
+		return nil, err
+	}
+	var job ExportJob
+	if err := unmarshalData(r.Data, &job); err != nil {
+		return nil, err
+	}
+	return &job, nil
+}
+
+// GetExportJob returns an export job by ID.
+func (c *Client) GetExportJob(ctx context.Context, id string) (*ExportJob, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/exports/"+id, nil, &r); err != nil {
+		return nil, err
+	}
+	var job ExportJob
+	if err := unmarshalData(r.Data, &job); err != nil {
+		return nil, err
+	}
+	return &job, nil
+}
+
+// Promo Codes
+
+// RedeemPromoCode redeems a promotional code.
+func (c *Client) RedeemPromoCode(ctx context.Context, code string) (int, error) {
+	var r envelope
+	if err := c.post(ctx, "/api/promos/redeem", map[string]string{"code": code}, &r); err != nil {
+		return 0, err
+	}
+	var result struct {
+		Success bool `json:"success"`
+		Credits int  `json:"credits"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return 0, err
+	}
+	return result.Credits, nil
+}
+
+// User Messages (Inbox)
+
+// GetUserMessages returns messages for the current user.
+func (c *Client) GetUserMessages(ctx context.Context) ([]UserMessage, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/messages", nil, &r); err != nil {
+		return nil, err
+	}
+	var msgs []UserMessage
+	if err := unmarshalData(r.Data, &msgs); err != nil {
+		return nil, err
+	}
+	return msgs, nil
+}
+
+// GetUserMessageUnreadCount returns the unread message count.
+func (c *Client) GetUserMessageUnreadCount(ctx context.Context) (int, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/messages/unread-count", nil, &r); err != nil {
+		return 0, err
+	}
+	var result struct {
+		Unread int `json:"unread"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return 0, err
+	}
+	return result.Unread, nil
+}
+
+// MarkMessageRead marks a message as read.
+func (c *Client) MarkMessageRead(ctx context.Context, id string) error {
+	return c.post(ctx, "/api/messages/"+id+"/read", nil, nil)
+	
+}
+
+// MarkAllMessagesRead marks all messages as read.
+func (c *Client) MarkAllMessagesRead(ctx context.Context) error {
+	return c.post(ctx, "/api/messages/read-all", nil, nil)
+	
+}
+
+// Files — Delete
+
+// DeleteFile deletes an uploaded file by ID.
+func (c *Client) DeleteFile(ctx context.Context, id string) error {
+	return c.delete(ctx, "/api/files/"+id, nil)
+}
+
+// Admin — Extended
+
+// AdminDashboard returns dashboard statistics.
+func (c *Client) AdminDashboard(ctx context.Context) (*PlatformStats, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/dashboard", nil, &r); err != nil {
+		return nil, err
+	}
+	var s PlatformStats
+	if err := unmarshalData(r.Data, &s); err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+// AdminGetUser returns a user by ID (admin only).
+func (c *Client) AdminGetUser(ctx context.Context, id string) (*User, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/users/"+id, nil, &r); err != nil {
+		return nil, err
+	}
+	var u User
+	if err := unmarshalData(r.Data, &u); err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// AdminUpdateUserStatus updates a user's status (admin only).
+func (c *Client) AdminUpdateUserStatus(ctx context.Context, id, status string) error {
+	return c.put(ctx, "/api/admin/users/"+id+"/status", map[string]string{"status": status}, nil)
+}
+
+// AdminUpdateUserRole updates a user's role (admin only).
+func (c *Client) AdminUpdateUserRole(ctx context.Context, id, role string) error {
+	return c.put(ctx, "/api/admin/users/"+id+"/role", map[string]string{"role": role}, nil)
+}
+
+// AdminStartImpersonation starts impersonating a user (admin only).
+func (c *Client) AdminStartImpersonation(ctx context.Context, id string) (string, error) {
+	var r envelope
+	if err := c.post(ctx, "/api/admin/users/"+id+"/impersonate", nil, &r); err != nil {
+		return "", err
+	}
+	var result struct {
+		Token string `json:"token"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return "", err
+	}
+	return result.Token, nil
+}
+
+// AdminStopImpersonation stops an impersonation session (admin only).
+func (c *Client) AdminStopImpersonation(ctx context.Context, sessionID string) error {
+	return c.post(ctx, "/api/admin/impersonations/"+sessionID+"/stop", nil, nil)
+	
+}
+
+// AdminBulkSuspendUsers suspends multiple users (admin only).
+func (c *Client) AdminBulkSuspendUsers(ctx context.Context, userIDs []string) (int, error) {
+	var r envelope
+	if err := c.post(ctx, "/api/admin/users/bulk/suspend", map[string]interface{}{"userIds": userIDs}, &r); err != nil {
+		return 0, err
+	}
+	var result struct {
+		Suspended int `json:"suspended"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return 0, err
+	}
+	return result.Suspended, nil
+}
+
+// AdminListUserKeys returns API keys for a specific user (admin only).
+func (c *Client) AdminListUserKeys(ctx context.Context, userID string) ([]APIKey, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/users/"+userID+"/keys", nil, &r); err != nil {
+		return nil, err
+	}
+	var keys []APIKey
+	if err := unmarshalData(r.Data, &keys); err != nil {
+		return nil, err
+	}
+	return keys, nil
+}
+
+// AdminListUserUsage returns usage data for a specific user (admin only).
+func (c *Client) AdminListUserUsage(ctx context.Context, userID string) (*AnalyticsData, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/users/"+userID+"/usage", nil, &r); err != nil {
+		return nil, err
+	}
+	var a AnalyticsData
+	if err := unmarshalData(r.Data, &a); err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+// AdminListProviders returns all providers (admin only).
+func (c *Client) AdminListProviders(ctx context.Context) ([]ProviderSummary, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/providers", nil, &r); err != nil {
+		return nil, err
+	}
+	var providers []ProviderSummary
+	if err := unmarshalData(r.Data, &providers); err != nil {
+		return nil, err
+	}
+	return providers, nil
+}
+
+// AdminCreateProvider creates a new provider (admin only).
+func (c *Client) AdminCreateProvider(ctx context.Context, name, baseURL, apiKey string) (string, error) {
+	var r envelope
+	body := map[string]interface{}{"name": name, "baseUrl": baseURL}
+	if apiKey != "" {
+		body["apiKey"] = apiKey
+	}
+	if err := c.post(ctx, "/api/admin/providers", body, &r); err != nil {
+		return "", err
+	}
+	var result struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return "", err
+	}
+	return result.ID, nil
+}
+
+// AdminFetchModels fetches models from a provider (admin only).
+func (c *Client) AdminFetchModels(ctx context.Context, baseURL, apiKey string) ([]ModelInfo, error) {
+	var r envelope
+	body := map[string]interface{}{"baseUrl": baseURL}
+	if apiKey != "" {
+		body["apiKey"] = apiKey
+	}
+	if err := c.post(ctx, "/api/admin/providers/fetch-models", body, &r); err != nil {
+		return nil, err
+	}
+	var result struct {
+		Models []ModelInfo `json:"models"`
+		Total  int         `json:"total"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return nil, err
+	}
+	return result.Models, nil
+}
+
+// AdminAddProviderKey adds an API key to a provider (admin only).
+func (c *Client) AdminAddProviderKey(ctx context.Context, providerID, label, key, strategy string, weight int) (string, error) {
+	var r envelope
+	body := map[string]interface{}{"label": label, "key": key}
+	if strategy != "" {
+		body["strategy"] = strategy
+	}
+	if weight > 0 {
+		body["weight"] = weight
+	}
+	if err := c.post(ctx, "/api/admin/providers/"+providerID+"/keys", body, &r); err != nil {
+		return "", err
+	}
+	var result struct {
+		ID string `json:"id"`
+	}
+	if err := unmarshalData(r.Data, &result); err != nil {
+		return "", err
+	}
+	return result.ID, nil
+}
+
+// Admin Messages
+
+// AdminListMessages returns paginated admin messages.
+func (c *Client) AdminListMessages(ctx context.Context, page, limit int) (*PaginatedResult[AdminMessage], error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/messages", paginationQuery(page, limit), &r); err != nil {
+		return nil, err
+	}
+	return paginatedResult[AdminMessage](&r)
+}
+
+// AdminCreateMessage creates a new admin message.
+func (c *Client) AdminCreateMessage(ctx context.Context, title, body, priority, targetType string, targetIDs []string, expiresAt string) (*AdminMessage, error) {
+	var r envelope
+	reqBody := map[string]interface{}{
+		"title":      title,
+		"body":       body,
+		"targetType": targetType,
+	}
+	if priority != "" {
+		reqBody["priority"] = priority
+	}
+	if len(targetIDs) > 0 {
+		reqBody["targetIds"] = targetIDs
+	}
+	if expiresAt != "" {
+		reqBody["expiresAt"] = expiresAt
+	}
+	if err := c.post(ctx, "/api/admin/messages", reqBody, &r); err != nil {
+		return nil, err
+	}
+	var msg AdminMessage
+	if err := unmarshalData(r.Data, &msg); err != nil {
+		return nil, err
+	}
+	return &msg, nil
+}
+
+// AdminGetMessage returns an admin message by ID.
+func (c *Client) AdminGetMessage(ctx context.Context, id string) (*AdminMessage, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/messages/"+id, nil, &r); err != nil {
+		return nil, err
+	}
+	var msg AdminMessage
+	if err := unmarshalData(r.Data, &msg); err != nil {
+		return nil, err
+	}
+	return &msg, nil
+}
+
+// AdminGetMessageStats returns stats for an admin message.
+func (c *Client) AdminGetMessageStats(ctx context.Context, id string) (*MessageStats, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/messages/"+id+"/stats", nil, &r); err != nil {
+		return nil, err
+	}
+	var stats MessageStats
+	if err := unmarshalData(r.Data, &stats); err != nil {
+		return nil, err
+	}
+	return &stats, nil
+}
+
+// AdminDeleteMessage deletes an admin message.
+func (c *Client) AdminDeleteMessage(ctx context.Context, id string) error {
+	return c.delete(ctx, "/api/admin/messages/"+id, nil)
+}
+
+// Admin Models
+
+// AdminGetModel returns a model by ID (admin only).
+func (c *Client) AdminGetModel(ctx context.Context, id string) (*ModelInfo, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/models/"+id, nil, &r); err != nil {
+		return nil, err
+	}
+	var m ModelInfo
+	if err := unmarshalData(r.Data, &m); err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+// Admin Billing — Usage Daily
+
+// AdminUsageDaily returns daily usage data (admin only).
+func (c *Client) AdminUsageDaily(ctx context.Context, from, to, groupBy string) ([]map[string]interface{}, error) {
+	q := make(url.Values)
+	if from != "" {
+		q.Set("from", from)
+	}
+	if to != "" {
+		q.Set("to", to)
+	}
+	if groupBy != "" {
+		q.Set("groupBy", groupBy)
+	}
+	var r envelope
+	if err := c.get(ctx, "/api/admin/billing/usage-daily", q, &r); err != nil {
+		return nil, err
+	}
+	var data []map[string]interface{}
+	if err := unmarshalData(r.Data, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// Admin Cost Breakdown
+
+// AdminCostBreakdown returns a cost breakdown (admin only).
+func (c *Client) AdminCostBreakdown(ctx context.Context) (*CostBreakdown, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/cost/breakdown", nil, &r); err != nil {
+		return nil, err
+	}
+	var cb CostBreakdown
+	if err := unmarshalData(r.Data, &cb); err != nil {
+		return nil, err
+	}
+	return &cb, nil
+}
+
+// Admin Webhook Retry
+
+// AdminRetryWebhook retries a failed webhook delivery (admin only).
+func (c *Client) AdminRetryWebhook(ctx context.Context, id string) error {
+	return c.post(ctx, "/api/admin/webhooks/"+id+"/retry", nil, nil)
+	
+}
+
+// RBAC
+
+// AdminListPermissions returns all RBAC permissions (admin only).
+func (c *Client) AdminListPermissions(ctx context.Context) ([]RBACPermission, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/rbac/permissions", nil, &r); err != nil {
+		return nil, err
+	}
+	var perms []RBACPermission
+	if err := unmarshalData(r.Data, &perms); err != nil {
+		return nil, err
+	}
+	return perms, nil
+}
+
+// AdminListRoles returns all RBAC roles (admin only).
+func (c *Client) AdminListRoles(ctx context.Context) ([]RBACRole, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/rbac/roles", nil, &r); err != nil {
+		return nil, err
+	}
+	var roles []RBACRole
+	if err := unmarshalData(r.Data, &roles); err != nil {
+		return nil, err
+	}
+	return roles, nil
+}
+
+// AdminGetRolePermissions returns permissions for a role (admin only).
+func (c *Client) AdminGetRolePermissions(ctx context.Context, role string) ([]string, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/rbac/roles/"+role+"/permissions", nil, &r); err != nil {
+		return nil, err
+	}
+	var perms []string
+	if err := unmarshalData(r.Data, &perms); err != nil {
+		return nil, err
+	}
+	return perms, nil
+}
+
+// AdminAddRolePermission adds a permission to a role (admin only).
+func (c *Client) AdminAddRolePermission(ctx context.Context, role, permissionName string) error {
+	return c.post(ctx, "/api/admin/rbac/roles/"+role+"/permissions", map[string]string{"permissionName": permissionName}, nil)
+	
+}
+
+// AdminRemoveRolePermission removes a permission from a role (admin only).
+func (c *Client) AdminRemoveRolePermission(ctx context.Context, role, permission string) error {
+	return c.delete(ctx, "/api/admin/rbac/roles/"+role+"/permissions/"+permission, nil)
+}
+
+// Rate Limits
+
+// AdminListTiers returns all rate limit tiers (admin only).
+func (c *Client) AdminListTiers(ctx context.Context) ([]RateLimitTier, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/rate-limits/tiers", nil, &r); err != nil {
+		return nil, err
+	}
+	var tiers []RateLimitTier
+	if err := unmarshalData(r.Data, &tiers); err != nil {
+		return nil, err
+	}
+	return tiers, nil
+}
+
+// AdminUpdateTierLimits updates rate limits for a tier (admin only).
+func (c *Client) AdminUpdateTierLimits(ctx context.Context, tier string, rpm, daily, monthly, maxTokens int) error {
+	return c.put(ctx, "/api/admin/rate-limits/tiers/"+tier, map[string]interface{}{
+		"rpm":       rpm,
+		"daily":     daily,
+		"monthly":   monthly,
+		"maxTokens": maxTokens,
+	}, nil)
+}
+
+// AdminSetUserTier sets the rate limit tier for a user (admin only).
+func (c *Client) AdminSetUserTier(ctx context.Context, userID, tier string) error {
+	return c.put(ctx, "/api/admin/users/"+userID+"/tier", map[string]string{"tier": tier}, nil)
+}
+
+// Provider Plugins
+
+// AdminListPlugins returns all provider plugins (admin only).
+func (c *Client) AdminListPlugins(ctx context.Context) ([]ProviderPlugin, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/plugins", nil, &r); err != nil {
+		return nil, err
+	}
+	var plugins []ProviderPlugin
+	if err := unmarshalData(r.Data, &plugins); err != nil {
+		return nil, err
+	}
+	return plugins, nil
+}
+
+// AdminCreatePlugin creates a new provider plugin (admin only).
+func (c *Client) AdminCreatePlugin(ctx context.Context, plugin ProviderPlugin) (*ProviderPlugin, error) {
+	var r envelope
+	if err := c.post(ctx, "/api/admin/plugins", plugin, &r); err != nil {
+		return nil, err
+	}
+	var p ProviderPlugin
+	if err := unmarshalData(r.Data, &p); err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+// AdminGetPlugin returns a provider plugin by ID (admin only).
+func (c *Client) AdminGetPlugin(ctx context.Context, id string) (*ProviderPlugin, error) {
+	var r envelope
+	if err := c.get(ctx, "/api/admin/plugins/"+id, nil, &r); err != nil {
+		return nil, err
+	}
+	var p ProviderPlugin
+	if err := unmarshalData(r.Data, &p); err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+// AdminTogglePlugin toggles a provider plugin active state (admin only).
+func (c *Client) AdminTogglePlugin(ctx context.Context, id string, active bool) error {
+	return c.put(ctx, "/api/admin/plugins/"+id+"/toggle", map[string]bool{"active": active}, nil)
+}
+
+// AdminDeletePlugin deletes a provider plugin (admin only).
+func (c *Client) AdminDeletePlugin(ctx context.Context, id string) error {
+	return c.delete(ctx, "/api/admin/plugins/"+id, nil)
 }
