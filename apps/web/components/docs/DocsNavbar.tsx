@@ -9,6 +9,14 @@ interface DocsNavbarProps {
   onSearchOpen: () => void;
   onMobileMenuClick: () => void;
   currentSectionLabel?: string;
+  currentColor?: {
+    accent: string;
+    ring: string;
+    text: string;
+    bg: string;
+    border: string;
+    gradient: string;
+  };
 }
 
 const productLinks = [
@@ -18,7 +26,14 @@ const productLinks = [
   { label: "Dashboard", href: "/dashboard", desc: "Usage analytics & keys" },
 ];
 
-export function DocsNavbar({ onSearchOpen, onMobileMenuClick, currentSectionLabel }: DocsNavbarProps) {
+const SECTION_DOTS: Record<string, string> = {
+  emerald: "bg-emerald-500",
+  blue: "bg-blue-500",
+  amber: "bg-amber-500",
+  violet: "bg-violet-500",
+};
+
+export function DocsNavbar({ onSearchOpen, onMobileMenuClick, currentSectionLabel, currentColor }: DocsNavbarProps) {
   const [productOpen, setProductOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -31,6 +46,8 @@ export function DocsNavbar({ onSearchOpen, onMobileMenuClick, currentSectionLabe
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  const dotColor = currentColor?.accent ? SECTION_DOTS[currentColor.accent] : "bg-blue-500";
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-3 pt-3 pointer-events-none">
@@ -55,8 +72,9 @@ export function DocsNavbar({ onSearchOpen, onMobileMenuClick, currentSectionLabe
               </span>
             </Link>
 
-            <div className="hidden sm:flex items-center gap-1.5 pl-2 ml-2 border-l border-white/[0.06]">
-              <BookOpen className="w-3 h-3 text-blue-400/50" />
+            <div className="hidden sm:flex items-center gap-2 pl-2 ml-2 border-l border-white/[0.06]">
+              <span className={`w-1.5 h-1.5 rounded-full ${dotColor} opacity-70`} />
+              <BookOpen className={`w-3 h-3 ${currentColor?.text || "text-blue-400/50"}`} />
               <span className="text-[11px] font-mono text-white/25 uppercase tracking-wider">Docs</span>
               {currentSectionLabel && (
                 <>
@@ -106,16 +124,24 @@ export function DocsNavbar({ onSearchOpen, onMobileMenuClick, currentSectionLabe
               {productOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-[#0c0c0e] border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden z-50">
                   <div className="p-1.5">
-                    {productLinks.map((link) => (
+                    {productLinks.map((link, i) => (
                       <Link
                         key={link.href}
                         href={link.href}
                         onClick={() => setProductOpen(false)}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-colors duration-150 cursor-pointer group"
                       >
-                        <div>
-                          <p className="text-[13px] font-medium text-white/60 group-hover:text-white/90 transition-colors">{link.label}</p>
-                          <p className="text-[11px] text-white/20 mt-0.5">{link.desc}</p>
+                        <div className="flex items-center gap-3 w-full">
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            i === 0 ? "bg-emerald-500/50" :
+                            i === 1 ? "bg-blue-500/50" :
+                            i === 2 ? "bg-amber-500/50" :
+                            "bg-violet-500/50"
+                          }`} />
+                          <div>
+                            <p className="text-[13px] font-medium text-white/60 group-hover:text-white/90 transition-colors">{link.label}</p>
+                            <p className="text-[11px] text-white/20 mt-0.5">{link.desc}</p>
+                          </div>
                         </div>
                       </Link>
                     ))}

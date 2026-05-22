@@ -16,7 +16,7 @@ export default function AuthPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="authentication" icon={Key} title="Authentication">
+      <Section id="authentication" icon={Key} title="Authentication" accent="emerald">
         <p>Yapapa supports three authentication methods. Choose the one that fits your use case.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">

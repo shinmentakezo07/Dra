@@ -17,7 +17,7 @@ export default function ApiReferencePage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="api-reference" icon={Code2} title="API Reference">
+      <Section id="api-reference" icon={Code2} title="API Reference" accent="emerald">
         <div className="flex items-center gap-3 mb-6">
           <span className="text-sm text-white/30 font-mono">Base URL</span>
           <code className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-blue-400 font-mono text-sm">{BASE_URL}</code>

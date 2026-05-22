@@ -334,7 +334,7 @@ textarea[data-autoresize] {
 }
 
 /* ─── Admin Design System ─── */
-@admin {
+[data-admin] {
   --admin-bg: #06060a;
   --admin-surface: #0c0c12;
   --admin-surface-elevated: #12121a;
@@ -631,6 +631,19 @@ textarea[data-autoresize] {
   .admin-skeleton {
     animation: none;
   }
+}
+
+/* Terminal typing effect */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.typing-animation {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 1.5s steps(44) forwards;
+  width: 0;
 }
 
 @keyframes slide-in-right {

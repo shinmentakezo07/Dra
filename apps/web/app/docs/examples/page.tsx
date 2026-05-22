@@ -11,7 +11,7 @@ const BASE_URL = getDocsBaseUrl();
 
 const fadeIn = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 export default function ExamplesPage() {
@@ -21,7 +21,7 @@ export default function ExamplesPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="examples" icon={Terminal} title="Code Examples">
+      <Section id="examples" icon={Terminal} title="Code Examples" accent="violet">
         <p className="text-white/80">
           Full working examples in multiple languages to help you integrate quickly.
         </p>

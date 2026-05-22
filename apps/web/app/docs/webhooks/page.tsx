@@ -18,7 +18,7 @@ export default function WebhooksPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="webhooks" icon={Webhook} title="Webhooks">
+      <Section id="webhooks" icon={Webhook} title="Webhooks" accent="amber">
         <p>
           Webhooks allow you to receive real-time HTTP callbacks when events occur in your account.
           Configure endpoints to receive POST notifications for request completions, credit purchases,

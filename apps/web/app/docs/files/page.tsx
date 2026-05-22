@@ -17,7 +17,7 @@ export default function FilesPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="files" icon={UploadCloud} title="File Upload">
+      <Section id="files" icon={UploadCloud} title="File Upload" accent="amber">
         <p>Upload images for vision/multimodal model support. Files are validated, typed, and returned as base64 data URIs.</p>
 
         <div className="mt-6 rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-5 hover:border-white/[0.1] transition-colors">

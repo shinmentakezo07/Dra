@@ -16,7 +16,7 @@ export default function SelfHostingPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="self-hosting" icon={Globe} title="Self-Hosting & Configuration">
+      <Section id="self-hosting" icon={Globe} title="Self-Hosting & Configuration" accent="emerald">
         <p>
           When self-hosting Yapapa, you need to configure the base URL so that
           documentation code examples point to your own API endpoint instead of{" "}

@@ -1,18 +1,26 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Book, Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
   Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, Search, Menu, Users, Webhook, X,
+  BarChart3, Lock, Terminal, Search, Users, Webhook, X,
   ChevronRight, ArrowUpRight, Globe,
 } from "lucide-react";
 import { ScrollProgress } from "@/components/docs/ScrollProgress";
 import { SearchModal } from "@/components/docs/SearchModal";
 import { DocsNavbar } from "@/components/docs/DocsNavbar";
 import type { NavItem } from "@/components/docs/types";
+
+/* ── Section color system ── */
+const SECTION_COLORS = {
+  "Getting Started": { accent: "emerald", ring: "ring-emerald-500/20", text: "text-emerald-400", bg: "bg-emerald-500/[0.04]", border: "border-emerald-500/20", gradient: "from-emerald-500/20" },
+  "Core Features": { accent: "blue", ring: "ring-blue-500/20", text: "text-blue-400", bg: "bg-blue-500/[0.04]", border: "border-blue-500/20", gradient: "from-blue-500/20" },
+  "Platform": { accent: "amber", ring: "ring-amber-500/20", text: "text-amber-400", bg: "bg-amber-500/[0.04]", border: "border-amber-500/20", gradient: "from-amber-500/20" },
+  "Reference": { accent: "violet", ring: "ring-violet-500/20", text: "text-violet-400", bg: "bg-violet-500/[0.04]", border: "border-violet-500/20", gradient: "from-violet-500/20" },
+} as const;
 
 interface NavGroup {
   label: string;
@@ -63,6 +71,15 @@ const navGroups: NavGroup[] = [
 
 const allNavItems = navGroups.flatMap((g) => g.items);
 
+function getSectionColor(label: string): typeof SECTION_COLORS[keyof typeof SECTION_COLORS] {
+  for (const [groupName, color] of Object.entries(SECTION_COLORS)) {
+    if (navGroups.find((g) => g.label === groupName)?.items.some((i) => i.label === label)) {
+      return color;
+    }
+  }
+  return SECTION_COLORS["Reference"];
+}
+
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -71,6 +88,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   const [sidebarFilter, setSidebarFilter] = useState("");
 
   const currentSectionId = pathname.replace("/docs/", "").replace("/", "") || "index";
+  const currentItem = allNavItems.find(i => i.id === currentSectionId);
+  const currentColor = currentItem ? getSectionColor(currentItem.label) : SECTION_COLORS["Getting Started"];
 
   const filteredNavGroups = sidebarFilter
     ? navGroups
@@ -104,68 +123,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
     setSidebarOpen(false);
   }, [router]);
 
-  const currentItem = allNavItems.find(i => i.id === currentSectionId);
-
-  const renderSidebarContent = (mobile = false) => (
-    <>
-      {mobile && (
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-          <span className="text-[11px] font-mono text-white/40 uppercase tracking-[0.2em]">Navigation</span>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close navigation"
-            className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-      <div className={`px-3 space-y-5 ${mobile ? "" : "pt-5"}`}>
-        {navGroups.map((group, groupIdx) => (
-          <div key={group.label}>
-            <div className="flex items-center gap-2 px-3 pb-2">
-              <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.2em]">{group.label}</span>
-              {groupIdx === 0 && (
-                <div className="h-px flex-1 bg-gradient-to-r from-white/[0.06] to-transparent" />
-              )}
-            </div>
-            <div className="space-y-px">
-              {group.items.map((item) => {
-                const isActive = currentSectionId === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => navigateTo(item.id)}
-                    className={`relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-sm w-full text-left transition-all duration-200 cursor-pointer group ${
-                      isActive
-                        ? "text-white bg-white/[0.06]"
-                        : "text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
-                    }`}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="sidebar-active"
-                        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-blue-500/80"
-                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                      />
-                    )}
-                    <item.icon className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${isActive ? "text-blue-400/70" : "text-white/15 group-hover:text-white/30"}`} />
-                    <span className="truncate text-[13px] font-medium">{item.label}</span>
-                    {isActive && (
-                      <ChevronRight className="w-3 h-3 text-white/20 ml-auto flex-shrink-0" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-
   return (
-    <div className="min-h-screen bg-[#08080a] text-foreground relative">
+    <div className="min-h-screen bg-[#08080a] text-foreground relative selection:bg-blue-500/20 selection:text-white">
       <ScrollProgress />
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} items={allNavItems} onNavigate={navigateTo} />
@@ -174,8 +133,10 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         onSearchOpen={() => setSearchOpen(true)}
         onMobileMenuClick={() => setSidebarOpen(true)}
         currentSectionLabel={currentItem?.label}
+        currentColor={currentColor}
       />
 
+      {/* Mobile overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -188,6 +149,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         )}
       </AnimatePresence>
 
+      {/* Mobile sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.aside
@@ -197,45 +159,113 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-[#0c0c0e] border-l border-white/[0.06] lg:hidden overflow-y-auto"
           >
-            {renderSidebarContent(true)}
+            <SidebarContent
+              mobile
+              onClose={() => setSidebarOpen(false)}
+              navGroups={navGroups}
+              filter={sidebarFilter}
+              setFilter={setSidebarFilter}
+              currentSectionId={currentSectionId}
+              navigateTo={navigateTo}
+            />
           </motion.aside>
         )}
       </AnimatePresence>
 
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-[64px] bottom-0 w-[260px] border-r border-white/[0.05] bg-[#08080a] z-20">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.05]">
-          <div className="w-7 h-7 rounded-lg bg-blue-500/[0.08] border border-blue-500/[0.12] flex items-center justify-center">
-            <Book className="w-3.5 h-3.5 text-blue-400/70" />
+        <SidebarContent
+          navGroups={filteredNavGroups}
+          filter={sidebarFilter}
+          setFilter={setSidebarFilter}
+          currentSectionId={currentSectionId}
+          navigateTo={navigateTo}
+          currentColor={currentColor}
+        />
+      </aside>
+
+      {/* Main content */}
+      <div className="lg:ml-[260px] relative z-10">
+        <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[72px] pb-20">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/* ── Sidebar content (shared between mobile + desktop) ── */
+
+function SidebarContent({
+  mobile,
+  onClose,
+  navGroups,
+  filter,
+  setFilter,
+  currentSectionId,
+  navigateTo,
+  currentColor,
+}: {
+  mobile?: boolean;
+  onClose?: () => void;
+  navGroups: NavGroup[];
+  filter?: string;
+  setFilter: (v: string) => void;
+  currentSectionId: string;
+  navigateTo: (id: string) => void;
+  currentColor?: typeof SECTION_COLORS[keyof typeof SECTION_COLORS];
+}) {
+  return (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-7 h-7 rounded-lg ${currentColor?.bg || "bg-blue-500/[0.08]"} border ${currentColor?.border || "border-blue-500/[0.12]"} flex items-center justify-center`}>
+            <Book className={`w-3.5 h-3.5 ${currentColor?.text || "text-blue-400/70"}`} />
           </div>
           <div>
             <span className="text-[13px] font-semibold text-white/70 block leading-tight">Documentation</span>
             <span className="text-[10px] font-mono text-white/20">v1.0</span>
           </div>
         </div>
+        {mobile && onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Close navigation"
+            className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
 
-        <div className="px-4 pt-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-            <input
-              type="text"
-              placeholder="Filter pages..."
-              value={sidebarFilter}
-              onChange={(e) => setSidebarFilter(e.target.value)}
-              aria-label="Filter documentation pages"
-              className="w-full bg-white/[0.03] border border-white/[0.05] rounded-lg pl-9 pr-3 py-2 text-xs text-white/50 placeholder:text-white/15 font-mono outline-none focus:border-blue-500/20 focus:bg-white/[0.04] transition-all duration-200"
-            />
-          </div>
+      {/* Filter */}
+      <div className="px-4 pt-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/15" />
+          <input
+            type="text"
+            placeholder="Filter..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            aria-label="Filter documentation pages"
+            className={`w-full bg-white/[0.02] border border-white/[0.05] rounded-lg pl-9 pr-3 py-2 text-xs text-white/50 placeholder:text-white/12 font-mono outline-none focus:border-white/[0.12] focus:bg-white/[0.03] transition-all duration-200`}
+          />
         </div>
+      </div>
 
-        <nav className="flex-1 overflow-y-auto py-3" role="navigation" aria-label="Documentation navigation">
-          {filteredNavGroups.length > 0 ? (
-            filteredNavGroups.map((group) => (
+      {/* Nav groups */}
+      <nav className="flex-1 overflow-y-auto py-3" role="navigation" aria-label="Documentation navigation">
+        {navGroups.length > 0 ? (
+          navGroups.map((group) => {
+            const groupColor = SECTION_COLORS[group.label as keyof typeof SECTION_COLORS];
+            return (
               <div key={group.label} className="mb-1">
-                <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                  <span className="text-[10px] font-mono text-white/15 uppercase tracking-[0.2em]">
+                <div className="flex items-center gap-2 px-4 pt-4 pb-1.5">
+                  <span className={`text-[9px] font-mono font-semibold uppercase tracking-[0.18em] ${groupColor.text} opacity-60`}>
                     {group.label}
                   </span>
-                  <div className="h-px flex-1 bg-white/[0.04]" />
+                  <div className={`h-px flex-1 bg-gradient-to-r ${groupColor.gradient} to-transparent`} />
                 </div>
                 <div className="space-y-px px-2">
                   {group.items.map((item) => {
@@ -247,51 +277,50 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                         aria-current={isActive ? "page" : undefined}
                         className={`relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-sm w-full text-left transition-all duration-200 cursor-pointer group ${
                           isActive
-                            ? "text-white bg-white/[0.06]"
-                            : "text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
+                            ? `text-white ${groupColor.bg}`
+                            : "text-white/25 hover:text-white/50 hover:bg-white/[0.02]"
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="sidebar-active"
-                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-blue-500/80"
+                            className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${groupColor.text} opacity-80`}
                             transition={{ type: "spring", stiffness: 350, damping: 30 }}
                           />
                         )}
-                        <item.icon className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${isActive ? "text-blue-400/70" : "text-white/15 group-hover:text-white/30"}`} />
+                        <item.icon className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${
+                          isActive
+                            ? groupColor.text
+                            : "text-white/15 group-hover:text-white/30"
+                        }`} />
                         <span className="truncate text-[13px] font-medium">{item.label}</span>
                         {isActive && (
-                          <ChevronRight className="w-3 h-3 text-white/20 ml-auto flex-shrink-0" />
+                          <ChevronRight className={`w-3 h-3 ${groupColor.text} opacity-30 ml-auto flex-shrink-0`} />
                         )}
                       </button>
                     );
                   })}
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-xs text-white/15 text-center py-10 font-mono">No matching pages</div>
-          )}
-        </nav>
+            );
+          })
+        ) : (
+          <div className="text-xs text-white/15 text-center py-10 font-mono">No matching pages</div>
+        )}
+      </nav>
 
-        <div className="px-4 py-4 border-t border-white/[0.05]">
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-mono text-white/20 hover:text-white/40 hover:bg-white/[0.02] transition-all duration-200 cursor-pointer"
-          >
-            <ArrowUpRight className="w-3 h-3" />
-            <span>Report an issue</span>
-          </a>
-        </div>
-      </aside>
-
-      <div className="lg:ml-[260px] relative z-10">
-        <main className="max-w-[720px] mx-auto px-5 sm:px-8 pt-[72px] pb-14">
-          {children}
-        </main>
+      {/* Footer */}
+      <div className="px-4 py-4 border-t border-white/[0.05]">
+        <a
+          href="https://github.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-mono text-white/20 hover:text-white/40 hover:bg-white/[0.02] transition-all duration-200 cursor-pointer"
+        >
+          <ArrowUpRight className="w-3 h-3" />
+          <span>Report an issue</span>
+        </a>
       </div>
-    </div>
+    </>
   );
 }

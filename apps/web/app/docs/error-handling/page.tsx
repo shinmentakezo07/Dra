@@ -11,7 +11,7 @@ export default function ErrorHandlingPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="error-handling" icon={AlertTriangle} title="Error Handling">
+      <Section id="error-handling" icon={AlertTriangle} title="Error Handling" accent="amber">
         <p>
           The API returns consistent error responses with descriptive messages. All errors include a <code className="text-white/60">detail</code> field with a human-readable explanation and an <code className="text-white/60">error</code> field with the error type.
         </p>

@@ -11,7 +11,7 @@ export default function ModelsPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="models" icon={Cpu} title="Available Models">
+      <Section id="models" icon={Cpu} title="Available Models" accent="violet">
         <p>
           Yapapa routes requests to the optimal model based on your selected provider prefix. Use the <code className="text-white/60">/api/models</code> endpoint to get the full, up-to-date list.
         </p>

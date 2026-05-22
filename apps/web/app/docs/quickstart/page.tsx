@@ -18,7 +18,7 @@ export default function QuickstartPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="quickstart" icon={Zap} title="Quick Start">
+      <Section id="quickstart" icon={Zap} title="Quick Start" accent="emerald">
         <p className="text-lg text-white/80 leading-[1.6]">
           Get started with Yapapa AI Gateway in under 5 minutes. The backend runs on{" "}
           <code className="px-1.5 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400 font-mono text-xs border border-blue-500/[0.1]">

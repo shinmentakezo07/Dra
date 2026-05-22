@@ -18,7 +18,7 @@ export default function OrganizationsPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="organizations" icon={Users} title="Organizations">
+      <Section id="organizations" icon={Users} title="Organizations" accent="amber">
         <p>
           Organizations enable teams to collaborate with shared resources, API keys, and credit pools.
           Each organization has an owner (creator) who can invite members, manage roles, and control

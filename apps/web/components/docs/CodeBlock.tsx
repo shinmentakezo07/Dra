@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Terminal as TerminalIcon } from "lucide-react";
+
+/* ── Syntax Highlighters ── */
 
 export function highlightJson(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
@@ -11,26 +13,15 @@ export function highlightJson(code: string): JSX.Element {
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
-    }
-    if (match[1]) {
-      parts.push(<span key={key++} className="text-sky-300">{match[1]}</span>);
-      parts.push(<span key={key++}>:</span>);
-    } else if (match[2]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[2]}</span>);
-    } else if (match[3]) {
-      parts.push(<span key={key++} className="text-purple-300">{match[3]}</span>);
-    } else if (match[4]) {
-      parts.push(<span key={key++} className="text-emerald-300">{match[4]}</span>);
-    } else if (match[5]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[5]}</span>);
-    }
+    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
+    if (match[1]) { parts.push(<span key={key++} className="text-sky-300">{match[1]}</span>); parts.push(<span key={key++}>:</span>); }
+    else if (match[2]) { parts.push(<span key={key++} className="text-amber-200/90">{match[2]}</span>); }
+    else if (match[3]) { parts.push(<span key={key++} className="text-purple-300">{match[3]}</span>); }
+    else if (match[4]) { parts.push(<span key={key++} className="text-emerald-300">{match[4]}</span>); }
+    else if (match[5]) { parts.push(<span key={key++} className="text-white/20 italic">{match[5]}</span>); }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) {
-    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
-  }
+  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
   return <>{parts}</>;
 }
 
@@ -42,23 +33,14 @@ export function highlightBash(code: string): JSX.Element {
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
-    }
-    if (match[2]) {
-      parts.push(<span key={key++} className="text-green-300 font-semibold">{match[2]}</span>);
-    } else if (match[3]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[3]}</span>);
-    } else if (match[4]) {
-      parts.push(<span key={key++} className="text-blue-300">{match[4]}</span>);
-    } else if (match[5]) {
-      parts.push(<span key={key++} className="text-cyan-300 underline underline-offset-2 decoration-white/10">{match[5]}</span>);
-    }
+    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
+    if (match[2]) { parts.push(<span key={key++} className="text-green-300 font-semibold">{match[2]}</span>); }
+    else if (match[3]) { parts.push(<span key={key++} className="text-amber-200/90">{match[3]}</span>); }
+    else if (match[4]) { parts.push(<span key={key++} className="text-blue-300">{match[4]}</span>); }
+    else if (match[5]) { parts.push(<span key={key++} className="text-cyan-300 underline underline-offset-2 decoration-white/10">{match[5]}</span>); }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) {
-    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
-  }
+  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
   return <>{parts}</>;
 }
 
@@ -70,23 +52,14 @@ export function highlightPython(code: string): JSX.Element {
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
-    }
-    if (match[1]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>);
-    } else if (match[2]) {
-      parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>);
-    } else if (match[4]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>);
-    } else if (match[5]) {
-      parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>);
-    }
+    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
+    if (match[1]) { parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>); }
+    else if (match[2]) { parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>); }
+    else if (match[4]) { parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>); }
+    else if (match[5]) { parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>); }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) {
-    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
-  }
+  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
   return <>{parts}</>;
 }
 
@@ -98,21 +71,13 @@ export function highlightGo(code: string): JSX.Element {
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
-    }
-    if (match[1]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>);
-    } else if (match[2]) {
-      parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>);
-    } else if (match[4]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>);
-    }
+    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
+    if (match[1]) { parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>); }
+    else if (match[2]) { parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>); }
+    else if (match[4]) { parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>); }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) {
-    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
-  }
+  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
   return <>{parts}</>;
 }
 
@@ -124,23 +89,14 @@ export function highlightJS(code: string): JSX.Element {
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
-    }
-    if (match[1]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>);
-    } else if (match[2]) {
-      parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>);
-    } else if (match[4]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>);
-    } else if (match[5]) {
-      parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>);
-    }
+    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
+    if (match[1]) { parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>); }
+    else if (match[2]) { parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>); }
+    else if (match[4]) { parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>); }
+    else if (match[5]) { parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>); }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) {
-    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
-  }
+  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
   return <>{parts}</>;
 }
 
@@ -181,8 +137,7 @@ export const CodeBlock = ({
   const [copied, setCopied] = useState(false);
   const [activeLang, setActiveLang] = useState<Lang>("curl");
 
-  const displayCode =
-    examples ? examples[activeLang] : code ?? "";
+  const displayCode = examples ? examples[activeLang] : code ?? "";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayCode);
@@ -209,28 +164,40 @@ export const CodeBlock = ({
     return getHighlighted(displayCode, langKey);
   })();
 
+  const hasSingleLine = displayCode.split("\n").filter(Boolean).length <= 3 && displayCode.length < 80;
+
   return (
-    <div className="relative rounded-xl overflow-hidden bg-[#0c0c0e] border border-white/[0.06]">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04]">
-        <div className="flex items-center gap-1">
+    <div className={`relative rounded-xl overflow-hidden bg-[#0a0a0c] border border-white/[0.06] group ${hasSingleLine ? "not-prose" : ""}`}>
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-black/20">
+        <div className="flex items-center gap-1.5">
           {examples ? (
-            (Object.keys(examples) as Lang[]).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setActiveLang(lang)}
-                className={`text-[11px] font-mono px-2.5 py-1 rounded-md transition-all duration-200 ${
-                  activeLang === lang
-                    ? "text-white/80 bg-white/[0.06] border border-white/[0.08]"
-                    : "text-white/25 hover:text-white/50 border border-transparent"
-                }`}
-              >
-                {langLabels[lang]}
-              </button>
-            ))
+            <>
+              {/* Terminal dot indicator */}
+              <span className="hidden sm:flex gap-1 mr-2">
+                <span className="w-2 h-2 rounded-full bg-red-500/30" />
+                <span className="w-2 h-2 rounded-full bg-yellow-500/30" />
+                <span className="w-2 h-2 rounded-full bg-green-500/30" />
+              </span>
+              {(Object.keys(examples) as Lang[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setActiveLang(lang)}
+                  className={`text-[11px] font-mono px-2.5 py-1 rounded-md transition-all duration-200 cursor-pointer ${
+                    activeLang === lang
+                      ? "text-white/80 bg-white/[0.06] border border-white/[0.08] shadow-sm"
+                      : "text-white/25 hover:text-white/50 border border-transparent"
+                  }`}
+                >
+                  {langLabels[lang]}
+                </button>
+              ))}
+            </>
           ) : (
-            <span className="text-[11px] font-mono text-white/20 uppercase tracking-wider">
-              {language}
-            </span>
+            <div className="flex items-center gap-2">
+              <TerminalIcon className="w-3 h-3 text-white/20" />
+              <span className="text-[11px] font-mono text-white/20 uppercase tracking-wider">{language}</span>
+            </div>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -239,7 +206,7 @@ export const CodeBlock = ({
           )}
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-white/25 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
           >
             {copied ? (
               <span className="flex items-center gap-1 text-emerald-400/80">
@@ -255,7 +222,9 @@ export const CodeBlock = ({
           </button>
         </div>
       </div>
-      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.65] text-white/65">
+
+      {/* Code */}
+      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.65] text-white/65 scrollbar-thin scrollbar-thumb-white/[0.04]">
         <code>
           {typeof highlightedCode === "string" ? displayCode : highlightedCode}
         </code>

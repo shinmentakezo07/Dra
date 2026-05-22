@@ -12,7 +12,7 @@ export default function RateLimitsPage() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
-      <Section id="rate-limits" icon={Shield} title="Rate Limits">
+      <Section id="rate-limits" icon={Shield} title="Rate Limits" accent="amber">
         <p>
           Rate limits protect the API from abuse and ensure fair usage. Limits are configurable via the{" "}
           <code className="text-white/60">RATE_LIMIT_RPM</code> environment variable.

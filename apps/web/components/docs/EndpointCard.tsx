@@ -4,32 +4,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Lock, ChevronRight } from "lucide-react";
 
-/* ------------------------------------------------------------------ */
-/*  MethodBadge                                                        */
-/* ------------------------------------------------------------------ */
-
-export const MethodBadge = ({ method }: { method: string }) => {
-  const colors: Record<string, string> = {
-    GET: "bg-emerald-500/8 text-emerald-400 border-emerald-500/15",
-    POST: "bg-blue-500/8 text-blue-400 border-blue-500/15",
-    PUT: "bg-amber-500/8 text-amber-400 border-amber-500/15",
-    PATCH: "bg-orange-500/8 text-orange-400 border-orange-500/15",
-    DELETE: "bg-red-500/8 text-red-400 border-red-500/15",
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] font-bold border ${
-        colors[method] || colors.GET
-      }`}
-    >
-      {method}
-    </span>
-  );
+const METHOD_COLORS: Record<string, string> = {
+  GET: "bg-emerald-500/8 text-emerald-400 border-emerald-500/15",
+  POST: "bg-blue-500/8 text-blue-400 border-blue-500/15",
+  PUT: "bg-amber-500/8 text-amber-400 border-amber-500/15",
+  PATCH: "bg-orange-500/8 text-orange-400 border-orange-500/15",
+  DELETE: "bg-red-500/8 text-red-400 border-red-500/15",
 };
 
-/* ------------------------------------------------------------------ */
-/*  EndpointCard (Accordion)                                           */
-/* ------------------------------------------------------------------ */
+export const MethodBadge = ({ method }: { method: string }) => (
+  <span
+    className={`inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] font-bold tracking-wider border ${
+      METHOD_COLORS[method] || METHOD_COLORS.GET
+    }`}
+  >
+    {method}
+  </span>
+);
 
 export const EndpointCard = ({
   method,
@@ -49,20 +40,20 @@ export const EndpointCard = ({
   return (
     <motion.div
       layout
-      className="rounded-xl border border-white/[0.06] bg-[#0c0c0e] overflow-hidden transition-all duration-200 hover:border-white/[0.12]"
+      className="rounded-xl border border-white/[0.06] bg-[#0a0a0c] overflow-hidden transition-all duration-200 hover:border-white/[0.12]"
     >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-4 px-4 py-3.5 text-left group"
+        className="w-full flex items-center gap-3 sm:gap-4 px-4 py-3.5 text-left group cursor-pointer"
       >
         <MethodBadge method={method} />
-        <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors">
+        <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors flex-shrink min-w-0 truncate">
           {path}
         </code>
-        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/15 truncate pl-4">{description}</span>
+        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/12 truncate pl-4">{description}</span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {auth && (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.05] text-[10px] font-medium text-white/20">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.05] text-[9px] font-medium text-white/20">
               <Lock className="w-2.5 h-2.5" />
               Auth
             </span>
@@ -86,10 +77,10 @@ export const EndpointCard = ({
           >
             <div className="px-4 pb-4 space-y-4 border-t border-white/[0.04] pt-4">
               <p className="text-sm text-white/40 flex items-start gap-2">
-                <span className="text-blue-400/40 mt-px text-[10px]">●</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400/30 mt-1 flex-shrink-0" />
                 <span>{description}</span>
               </p>
-              <div className="pl-4 border-l-2 border-blue-500/[0.12]">
+              <div className="pl-4 border-l-2 border-white/[0.06]">
                 {children}
               </div>
             </div>
