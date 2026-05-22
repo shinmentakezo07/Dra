@@ -113,9 +113,53 @@ export default function ApiReferencePage() {
           Admin Endpoints
         </h3>
         <div className="space-y-2 mb-10">
-          <EndpointCard method="GET" path="/api/admin/users" description="[Admin] List all platform users." />
-          <EndpointCard method="GET" path="/api/admin/stats" description="[Admin] Get platform-wide statistics." />
-          <EndpointCard method="GET" path="/api/admin/circuit-breakers" description="[Admin] View circuit breaker states for all LLM providers." />
+          <div className="mb-4">
+            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">User Management</h4>
+            <div className="space-y-2">
+              <EndpointCard method="GET" path="/api/admin/users" description="[Admin] List all platform users with pagination and search." />
+              <EndpointCard method="GET" path="/api/admin/users/{id}" description="[Admin] Get detailed user information including role, status, and usage." />
+              <EndpointCard method="GET" path="/api/admin/users/{id}/keys" description="[Admin] List all API keys for a specific user." />
+            </div>
+          </div>
+          <div className="mb-4">
+            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">Billing & Credits</h4>
+            <div className="space-y-2">
+              <EndpointCard method="POST" path="/api/admin/users/{id}/credits" description="[Admin] Adjust user credit balance (add or deduct credits)." />
+            </div>
+          </div>
+          <div className="mb-4">
+            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">System Settings</h4>
+            <div className="space-y-2">
+              <EndpointCard method="GET" path="/api/admin/settings" description="[Admin] Get platform-wide settings including rate limits, features, and branding." />
+              <EndpointCard method="PUT" path="/api/admin/settings" description="[Admin] Update platform settings." />
+              <EndpointCard method="GET" path="/api/admin/feature-flags" description="[Admin] List all feature flags and their current state." />
+              <EndpointCard method="PUT" path="/api/admin/feature-flags/{flag}" description="[Admin] Enable or disable a specific feature flag." />
+            </div>
+          </div>
+          <div className="mb-4">
+            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">LLM & Providers</h4>
+            <div className="space-y-2">
+              <EndpointCard method="GET" path="/api/admin/circuit-breakers" description="[Admin] View circuit breaker states for all LLM providers." />
+              <EndpointCard method="GET" path="/api/admin/providers" description="[Admin] List all configured LLM providers with health status." />
+              <EndpointCard method="POST" path="/api/admin/providers" description="[Admin] Add or update an LLM provider configuration." />
+            </div>
+          </div>
+          <div className="mb-4">
+            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">Audit & Monitoring</h4>
+            <div className="space-y-2">
+              <EndpointCard method="GET" path="/api/admin/stats" description="[Admin] Get platform-wide statistics: total users, requests, credits spent." />
+              <EndpointCard method="GET" path="/api/admin/logs" description="[Admin] View platform-wide request logs with user context." />
+              <EndpointCard method="GET" path="/api/admin/audit-logs" description="[Admin] Access audit trail of all admin actions for compliance." />
+            </div>
+          </div>
+          <div className="mb-4">
+            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">Announcements & Content</h4>
+            <div className="space-y-2">
+              <EndpointCard method="GET" path="/api/admin/announcements" description="[Admin] List all platform announcements." />
+              <EndpointCard method="POST" path="/api/admin/announcements" description="[Admin] Create a new platform announcement." />
+              <EndpointCard method="GET" path="/api/admin/analytics" description="[Admin] Get comprehensive analytics data across all users." />
+            </div>
+          </div>
         </div>
 
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 mt-10">

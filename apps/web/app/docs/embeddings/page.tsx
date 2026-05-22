@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Database } from "lucide-react";
 import { Section } from "@/components/docs/Section";
 import { CodeBlock } from "@/components/docs/CodeBlock";
+import { TipBox } from "@/components/docs/TipBox";
 
 import { getDocsBaseUrl } from "@/lib/docs-config";
 
@@ -17,9 +18,20 @@ export default function EmbeddingsPage() {
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
       <Section id="embeddings" icon={Database} title="Embeddings">
-        <p>Generate text embeddings from supported providers including OpenAI, Anthropic, Cohere, NVIDIA NIM, and Gemini.</p>
+        <p>
+          Generate dense vector embeddings from text input. Embeddings capture semantic meaning and are used for semantic search, clustering, recommendation systems, and RAG (Retrieval-Augmented Generation) pipelines.
+        </p>
 
-        <div className="mt-6">
+        <div className="flex items-center gap-3 mt-4 mb-2">
+          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/15">POST</span>
+          <code className="text-white/60 font-mono text-sm">{BASE_URL}/api/embeddings</code>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Request
+          </h3>
           <CodeBlock
             examples={{
               curl: `curl ${BASE_URL}/api/embeddings \\
@@ -79,6 +91,79 @@ fmt.Printf("%+v\\n", embeddings)`,
             }}
           />
         </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Response format
+          </h3>
+          <CodeBlock
+            language="json"
+            code={`{
+  "embeddings": [
+    [0.0023, -0.0156, 0.0421, ...],
+    [0.0018, -0.0142, 0.0398, ...]
+  ],
+  "model": "openai/text-embedding-3-small",
+  "usage": {
+    "prompt_tokens": 8,
+    "total_tokens": 8
+  }
+}`}
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            OpenAI-compatible endpoint
+          </h3>
+          <p className="text-sm text-white/40 mb-4">
+            For OpenAI SDK compatibility, use the <code className="text-white/60">/v1/embeddings</code> endpoint. It accepts the standard OpenAI embedding request format and returns OpenAI-shaped responses.
+          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/15">POST</span>
+            <code className="text-white/60 font-mono text-sm">{BASE_URL}/v1/embeddings</code>
+          </div>
+          <CodeBlock
+            code={`curl ${BASE_URL}/v1/embeddings \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "openai/text-embedding-3-small",
+    "input": "The quick brown fox jumps over the lazy dog"
+  }'`}
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Use cases
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+              <h4 className="text-white font-semibold text-xs mb-1">Semantic Search</h4>
+              <p className="text-xs text-white/30">Compare query embeddings against a document corpus using cosine similarity to find semantically relevant results.</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+              <h4 className="text-white font-semibold text-xs mb-1">Clustering</h4>
+              <p className="text-xs text-white/30">Group similar documents by embedding proximity. Useful for topic discovery, content organization, and deduplication.</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+              <h4 className="text-white font-semibold text-xs mb-1">RAG Pipelines</h4>
+              <p className="text-xs text-white/30">Store document embeddings in a vector database and retrieve relevant context before sending to an LLM for generation.</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+              <h4 className="text-white font-semibold text-xs mb-1">Recommendation</h4>
+              <p className="text-xs text-white/30">Compute similarity between user preferences and item descriptions to power content-based recommendation engines.</p>
+            </div>
+          </div>
+        </div>
+
+        <TipBox>
+          Supported embedding models include <code className="text-blue-400 font-mono text-xs">openai/text-embedding-3-small</code>, <code className="text-blue-400 font-mono text-xs">openai/text-embedding-3-large</code>, and provider-specific alternatives. Use the <code className="text-blue-400 font-mono text-xs">dimensions</code> parameter with OpenAI models to reduce vector size (e.g., 256, 512, 1024) for lower storage costs.
+        </TipBox>
       </Section>
     </motion.div>
   );

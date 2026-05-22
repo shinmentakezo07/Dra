@@ -116,15 +116,14 @@ echo "NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com" \\
 
 # 3. Build and start
 docker compose up -d`,
-              js: `// Next.js .env.local (apps/web/.env.local)
-// ──────────────────────────────────────
-// Backend API (Go server)
+              js: `# Next.js .env.local (apps/web/.env.local)
+# ──────────────────────────────────────
 BACKEND_URL=http://localhost:8080
 
-// Docs Base URL — shown in all code examples
+# Docs Base URL — shown in all code examples
 NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com
 
-// Auth
+# Auth
 AUTH_SECRET=your-auth-secret
 NEXTAUTH_SECRET=your-nextauth-secret
 NEXTAUTH_URL=https://yourdomain.com`,
@@ -155,6 +154,37 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`,
         <div className="mt-10">
           <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Docker Compose environment
+          </h3>
+          <p className="text-sm text-white/40 mb-4">
+            When deploying with Docker Compose, configure these environment variables for the backend service:
+          </p>
+          <CodeBlock
+            language="bash"
+            code={`# Backend environment (docker-compose.yml or .env)
+DATABASE_URL=postgresql://user:pass@db:5432/dra_platform
+AUTH_SECRET=your-auth-secret
+ENV=production
+
+# At least one AI provider key is required
+OPENAI_API_KEY=sk-...
+# ANTHROPIC_API_KEY=sk-ant-...
+# NVIDIA_API_KEY=nvapi-...
+# GROQ_API_KEY=gsk_...
+# GEMINI_API_KEY=AIza...
+
+# Optional: Redis for distributed rate limiting + caching
+# REDIS_URL=redis://redis:6379
+
+# Optional: Stripe for credit purchases
+# STRIPE_SECRET_KEY=sk_live_...
+# STRIPE_WEBHOOK_SECRET=whsec_...`}
+          />
+        </div>
+
+        <div className="mt-10">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
             Verifying the base URL
           </h3>
           <p className="mb-4">
@@ -167,6 +197,33 @@ curl http://localhost:8080/api/chat ...
 
 # After (with NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com)
 curl https://api.yourdomain.com/api/chat ...`}
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Post-deployment verification
+          </h3>
+          <p className="text-sm text-white/40 mb-4">
+            After deploying, run a quick smoke test to verify that everything is wired correctly:
+          </p>
+          <CodeBlock
+            language="bash"
+            code={`# Run the project's smoke test
+bash scripts/smoke-test.sh
+
+# Verify health endpoint
+curl https://api.yourdomain.com/health
+
+# Check that providers are configured
+curl https://api.yourdomain.com/health/providers
+
+# Test a simple chat request
+curl https://api.yourdomain.com/api/chat \\
+  -H "Content-Type: application/json" \\
+  -H "X-Api-Key: YOUR_API_KEY" \\
+  -d '{"model":"openai/gpt-4o","messages":[{"role":"user","content":"Hello"}]}'`}
           />
         </div>
 

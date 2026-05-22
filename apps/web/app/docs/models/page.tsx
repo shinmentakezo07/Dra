@@ -3,6 +3,12 @@
 import { motion } from "framer-motion";
 import { Cpu } from "lucide-react";
 import { Section } from "@/components/docs/Section";
+import { CodeBlock } from "@/components/docs/CodeBlock";
+import { TipBox } from "@/components/docs/TipBox";
+
+import { getDocsBaseUrl } from "@/lib/docs-config";
+
+const BASE_URL = getDocsBaseUrl();
 
 export default function ModelsPage() {
   return (
@@ -13,7 +19,7 @@ export default function ModelsPage() {
     >
       <Section id="models" icon={Cpu} title="Available Models" accent="violet">
         <p>
-          Yapapa routes requests to the optimal model based on your selected provider prefix. Use the <code className="text-white/60">/api/models</code> endpoint to get the full, up-to-date list.
+          Yapapa routes requests to the optimal model based on your selected provider prefix. Use the <code className="text-white/60">/api/models</code> endpoint to get the full, up-to-date list of available models.
         </p>
 
         <div className="overflow-x-auto mt-6">
@@ -44,6 +50,81 @@ export default function ModelsPage() {
             </tbody>
           </table>
         </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Fetching models via API
+          </h3>
+          <p className="text-sm text-white/40 mb-4">
+            Use the API to get the complete, dynamically-updated list of supported models. This is useful for populating model selectors in your own application.
+          </p>
+          <CodeBlock
+            code={'curl ' + BASE_URL + '/api/models \\\n  -H "X-Api-Key: YOUR_API_KEY"'}
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            OpenAI-compatible endpoint
+          </h3>
+          <p className="text-sm text-white/40 mb-4">
+            Use <code className="text-white/60">/v1/models</code> for OpenAI SDK compatibility. This endpoint returns models in the standard OpenAI format.
+          </p>
+          <CodeBlock
+            code={'curl ' + BASE_URL + '/v1/models \\\n  -H "Authorization: Bearer YOUR_API_KEY"'}
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Response format
+          </h3>
+          <CodeBlock
+            language="json"
+            code={`{
+  "data": [
+    {
+      "id": "openai/gpt-4o",
+      "provider": "openai",
+      "capabilities": ["chat", "vision"],
+      "pricing": {
+        "input": 2.5,
+        "output": 10
+      }
+    },
+    {
+      "id": "anthropic/claude-sonnet-4",
+      "provider": "anthropic",
+      "capabilities": ["chat", "vision"],
+      "pricing": {
+        "input": 3,
+        "output": 15
+      }
+    }
+  ]
+}`}
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+            Provider-specific model listing
+          </h3>
+          <p className="text-sm text-white/40 mb-4">
+            Filter models by provider to see only the models available from a specific provider.
+          </p>
+          <CodeBlock
+            code={'curl ' + BASE_URL + '/api/models/openai \\\n  -H "X-Api-Key: YOUR_API_KEY"'}
+          />
+        </div>
+
+        <TipBox>
+          Use the <code className="text-blue-400 font-mono text-xs">provider/</code> prefix in the model name (e.g., <code className="text-blue-400 font-mono text-xs">openai/gpt-4o</code>) to route to a specific provider. The <code className="text-blue-400 font-mono text-xs">/api/models</code> endpoint returns pricing information per model. Model availability may vary based on provider API keys configured in your deployment.
+        </TipBox>
       </Section>
     </motion.div>
   );

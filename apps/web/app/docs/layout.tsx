@@ -12,6 +12,7 @@ import {
 import { ScrollProgress } from "@/components/docs/ScrollProgress";
 import { SearchModal } from "@/components/docs/SearchModal";
 import { DocsNavbar } from "@/components/docs/DocsNavbar";
+import { DocsPageShell } from "@/components/docs/DocsPageShell";
 import type { NavItem } from "@/components/docs/types";
 
 /* ── Section color system ── */
@@ -187,8 +188,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       {/* Main content */}
       <div className="lg:ml-[260px] relative z-10">
         <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[72px] pb-20">
-          {children}
-        </main>
+            <DocsPageShell>{children}</DocsPageShell>
+          </main>
       </div>
     </div>
   );
