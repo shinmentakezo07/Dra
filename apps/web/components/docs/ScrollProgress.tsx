@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export const ScrollProgress = () => {
@@ -18,10 +17,9 @@ export const ScrollProgress = () => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[60] h-[2px] pointer-events-none">
-      <motion.div
-        className="h-full bg-gradient-to-r from-blue-500/70 via-purple-500/50 to-emerald-500/40"
+      <div
+        className="h-full bg-gradient-to-r from-blue-500/70 via-purple-500/50 to-emerald-500/40 transition-[width] duration-75"
         style={{ width: `${progress * 100}%` }}
-        transition={{ duration: 0.1 }}
       />
     </div>
   );

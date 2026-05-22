@@ -162,7 +162,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             <SidebarContent
               mobile
               onClose={() => setSidebarOpen(false)}
-              navGroups={navGroups}
+              navGroups={filteredNavGroups}
               filter={sidebarFilter}
               setFilter={setSidebarFilter}
               currentSectionId={currentSectionId}

@@ -137,6 +137,8 @@ export const CodeBlock = ({
   const [copied, setCopied] = useState(false);
   const [activeLang, setActiveLang] = useState<Lang>("curl");
 
+  if (!code && !examples) return null;
+
   const displayCode = examples ? examples[activeLang] : code ?? "";
 
   const handleCopy = () => {

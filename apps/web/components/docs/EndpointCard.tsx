@@ -5,11 +5,11 @@ import { useState } from "react";
 import { Lock, ChevronRight } from "lucide-react";
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: "bg-emerald-500/8 text-emerald-400 border-emerald-500/15",
-  POST: "bg-blue-500/8 text-blue-400 border-blue-500/15",
-  PUT: "bg-amber-500/8 text-amber-400 border-amber-500/15",
-  PATCH: "bg-orange-500/8 text-orange-400 border-orange-500/15",
-  DELETE: "bg-red-500/8 text-red-400 border-red-500/15",
+  GET: "bg-emerald-500/[0.08] text-emerald-400 border-emerald-500/[0.15]",
+  POST: "bg-blue-500/[0.08] text-blue-400 border-blue-500/[0.15]",
+  PUT: "bg-amber-500/[0.08] text-amber-400 border-amber-500/[0.15]",
+  PATCH: "bg-orange-500/[0.08] text-orange-400 border-orange-500/[0.15]",
+  DELETE: "bg-red-500/[0.08] text-red-400 border-red-500/[0.15]",
 };
 
 export const MethodBadge = ({ method }: { method: string }) => (

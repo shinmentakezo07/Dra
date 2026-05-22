@@ -43,8 +43,15 @@ export function DocsNavbar({ onSearchOpen, onMobileMenuClick, currentSectionLabe
         setProductOpen(false);
       }
     };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setProductOpen(false);
+    };
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, []);
 
   const dotColor = currentColor?.accent ? SECTION_DOTS[currentColor.accent] : "bg-blue-500";
