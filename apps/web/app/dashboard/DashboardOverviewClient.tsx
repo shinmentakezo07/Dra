@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Activity, Key, BarChart3, DollarSign, Zap, TrendingUp, ArrowRight, CheckCircle, AlertCircle, Braces, Gauge } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +28,9 @@ export default function DashboardOverviewClient() {
   const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useAnalytics();
   const { data: credits, isLoading: creditsLoading } = useCredits();
   const { data: keys, isLoading: keysLoading } = useKeys();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const loading = analyticsLoading || creditsLoading || keysLoading;
   const error = analyticsError ? (analyticsError as Error).message : null;
@@ -88,7 +92,7 @@ export default function DashboardOverviewClient() {
               <h1 className="text-2xl font-bold text-white tracking-tight">Overview</h1>
               <div className="h-4 w-[1px] bg-white/10" />
               <span className="text-xs text-gray-600 font-mono">
-                {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {mounted ? new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : " "}
               </span>
             </div>
             <p className="text-sm text-gray-500">Monitor your API usage and performance in real time.</p>

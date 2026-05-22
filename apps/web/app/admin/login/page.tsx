@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
   Mail, Lock, Loader2, Eye, EyeOff, AlertCircle,
-  ArrowLeft, Shield, ChevronRight, Terminal, KeyRound
+  Shield, ChevronRight, Terminal, KeyRound
 } from "lucide-react";
 
 function SubmitButton() {
@@ -200,8 +200,8 @@ export default function AdminLoginPage() {
 
         <div className="relative z-10 flex flex-col justify-between p-14 w-full h-full">
           {/* Top */}
-          <div className="flex items-center justify-between">
-            <Link href="/" className="group flex items-center gap-3">
+          <div>
+            <Link href="/" className="group inline-flex items-center gap-3">
               <div className="relative">
                 <div className="w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-blue-500/30">
                   <img
@@ -215,13 +215,6 @@ export default function AdminLoginPage() {
               <span className="text-xl font-bold tracking-tight text-white">
                 Yapapa
               </span>
-            </Link>
-            <Link
-              href="/"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-200 text-white/70 hover:text-white text-sm font-medium group"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Back to site</span>
             </Link>
           </div>
 
@@ -296,25 +289,16 @@ export default function AdminLoginPage() {
         >
           {/* Mobile header */}
           <div className="lg:hidden mb-8">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg overflow-hidden shadow-lg shadow-blue-500/20">
-                  <img
-                    src="/admin-logo.jpg"
-                    alt="Yapapa"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-lg font-bold text-white">Yapapa</span>
-              </Link>
-              <Link
-                href="/"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-all text-white/60 hover:text-white text-xs font-medium"
-              >
-                <ArrowLeft className="w-3 h-3" />
-                <span>Home</span>
-              </Link>
-            </div>
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg overflow-hidden shadow-lg shadow-blue-500/20">
+                <img
+                  src="/admin-logo.jpg"
+                  alt="Yapapa"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-lg font-bold text-white">Yapapa</span>
+            </Link>
           </div>
 
           {/* Card */}

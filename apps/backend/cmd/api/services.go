@@ -272,6 +272,19 @@ func initProviderRegistry(cfg *config.Config, llmCache cache.Cache, llmWatcher *
 		logger.Info("yapa_provider_registered")
 	}
 
+	if cfg.ShinwayAPIKey != "" {
+		p := llmprovider.NewGenericProvider("shinway", "http://localhost:20128/v1",
+			llmprovider.WithAPIKey(cfg.ShinwayAPIKey),
+			llmprovider.WithCache(llmCache),
+			llmprovider.WithWatcher(llmWatcher),
+			llmprovider.WithModels([]llm.ModelInfo{
+				{ID: "shinway/zl/zhipu/glm-5.1-full", Name: "GLM 5.1 Full", Provider: "shinway", InputPricePer1k: 0.0001, OutputPricePer1k: 0.0004, ContextWindow: 128000, Description: "Zhipu GLM 5.1 Full via shinway proxy backend.", Capabilities: []string{"text", "code"}, SupportsThinking: false, SupportsVision: false, SupportsTools: true},
+			}),
+		)
+		registry.Register(circuitbreaker.New(p, cbConfig))
+		logger.Info("shinway_provider_registered", "base_url", "http://localhost:20128/v1")
+	}
+
 	if cfg.IsDevelopment() {
 		registry.Register(guardrails.NewSandboxProvider("sandbox"))
 		logger.Info("sandbox_provider_enabled")

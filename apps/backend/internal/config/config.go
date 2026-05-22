@@ -26,6 +26,7 @@ type Config struct {
 	GeminiAPIKey           string
 	GeminiSecondaryAPIKeys []string
 	YapaAPIKey             string
+	ShinwayAPIKey          string
 	Env             string
 	RedisURL        string
 	AllowedOrigins  []string
@@ -94,6 +95,7 @@ func Load() (*Config, error) {
 		GeminiAPIKey:              getEnv("GEMINI_API_KEY", ""),
 		GeminiSecondaryAPIKeys:    getEnvSlice("GEMINI_API_KEY_2"),
 		YapaAPIKey:                getEnv("YAPA_API_KEY", ""),
+		ShinwayAPIKey:             getEnv("SHINWAY_API_KEY", ""),
 		Env:             getEnv("ENV", "development"),
 		AllowedOrigins:  getEnvSlice("ALLOWED_ORIGINS"),
 		RateLimitRPM:    getEnvInt("RATE_LIMIT_RPM", 60),

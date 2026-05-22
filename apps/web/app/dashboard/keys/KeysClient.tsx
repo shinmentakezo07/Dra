@@ -37,8 +37,14 @@ export default function KeysClient() {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  const maskKey = (key: string) => {
-    return `${key.slice(0, 12)}${"•".repeat(32)}${key.slice(-4)}`;
+  const maskKey = (key: string | undefined, fallbackId?: string) => {
+    if (key) return `${key.slice(0, 12)}${"•".repeat(32)}${key.slice(-4)}`;
+    if (fallbackId) {
+      const prefix = "dra_";
+      const hash = fallbackId.replace(/-/g, "").slice(0, 32).padEnd(32, "x");
+      return `${prefix}${hash.slice(0, 8)}${"•".repeat(24)}${hash.slice(24, 28)}`;
+    }
+    return "dra_••••••••••••••••••••••••••••••••";
   };
 
   const handleCreateKey = async () => {
@@ -157,7 +163,7 @@ export default function KeysClient() {
                         <code className="flex-1 px-4 py-2 bg-black/50 border border-white/10 rounded-lg text-sm font-mono text-gray-300">
                           {visibleKeys.has(apiKey.id) && apiKey.key
                             ? apiKey.key
-                            : maskKey(apiKey.key || "wiwi_live_********************")}
+                            : maskKey(apiKey.key, apiKey.id)}
                         </code>
 
                         <button
@@ -176,6 +182,7 @@ export default function KeysClient() {
                           onClick={() => copyToClipboard(apiKey.id, apiKey.key || "")}
                           className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
                           title="Copy to clipboard"
+                          disabled={!apiKey.key}
                         >
                           {copiedKey === apiKey.id ? (
                             <Check className="w-4 h-4 text-green-400" />

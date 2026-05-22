@@ -335,23 +335,52 @@ textarea[data-autoresize] {
 
 /* ─── Admin Design System ─── */
 [data-admin] {
-  --admin-bg: #06060a;
-  --admin-surface: #0c0c12;
-  --admin-surface-elevated: #12121a;
+  --admin-bg: #050505;
+  --admin-surface: #0A0A0A;
+  --admin-surface-elevated: #0e0e0e;
   --admin-border: rgba(255, 255, 255, 0.04);
   --admin-border-hover: rgba(255, 255, 255, 0.08);
-  --admin-text: rgba(255, 255, 255, 0.88);
-  --admin-text-muted: rgba(255, 255, 255, 0.38);
-  --admin-text-dim: rgba(255, 255, 255, 0.18);
-  --admin-accent: #6366f1;
-  --admin-accent-soft: rgba(99, 102, 241, 0.12);
-  --admin-accent-glow: rgba(99, 102, 241, 0.25);
+  --admin-text: #ffffff;
+  --admin-text-muted: #9ca3af;
+  --admin-text-dim: #6b7280;
+  --admin-accent: #3b82f6;
+  --admin-accent-soft: rgba(59, 130, 246, 0.10);
+  --admin-accent-glow: rgba(59, 130, 246, 0.2);
+  --admin-accent-gradient: linear-gradient(135deg, #3b82f6, #7c3aed);
+  --admin-accent-purple: #a855f7;
+  --admin-accent-violet: #7c3aed;
   --admin-success: #34d399;
   --admin-warning: #fbbf24;
   --admin-danger: #f87171;
-  --admin-radius: 16px;
-  --admin-radius-sm: 10px;
-  --admin-radius-lg: 24px;
+  --admin-radius: 14px;
+  --admin-radius-sm: 8px;
+  --admin-radius-lg: 20px;
+}
+
+/* Admin ambient glow layers */
+.admin-glow-blue {
+  background: radial-gradient(600px circle at var(--x, 50%) var(--y, 0%), rgba(59, 130, 246, 0.04) 0%, transparent 70%);
+}
+
+.admin-glow-violet {
+  background: radial-gradient(500px circle at var(--x, 50%) var(--y, 100%), rgba(124, 58, 237, 0.03) 0%, transparent 70%);
+}
+
+.admin-glow-card {
+  position: relative;
+}
+.admin-glow-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(800px circle at var(--mx, 50%) var(--my, 50%), rgba(59, 130, 246, 0.02) 0%, transparent 60%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.admin-glow-card:hover::before {
+  opacity: 1;
 }
 
 /* Admin scrollbar */
@@ -372,10 +401,29 @@ textarea[data-autoresize] {
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 .admin-card:hover {
   border-color: var(--admin-border-hover);
-  box-shadow: 0 0 40px -12px rgba(99, 102, 241, 0.06);
+  box-shadow:
+    0 0 40px -12px rgba(59, 130, 246, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
+}
+.admin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.08), rgba(124, 58, 237, 0.05), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.admin-card:hover::before {
+  opacity: 1;
 }
 
 /* Admin table */
@@ -504,12 +552,16 @@ textarea[data-autoresize] {
 
 /* Admin stat value */
 .admin-stat-value {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: var(--admin-text);
+  color: #ffffff;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: 1.05;
+  background: linear-gradient(180deg, #ffffff 60%, rgba(255,255,255,0.85));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Admin stagger animation helper */

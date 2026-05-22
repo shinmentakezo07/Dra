@@ -274,6 +274,90 @@ Keys stored as HMAC-SHA256 hash. Dual lookup (hash first, raw fallback for legac
 
 ---
 
+## Additional Subsystems
+
+### RBAC System
+
+The RBAC system (`internal/service/rbac.go`, `internal/repository/rbac.go`) provides role-based access control:
+
+```go
+type Role struct {
+    Name        string   // e.g., "admin", "moderator", "viewer"
+    Permissions []string // e.g., ["users.read", "users.write", "billing.read"]
+}
+```
+
+- Roles defined in database via migration `008_rbac.sql`
+- `RequirePermission(perm)` middleware checks user's permissions
+- Admin auto-provisioning: first admin login creates `superadmin` with `["*"]`
+- Available permissions: `users.read`, `users.write`, `providers.read`, `providers.write`, `models.read`, `models.write`, `billing.read`, `billing.write`, `settings.read`, `settings.write`, `analytics.read`
+
+### SSO System
+
+SSO configuration (`internal/handler/rbac_handlers.go`) stores identity provider settings in `sso_configs` table:
+- Provider type, client ID, client secret
+- Issuer URL for OIDC discovery
+- Domain-restricted sign-in
+- Managed via admin API (`GET /api/admin/sso`)
+
+### Fine-Tuning System
+
+Fine-tuning (`internal/handler/fine_tuning_handlers.go`, `internal/service/fine_tuning.go`) manages model fine-tuning jobs:
+
+```go
+type FineTuningJob struct {
+    ID          string
+    UserID      string
+    BaseModel   string
+    DatasetID   string
+    Status      string // queued, running, completed, failed
+    Progress    int
+    Error       string
+    ResultModel string
+}
+```
+
+- Datasets uploaded as JSONL files
+- Jobs queued for async processing
+- Progress tracking with status polls (15s interval)
+
+### Webhook System
+
+Webhooks (`internal/service/webhook.go`, `internal/repository/webhook.go`) deliver event-driven outbound payloads:
+
+```go
+type WebhookService struct {
+    repo    *WebhookRepo
+    mu      sync.Mutex
+    retries map[string]*RetryState
+}
+```
+
+- 10 event types (e.g., `request.completed`, `credit.depleted`)
+- HMAC-SHA256 signature verification
+- Retry worker with configurable interval (default 10s)
+- Delivery tracking with attempt counting
+- Dead letter queue for exhausted retries
+
+### Export System
+
+Export jobs (`internal/service/export.go`, `internal/handler/export_handlers.go`) generate async data exports:
+- Export types: `logs`, `usage`, `audit`
+- Formats: `CSV`, `JSON`
+- Date range filtering
+- Download URL with expiry
+- Background job processing with status tracking
+
+### Provider Plugin System
+
+Provider plugins (`internal/service/provider_plugin.go`, `internal/handler/provider_plugin_handlers.go`) extend the provider registry with dynamically configured providers:
+- Plugin name, description, and base URL
+- Configurable headers and authentication
+- Enable/disable toggle
+- Plugin lifecycle management via admin API
+
+---
+
 ## Environment Quirks
 
 - `.npmrc` has `legacy-peer-deps=true` — do not remove
@@ -286,3 +370,4 @@ Keys stored as HMAC-SHA256 hash. Dual lookup (hash first, raw fallback for legac
 - Frontend `@/` → `apps/web/` root
 - Next.js `output: 'standalone'`; Docker entry: `apps/web/server.js`
 - Tailwind CSS v4: `@tailwindcss/postcss` plugin (not v3 config)
+- `turbo.json` only passes specific env vars; runtime-only keys (ANTHROPIC, GROQ, GEMINI) must be set separately

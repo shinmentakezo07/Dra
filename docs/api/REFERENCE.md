@@ -668,3 +668,61 @@ const res = await fetch("http://localhost:8080/api/chat", {
 const reader = res.body.getReader();
 // ... SSE parsing
 ```
+
+---
+
+## Additional Admin Endpoints
+
+### RBAC Endpoints
+
+All under `/api/admin/rbac/`. Require admin role.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/rbac/permissions` | List all available permissions |
+| `GET` | `/api/admin/rbac/roles` | List all roles |
+| `GET` | `/api/admin/rbac/roles/{role}/permissions` | Get permissions for a role |
+| `POST` | `/api/admin/rbac/roles/{role}/permissions` | Add permission to role |
+| `DELETE` | `/api/admin/rbac/roles/{role}/permissions/{permission}` | Remove permission from role |
+
+### Rate Limit Management
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/rate-limits/tiers` | List rate limit tiers |
+| `PUT` | `/api/admin/rate-limits/tiers/{tier}` | Update tier limits |
+| `PUT` | `/api/admin/rate-limits/users/{userId}/tier` | Set user's rate limit tier |
+
+### Provider Plugins
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/plugins` | List all provider plugins |
+| `POST` | `/api/admin/plugins` | Create a new provider plugin |
+| `GET` | `/api/admin/plugins/{id}` | Get plugin details |
+| `PUT` | `/api/admin/plugins/{id}/toggle` | Enable/disable plugin |
+| `DELETE` | `/api/admin/plugins/{id}` | Delete plugin |
+
+### User Adjustments
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/users/{id}/adjustments` | List credit adjustments for a user |
+
+### Operations
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/cache/stats` | Get cache statistics |
+| `POST` | `/api/admin/cache/clear` | Clear all caches |
+| `GET` | `/api/admin/webhooks/logs` | List webhook logs |
+| `POST` | `/api/admin/webhooks/{id}/retry` | Retry a failed webhook |
+
+### Data Exports
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/exports` | List export jobs |
+| `POST` | `/api/exports` | Create export job |
+| `GET` | `/api/exports/{id}` | Get export job status |
+| `GET` | `/api/exports/{id}/download` | Download completed export |

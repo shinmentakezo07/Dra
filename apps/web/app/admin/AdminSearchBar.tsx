@@ -7,10 +7,10 @@ import { getAdminSDK } from '@/lib/api/admin-sdk'
 import type { AdminUserDetail } from '@/types/admin'
 
 const ROLE_STYLES: Record<string, string> = {
-  superadmin: 'bg-purple-500/10 text-purple-400',
-  admin: 'bg-indigo-500/10 text-indigo-400',
-  support: 'bg-emerald-500/10 text-emerald-400',
-  analyst: 'bg-amber-500/10 text-amber-400',
+  superadmin: 'text-purple-400',
+  admin: 'text-blue-400',
+  support: 'text-emerald-400',
+  analyst: 'text-amber-400',
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -155,7 +155,7 @@ export default function AdminSearchBar() {
         <div className="absolute left-0 right-0 z-50 mt-1.5 w-full overflow-hidden rounded-[14px] border border-[var(--admin-border)] bg-[var(--admin-surface-elevated)] shadow-2xl shadow-black/40">
           {loading ? (
             <div className="flex items-center justify-center gap-2.5 px-4 py-6">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400/60" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: 'rgba(59,130,246,0.5)' }} />
               <span className="text-[12px] text-[var(--admin-text-muted)]">Searching...</span>
             </div>
           ) : searched && results.length === 0 ? (
@@ -176,9 +176,10 @@ export default function AdminSearchBar() {
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 text-[13px] transition-colors ${
                     index === selectedIndex
-                      ? 'bg-indigo-500/[0.06] text-[var(--admin-text)]'
+                      ? 'text-[var(--admin-text)]'
                       : 'text-[var(--admin-text-muted)] hover:bg-white/[0.02] hover:text-[var(--admin-text)]'
                   }`}
+                  style={index === selectedIndex ? { background: 'rgba(59,130,246,0.06)' } : undefined}
                 >
                   <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[8px] bg-white/[0.04] text-[11px] font-medium text-[var(--admin-text-muted)]">
                     {(user.name || user.email).charAt(0).toUpperCase()}
@@ -190,8 +191,9 @@ export default function AdminSearchBar() {
                       </span>
                       <span
                         className={`flex-shrink-0 rounded-[5px] px-1.5 py-[2px] text-[9px] font-semibold uppercase leading-none ${
-                          ROLE_STYLES[user.role] ?? 'bg-white/[0.03] text-[var(--admin-text-dim)]'
+                          ROLE_STYLES[user.role] ?? 'text-[var(--admin-text-dim)]'
                         }`}
+                        style={ROLE_STYLES[user.role] ? undefined : { background: 'rgba(255,255,255,0.03)' }}
                       >
                         {user.role}
                       </span>

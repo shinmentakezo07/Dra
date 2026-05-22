@@ -29,7 +29,12 @@ export default function AdminPageHeader({ title, subtitle, badge, action, childr
             <div className="flex items-center gap-3 mb-0.5">
               <h1 className="text-2xl font-semibold text-[var(--admin-text)] tracking-[-0.02em]">{title}</h1>
               {badge && (
-                <span className="admin-badge bg-indigo-500/[0.08] text-indigo-400/70 border border-indigo-500/10">
+                <span className="admin-badge"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(124,58,237,0.06))',
+                    border: '1px solid rgba(59,130,246,0.12)',
+                    color: 'rgba(59,130,246,0.7)',
+                  }}>
                   {badge}
                 </span>
               )}

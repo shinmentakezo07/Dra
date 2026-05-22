@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -80,8 +79,10 @@ const navSections: NavSection[] = [
   },
 ]
 
-export default function AdminSidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+export default function AdminSidebar({ collapsed, onCollapseAction }: {
+  collapsed: boolean
+  onCollapseAction: () => void
+}) {
   const pathname = usePathname()
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
@@ -95,8 +96,17 @@ export default function AdminSidebar() {
         collapsed ? 'w-[72px]' : 'w-[260px]'
       }`}
     >
-      {/* Subtle top-left glow */}
-      <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/[0.04] rounded-full blur-[60px] pointer-events-none" />
+      {/* Ambient glow layers */}
+      <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(59,130,246,0.05) 0%, rgba(124,58,237,0.02) 50%, transparent 70%)',
+        }}
+      />
+      <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(168,85,247,0.03) 0%, transparent 60%)',
+        }}
+      />
 
       {/* Logo */}
       <div className="h-[72px] flex items-center px-5 relative">
@@ -111,7 +121,7 @@ export default function AdminSidebar() {
             </div>
             <div>
               <h1 className="text-[15px] font-semibold text-[var(--admin-text)] tracking-[-0.01em]">Yapapa</h1>
-              <span className="text-[9px] font-mono font-semibold tracking-[0.18em] uppercase text-indigo-400/50">Control</span>
+              <span className="text-[9px] font-mono font-semibold tracking-[0.18em] uppercase" style={{ color: 'rgba(59, 130, 246, 0.5)' }}>Control</span>
             </div>
           </div>
         )}
@@ -136,7 +146,7 @@ export default function AdminSidebar() {
                     href={item.href}
                     className={`group flex items-center gap-3 px-3 py-[9px] rounded-[12px] text-[13px] transition-all duration-200 relative ${
                       active
-                        ? 'text-indigo-300 bg-indigo-500/[0.06]'
+                        ? 'text-blue-200 bg-blue-500/[0.06]'
                         : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-white/[0.02]'
                     } ${collapsed ? 'justify-center px-2' : ''}`}
                     title={collapsed ? item.label : undefined}
@@ -144,12 +154,12 @@ export default function AdminSidebar() {
                     {active && (
                       <motion.div
                         layoutId="admin-active-nav"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-indigo-400 rounded-r-full"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-blue-400 rounded-r-full"
                         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                       />
                     )}
                     <Icon className={`w-[18px] h-[18px] flex-shrink-0 transition-colors duration-200 ${
-                      active ? 'text-indigo-400' : 'text-white/20 group-hover:text-white/40'
+                      active ? 'text-blue-400' : 'text-white/20 group-hover:text-white/40'
                     }`} />
                     {!collapsed && (
                       <span className="truncate font-medium tracking-[-0.01em]">{item.label}</span>
@@ -162,10 +172,28 @@ export default function AdminSidebar() {
         ))}
       </nav>
 
-      {/* Collapse button */}
-      <div className="p-3">
+      {/* Bottom section */}
+      <div className="p-3 space-y-2">
+        {/* User profile */}
+        {!collapsed && (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] bg-white/[0.02] border border-white/[0.04]">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center ring-1 ring-white/[0.06] flex-shrink-0"
+              style={{
+                boxShadow: '0 0 12px rgba(59,130,246,0.06)',
+              }}
+            >
+              <Shield className="w-4 h-4" style={{ color: 'rgba(59,130,246,0.6)' }} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[12px] font-medium text-[var(--admin-text)] truncate">Admin</p>
+              <p className="text-[10px] text-[var(--admin-text-dim)] font-mono truncate">admin@yapapa.io</p>
+            </div>
+          </div>
+        )}
+
+        {/* Collapse button */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => onCollapseAction()}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] text-[var(--admin-text-dim)] hover:text-[var(--admin-text-muted)] hover:bg-white/[0.02] transition-all duration-200 text-[11px] font-mono tracking-wider"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >

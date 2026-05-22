@@ -6,7 +6,7 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import type { DashboardStats, AdminUserDetail } from "@/types/admin";
 import {
   Users, DollarSign, Activity, Server, TrendingUp,
-  ArrowRight, Loader2, AlertTriangle, UserPlus, Zap, ShieldCheck,
+  ArrowRight, AlertTriangle, UserPlus, Zap, ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -39,8 +39,12 @@ function StatCard({ icon: Icon, label, value, sub, trend }: StatCardProps) {
 
       <div className="relative z-10 space-y-3.5">
         <div className="flex items-start justify-between">
-          <div className="w-[42px] h-[42px] rounded-[12px] bg-indigo-500/[0.06] border border-indigo-500/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-400">
-            <Icon className="w-[20px] h-[20px] text-indigo-400/80" />
+          <div className="w-[42px] h-[42px] rounded-[12px] flex items-center justify-center group-hover:scale-105 transition-transform duration-400"
+            style={{
+              background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(124,58,237,0.06))',
+              border: '1px solid rgba(59,130,246,0.1)',
+            }}>
+            <Icon className="w-[20px] h-[20px]" style={{ color: 'rgba(59,130,246,0.7)' }} />
           </div>
           {trend && (
             <span className={`inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-2 py-1 rounded-md ${
@@ -48,7 +52,7 @@ function StatCard({ icon: Icon, label, value, sub, trend }: StatCardProps) {
                 ? "text-emerald-400/70 bg-emerald-500/8"
                 : "text-red-400/70 bg-red-500/8"
             }`}>
-              <TrendingUp className={`w-3 h-3 ${trend.direction === "down" ? "rotate-180" : ""}`} />
+              <TrendingUp className={`w-[10px] h-[10px] ${trend.direction === "down" ? "rotate-180" : ""}`} />
               {trend.value}
             </span>
           )}
@@ -70,8 +74,12 @@ function QuickActionCard({ href, label, icon: Icon, description }: { href: strin
       href={href}
       className="admin-card p-4 group flex items-center gap-3.5 hover:bg-white/[0.01] transition-all duration-200"
     >
-      <div className="w-[38px] h-[38px] rounded-[10px] bg-indigo-500/[0.06] border border-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-        <Icon className="w-[16px] h-[16px] text-indigo-400/70 group-hover:text-indigo-400" />
+      <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+        style={{
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(124,58,237,0.06))',
+          border: '1px solid rgba(59,130,246,0.1)',
+        }}>
+        <Icon className="w-[16px] h-[16px]" style={{ color: 'rgba(59,130,246,0.6)' }} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-medium text-[var(--admin-text)]">{label}</p>
@@ -100,7 +108,7 @@ export default function AdminDashboardPage() {
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-10 h-10">
             <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-            <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
+            <div className="absolute inset-0 rounded-full border-t-blue-400/60 border-2 border-transparent animate-spin" />
           </div>
           <p className="text-[11px] font-mono tracking-[0.14em] uppercase text-[var(--admin-text-dim)]">Loading dashboard</p>
         </div>
@@ -134,8 +142,13 @@ export default function AdminDashboardPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-semibold text-[var(--admin-text)] tracking-[-0.02em]">Dashboard</h1>
-              <span className="admin-badge bg-indigo-500/[0.08] text-indigo-400/70 border border-indigo-500/10 flex items-center gap-1.5">
-                <span className="w-[5px] h-[5px] rounded-full bg-indigo-400/70" />
+              <span className="admin-badge flex items-center gap-1.5"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(124,58,237,0.06))',
+                  border: '1px solid rgba(59,130,246,0.12)',
+                  color: 'rgba(59,130,246,0.7)',
+                }}>
+                <span className="w-[5px] h-[5px] rounded-full animate-pulse" style={{ backgroundColor: '#3b82f6' }} />
                 Live
               </span>
             </div>
@@ -185,7 +198,10 @@ export default function AdminDashboardPage() {
             </div>
             <Link
               href="/admin/users"
-              className="text-[11px] font-semibold tracking-wider text-indigo-400/60 hover:text-indigo-400 transition-colors flex items-center gap-1.5"
+              className="text-[11px] font-semibold tracking-wider transition-colors flex items-center gap-1.5"
+              style={{ color: 'rgba(59,130,246,0.5)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#3b82f6' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'rgba(59,130,246,0.5)' }}
             >
               View All <ArrowRight className="w-3 h-3" />
             </Link>
@@ -198,8 +214,12 @@ export default function AdminDashboardPage() {
                 animate={{ opacity: 1, x: 0, transition: { delay: i * 0.04 } }}
                 className="flex items-center gap-3.5 px-3 py-2.5 rounded-[12px] hover:bg-white/[0.015] transition-colors group cursor-pointer"
               >
-                <div className="w-[32px] h-[32px] rounded-[9px] bg-indigo-500/[0.06] border border-indigo-500/10 flex items-center justify-center">
-                  <UserPlus className="w-[14px] h-[14px] text-indigo-400/60" />
+                <div className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(124,58,237,0.06))',
+                    border: '1px solid rgba(59,130,246,0.1)',
+                  }}>
+                  <UserPlus className="w-[14px] h-[14px]" style={{ color: 'rgba(59,130,246,0.5)' }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
