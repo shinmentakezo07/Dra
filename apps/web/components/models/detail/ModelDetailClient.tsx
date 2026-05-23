@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import type { OpenRouterModelData } from "@/types/model";
 import { getProviderTheme } from "@/lib/model-utils";
 import { AmbientBackground } from "./AmbientBackground";
@@ -22,32 +23,51 @@ interface ModelDetailClientProps {
 const containerEase = [0.16, 1, 0.3, 1] as const;
 
 const sections = [
-    { id: "about", label: "About" },
-    { id: "performance", label: "Performance" },
-    { id: "architecture", label: "Architecture" },
-    { id: "pricing", label: "Pricing" },
-    { id: "parameters", label: "Parameters" },
-    { id: "quickstart", label: "Quick Start" },
+    { id: "about", label: "About", number: "01" },
+    { id: "performance", label: "Performance", number: "02" },
+    { id: "architecture", label: "Architecture", number: "03" },
+    { id: "pricing", label: "Pricing", number: "04" },
+    { id: "parameters", label: "Parameters", number: "05" },
+    { id: "quickstart", label: "Quick Start", number: "06" },
 ] as const;
-
-function fadeUp(delay = 0) {
-    return {
-        initial: { opacity: 0, y: 16 },
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, margin: "-60px" } as const,
-        transition: { duration: 0.5, ease: containerEase, delay },
-    };
-}
 
 export function ModelDetailClient({ model, providerId }: ModelDetailClientProps) {
     const router = useRouter();
+    const prefersReduced = useReducedMotion();
     const [activeSection, setActiveSection] = useState<string>("about");
+    const [scrolledPast, setScrolledPast] = useState(false);
     const theme = model && providerId ? getProviderTheme(model.id) : null;
+
+    // Track scroll position for nav indicator
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolledPast(window.scrollY > 300);
+
+            // Find which section is in view
+            const sectionIds = sections.map((s) => s.id);
+            for (let i = sectionIds.length - 1; i >= 0; i--) {
+                const el = document.getElementById(sectionIds[i]);
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top <= 200) {
+                        setActiveSection(sectionIds[i]);
+                        break;
+                    }
+                }
+            }
+        };
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    const scrollTo = useCallback((id: string) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, []);
 
     if (!model || !theme) {
         return (
             <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center relative overflow-hidden">
-                <AmbientBackground accentColor={theme?.accent} />
+                <AmbientBackground />
                 <div className="text-center relative z-10">
                     <motion.div
                         initial={{ scale: 0, opacity: 0 }}
@@ -88,35 +108,31 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
     }
 
     return (
-        <div className="min-h-screen bg-[#000000] text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#000000] text-white relative">
             <AmbientBackground accentColor={theme.accent} />
 
-            <motion.nav
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.6, ease: containerEase }}
-                className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/60 border-b border-white/[0.06]"
+            {/* Floating top bar — appears on scroll */}
+            <motion.header
+                initial={false}
+                animate={{ y: scrolledPast ? 0 : -80, opacity: scrolledPast ? 1 : 0 }}
+                transition={{ duration: 0.3, ease: containerEase }}
+                className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/80 border-b border-white/[0.04]"
+                style={{ pointerEvents: scrolledPast ? "auto" : "none" }}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-1 h-12 overflow-x-auto scrollbar-hide">
-                        <button
-                            onClick={() => router.push("/models")}
-                            className="shrink-0 text-[10px] font-mono text-gray-500 hover:text-gray-300 tracking-[0.15em] uppercase transition-colors pr-4 border-r border-white/[0.06] mr-2"
-                        >
-                            ← All
-                        </button>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
+                    <span className="text-[11px] font-mono tracking-wider text-gray-400 truncate">
+                        {model.id}
+                    </span>
+                    <div className="flex items-center gap-1">
                         {sections.map((s) => (
                             <button
                                 key={s.id}
-                                onClick={() => {
-                                    setActiveSection(s.id);
-                                    document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                }}
+                                onClick={() => scrollTo(s.id)}
                                 className={cn(
-                                    "shrink-0 px-3 py-1.5 rounded-md text-[11px] font-mono tracking-wider uppercase transition-all duration-200",
+                                    "text-[9px] font-mono tracking-[0.15em] uppercase px-2 py-1 rounded transition-all duration-200",
                                     activeSection === s.id
-                                        ? "text-white bg-white/[0.08]"
-                                        : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
+                                        ? "text-white"
+                                        : "text-gray-600 hover:text-gray-400"
                                 )}
                             >
                                 {s.label}
@@ -124,35 +140,103 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
                         ))}
                     </div>
                 </div>
-            </motion.nav>
+            </motion.header>
 
-            <div className="relative z-10 pt-20 pb-32">
+            {/* Right-rail section navigator */}
+            <nav
+                className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-end gap-5"
+                aria-label="Section navigation"
+            >
+                {sections.map((s) => (
+                    <button
+                        key={s.id}
+                        onClick={() => scrollTo(s.id)}
+                        className="group flex items-center gap-3"
+                        aria-label={`Scroll to ${s.label}`}
+                    >
+                        <span
+                            className={cn(
+                                "text-[9px] font-mono tracking-[0.2em] uppercase transition-all duration-300",
+                                activeSection === s.id
+                                    ? "text-white"
+                                    : "text-gray-700 opacity-0 group-hover:opacity-100"
+                            )}
+                        >
+                            {s.label}
+                        </span>
+                        <div
+                            className={cn(
+                                "h-px transition-all duration-500",
+                                activeSection === s.id ? "w-8" : "w-4"
+                            )}
+                            style={{
+                                backgroundColor: activeSection === s.id ? theme.accent : "rgba(255,255,255,0.08)",
+                            }}
+                        />
+                    </button>
+                ))}
+            </nav>
+
+            {/* Main content */}
+            <div className="relative z-10 pt-16 sm:pt-20 pb-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ModelIdentity model={model} theme={theme} onBack={() => router.push("/models")} />
 
-            <div className="h-px bg-gradient-to-r from-white/[0.03] via-white/[0.08] to-transparent my-16" />
-
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-                <div className="lg:col-span-3 space-y-16">
-                            {model.description && (
-                                <motion.section {...fadeUp()} aria-label="About this model" id="about">
-                                    <SectionHeading>About</SectionHeading>
-                                    <div className="prose prose-invert prose-sm max-w-none">
-                                        <p className="text-gray-300 text-[15px] leading-[1.85]">{model.description}</p>
+                    {/* Bento grid: asymmetrical 12-column layout */}
+                    <div className="mt-20 grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-min">
+                        {/* About — spans 8 cols */}
+                        {model.description && (
+                            <div className="lg:col-span-8 lg:row-span-1">
+                                <motion.section
+                                    initial={prefersReduced ? undefined : { opacity: 0, y: 24 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: "-80px" }}
+                                    transition={{ duration: 0.6, ease: containerEase }}
+                                    aria-label="About this model"
+                                    id="about"
+                                >
+                                    <SectionHeading accent={theme.accent} number="01">About</SectionHeading>
+                                    <div
+                                        className="rounded-2xl border p-6 sm:p-8 relative overflow-hidden"
+                                        style={{ borderColor: `${theme.accent}15`, backgroundColor: `${theme.accent}02` }}
+                                    >
+                                        <div
+                                            className="absolute top-0 left-0 right-0 h-px"
+                                            style={{
+                                                background: `linear-gradient(90deg, ${theme.accent}30, transparent)`,
+                                            }}
+                                        />
+                                        <p className="text-[15px] sm:text-base leading-[1.85] text-gray-300 font-[425]">
+                                            {model.description}
+                                        </p>
                                     </div>
                                 </motion.section>
-                            )}
+                            </div>
+                        )}
 
+                        {/* Performance — spans 4 cols */}
+                        <div className="lg:col-span-4 lg:row-span-1">
                             <PerformancePanel model={model} />
+                        </div>
+
+                        {/* Architecture — spans 6 cols */}
+                        <div className="lg:col-span-6 lg:row-span-1">
                             <ArchitecturePanel model={model} />
                         </div>
 
-                <div className="lg:col-span-2">
-                            <div className="lg:sticky lg:top-20 space-y-10">
-                                <PricingPanel model={model} />
-                                <ParametersPanel params={model.supported_parameters} />
-                                <QuickStartCard model={model} />
-                            </div>
+                        {/* Pricing — spans 3 cols */}
+                        <div className="lg:col-span-3 lg:row-span-1">
+                            <PricingPanel model={model} />
+                        </div>
+
+                        {/* Parameters — spans 3 cols */}
+                        <div className="lg:col-span-3 lg:row-span-1">
+                            <ParametersPanel params={model.supported_parameters} modelId={model.id} />
+                        </div>
+
+                        {/* Quick Start — full width */}
+                        <div className="lg:col-span-12 lg:row-span-1">
+                            <QuickStartCard model={model} />
                         </div>
                     </div>
                 </div>
@@ -161,11 +245,21 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
     );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function SectionHeading({ children, accent, number }: { children: React.ReactNode; accent?: string; number?: string }) {
     return (
-        <h2 className="text-[10px] font-mono text-gray-500 tracking-[0.25em] uppercase mb-5 flex items-center gap-3">
-            <span className="w-4 h-px bg-gray-600" />
-            {children}
-        </h2>
+        <div className="flex items-center gap-3 mb-5">
+            {number && (
+                <span
+                    className="text-[10px] font-mono font-bold tracking-wider"
+                    style={{ color: accent || "rgba(255,255,255,0.3)" }}
+                >
+                    {number}
+                </span>
+            )}
+            <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
+                {children}
+            </h2>
+            <span className="flex-1 h-px bg-white/[0.04]" />
+        </div>
     );
 }

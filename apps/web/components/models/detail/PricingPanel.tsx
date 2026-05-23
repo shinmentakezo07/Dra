@@ -1,18 +1,36 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { Coins } from "lucide-react";
 import type { OpenRouterModelData } from "@/types/model";
 import { formatPricePerM } from "@/lib/model-utils";
+import { getProviderTheme } from "@/lib/model-utils";
 
 interface PricingPanelProps {
   model: OpenRouterModelData
 }
 
-function PriceRow({ label, value, sub, accent }: { label: string; value: string; sub: string; accent?: string }) {
+function PriceRow({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  accent?: string;
+}) {
   return (
-    <div className="flex items-baseline justify-between py-2.5 border-b border-white/[0.04] last:border-0">
+    <div className="flex items-baseline justify-between py-2.5 first:pt-0 last:pb-0" style={{ borderBottomColor: `${accent}08` }}>
       <span className="text-[11px] font-mono text-gray-500">{label}</span>
-      <div>
-        <span className="text-base font-bold font-mono tracking-tight" style={{ color: accent || "#fff" }}>${value}</span>
+      <div className="text-right">
+        <span
+          className="text-base font-bold font-mono tracking-tight"
+          style={{ color: accent || "#fff", fontVariantNumeric: "tabular-nums" }}
+        >
+          ${value}
+        </span>
         <span className="text-[10px] font-mono text-gray-700 ml-1.5">{sub}</span>
       </div>
     </div>
@@ -26,50 +44,105 @@ export function PricingPanel({ model }: PricingPanelProps) {
   const cacheRead = model.pricing?.input_cache_read;
   const cacheWrite = model.pricing?.input_cache_write;
   const hasCache = !!cacheRead || !!cacheWrite;
+  const theme = getProviderTheme(model.id);
+  const accent = theme?.accent || "#6366f1";
 
   return (
-    <section aria-label="Pricing" id="pricing">
-      <div className="text-[10px] font-mono text-gray-500 tracking-[0.25em] uppercase mb-4 flex items-center gap-3">
-        <span className="w-4 h-px bg-gray-600" />
-        Pricing
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      aria-label="Pricing"
+      id="pricing"
+    >
+      <div className="flex items-center gap-3 mb-5">
+        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+          04
+        </span>
+        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">Pricing</h2>
+        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] overflow-hidden">
+      <div
+        className="rounded-2xl border relative overflow-hidden"
+        style={{ borderColor: `${accent}12`, backgroundColor: `${accent}04` }}
+      >
+        {/* Top highlight */}
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+        />
+
         {isFree && (
-          <div className="px-4 py-3 bg-emerald-500/[0.06] border-b border-emerald-500/10">
-            <span className="text-emerald-400 font-mono text-xs font-bold">Free to use</span>
-            <span className="text-emerald-400/60 font-mono text-[10px] ml-2">No per-token charges</span>
+          <div className="px-5 py-3" style={{ backgroundColor: `${accent}0a`, borderBottomColor: `${accent}10`, borderBottomWidth: 1 }}>
+            <span className="font-mono text-xs font-bold" style={{ color: accent }}>Free to use</span>
+            <span className="font-mono text-[10px] ml-2" style={{ color: `${accent}60` }}>No per-token charges</span>
           </div>
         )}
 
-        <div className="p-4">
-          <PriceRow label="Input" value={formatPricePerM(model, "prompt")} sub="/1M tokens" accent="#34d399" />
-          <PriceRow label="Output" value={formatPricePerM(model, "completion")} sub="/1M tokens" accent="#818cf8" />
-
-          {hasCache && (
-            <div className="mt-3 pt-3 border-t border-white/[0.04]">
-              <div className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2">Context Caching</div>
-              {cacheRead && (
-                <PriceRow label="Cache Read" value={(parseFloat(cacheRead) * 1000000).toFixed(2)} sub="/1M tokens" />
-              )}
-              {cacheWrite && (
-                <PriceRow label="Cache Write" value={(parseFloat(cacheWrite) * 1000000).toFixed(2)} sub="/1M tokens" />
-              )}
-            </div>
-          )}
-
-          {model.pricing?.web_search && (
-            <div className="mt-3 pt-3 border-t border-white/[0.04]">
-              <PriceRow label="Web Search" value={(parseFloat(model.pricing.web_search) * 1000).toFixed(2)} sub="/1K searches" />
-            </div>
-          )}
+        <div className="p-5 space-y-px">
+          <PriceRow
+            label="Input"
+            value={formatPricePerM(model, "prompt")}
+            sub="/1M tokens"
+            accent={accent}
+          />
+          <PriceRow
+            label="Output"
+            value={formatPricePerM(model, "completion")}
+            sub="/1M tokens"
+            accent={shiftBrightness(accent, 30)}
+          />
         </div>
 
+        {hasCache && (
+          <div className="px-5 pb-5">
+            <div className="pt-4" style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
+              <div className="flex items-center gap-1.5 mb-3">
+                <Coins className="w-3 h-3" style={{ color: `${accent}50` }} />
+                <span className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.15em]">Context Caching</span>
+              </div>
+              <div className="space-y-px">
+                {cacheRead && (
+                  <PriceRow
+                    label="Cache Read"
+                    value={(parseFloat(cacheRead) * 1000000).toFixed(2)}
+                    sub="/1M tokens"
+                    accent={`${accent}aa`}
+                  />
+                )}
+                {cacheWrite && (
+                  <PriceRow
+                    label="Cache Write"
+                    value={(parseFloat(cacheWrite) * 1000000).toFixed(2)}
+                    sub="/1M tokens"
+                    accent={`${accent}aa`}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {model.pricing?.web_search && (
+          <div className="px-5 pb-5">
+            <div className="pt-4" style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
+              <PriceRow
+                label="Web Search"
+                value={(parseFloat(model.pricing.web_search) * 1000).toFixed(2)}
+                sub="/1K searches"
+                accent={`${accent}aa`}
+              />
+            </div>
+          </div>
+        )}
+
         {!isFree && (
-          <div className="px-4 py-3 bg-white/[0.02] border-t border-white/[0.04]">
+          <div className="px-5 py-3" style={{ backgroundColor: `${accent}06`, borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono text-gray-500">Est. 1K tokens</span>
-              <span className="text-white font-mono text-sm font-bold">
+              <span className="font-mono text-sm font-bold text-white" style={{ fontVariantNumeric: "tabular-nums" }}>
                 ${((inputPrice + outputPrice) / 1000).toFixed(4)}
               </span>
             </div>
@@ -78,16 +151,26 @@ export function PricingPanel({ model }: PricingPanelProps) {
       </div>
 
       {model.knowledge_cutoff && (
-        <>
-          <div className="text-[10px] font-mono text-gray-500 tracking-[0.25em] uppercase mb-4 mt-8 flex items-center gap-3">
-            <span className="w-4 h-px bg-gray-600" />
-            Knowledge Cutoff
+        <div className="mt-5">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="flex-1 h-px" style={{ backgroundColor: `${accent}08` }} />
+            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Knowledge Cutoff</span>
           </div>
-          <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] px-4 py-3">
+          <div
+            className="rounded-2xl border px-5 py-3"
+            style={{ borderColor: `${accent}08`, backgroundColor: `${accent}02` }}
+          >
             <span className="text-white font-mono text-sm tracking-tight">{model.knowledge_cutoff}</span>
           </div>
-        </>
+        </div>
       )}
-    </section>
+    </motion.section>
   );
+}
+
+function shiftBrightness(hex: string, amount: number): string {
+  const r = Math.min(255, Math.max(0, parseInt(hex.slice(1, 3), 16) + amount));
+  const g = Math.min(255, Math.max(0, parseInt(hex.slice(3, 5), 16) + amount));
+  const b = Math.min(255, Math.max(0, parseInt(hex.slice(5, 7), 16) + amount));
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }

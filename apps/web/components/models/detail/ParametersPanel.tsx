@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getProviderTheme } from "@/lib/model-utils";
+import { SlidersHorizontal } from "lucide-react";
 
 const paramDescriptions: Record<string, string> = {
   temperature: "Controls randomness. Lower = more deterministic, higher = more creative.",
@@ -23,29 +25,61 @@ const paramDescriptions: Record<string, string> = {
 
 interface ParametersPanelProps {
   params: string[]
+  modelId?: string
 }
 
-export function ParametersPanel({ params }: ParametersPanelProps) {
+export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
   const [hovered, setHovered] = useState<string | null>(null);
+  const theme = modelId ? getProviderTheme(modelId) : null;
+  const accent = theme?.accent || "#6366f1";
 
   if (!params || params.length === 0) return null;
 
   return (
-    <section aria-label="Supported parameters" id="parameters">
-      <div className="text-[10px] font-mono text-gray-500 tracking-[0.25em] uppercase mb-4 flex items-center gap-3">
-        <span className="w-4 h-px bg-gray-600" />
-        Parameters
-        <span className="text-gray-700 normal-case tracking-normal">{params.length}</span>
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      aria-label="Supported parameters"
+      id="parameters"
+    >
+      <div className="flex items-center gap-3 mb-5">
+        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+          05
+        </span>
+        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">Parameters</h2>
+        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-4">
+      <div
+        className="rounded-2xl border p-5 relative overflow-hidden"
+        style={{ borderColor: `${accent}12`, backgroundColor: `${accent}04` }}
+      >
+        {/* Top highlight */}
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+        />
+
+        {/* Count badge */}
+        <div className="flex items-center gap-2 mb-4">
+          <SlidersHorizontal className="w-3 h-3" style={{ color: `${accent}50` }} />
+          <span className="text-[10px] font-mono text-gray-600">{params.length} supported</span>
+        </div>
+
         <div className="flex flex-wrap gap-1.5">
           {params.map((param) => (
             <button
               key={param}
               onMouseEnter={() => setHovered(param)}
               onMouseLeave={() => setHovered(null)}
-              className="px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-gray-400 font-mono text-[11px] font-medium hover:border-white/[0.12] hover:text-gray-200 hover:bg-white/[0.06] transition-all duration-150 cursor-default"
+              className="px-2.5 py-1.5 rounded-lg border font-mono text-[11px] font-medium transition-all duration-150 cursor-default"
+              style={{
+                backgroundColor: hovered === param ? `${accent}10` : `${accent}06`,
+                borderColor: hovered === param ? `${accent}20` : `${accent}0a`,
+                color: hovered === param ? "#fff" : `${accent}aa`,
+              }}
             >
               {param.replace(/_/g, " ")}
             </button>
@@ -60,10 +94,13 @@ export function ParametersPanel({ params }: ParametersPanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.15 }}
-              className="mt-3 pt-3 border-t border-white/[0.04]"
+              className="mt-4 pt-4"
+              style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}
             >
               <span className="text-[11px] font-mono text-gray-400 leading-relaxed">
-                <span className="text-gray-200 font-semibold">{hovered.replace(/_/g, " ")}</span>
+                <span className="font-semibold text-gray-200">
+                  {hovered.replace(/_/g, " ")}
+                </span>
                 {" — "}
                 {paramDescriptions[hovered]}
               </span>
@@ -71,6 +108,6 @@ export function ParametersPanel({ params }: ParametersPanelProps) {
           )}
         </AnimatePresence>
       </div>
-    </section>
+    </motion.section>
   );
 }

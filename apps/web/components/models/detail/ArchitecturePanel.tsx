@@ -1,31 +1,66 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import type { OpenRouterModelData } from "@/types/model";
+import { getProviderTheme } from "@/lib/model-utils";
 
 interface ArchitecturePanelProps {
-  model: OpenRouterModelData
+  model: OpenRouterModelData;
 }
 
-const modalityColors: Record<string, string> = {
-  text: "text-blue-400/80 bg-blue-500/[0.06] border-blue-500/15",
-  image: "text-violet-400/80 bg-violet-500/[0.06] border-violet-500/15",
-  audio: "text-amber-400/80 bg-amber-500/[0.06] border-amber-500/15",
-  video: "text-rose-400/80 bg-rose-500/[0.06] border-rose-500/15",
+const ease = [0.16, 1, 0.3, 1] as const;
+
+const modalityStyles: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+  text: {
+    bg: "bg-sky-500/[0.08]",
+    border: "border-sky-500/15",
+    text: "text-sky-400",
+    dot: "bg-sky-400",
+  },
+  image: {
+    bg: "bg-violet-500/[0.08]",
+    border: "border-violet-500/15",
+    text: "text-violet-400",
+    dot: "bg-violet-400",
+  },
+  audio: {
+    bg: "bg-amber-500/[0.08]",
+    border: "border-amber-500/15",
+    text: "text-amber-400",
+    dot: "bg-amber-400",
+  },
+  video: {
+    bg: "bg-rose-500/[0.08]",
+    border: "border-rose-500/15",
+    text: "text-rose-400",
+    dot: "bg-rose-400",
+  },
 };
 
-function ModalityTag({ mod }: { mod: string }) {
-  const cls = modalityColors[mod.toLowerCase()] || "text-gray-400/80 bg-white/[0.04] border-white/[0.06]";
+function ModalityPill({ mod }: { mod: string }) {
+  const style = modalityStyles[mod.toLowerCase()] ?? {
+    bg: "bg-white/[0.04]",
+    border: "border-white/[0.06]",
+    text: "text-gray-400",
+    dot: "bg-gray-400",
+  };
   return (
-    <span className={`px-2.5 py-1 rounded-md border font-mono text-[11px] font-semibold ${cls}`}>
-      {mod}
-    </span>
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-[12px] font-semibold ${style.bg} ${style.border} ${style.text}`}
+    >
+      <div className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+      <span>{mod}</span>
+    </div>
   );
 }
 
 export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
   const arch = model.architecture;
+  const prefersReduced = useReducedMotion();
+  const theme = getProviderTheme(model.id);
+  const accent = theme?.accent || "#6366f1";
+
   if (!arch) return null;
 
   const hasInput = arch.input_modalities && arch.input_modalities.length > 0;
@@ -35,55 +70,91 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 16 }}
+      initial={prefersReduced ? undefined : { opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease }}
       aria-label="Architecture details"
       id="architecture"
     >
-      <h2 className="text-[10px] font-mono text-gray-500 tracking-[0.25em] uppercase mb-6 flex items-center gap-3">
-        <span className="w-4 h-px bg-gray-600" />
-        Architecture
-      </h2>
+      <div className="flex items-center gap-3 mb-5">
+        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+          03
+        </span>
+        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
+          Architecture
+        </h2>
+        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
+      </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-6">
+      <div
+        className="rounded-2xl border p-6 relative overflow-hidden"
+        style={{ borderColor: `${accent}12`, backgroundColor: `${accent}04` }}
+      >
+        {/* Top highlight */}
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+        />
+
+        {/* Modality pipeline */}
         {(hasInput || hasOutput) && (
-          <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 mb-6">
             {hasInput && (
-              <div className="flex flex-wrap gap-1.5">
-                {arch.input_modalities.map((mod: string) => (
-                  <ModalityTag key={`in-${mod}`} mod={mod} />
-                ))}
+              <div className="flex flex-col gap-2">
+                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Input</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {arch.input_modalities.map((mod: string) => (
+                    <ModalityPill key={`in-${mod}`} mod={mod} />
+                  ))}
+                </div>
               </div>
             )}
-            {(hasInput && hasOutput) && (
-              <ArrowRight className="w-4 h-4 text-gray-600 shrink-0" />
+
+            {hasInput && hasOutput && (
+              <div className="hidden sm:flex items-center pt-4">
+                <div className="flex items-center gap-1">
+                  <div className="w-6 h-px" style={{ backgroundColor: `${accent}15` }} />
+                  <ArrowRight className="w-3.5 h-3.5" style={{ color: `${accent}40` }} />
+                  <div className="w-6 h-px" style={{ backgroundColor: `${accent}15` }} />
+                </div>
+              </div>
             )}
+
             {hasOutput && (
-              <div className="flex flex-wrap gap-1.5">
-                {arch.output_modalities.map((mod: string) => (
-                  <ModalityTag key={`out-${mod}`} mod={mod} />
-                ))}
+              <div className="flex flex-col gap-2">
+                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Output</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {arch.output_modalities.map((mod: string) => (
+                    <ModalityPill key={`out-${mod}`} mod={mod} />
+                  ))}
+                </div>
               </div>
             )}
           </div>
         )}
 
+        {/* Tokenizer + Instruct */}
         {(hasTokenizer || hasInstruct) && (
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/[0.04]">
+          <div className="grid grid-cols-2 gap-5 pt-5" style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
             {hasTokenizer && (
               <div>
-                <div className="text-[9px] font-mono text-gray-500 uppercase tracking-[0.15em] mb-1.5">Tokenizer</div>
-                <span className="font-mono text-[12px] text-gray-300">{arch.tokenizer}</span>
+                <div className="text-[8px] font-mono text-gray-500 uppercase tracking-[0.12em] mb-2">Tokenizer</div>
+                <span className="font-mono text-[14px] text-gray-300 font-medium">{arch.tokenizer}</span>
               </div>
             )}
             {hasInstruct && (
               <div>
-                <div className="text-[9px] font-mono text-gray-500 uppercase tracking-[0.15em] mb-1.5">Instruct Type</div>
-                <span className="font-mono text-[12px] text-gray-300">{arch.instruct_type}</span>
+                <div className="text-[8px] font-mono text-gray-500 uppercase tracking-[0.12em] mb-2">Instruct type</div>
+                <span className="font-mono text-[14px] text-gray-300 font-medium">{arch.instruct_type}</span>
               </div>
             )}
+          </div>
+        )}
+
+        {!hasTokenizer && !hasInstruct && !hasInput && !hasOutput && (
+          <div className="text-center py-6">
+            <span className="text-gray-600 font-mono text-xs">No architecture details available</span>
           </div>
         )}
       </div>
