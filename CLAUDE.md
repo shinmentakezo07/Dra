@@ -94,6 +94,8 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - **Styling**: Tailwind CSS v4 with CSS-first configuration (`globals.css @theme`). Uses `cva` + `tailwind-merge` for variants. **NOT** `tailwind.config.ts`.
 - **Charts**: Recharts. **Animations**: Framer Motion (components) + GSAP (scroll-triggered).
 - **Frontend API layer** (`apps/web/lib/api/`): `sdk.ts` (typed client, ~1060 lines), `admin-sdk.ts` (admin-specific endpoints), `hooks.ts` (React Query wrappers), `errors.ts` (typed API errors), `proxy.ts` (server-side proxy), `types.ts` (TypeScript types), `key-auth.ts`, `rate-limit.ts`, `require-auth.ts`.
+- **Legacy SDK**: `pkg/llmsdk/` exists but is a legacy wrapper — avoid for new code.
+- **Stale AGENTS.md**: `apps/backend/AGENTS.md` still references `internal/provider/` as if it exists and says "Register in BOTH `internal/provider/` AND `pkg/llm/provider/`" — this is outdated. Only `pkg/llm/provider/` is needed (see `UPDATE.md`).
 
 ### Backend architecture
 - **Layered**: `cmd/api/main.go` wires dependencies and routes, `internal/handler/` owns HTTP concerns, `internal/service/` owns business logic, `internal/repository/` owns data access, and `internal/domain/` holds shared models and typed errors.
@@ -104,21 +106,23 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - **Three auth modes**: `Authorization: Bearer <jwt>`, `authjs.session-token` cookie, and `x-api-key`.
 - **Go module path**: `dra-platform/backend`.
 - **Raw SQL migrations** in `migrations/`, numbered sequentially (`001_*.sql`…`019_docs_base_url.sql`). Hand-applied, no auto-migrator.
-- **Key internal packages**: `config/` (env-based config loader), `db/` (pgx connection pool + auto-migrate/seed), `middleware/` (auth, rate limit, CORS, logging, tracing, metrics, token blacklist, quota), `pkg/logger/` (slog), `pkg/response/` (standardized HTTP envelope), `pkg/token/` (JWT).
+- **Key internal packages**: `config/` (env-based config loader), `db/` (pgx connection pool + auto-migrate/seed), `middleware/` (auth, rate limit, CORS, logging, tracing, metrics, token blacklist, quota), `pkg/logger/` (slog), `pkg/response/` (standardized HTTP envelope), `pkg/token/` (JWT), `testutil/` (integration test harness with `NewTestServer()`).
 
 ### LLM gateway architecture
 - The OpenAI-compatible proxy endpoints (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`) are built on `apps/backend/pkg/llm/`.
-- The LLM stack is a pipeline of provider registry, routing, translation, caching, moderation, guardrails, token handling, telemetry, circuit breaking, embeddings, batch processing, and tool support.
-- Anthropic compatibility at `/v1/messages` via `internal/handler/anthropic_messages.go` and `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline as the OpenAI-compatible proxy.
+- The LLM stack is a 10-stage pipeline (executed in order): **validator → router → cache → guardrails → moderation → translator → provider → telemetry → circuit breaker → watcher**. Orchestrated by `pkg/llm/pipeline/pipeline.go` as a middleware chain.
+- 18 subpackages under `pkg/llm/`: `provider/` (registry, key rotation, health, fallback), `router/` (model→provider mapping, A/B testing), `cache/` (TTL + semantic dedup), `guardrails/` (input/output safety), `moderation/` (content filtering), `translator/` (Anthropic ↔ OpenAI ↔ Generic format conversion), `tools/` (function calling, `websearch/`), `telemetry/` (OpenTelemetry spans), `tokens/` (token counting), `context/` (context window management), `embeddings/`, `batch/`, `circuitbreaker/`, `watcher/`, `openai/` (schema types), `validator/`, `pipeline/` (orchestrator), and `sdk.go` (high-level facade).
+- Anthropic compatibility at `/v1/messages` via `internal/handler/anthropic_messages.go` and `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline as the OpenAI-compatible proxy. Streaming uses Anthropic SSE events (`message_start`, `content_block_delta`, `message_delta`, `message_stop`).
 - Official Go SDKs: `github.com/openai/openai-go/v3`, `github.com/anthropics/anthropic-sdk-go`, `github.com/sashabaranov/go-openai` (internal provider wrappers).
 - `X-Sandbox: true` on `/v1/chat/completions` disables quota, cost, and logging for testing.
 
 ### Important architecture quirks
 - `pkg/llm/provider/` is the canonical provider registry. The legacy `internal/provider/` has been **eliminated** (consolidated 2026-05-15 — see `UPDATE.md`).
 - **SDK parity matters.** Backend API changes need matching updates in both the Go SDK (`apps/backend/pkg/sdk/`) and the TypeScript SDK (`apps/web/lib/api/sdk.ts`). Implement backend → Go SDK → TS SDK in that order. Both SDKs already implement ~40 methods apiece.
-- Webhook delivery is a first-class subsystem split across `pkg/webhook/`, `internal/service/webhook.go`, and `internal/repository/webhook.go` (with retry + DLQ).
+- Webhook delivery is a first-class subsystem split across `pkg/webhook/`, `internal/service/webhook.go`, and `internal/repository/webhook.go` (exponential backoff retry, DLQ, delivery logs).
+- `pkg/email/` handles SMTP email delivery. `pkg/trace/` handles distributed tracing.
 - Batch jobs, SSE notifications, uploads, telemetry, and embeddings all have dedicated handlers/services; check for an existing subsystem before adding parallel logic.
-- `internal/pkg/` contains shared backend packages. Use these instead of rolling your own.
+- `internal/pkg/` contains shared backend packages — `logger/` (slog structured logging), `response/` (standardized HTTP envelope with `success`/`data`/`error`/`meta`), `token/` (JWT generation & validation). Use these instead of rolling your own.
 
 ## Hard Constraints
 
@@ -128,6 +132,8 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - **Tailwind CSS v4** — PostCSS plugin `@tailwindcss/postcss`, not v3 CLI. Config is CSS-first (`globals.css @theme`), NOT `tailwind.config.ts`
 - **Go 1.25** — features may differ from training data (`iter.Seq`, `unique`, `slog` improvements). Run `go vet ./...` before committing
 - **CI workflows** in `.github/workflows/`: `ci.yml` (lint, frontend tests, backend tests, build) and `e2e.yml` (Playwright E2E). Both run on push/PR to `main`.
+- **Branch naming**: `feature/*`, `fix/*`, `refactor/*`, `docs/*`
+- **Conventional commits**: `feat:`, `fix:`, `refactor:`, `test:`, `docs:` (scope optional: `refactor(docs):`)
 
 ## Tests and verification
 
@@ -135,6 +141,11 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - Backend tests are standard Go tests with `-race` expected for normal verification.
 - `scripts/smoke-test.sh` is worth running after significant cross-stack work because it checks repo-specific invariants that type checks do not cover.
 - `internal/testutil.NewTestServer()` is the main integration-test harness entry point on the Go side.
+
+### Known testing gaps (from ops.md)
+- **Frontend**: No component tests, no SDK error-handling tests, no E2E tests, no accessibility tests.
+- **Backend**: No repository tests, no LLM provider failover/circuit-breaker tests. Handler tests exist but don't cover openai_proxy, billing, or admin handlers.
+- Integration tests require `TEST_DATABASE_URL` — see `apps/backend/.env.example` for setup.
 
 ### Key test files
 
@@ -176,6 +187,7 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - `AGENTS.md`
 - `apps/web/AGENTS.md`
 - `apps/backend/AGENTS.md`
+- `apps/backend/pkg/llm/AGENTS.md` — LLM pipeline stages and subpackage map
 - `ops.md`
 - `UPDATE.md` — records of completed cleanup and feature wiring
 - `apps/backend/cmd/api/main.go` — dependency wiring

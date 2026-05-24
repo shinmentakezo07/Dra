@@ -458,7 +458,7 @@ graph LR
 <br/>
 
 ```
-osiwa/
+shinway/
 ├── 📦 apps/
 │   ├── 🌐 web/                          # Next.js 16 Frontend
 │   │   ├── 📂 app/                      # App Router (RSC + Client Components)
@@ -469,13 +469,34 @@ osiwa/
 │   │   │   │   ├── analytics/           # Usage charts & model breakdown
 │   │   │   │   ├── keys/                # API key management
 │   │   │   │   ├── logs/                # Request audit trail
+│   │   │   │   ├── billing/             # Credit management
+│   │   │   │   ├── chat/                # Chat interface
+│   │   │   │   ├── battle/              # A/B model comparison
+│   │   │   │   ├── exports/             # CSV/PDF data exports
+│   │   │   │   ├── fine-tuning/         # Fine-tuning jobs
+│   │   │   │   ├── inbox/               # Admin messages
+│   │   │   │   ├── notifications/       # Real-time notifications
+│   │   │   │   ├── organization/        # Team workspaces
+│   │   │   │   ├── provider-health/     # Provider status monitoring
+│   │   │   │   ├── webhooks/            # Webhook configuration
 │   │   │   │   └── settings/            # User profile settings
 │   │   │   ├── 🌐 gateway/              # AI Gateway interface
 │   │   │   ├── 💰 pricing/              # Credit plans & billing
 │   │   │   ├── 🔐 auth                  # Login · Signup · Password Reset
-│   │   │   ├── 📚 docs/                 # API documentation
-│   │   │   ├── 📁 admin/                # Admin panel
-│   │   │   ├── 📁 models/               # Model browser
+│   │   │   ├── 📚 docs/                 # 18 doc pages (API ref, quickstart, guides)
+│   │   │   ├── 📁 admin/                # Admin panel (20 pages)
+│   │   │   │   ├── login/               # Admin auth
+│   │   │   │   └── (protected)/         # Protected admin routes
+│   │   │   │       ├── dashboard/       # Admin overview
+│   │   │   │       ├── users/           # User management
+│   │   │   │       ├── models/          # Model CRUD
+│   │   │   │       ├── providers/       # Provider CRUD + hot-reload
+│   │   │   │       ├── billing/         # Billing admin
+│   │   │   │       ├── security/        # Security dashboard
+│   │   │   │       ├── analytics/       # Admin analytics
+│   │   │   │       ├── sso/             # SSO configuration
+│   │   │   │       └── ...              # 12 more admin pages
+│   │   │   ├── 📁 models/               # Model browser + detail pages
 │   │   │   ├── 📁 api/                  # API routes & Server Actions
 │   │   │   ├── 🛑 error.tsx             # Global error boundary
 │   │   │   ├── 👻 not-found.tsx         # 404 page
@@ -486,7 +507,9 @@ osiwa/
 │   │   ├── 🧩 components/               # Shared UI components
 │   │   │   ├── ui/                      # Primitives (Button, Input, Card)
 │   │   │   ├── dashboard/               # Dashboard components
-│   │   │   └── playground/              # Playground components
+│   │   │   ├── models/                  # Model browser + detail components
+│   │   │   ├── playground/              # Playground components
+│   │   │   └── pricing/                 # Pricing components
 │   │   ├── 🔧 lib/                      # SDK · Auth · Utils
 │   │   ├── 🔐 auth.ts                   # NextAuth v5 config
 │   │   ├── 🔐 auth.config.ts            # Auth providers & callbacks
@@ -496,14 +519,14 @@ osiwa/
 │   └── ⚙️ backend/                      # Go Backend Service
 │       ├── 🚀 cmd/api/                  # Entrypoint
 │       ├── 🧠 internal/                 # config · db · domain · handler
-│       │   ├── handler/                 # 21 HTTP route handlers (chi)
+│       │   ├── handler/                 # 34 HTTP route handlers (chi)
 │       │   ├── middleware/              # Auth · Rate limit · CORS · Logs
 │       │   ├── repository/              # Data access layer (raw SQL)
-│       │   └── service/                 # 15 business logic services
+│       │   └── service/                 # 30 business logic services
 │       ├── 📦 pkg/                      # SDK · LLM · Webhook · Email
-│       │   ├── llm/                     # 18 subpackages (LLM pipeline)
+│       │   ├── llm/                     # 16 subpackages (LLM pipeline)
 │       │   └── sdk/                     # Go SDK for external consumers
-│       ├── 📂 migrations/               # 7 raw SQL migrations
+│       ├── 📂 migrations/               # 19 SQL migrations (70+ tables)
 │       ├── 🧪 tests/                    # Integration tests
 │       └── 📋 Makefile                  # Build · Test · Lint
 │
@@ -685,6 +708,9 @@ osiwa/
 
 ### 👑 Admin Endpoints
 
+<details>
+<summary><b>Admin</b> — 30+ endpoints</summary>
+
 | Method | Endpoint | Description |
 |:-------|:---------|:------------|
 | `GET` | `/api/admin/users` | List all users |
@@ -693,6 +719,18 @@ osiwa/
 | `GET` | `/api/admin/circuit-breakers` | Circuit breaker status |
 | `GET` | `/api/admin/provider-health` | Provider health |
 | `GET` | `/api/admin/settings` | Admin settings |
+| `POST` | `/api/admin/models` | Create/update model |
+| `POST` | `/api/admin/providers` | Create/update provider |
+| `POST` | `/api/admin/keys` | Manage provider keys |
+| `GET` | `/api/admin/billing` | Billing overview |
+| `GET` | `/api/admin/security` | Security dashboard |
+| `POST` | `/api/admin/promo` | Create promo codes |
+| `GET` | `/api/admin/messages` | Admin messages |
+| `POST` | `/api/admin/announcements` | System announcements |
+| `GET` | `/api/admin/operations` | Operations dashboard |
+| `POST` | `/api/admin/exports` | Data export jobs |
+
+</details>
 
 <br/>
 
@@ -790,58 +828,108 @@ curl http://localhost:8080/api/chat \
 <br/>
 
 ```sql
--- Users (with role-based access)
+-- Core Auth & Users
 users (id, name, email, password, role, created_at)
+password_resets (id, email, token, expires_at, used_at, created_at)
+admin_sessions (id, admin_id, token, expires_at, created_at)
+token_blacklist (id, token, expires_at, created_at)
+sso_configs (id, org_id, provider, config, enabled)
 
--- API Keys
+-- RBAC & Permissions
+permissions (id, name, description)
+role_permissions (id, role, permission_id)
+admin_role_permissions (id, admin_role, permission_id)
+
+-- API Keys & Rate Limiting
 api_keys (id, user_id, name, key, last_used, created_at, revoked_at)
+user_rate_limits (id, user_id, tier, requests_per_min, tokens_per_day)
+rate_limit_tiers (id, name, rpm, tpd, price)
 
--- API Request Logs (detailed audit trail)
-api_logs (
-  id, user_id, api_key_id, model, provider,
-  input_tokens, output_tokens, cost, latency,
-  status, error_message, created_at
-)
-
--- User Credits with Stripe integration
+-- Billing & Credits
 user_credits (id, user_id, balance, total_purchased, total_spent, budget_limit, updated_at)
+credit_transactions (id, user_id, amount, type, description, related_log_id, stripe_payment_id, created_at)
+budget_caps (id, user_id, period, limit, current, reset_at)
+budget_alerts (id, user_id, threshold_pct, channel, enabled)
+stripe_customers (id, user_id, stripe_id, created_at)
+stripe_invoices (id, user_id, stripe_id, amount, status, created_at)
+promo_codes (id, code, discount_pct, max_uses, uses, valid_until)
+promo_redemptions (id, promo_id, user_id, created_at)
 
--- Credit Transactions (with Stripe payment reference)
-credit_transactions (
-  id, user_id, amount, type, description,
-  related_log_id, stripe_payment_id, created_at
-)
-
--- Organizations / Team Workspaces
+-- Organizations & Teams
 organizations (id, name, owner_id, created_at)
-organization_members (org_id, user_id, role, joined_at)
+org_members (id, org_id, user_id, role, joined_at)
+invites (id, org_id, email, token, role, expires_at)
+user_groups (id, org_id, name, created_at)
+user_group_members (id, group_id, user_id)
+group_policies (id, group_id, policy_type, config)
 
--- Conversations & Prompt History
+-- Providers & Models
+providers (id, name, base_url, auth_type, enabled, created_at)
+provider_keys (id, provider_id, name, key, enabled, created_at)
+provider_health_checks (id, provider_id, status, latency_ms, checked_at)
+provider_key_usage_logs (id, key_id, requests, tokens, cost, period_start)
+provider_plugins (id, name, type, config, enabled)
+provider_ab_tests (id, model_id, variant_a, variant_b, traffic_split)
+provider_sla (id, provider_id, uptime_pct, period)
+provider_maintenance_windows (id, provider_id, start_time, end_time, reason)
+model_registry (id, provider_id, model_id, display_name, context_window, pricing, capabilities)
+model_routing_rules (id, model_id, rule_type, config, priority)
+model_aliases (id, alias, target_model_id)
+model_benchmarks (id, model_id, benchmark, score, tested_at)
+
+-- Request Logging & Telemetry
+api_logs (id, user_id, api_key_id, model, provider, input_tokens, output_tokens, cost, latency, status, error_message, created_at)
+request_traces (id, request_id, span_name, duration_ms, metadata, created_at)
+audit_logs (id, actor_id, action, target_type, target_id, metadata, created_at)
+ip_access_logs (id, ip, path, status, user_agent, created_at)
+ip_lists (id, ip, list_type, reason, expires_at)
+suspicious_activities (id, user_id, activity_type, details, severity, created_at)
+
+-- Conversations & Prompts
 conversations (id, user_id, title, model, created_at, updated_at)
-messages (id, conversation_id, role, content, tokens, created_at)
+conversation_messages (id, conversation_id, role, content, tokens, created_at)
+prompts (id, user_id, name, content, variables, created_at)
 
--- Webhook Configuration
+-- Webhooks & Notifications
 webhooks (id, user_id, url, events, secret, active, created_at)
 webhook_deliveries (id, webhook_id, event, payload, status, response_code, next_retry_at)
+webhook_delivery_logs (id, delivery_id, attempt, status, response, created_at)
+webhook_tests (id, webhook_id, payload, status, created_at)
+admin_messages (id, sender_id, subject, body, priority, created_at)
+admin_message_reads (id, message_id, user_id, read_at)
+announcements (id, title, body, priority, active, starts_at, ends_at)
+usage_alerts (id, user_id, metric, threshold, channel, triggered_at)
 
--- File Uploads
+-- Batch & Files
+batch_jobs (id, user_id, status, model, input_count, completed_count, created_at)
 files (id, user_id, name, mime_type, size, storage_path, created_at)
 
--- Password Reset Tokens
-password_resets (id, email, token, expires_at, used_at, created_at)
+-- Analytics & Reporting
+usage_records (id, user_id, model, provider, tokens_in, tokens_out, cost, created_at)
+usage_daily (id, user_id, date, requests, tokens, cost)
+usage_forecasts (id, user_id, period, predicted_cost, confidence)
+data_exports (id, user_id, type, status, file_path, created_at)
+export_jobs (id, user_id, type, status, format, filters, created_at)
+scheduled_reports (id, user_id, type, schedule, format, recipients)
+
+-- Admin & Operations
+admin_users (id, user_id, role, permissions, created_at)
+admin_impersonations (id, admin_id, target_id, started_at, ended_at)
+system_settings (id, key, value, updated_at)
+feature_flags (id, name, enabled, rollout_pct, config)
+api_changelog (id, version, changes, published_at)
+cost_optimizations (id, model_id, strategy, savings_pct, applied_at)
+cache_stats (id, hits, misses, evictions, period_start)
 ```
 
-### Performance Indexes
+### Schema Stats
 
-| Index | Table | Columns |
-|:------|:------|:--------|
-| `api_keys_user_id_idx` | `api_keys` | `user_id` |
-| `api_logs_user_id_idx` | `api_logs` | `user_id` |
-| `api_logs_created_at_idx` | `api_logs` | `created_at` |
-| `api_logs_model_idx` | `api_logs` | `model` |
-| `user_credits_user_id_idx` | `user_credits` | `user_id` |
-| `credit_transactions_user_id_idx` | `credit_transactions` | `user_id` |
-| `credit_transactions_created_at_idx` | `credit_transactions` | `created_at` |
+| Metric | Count |
+|:-------|------:|
+| Total tables | 70+ |
+| SQL migrations | 19 |
+| Performance indexes | 40+ |
+| Foreign key constraints | 50+ |
 
 <br/>
 
@@ -1034,7 +1122,7 @@ https://yapa.up.railway.app/v1/chat/completions
 | Rule | Description |
 |:-----|:------------|
 | 📦 **Layer purity** | Handler → parse/call/write. Service → business logic. Repository → raw SQL |
-| 🔌 **Provider registration** | Register in BOTH `internal/provider/` AND `pkg/llm/provider/` |
+| 🔌 **Provider registration** | Use `pkg/llm/provider/` exclusively — `internal/provider/` was eliminated |
 | 🏖️ **Sandbox mode** | `X-Sandbox: true` header skips quota, cost, and logging |
 | 📜 **Migrations** | Hand-applied SQL only. Apply in order, one-time |
 | 🔒 **Auth** | `AUTH_SECRET` must be identical between frontend and backend |
@@ -1067,7 +1155,7 @@ https://yapa.up.railway.app/v1/chat/completions
 <tr>
 <td width="50%" valign="top">
 
-### ✅ Completed (15 Features)
+### ✅ Completed (25+ Features)
 
 - [x] Multi-provider AI gateway (100+ models)
 - [x] OpenAI-compatible API drop-in (`/v1/chat/completions`)
@@ -1083,28 +1171,31 @@ https://yapa.up.railway.app/v1/chat/completions
 - [x] File uploads
 - [x] SSE real-time notifications
 - [x] Full LLM pipeline (cache, guardrails, circuit breaker, telemetry)
-- [x] Admin management panel
+- [x] Admin management panel with real-time hot-reload
+- [x] Fine-grained RBAC (role-based access control)
+- [x] Usage alerts & budget caps
+- [x] Custom provider plugin system
+- [x] CSV/PDF analytics exports
+- [x] Per-tier rate limiting (free/pro/enterprise)
+- [x] Provider hot-registration & model discovery
+- [x] Model detail pages with editorial bento layout
+- [x] Docs UI with color-coded sections & code examples
+- [x] Configurable docs base URL for self-hosting
+- [x] Token blacklist & session management
+- [x] Admin UI redesign with CSS design system
+- [x] Full SDK coverage (Go + TypeScript) with admin API
 
 </td>
 <td width="50%" valign="top">
 
-### ⏳ In Progress (Q2 2026)
+### ⏳ In Progress (Q2-Q3 2026)
 
-- [ ] 🔐 Fine-grained RBAC (role-based access control)
-- [ ] 🔔 Usage alerts & budget caps
 - [ ] 🎯 Model fine-tuning interface
-- [ ] 🔌 Custom provider plugin system
-- [ ] 📊 CSV/PDF analytics exports
-- [ ] 📈 Rate limit by tier (free/pro/enterprise)
 - [ ] 🌍 Multi-region deployment
 - [ ] 🌐 Custom domain support
-
-### 💡 Planned (Future)
-
 - [ ] 🦜 LangChain / LlamaIndex integration
 - [ ] 🔄 WebSocket streaming fallback
 - [ ] ⚖️ A/B model comparison
-- [ ] 📋 Audit log exports
 - [ ] 📡 API versioning (v2)
 
 </td>
