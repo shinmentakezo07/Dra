@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"sync"
 	"time"
 
 	"dra-platform/backend/internal/domain"
@@ -27,6 +30,11 @@ type AdminService struct {
 	llmRegistry  *llmprovider.Registry
 	llmCache     cache.Cache
 	llmWatcher   *watcher.Watcher
+
+	// rawKeyStore holds raw API keys in memory so providers can be
+	// hot-registered with the LLM runtime without a backend restart.
+	// Keyed by provider-key ID.
+	rawKeyStore sync.Map
 }
 
 func NewAdminService(
@@ -55,8 +63,45 @@ func (s *AdminService) SetLLMRuntime(reg *llmprovider.Registry, c cache.Cache, w
 	s.llmWatcher = w
 }
 
-// LoadProvidersFromDB loads all active providers and their first active key
-// from the database and registers them with the LLM runtime at startup.
+// storeRawKey saves the raw API key in memory keyed by provider-key ID.
+func (s *AdminService) storeRawKey(keyID, rawKey string) {
+	s.rawKeyStore.Store(keyID, rawKey)
+}
+
+// getRawKey retrieves a stored raw API key by provider-key ID.
+func (s *AdminService) getRawKey(keyID string) (string, bool) {
+	v, ok := s.rawKeyStore.Load(keyID)
+	if !ok {
+		return "", false
+	}
+	return v.(string), true
+}
+
+// deleteRawKey removes a stored raw API key.
+func (s *AdminService) deleteRawKey(keyID string) {
+	s.rawKeyStore.Delete(keyID)
+}
+
+// getActiveRawKeyForProvider finds the first active raw API key for a provider.
+func (s *AdminService) getActiveRawKeyForProvider(ctx context.Context, providerID string) string {
+	keys, err := s.providerRepo.ListKeys(ctx, providerID)
+	if err != nil {
+		return ""
+	}
+	for _, k := range keys {
+		if k.IsActive {
+			if raw, ok := s.getRawKey(k.ID); ok {
+				return raw
+			}
+		}
+	}
+	return ""
+}
+
+// LoadProvidersFromDB loads all active providers from the database and registers
+// them with the LLM runtime at startup. API keys are hashed in the DB and cannot
+// be recovered — providers that require keys must be re-registered via the admin
+// API (which passes the raw key through to the runtime in memory).
 func (s *AdminService) LoadProvidersFromDB(ctx context.Context, reg *llmprovider.Registry) {
 	if reg == nil {
 		return
@@ -70,22 +115,7 @@ func (s *AdminService) LoadProvidersFromDB(ctx context.Context, reg *llmprovider
 		if p.Status != domain.ProviderStatusActive || p.BaseURL == "" {
 			continue
 		}
-		keys, kErr := s.providerRepo.ListKeys(ctx, p.ID)
-		if kErr != nil {
-			logger.Warn("load_provider_keys_failed", "provider", p.Name, "error", kErr.Error())
-		}
-		var apiKey string
-		for _, k := range keys {
-			if k.IsActive && k.KeyPrefix != "" {
-				apiKey = k.KeyPrefix
-				break
-			}
-		}
-		if apiKey != "" {
-			s.registerProviderWithKey(&p, apiKey)
-		} else {
-			s.registerProviderRuntime(&p)
-		}
+		s.registerProviderRuntime(&p)
 	}
 	logger.Info("admin_providers_loaded", "count", len(providers))
 }
@@ -152,17 +182,21 @@ func (s *AdminService) CreateProviderFull(ctx context.Context, p *domain.Provide
 
 	// Store API key if provided
 	if apiKey != "" {
+		prefix, lastFour, hash := deriveKeyParts(apiKey)
 		k := &domain.ProviderKey{
 			ID:         domain.NewID(),
 			ProviderID: p.ID,
 			Label:      "primary",
-			KeyPrefix:  apiKey,
+			KeyPrefix:  prefix,
+			KeyHash:    hash,
+			KeyLastFour: lastFour,
 			IsActive:   true,
 			Strategy:   domain.KeyStrategyRoundRobin,
 		}
 		if err := s.providerRepo.CreateKey(ctx, k); err != nil {
 			return fmt.Errorf("store api key: %w", err)
 		}
+		s.storeRawKey(k.ID, apiKey)
 	}
 
 	// Store models if provided
@@ -193,9 +227,16 @@ func (s *AdminService) CreateProviderFull(ctx context.Context, p *domain.Provide
 
 // AddProviderKeyRaw stores a provider key and registers it with the runtime.
 func (s *AdminService) AddProviderKeyRaw(ctx context.Context, k *domain.ProviderKey, rawKey string) error {
-	k.KeyPrefix = rawKey
+	prefix, lastFour, hash := deriveKeyParts(rawKey)
+	k.KeyPrefix = prefix
+	k.KeyHash = hash
+	k.KeyLastFour = lastFour
 	if err := s.providerRepo.CreateKey(ctx, k); err != nil {
 		return err
+	}
+	// Store raw key in memory for future hot-reloads
+	if rawKey != "" {
+		s.storeRawKey(k.ID, rawKey)
 	}
 	// Re-register provider with the key for runtime use
 	if rawKey != "" && s.llmRegistry != nil {
@@ -216,16 +257,12 @@ func (s *AdminService) UpdateProvider(ctx context.Context, p *domain.Provider) e
 		refreshed, err := s.providerRepo.Get(ctx, p.ID)
 		if err == nil && refreshed != nil {
 			if refreshed.Status == domain.ProviderStatusActive && refreshed.BaseURL != "" {
-				keys, kErr := s.providerRepo.ListKeys(ctx, refreshed.ID)
-				if kErr == nil {
-					for _, k := range keys {
-						if k.IsActive && k.KeyPrefix != "" {
-							s.registerProviderWithKey(refreshed, k.KeyPrefix)
-							return nil
-						}
-					}
+				rawKey := s.getActiveRawKeyForProvider(ctx, refreshed.ID)
+				if rawKey != "" {
+					s.registerProviderWithKey(refreshed, rawKey)
+				} else {
+					s.registerProviderRuntime(refreshed)
 				}
-				s.registerProviderRuntime(refreshed)
 			} else {
 				s.llmRegistry.Unregister(refreshed.Name)
 			}
@@ -243,16 +280,12 @@ func (s *AdminService) ToggleProviderStatus(ctx context.Context, id string, stat
 		p, err := s.providerRepo.Get(ctx, id)
 		if err == nil && p != nil {
 			if status == domain.ProviderStatusActive && p.BaseURL != "" {
-				keys, kErr := s.providerRepo.ListKeys(ctx, p.ID)
-				if kErr == nil {
-					for _, k := range keys {
-						if k.IsActive && k.KeyPrefix != "" {
-							s.registerProviderWithKey(p, k.KeyPrefix)
-							return nil
-						}
-					}
+				rawKey := s.getActiveRawKeyForProvider(ctx, p.ID)
+				if rawKey != "" {
+					s.registerProviderWithKey(p, rawKey)
+				} else {
+					s.registerProviderRuntime(p)
 				}
-				s.registerProviderRuntime(p)
 			} else {
 				s.llmRegistry.Unregister(p.Name)
 			}
@@ -275,6 +308,7 @@ func (s *AdminService) DeleteProvider(ctx context.Context, id string) error {
 	}
 	keys, _ := s.providerRepo.ListKeys(ctx, id)
 	for _, k := range keys {
+		s.deleteRawKey(k.ID)
 		_ = s.providerRepo.DeleteKey(ctx, k.ID)
 	}
 	return s.providerRepo.Delete(ctx, id)
@@ -293,18 +327,6 @@ func (s *AdminService) registerProviderRuntime(p *domain.Provider) {
 	}
 	if s.llmWatcher != nil {
 		opts = append(opts, llmprovider.WithWatcher(s.llmWatcher))
-	}
-
-	// Look for an active API key in the provider_keys table
-	keys, err := s.providerRepo.ListKeys(context.Background(), p.ID)
-	if err == nil {
-		for _, k := range keys {
-			if k.IsActive && k.KeyHash != "" {
-				// Use the key prefix as a hint; the actual key is hashed.
-				// For runtime, we need the raw key — store it encrypted or use env.
-				break
-			}
-		}
 	}
 
 	// Build model list from model_registry for this provider
@@ -388,11 +410,17 @@ func (s *AdminService) AddProviderKey(ctx context.Context, k *domain.ProviderKey
 	if err := s.providerRepo.CreateKey(ctx, k); err != nil {
 		return err
 	}
-	// If this is the first active key, re-register the provider with the key
-	if k.IsActive && k.KeyHash != "" && s.llmRegistry != nil {
+	// Re-register provider if this key is active and we have a raw key in memory.
+	// Callers who have the raw key should use AddProviderKeyRaw instead.
+	if k.IsActive && s.llmRegistry != nil {
 		p, err := s.providerRepo.Get(ctx, k.ProviderID)
-		if err == nil && p != nil {
-			s.registerProviderWithKey(p, k.KeyPrefix) // KeyPrefix stores the raw key at creation time
+		if err == nil && p != nil && p.BaseURL != "" {
+			rawKey := s.getActiveRawKeyForProvider(ctx, p.ID)
+			if rawKey != "" {
+				s.registerProviderWithKey(p, rawKey)
+			} else {
+				s.registerProviderRuntime(p)
+			}
 		}
 	}
 	return nil
@@ -421,6 +449,8 @@ func (s *AdminService) DeleteProviderKey(ctx context.Context, id string) error {
 			break
 		}
 	}
+
+	s.deleteRawKey(id)
 
 	if err := s.providerRepo.DeleteKey(ctx, id); err != nil {
 		return err
@@ -501,16 +531,9 @@ func (s *AdminService) refreshProviderModels(ctx context.Context, providerID str
 	if err != nil || p == nil || p.Status != domain.ProviderStatusActive || p.BaseURL == "" {
 		return
 	}
-	keys, _ := s.providerRepo.ListKeys(ctx, p.ID)
-	var apiKey string
-	for _, k := range keys {
-		if k.IsActive && k.KeyPrefix != "" {
-			apiKey = k.KeyPrefix
-			break
-		}
-	}
-	if apiKey != "" {
-		s.registerProviderWithKey(p, apiKey)
+	rawKey := s.getActiveRawKeyForProvider(ctx, p.ID)
+	if rawKey != "" {
+		s.registerProviderWithKey(p, rawKey)
 	} else {
 		s.registerProviderRuntime(p)
 	}
@@ -678,4 +701,25 @@ func (s *AdminService) PublishChangelog(ctx context.Context, id string) error {
 
 func (s *AdminService) ListSSOConfigs(ctx context.Context) ([]domain.SSOConfig, error) {
 	return s.featuresRepo.ListSSOConfigs(ctx)
+}
+
+// deriveKeyParts splits a raw API key into a display prefix, last-four chars,
+// and a SHA-256 hash for storage. The raw key is never persisted.
+func deriveKeyParts(rawKey string) (prefix, lastFour, hash string) {
+	if rawKey == "" {
+		return "", "", ""
+	}
+	prefixLen := 8
+	if len(rawKey) < prefixLen {
+		prefixLen = len(rawKey)
+	}
+	prefix = rawKey[:prefixLen]
+	if len(rawKey) >= 4 {
+		lastFour = rawKey[len(rawKey)-4:]
+	} else {
+		lastFour = rawKey
+	}
+	h := sha256.Sum256([]byte(rawKey))
+	hash = hex.EncodeToString(h[:])
+	return
 }

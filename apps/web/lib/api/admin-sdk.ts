@@ -54,8 +54,8 @@ export class AdminSDK {
     return this.api.adminGetProvider(id);
   }
 
-  async createProvider(data: Partial<Provider>): Promise<Provider> {
-    return this.api.adminCreateProvider(data as any);
+  async createProvider(data: Partial<Provider> & { apiKey?: string }): Promise<Provider> {
+    return this.api.adminCreateProvider(data as Parameters<typeof this.api.adminCreateProvider>[0]);
   }
 
   async updateProvider(data: Partial<Provider>): Promise<void> {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
-import type { Provider, ProviderKey, ProviderStatus } from "@/types/admin";
+import type { Provider, ProviderKey, ProviderStatus, ModelRegistry } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
 import {
   Plus,
@@ -19,6 +19,8 @@ import {
   Search,
   X,
   Key,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -144,9 +146,10 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
                   label: form.label,
                   strategy: form.strategy as ProviderKey["strategy"],
                   weight: form.weight,
+                  key: form.key,
                 } as Partial<ProviderKey>);
               }}
-              disabled={!form.label || createKey.isPending}
+              disabled={!form.label || !form.key || createKey.isPending}
               className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50"
             >
               {createKey.isPending ? "Saving..." : "Save Key"}
@@ -216,11 +219,29 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
   );
 }
 
-function FetchModelsPanel({ baseUrl }: { baseUrl: string }) {
+function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId: string }) {
   const [apiKey, setApiKey] = useState("");
   const [models, setModels] = useState<{ id: string; object?: string; owned_by?: string }[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
+
+  const registerModels = useMutation({
+    mutationFn: async (modelIds: string[]) => {
+      for (const modelId of modelIds) {
+        await getAdminSDK().createModel({
+          modelId,
+          providerId,
+          displayName: modelId,
+        } as Partial<ModelRegistry>);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "models"] });
+      setSelectedIds(new Set());
+    },
+  });
 
   const handleFetch = async () => {
     if (!baseUrl) {
@@ -230,6 +251,7 @@ function FetchModelsPanel({ baseUrl }: { baseUrl: string }) {
     setFetching(true);
     setError(null);
     setModels([]);
+    setSelectedIds(new Set());
     try {
       const result = await getAdminSDK().fetchModels(baseUrl, apiKey);
       setModels(result.models);
@@ -237,6 +259,23 @@ function FetchModelsPanel({ baseUrl }: { baseUrl: string }) {
       setError(err instanceof Error ? err.message : "Failed to fetch models");
     } finally {
       setFetching(false);
+    }
+  };
+
+  const toggleModel = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === models.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(models.map((m) => m.id)));
     }
   };
 
@@ -270,25 +309,55 @@ function FetchModelsPanel({ baseUrl }: { baseUrl: string }) {
       )}
 
       {models.length > 0 && (
-        <div className="max-h-48 overflow-y-auto rounded-[12px] border border-[var(--admin-border)] admin-scroll">
-          <table className="w-full text-[12px]">
-            <thead className="sticky top-0 bg-[var(--admin-surface-elevated)]">
-              <tr className="border-b border-[var(--admin-border)]">
-                <th className="text-left font-medium py-1.5 pr-2">Model ID</th>
-                <th className="text-left font-medium py-1.5 pr-2">Owned By</th>
-              </tr>
-            </thead>
-            <tbody>
-              {models.map((m) => (
-                <tr key={m.id} className="border-b border-white/[0.015]">
-                  <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">{m.id}</td>
-                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{m.owned_by || "-"}</td>
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] text-[var(--admin-text-muted)] font-medium">
+              {selectedIds.size} of {models.length} selected
+            </span>
+            <div className="flex items-center gap-2">
+              <button onClick={toggleAll} className="text-[10px] text-indigo-400/70 hover:text-indigo-400 transition-colors font-medium flex items-center gap-1">
+                {selectedIds.size === models.length ? <CheckSquare className="h-3 w-3" /> : <Square className="h-3 w-3" />}
+                {selectedIds.size === models.length ? "Deselect All" : "Select All"}
+              </button>
+              {selectedIds.size > 0 && (
+                <button
+                  onClick={() => registerModels.mutate(Array.from(selectedIds))}
+                  disabled={registerModels.isPending}
+                  className="admin-btn admin-btn-primary text-[10px] py-[4px] px-2.5 disabled:opacity-50"
+                >
+                  {registerModels.isPending ? "Registering..." : `Register ${selectedIds.size}`}
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto rounded-[12px] border border-[var(--admin-border)] admin-scroll">
+            <table className="w-full text-[12px]">
+              <thead className="sticky top-0 bg-[var(--admin-surface-elevated)]">
+                <tr className="border-b border-[var(--admin-border)]">
+                  <th className="w-8 py-1.5 pl-2"></th>
+                  <th className="text-left font-medium py-1.5 pr-2">Model ID</th>
+                  <th className="text-left font-medium py-1.5 pr-2">Owned By</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="py-1.5 px-3 text-[10px] text-[var(--admin-text-dim)] text-right">
-            {models.length} model{models.length !== 1 ? "s" : ""} found
+              </thead>
+              <tbody>
+                {models.map((m) => (
+                  <tr key={m.id} className="border-b border-white/[0.015] hover:bg-white/[0.015] cursor-pointer" onClick={() => toggleModel(m.id)}>
+                    <td className="py-1.5 pl-2">
+                      {selectedIds.has(m.id) ? (
+                        <CheckSquare className="h-3.5 w-3.5 text-indigo-400" />
+                      ) : (
+                        <Square className="h-3.5 w-3.5 text-[var(--admin-text-dim)]" />
+                      )}
+                    </td>
+                    <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">{m.id}</td>
+                    <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{m.owned_by || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="py-1.5 px-3 text-[10px] text-[var(--admin-text-dim)] text-right">
+              {models.length} model{models.length !== 1 ? "s" : ""} found
+            </div>
           </div>
         </div>
       )}
@@ -450,7 +519,7 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
       </div>
 
       {showKeys && <ProviderKeysPanel providerId={provider.id} />}
-      {showModels && <FetchModelsPanel baseUrl={provider.baseUrl} />}
+      {showModels && <FetchModelsPanel baseUrl={provider.baseUrl} providerId={provider.id} />}
     </div>
   );
 }
@@ -493,26 +562,85 @@ export default function AdminProvidersPage() {
   const [form, setForm] = useState({
     name: "",
     displayName: "",
-    providerType: "",
+    providerType: "openai" as string,
     baseUrl: "",
+    apiKey: "",
     priority: 0,
     timeoutMs: 30000,
   });
 
+  const [fetchedModels, setFetchedModels] = useState<{ id: string; object?: string; owned_by?: string }[]>([]);
+  const [selectedModelIds, setSelectedModelIds] = useState<Set<string>>(new Set());
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
+
+  const handleFetchModels = async () => {
+    if (!form.baseUrl) {
+      setFetchModelsError("Enter a base URL first");
+      return;
+    }
+    setFetchingModels(true);
+    setFetchModelsError(null);
+    setFetchedModels([]);
+    setSelectedModelIds(new Set());
+    try {
+      const result = await getAdminSDK().fetchModels(form.baseUrl, form.apiKey);
+      setFetchedModels(result.models);
+      if (result.models.length === 0) {
+        setFetchModelsError("No models found at this endpoint");
+      }
+    } catch (err) {
+      setFetchModelsError(err instanceof Error ? err.message : "Failed to fetch models");
+    } finally {
+      setFetchingModels(false);
+    }
+  };
+
+  const toggleModel = (id: string) => {
+    setSelectedModelIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllModels = () => {
+    if (selectedModelIds.size === fetchedModels.length) {
+      setSelectedModelIds(new Set());
+    } else {
+      setSelectedModelIds(new Set(fetchedModels.map((m) => m.id)));
+    }
+  };
+
   const handleCreate = () => {
-    createProvider.mutate({
+    const payload: Record<string, unknown> = {
       name: form.name,
       displayName: form.displayName || form.name,
       providerType: form.providerType,
       baseUrl: form.baseUrl,
       priority: form.priority,
       timeoutMs: form.timeoutMs,
-      status: "active",
-    } as Partial<Provider>);
+    };
+    if (form.apiKey) {
+      payload.apiKey = form.apiKey;
+    }
+    if (selectedModelIds.size > 0) {
+      payload.models = fetchedModels
+        .filter((m) => selectedModelIds.has(m.id))
+        .map((m) => ({
+          modelId: m.id,
+          displayName: m.id,
+        }));
+    }
+    createProvider.mutate(payload as Partial<Provider>);
   };
 
   const resetForm = () => {
-    setForm({ name: "", displayName: "", providerType: "", baseUrl: "", priority: 0, timeoutMs: 30000 });
+    setForm({ name: "", displayName: "", providerType: "openai", baseUrl: "", apiKey: "", priority: 0, timeoutMs: 30000 });
+    setFetchedModels([]);
+    setSelectedModelIds(new Set());
+    setFetchModelsError(null);
     setShowAddForm(false);
   };
 
@@ -568,8 +696,29 @@ export default function AdminProvidersPage() {
           <div className="grid grid-cols-2 gap-3">
             <input placeholder="Provider name (slug)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="admin-input text-[12px] py-[7px]" />
             <input placeholder="Display name" value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="admin-input text-[12px] py-[7px]" />
-            <input placeholder="Provider type (e.g. openai)" value={form.providerType} onChange={(e) => setForm({ ...form, providerType: e.target.value })} className="admin-input text-[12px] py-[7px]" />
-            <input placeholder="Base URL" value={form.baseUrl} onChange={(e) => setForm({ ...form, baseUrl: e.target.value })} className="admin-input text-[12px] py-[7px] font-mono" />
+            <select value={form.providerType} onChange={(e) => setForm({ ...form, providerType: e.target.value })} className="admin-input text-[12px] py-[7px]">
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="groq">Groq</option>
+              <option value="nvidia">NVIDIA NIM</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="mistral">Mistral</option>
+              <option value="cohere">Cohere</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="custom">Custom (OpenAI-compatible)</option>
+            </select>
+            <input placeholder="Base URL (e.g. https://api.openai.com)" value={form.baseUrl} onChange={(e) => setForm({ ...form, baseUrl: e.target.value })} className="admin-input text-[12px] py-[7px] font-mono" />
+            <input type="password" placeholder="API Key (optional, can add later)" value={form.apiKey} onChange={(e) => setForm({ ...form, apiKey: e.target.value })} className="admin-input text-[12px] py-[7px] font-mono" />
+            <button
+              type="button"
+              onClick={handleFetchModels}
+              disabled={!form.baseUrl || fetchingModels}
+              className="admin-btn admin-btn-primary text-[11px] py-[7px] disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+            >
+              {fetchingModels ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+              {fetchingModels ? "Fetching..." : "Fetch Models"}
+            </button>
             <div>
               <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">Priority</label>
               <input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })} className="admin-input w-full text-[12px] py-[7px]" />
@@ -579,8 +728,63 @@ export default function AdminProvidersPage() {
               <input type="number" value={form.timeoutMs} onChange={(e) => setForm({ ...form, timeoutMs: Number(e.target.value) })} className="admin-input w-full text-[12px] py-[7px]" />
             </div>
           </div>
+
+          {fetchModelsError && (
+            <div className="mt-3 p-2.5 rounded-[10px] bg-red-500/[0.04] border border-red-500/10 text-[11px] text-red-400 flex items-center justify-between">
+              <span>{fetchModelsError}</span>
+              <button onClick={() => setFetchModelsError(null)} className="text-red-400/50 hover:text-red-400" aria-label="Dismiss">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          {fetchedModels.length > 0 && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] text-[var(--admin-text-muted)] font-medium">
+                  {selectedModelIds.size} of {fetchedModels.length} models selected
+                </span>
+                <button onClick={toggleAllModels} className="text-[10px] text-indigo-400/70 hover:text-indigo-400 transition-colors font-medium flex items-center gap-1">
+                  {selectedModelIds.size === fetchedModels.length ? <CheckSquare className="h-3 w-3" /> : <Square className="h-3 w-3" />}
+                  {selectedModelIds.size === fetchedModels.length ? "Deselect All" : "Select All"}
+                </button>
+              </div>
+              <div className="max-h-48 overflow-y-auto rounded-[12px] border border-[var(--admin-border)] admin-scroll">
+                <table className="w-full text-[12px]">
+                  <thead className="sticky top-0 bg-[var(--admin-surface-elevated)]">
+                    <tr className="border-b border-[var(--admin-border)]">
+                      <th className="w-8 py-1.5 pl-2"></th>
+                      <th className="text-left font-medium py-1.5 pr-2">Model ID</th>
+                      <th className="text-left font-medium py-1.5 pr-2">Owned By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fetchedModels.map((m) => (
+                      <tr key={m.id} className="border-b border-white/[0.015] hover:bg-white/[0.015] cursor-pointer" onClick={() => toggleModel(m.id)}>
+                        <td className="py-1.5 pl-2">
+                          {selectedModelIds.has(m.id) ? (
+                            <CheckSquare className="h-3.5 w-3.5 text-indigo-400" />
+                          ) : (
+                            <Square className="h-3.5 w-3.5 text-[var(--admin-text-dim)]" />
+                          )}
+                        </td>
+                        <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">{m.id}</td>
+                        <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{m.owned_by || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {createProvider.isError && (
+            <div className="mt-3 p-2.5 rounded-[10px] bg-red-500/[0.04] border border-red-500/10 text-[11px] text-red-400">
+              {createProvider.error instanceof Error ? createProvider.error.message : "Failed to create provider"}
+            </div>
+          )}
           <div className="flex gap-2 pt-3">
-            <button onClick={handleCreate} disabled={!form.name || !form.providerType || !form.baseUrl || createProvider.isPending} className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50">
+            <button onClick={handleCreate} disabled={!form.name || !form.baseUrl || createProvider.isPending} className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50">
               {createProvider.isPending ? "Creating..." : "Create Provider"}
             </button>
             <button onClick={resetForm} className="admin-btn admin-btn-ghost text-[11px] py-[5px]">Cancel</button>

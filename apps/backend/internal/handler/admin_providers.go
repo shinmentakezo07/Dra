@@ -38,6 +38,15 @@ func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Name == "" {
+		response.Error(w, 400, "name is required")
+		return
+	}
+	if req.BaseURL == "" {
+		response.Error(w, 400, "baseUrl is required")
+		return
+	}
+
 	if err := h.adminSvc.CreateProviderFull(r.Context(), &req.Provider, req.APIKey, req.Models); err != nil {
 		response.Error(w, 500, err.Error())
 		return
@@ -76,6 +85,13 @@ func (h *Handler) AdminAddProviderKey(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, 400, "Invalid body")
 		return
+	}
+	if req.RawKey == "" {
+		response.Error(w, 400, "key is required")
+		return
+	}
+	if req.Label == "" {
+		req.Label = "default"
 	}
 	req.ProviderKey.ProviderID = chi.URLParam(r, "id")
 	if err := h.adminSvc.AddProviderKeyRaw(r.Context(), &req.ProviderKey, req.RawKey); err != nil {
