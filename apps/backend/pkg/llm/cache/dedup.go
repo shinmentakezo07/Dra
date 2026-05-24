@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -72,7 +73,11 @@ func (d *DedupCache) Do(ctx context.Context, key string, ttl time.Duration, fn f
 	if err != nil {
 		return nil, err
 	}
-	return v.(*llm.ChatResponse), nil
+	resp, ok := v.(*llm.ChatResponse)
+	if !ok {
+		return nil, fmt.Errorf("dedup: unexpected type %T", v)
+	}
+	return resp, nil
 }
 
 // Set stores a response in the cache.

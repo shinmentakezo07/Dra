@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"dra-platform/backend/internal/db"
@@ -118,7 +119,9 @@ func (r *UserRepo) List(ctx context.Context, page, limit int) ([]domain.User, in
 	}
 
 	var total int
-	r.db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&total)
+	if err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&total); err != nil {
+		return nil, 0, err
+	}
 	return users, total, rows.Err()
 }
 
@@ -155,12 +158,26 @@ func (r *UserRepo) GetPasswordReset(ctx context.Context, token string) (*struct 
 		}
 		return nil, err
 	}
+	// Check if token is expired
+	if time.Now().After(pr.ExpiresAt) {
+		return nil, nil
+	}
+	// Check if token was already used
+	if pr.UsedAt != nil {
+		return nil, nil
+	}
 	return &pr, nil
 }
 
 // MarkPasswordResetUsed marks a token as used.
 func (r *UserRepo) MarkPasswordResetUsed(ctx context.Context, token string) error {
-	_, err := r.db.Exec(ctx,
-		`UPDATE password_resets SET used_at = NOW() WHERE token = $1`, token)
-	return err
+	tag, err := r.db.Exec(ctx,
+		`UPDATE password_resets SET used_at = NOW() WHERE token = $1 AND used_at IS NULL`, token)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("token already used or not found")
+	}
+	return nil
 }

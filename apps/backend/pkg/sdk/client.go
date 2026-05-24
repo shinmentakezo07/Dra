@@ -171,7 +171,7 @@ func (c *Client) decodeJSON(resp *http.Response, v interface{}) error {
 func (c *Client) get(ctx context.Context, path string, query url.Values, v interface{}) error {
 	resp, err := c.doRequest(ctx, "GET", path, nil, query)
 	if err != nil {
-		
+		return err
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -184,7 +184,7 @@ func (c *Client) post(ctx context.Context, path string, body interface{}, v inte
 	}
 	resp, err := c.doRequest(ctx, "POST", path, r, nil)
 	if err != nil {
-		
+		return err
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -197,7 +197,7 @@ func (c *Client) put(ctx context.Context, path string, body interface{}, v inter
 	}
 	resp, err := c.doRequest(ctx, "PUT", path, r, nil)
 	if err != nil {
-		
+		return err
 	}
 	return c.decodeJSON(resp, v)
 }
@@ -205,7 +205,7 @@ func (c *Client) put(ctx context.Context, path string, body interface{}, v inter
 func (c *Client) delete(ctx context.Context, path string, v interface{}) error {
 	resp, err := c.doRequest(ctx, "DELETE", path, nil, nil)
 	if err != nil {
-		
+		return err
 	}
 	return c.decodeJSON(resp, v)
 }

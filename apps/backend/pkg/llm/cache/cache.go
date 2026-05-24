@@ -98,7 +98,7 @@ func (c *MemoryCache) Get(ctx context.Context, key string) (*llm.ChatResponse, e
 		c.mu.Lock()
 		c.misses++
 		c.mu.Unlock()
-		return nil, fmt.Errorf("cache miss")
+		return nil, ErrCacheMiss
 	}
 
 	if entry.IsExpired() {
@@ -106,7 +106,7 @@ func (c *MemoryCache) Get(ctx context.Context, key string) (*llm.ChatResponse, e
 		delete(c.entries, key)
 		c.misses++
 		c.mu.Unlock()
-		return nil, fmt.Errorf("cache entry expired")
+		return nil, ErrCacheMiss
 	}
 
 	c.mu.Lock()

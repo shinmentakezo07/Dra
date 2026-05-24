@@ -15,7 +15,7 @@ type RedisClient interface {
 	Get(ctx context.Context, key string) (string, error)
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 	Del(ctx context.Context, keys ...string) error
-	FlushDB(ctx context.Context) error
+	Keys(ctx context.Context, pattern string) ([]string, error)
 	Ping(ctx context.Context) error
 }
 
@@ -87,9 +87,16 @@ func (r *RedisCache) Delete(ctx context.Context, key string) error {
 	return r.client.Del(ctx, r.prefixedKey(key))
 }
 
-// Clear clears the cache.
+// Clear clears only LLM cache keys (prefixed), not the entire database.
 func (r *RedisCache) Clear(ctx context.Context) error {
-	return r.client.FlushDB(ctx)
+	keys, err := r.client.Keys(ctx, r.keyPrefix+"*")
+	if err != nil {
+		return fmt.Errorf("redis cache: keys scan: %w", err)
+	}
+	if len(keys) > 0 {
+		return r.client.Del(ctx, keys...)
+	}
+	return nil
 }
 
 // Health checks if Redis is reachable.

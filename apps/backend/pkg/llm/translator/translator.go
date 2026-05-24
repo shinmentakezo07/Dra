@@ -188,19 +188,19 @@ func (bt *BaseTranslator) ExtractOpenAIContent(body []byte) (string, llm.Usage, 
 	}
 
 	content := ""
+	finishReason := llm.FinishReasonStop
 	if len(resp.Choices) > 0 {
 		content = resp.Choices[0].Message.Content
+		finishReason = llm.FinishReason(resp.Choices[0].FinishReason)
+		if finishReason == "" {
+			finishReason = llm.FinishReasonStop
+		}
 	}
 
 	usage := llm.Usage{
 		PromptTokens:     resp.Usage.PromptTokens,
 		CompletionTokens: resp.Usage.CompletionTokens,
 		TotalTokens:      resp.Usage.TotalTokens,
-	}
-
-	finishReason := llm.FinishReason(resp.Choices[0].FinishReason)
-	if finishReason == "" {
-		finishReason = llm.FinishReasonStop
 	}
 
 	return content, usage, finishReason, nil

@@ -273,6 +273,9 @@ type AdminUser struct {
 }
 
 func (a *AdminUser) HasPermission(permission string) bool {
+	if a.Role == AdminRoleSuperAdmin {
+		return true
+	}
 	for _, p := range a.Permissions {
 		if p == "*" || p == permission {
 			return true

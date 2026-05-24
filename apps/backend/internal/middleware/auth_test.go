@@ -156,8 +156,8 @@ func TestAuth_DeletedUserJWT(t *testing.T) {
 	if rr.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401 for deleted user, got %d: %s", rr.Code, rr.Body.String())
 	}
-	if !contains(rr.Body.String(), "User not found") {
-		t.Fatalf("expected 'User not found' message, got %q", rr.Body.String())
+	if !contains(rr.Body.String(), "Invalid or expired token") {
+		t.Fatalf("expected 'Invalid or expired token' message, got %q", rr.Body.String())
 	}
 }
 

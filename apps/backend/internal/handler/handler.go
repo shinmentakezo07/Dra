@@ -108,10 +108,15 @@ func (h *Handler) ChatFnForBatch() func(ctx context.Context, req *llm.ChatReques
 	}
 }
 
+const maxPaginationPage = 10000
+
 func parsePagination(r *http.Request) (page, limit int) {
 	page, _ = strconv.Atoi(r.URL.Query().Get("page"))
 	if page < 1 {
 		page = 1
+	}
+	if page > maxPaginationPage {
+		page = maxPaginationPage
 	}
 	limit, _ = strconv.Atoi(r.URL.Query().Get("limit"))
 	if limit < 1 || limit > 100 {
@@ -498,7 +503,11 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 	}
 
 FINISH:
-	inputTokens := llm.EstimateTokens(outputBuf.String())
+	// Estimate input tokens from request messages, not output buffer
+	inputTokens := 0
+	for _, m := range req.Messages {
+		inputTokens += llm.EstimateTokens(m.Content)
+	}
 	if inputTokens == 0 {
 		inputTokens = len(req.Messages) * 50
 	}

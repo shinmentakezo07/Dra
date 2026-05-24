@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 )
 
@@ -22,7 +23,9 @@ type Body struct {
 func JSON(w http.ResponseWriter, status int, body Body) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(body)
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		slog.Error("response_json_encode_failed", "error", err.Error())
+	}
 }
 
 func OK(w http.ResponseWriter, data interface{}) {

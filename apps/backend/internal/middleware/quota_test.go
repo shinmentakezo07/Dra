@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +16,7 @@ func TestQuotaTracker_CheckRequest_Allowed(t *testing.T) {
 		MonthlyTokenLimit: 1000,
 	}
 
-	err := qt.CheckRequest(key, "gpt-4o", 100, "127.0.0.1")
+	err := qt.CheckRequest(context.Background(), key, "gpt-4o", 100, "127.0.0.1")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -28,7 +29,7 @@ func TestQuotaTracker_CheckRequest_ModelNotAllowed(t *testing.T) {
 		AllowedModels: []string{"gpt-4o-mini"},
 	}
 
-	err := qt.CheckRequest(key, "gpt-4o", 100, "127.0.0.1")
+	err := qt.CheckRequest(context.Background(), key, "gpt-4o", 100, "127.0.0.1")
 	if err == nil {
 		t.Fatal("expected error for disallowed model")
 	}
@@ -41,7 +42,7 @@ func TestQuotaTracker_CheckRequest_IPNotAllowed(t *testing.T) {
 		AllowedIPs: []string{"10.0.0.0/8"},
 	}
 
-	err := qt.CheckRequest(key, "gpt-4o", 100, "127.0.0.1:1234")
+	err := qt.CheckRequest(context.Background(), key, "gpt-4o", 100, "127.0.0.1:1234")
 	if err == nil {
 		t.Fatal("expected error for disallowed IP")
 	}
@@ -54,7 +55,7 @@ func TestQuotaTracker_CheckRequest_MaxTokens(t *testing.T) {
 		MaxTokensPerReq: 50,
 	}
 
-	err := qt.CheckRequest(key, "gpt-4o", 100, "127.0.0.1")
+	err := qt.CheckRequest(context.Background(), key, "gpt-4o", 100, "127.0.0.1")
 	if err == nil {
 		t.Fatal("expected error for exceeding max tokens")
 	}
@@ -67,9 +68,9 @@ func TestQuotaTracker_CheckRequest_DailyLimit(t *testing.T) {
 		DailyRequestLimit: 2,
 	}
 
-	_ = qt.CheckRequest(key, "gpt-4o", 1, "127.0.0.1")
-	_ = qt.CheckRequest(key, "gpt-4o", 1, "127.0.0.1")
-	err := qt.CheckRequest(key, "gpt-4o", 1, "127.0.0.1")
+	_ = qt.CheckRequest(context.Background(), key, "gpt-4o", 1, "127.0.0.1")
+	_ = qt.CheckRequest(context.Background(), key, "gpt-4o", 1, "127.0.0.1")
+	err := qt.CheckRequest(context.Background(), key, "gpt-4o", 1, "127.0.0.1")
 	if err == nil {
 		t.Fatal("expected error for exceeding daily limit")
 	}
@@ -82,8 +83,8 @@ func TestQuotaTracker_CheckRequest_MonthlyLimit(t *testing.T) {
 		MonthlyTokenLimit: 100,
 	}
 
-	_ = qt.CheckRequest(key, "gpt-4o", 60, "127.0.0.1")
-	err := qt.CheckRequest(key, "gpt-4o", 50, "127.0.0.1")
+	_ = qt.CheckRequest(context.Background(), key, "gpt-4o", 60, "127.0.0.1")
+	err := qt.CheckRequest(context.Background(), key, "gpt-4o", 50, "127.0.0.1")
 	if err == nil {
 		t.Fatal("expected error for exceeding monthly limit")
 	}
@@ -95,11 +96,11 @@ func TestQuotaTracker_RecordUsage(t *testing.T) {
 		Key:               "test-key",
 		MonthlyTokenLimit: 1000,
 	}
-	_ = qt.CheckRequest(key, "gpt-4o", 1, "127.0.0.1")
+	_ = qt.CheckRequest(context.Background(), key, "gpt-4o", 1, "127.0.0.1")
 
-	qt.RecordUsage("test-key", 50)
-	if qt.MonthlyTokens("test-key") != 51 {
-		t.Errorf("monthly tokens = %d, want 51", qt.MonthlyTokens("test-key"))
+	qt.RecordUsage(context.Background(), "test-key", 50)
+	if qt.MonthlyTokens(context.Background(), "test-key") != 51 {
+		t.Errorf("monthly tokens = %d, want 51", qt.MonthlyTokens(context.Background(), "test-key"))
 	}
 }
 

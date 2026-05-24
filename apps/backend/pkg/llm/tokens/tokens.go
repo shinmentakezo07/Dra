@@ -146,7 +146,7 @@ func (c *CostCalculator) Calculate(model string, inputTokens, outputTokens int) 
 func (c *CostCalculator) CalculateCredits(model string, inputTokens, outputTokens int) int {
 	usd := c.Calculate(model, inputTokens, outputTokens)
 	// 1 USD = 1,000,000 credits
-	return int(usd * 1e6)
+	return int(math.Round(usd * 1e6))
 }
 
 // GetContextWindow returns the context window for a model.

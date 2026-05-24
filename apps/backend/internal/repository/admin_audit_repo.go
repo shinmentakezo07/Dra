@@ -22,7 +22,10 @@ func (r *AdminAuditRepo) Insert(ctx context.Context, log *domain.AuditLog) error
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
 		log.ActorID, log.ActorEmail, log.Action, log.TargetType, log.TargetID,
 		log.Changes, log.IPAddress, log.Severity)
-	return fmt.Errorf("insert audit: %w", err)
+	if err != nil {
+		return fmt.Errorf("insert audit: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminAuditRepo) List(ctx context.Context, filter domain.AuditLogFilter) ([]domain.AuditLog, int, error) {

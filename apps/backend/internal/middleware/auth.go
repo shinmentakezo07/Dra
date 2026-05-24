@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"dra-platform/backend/internal/config"
 	"dra-platform/backend/internal/domain"
@@ -79,14 +78,6 @@ func Auth(cfg *config.Config, apiKeyLookup APIKeyLookup, userLookup UserLookup) 
 				return
 			}
 
-			if exp, ok := claims["exp"].(float64); ok {
-				if time.Now().Unix() > int64(exp) {
-					logger.Warn("jwt_expired", "remote_addr", r.RemoteAddr)
-					response.Error(w, 401, "Token expired")
-					return
-				}
-			}
-
 			userID, _ := claims["sub"].(string)
 
 			if userID == "" {
@@ -99,12 +90,12 @@ func Auth(cfg *config.Config, apiKeyLookup APIKeyLookup, userLookup UserLookup) 
 			user, err := userLookup(r.Context(), userID)
 			if err != nil {
 				logger.Warn("user_lookup_failed", "error", err.Error(), "user_id", userID, "remote_addr", r.RemoteAddr)
-				response.Error(w, 401, "Invalid token")
+				response.Error(w, 401, "Invalid or expired token")
 				return
 			}
 			if user == nil {
 				logger.Warn("user_not_found", "user_id", userID, "remote_addr", r.RemoteAddr)
-				response.Error(w, 401, "User not found. Please sign in again.")
+				response.Error(w, 401, "Invalid or expired token")
 				return
 			}
 

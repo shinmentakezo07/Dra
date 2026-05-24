@@ -106,7 +106,7 @@ func NewLocalModerator() *LocalModerator {
 	return &LocalModerator{
 		piiPatterns: []*regexp.Regexp{
 			regexp.MustCompile(`\b\d{3}-\d{2}-\d{4}\b`),                    // SSN
-			regexp.MustCompile(`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b`), // Email
+			regexp.MustCompile(`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b`), // Email
 			regexp.MustCompile(`\b(?:\d[ -]*?){13,16}\b`),                  // Credit card-ish
 		},
 	}

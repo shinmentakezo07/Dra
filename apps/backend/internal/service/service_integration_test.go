@@ -680,11 +680,13 @@ func TestSignupRequestValidation(t *testing.T) {
 		req     domain.SignupRequest
 		wantErr bool
 	}{
-		{"valid", domain.SignupRequest{Name: "Ab", Email: "a@b.com", Password: "123456"}, false},
-		{"empty name", domain.SignupRequest{Name: "", Email: "a@b.com", Password: "123456"}, true},
-		{"empty email", domain.SignupRequest{Name: "A", Email: "", Password: "123456"}, true},
-		{"short password", domain.SignupRequest{Name: "A", Email: "a@b.com", Password: "12345"}, true},
-		{"invalid email", domain.SignupRequest{Name: "A", Email: "notanemail", Password: "123456"}, true},
+		{"valid", domain.SignupRequest{Name: "Ab", Email: "a@b.com", Password: "Test1234"}, false},
+		{"empty name", domain.SignupRequest{Name: "", Email: "a@b.com", Password: "Test1234"}, true},
+		{"empty email", domain.SignupRequest{Name: "A", Email: "", Password: "Test1234"}, true},
+		{"short password", domain.SignupRequest{Name: "A", Email: "a@b.com", Password: "Ab1"}, true},
+		{"invalid email", domain.SignupRequest{Name: "A", Email: "notanemail", Password: "Test1234"}, true},
+		{"no uppercase", domain.SignupRequest{Name: "A", Email: "a@b.com", Password: "test1234"}, true},
+		{"no digit", domain.SignupRequest{Name: "A", Email: "a@b.com", Password: "Testtest"}, true},
 	}
 
 	for _, tt := range tests {

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -28,10 +29,10 @@ type ScopedAPIKey struct {
 
 // QuotaTrackerInterface allows swapping in-memory and Redis implementations.
 type QuotaTrackerInterface interface {
-	CheckRequest(key *ScopedAPIKey, model string, estimatedTokens int, clientIP string) error
-	RecordUsage(key string, tokens int)
-	DailyCount(key string) int
-	MonthlyTokens(key string) int
+	CheckRequest(ctx context.Context, key *ScopedAPIKey, model string, estimatedTokens int, clientIP string) error
+	RecordUsage(ctx context.Context, key string, tokens int)
+	DailyCount(ctx context.Context, key string) int
+	MonthlyTokens(ctx context.Context, key string) int
 }
 
 // QuotaTracker tracks usage per API key.
@@ -62,7 +63,7 @@ func NewQuotaTracker() *QuotaTracker {
 }
 
 // CheckRequest checks if a request is within quota and scoping rules.
-func (qt *QuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estimatedTokens int, clientIP string) error {
+func (qt *QuotaTracker) CheckRequest(_ context.Context, key *ScopedAPIKey, model string, estimatedTokens int, clientIP string) error {
 	if key == nil {
 		return nil
 	}
@@ -131,7 +132,7 @@ func (qt *QuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estimatedT
 }
 
 // RecordUsage records actual token usage after a request completes.
-func (qt *QuotaTracker) RecordUsage(key string, tokens int) {
+func (qt *QuotaTracker) RecordUsage(_ context.Context, key string, tokens int) {
 	if key == "" || tokens <= 0 {
 		return
 	}
@@ -143,7 +144,7 @@ func (qt *QuotaTracker) RecordUsage(key string, tokens int) {
 }
 
 // DailyCount returns the current daily request count for a key.
-func (qt *QuotaTracker) DailyCount(key string) int {
+func (qt *QuotaTracker) DailyCount(_ context.Context, key string) int {
 	qt.mu.RLock()
 	defer qt.mu.RUnlock()
 	if dq, ok := qt.daily[key]; ok {
@@ -153,7 +154,7 @@ func (qt *QuotaTracker) DailyCount(key string) int {
 }
 
 // MonthlyTokens returns the current monthly token count for a key.
-func (qt *QuotaTracker) MonthlyTokens(key string) int {
+func (qt *QuotaTracker) MonthlyTokens(_ context.Context, key string) int {
 	qt.mu.RLock()
 	defer qt.mu.RUnlock()
 	if mq, ok := qt.monthly[key]; ok {
@@ -233,12 +234,19 @@ func QuotaCheck(tracker QuotaTrackerInterface, getKey func(r *http.Request) *Sco
 					r.Body.Close()
 					r.Body = io.NopCloser(bytes.NewReader(body))
 					model, tokens = parseRequest(r)
-					// Restore body for next handler
-					r.Body = io.NopCloser(bytes.NewReader(body))
 				}
 			}
 
-			if err := tracker.CheckRequest(key, model, tokens, r.RemoteAddr); err != nil {
+			clientIP := r.RemoteAddr
+			if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+				if idx := strings.Index(xff, ","); idx > 0 {
+					clientIP = strings.TrimSpace(xff[:idx])
+				} else {
+					clientIP = strings.TrimSpace(xff)
+				}
+			}
+
+			if err := tracker.CheckRequest(r.Context(), key, model, tokens, clientIP); err != nil {
 				logger.Warn("quota_check_failed", "error", err.Error(), "key", key.Key)
 				response.Error(w, 429, err.Error())
 				return

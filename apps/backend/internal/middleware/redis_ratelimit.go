@@ -32,12 +32,12 @@ func NewRedisRateLimiter(client redis.Cmdable, window time.Duration, maxReq int)
 }
 
 // Allow checks if the key is within rate limit using a Redis sorted-set sliding window.
-func (rl *RedisRateLimiter) Allow(key string) bool {
+func (rl *RedisRateLimiter) Allow(ctx context.Context, key string) bool {
 	if rl.client == nil {
 		return true
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
 	now := time.Now().UnixMilli()
@@ -45,22 +45,22 @@ func (rl *RedisRateLimiter) Allow(key string) bool {
 	redisKey := rl.prefix + key
 
 	pipe := rl.client.Pipeline()
-	pipe.ZRemRangeByScore(ctx, redisKey, "0", fmt.Sprintf("%d", windowStart))
-	pipe.ZAdd(ctx, redisKey, redis.Z{Score: float64(now), Member: now})
-	pipe.ZCard(ctx, redisKey)
-	pipe.Expire(ctx, redisKey, rl.window+time.Second)
+	pipe.ZRemRangeByScore(timeoutCtx, redisKey, "0", fmt.Sprintf("%d", windowStart))
+	pipe.ZAdd(timeoutCtx, redisKey, redis.Z{Score: float64(now), Member: now})
+	pipe.ZCard(timeoutCtx, redisKey)
+	pipe.Expire(timeoutCtx, redisKey, rl.window+time.Second)
 
-	results, err := pipe.Exec(ctx)
+	results, err := pipe.Exec(timeoutCtx)
 	if err != nil {
 		logger.Error("redis_rate_limit_pipeline_failed", "error", err.Error(), "key", key)
-		return false
+		return true // fail-open: allow requests when Redis is unavailable
 	}
 
 	// results[2] is ZCard result
 	countCmd, ok := results[2].(*redis.IntCmd)
 	if !ok {
 		logger.Error("redis_rate_limit_unexpected_result", "key", key)
-		return false
+		return true // fail-open on unexpected result
 	}
 
 	count := int(countCmd.Val())
@@ -75,7 +75,7 @@ func RedisRateLimit(rl *RedisRateLimiter) func(http.Handler) http.Handler {
 			if u := GetUser(r); u != nil {
 				key = u.ID
 			}
-			if !rl.Allow(key) {
+			if !rl.Allow(r.Context(), key) {
 				logger.Warn("rate_limit_exceeded", "key", key, "path", r.URL.Path)
 				response.Error(w, 429, "Rate limit exceeded. Please slow down.")
 				return

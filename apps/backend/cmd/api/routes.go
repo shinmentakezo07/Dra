@@ -52,7 +52,7 @@ func registerRoutes(
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   corsOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Api-Key"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Api-Key", "X-Sandbox", "X-Request-ID", "X-Webhook-Signature", "X-Webhook-ID", "X-Event-Type", "X-Idempotency-Key"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
@@ -167,6 +167,7 @@ func registerRoutes(
 	// OpenAI & Anthropic proxy routes
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
+		r.Use(tokenBlacklistMW)
 		r.Use(quotaMW)
 		r.Post("/v1/chat/completions", h.OpenAIChatCompletions)
 		r.Post("/v1/messages", h.AnthropicMessages)

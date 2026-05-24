@@ -26,7 +26,7 @@ func NewRedisQuotaTracker(client redis.Cmdable) *RedisQuotaTracker {
 }
 
 // CheckRequest checks quota and scoping rules, recording usage in Redis.
-func (qt *RedisQuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estimatedTokens int, clientIP string) error {
+func (qt *RedisQuotaTracker) CheckRequest(ctx context.Context, key *ScopedAPIKey, model string, estimatedTokens int, clientIP string) error {
 	if key == nil {
 		return nil
 	}
@@ -60,7 +60,7 @@ func (qt *RedisQuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estim
 		return fmt.Errorf("estimated tokens %d exceeds max %d", estimatedTokens, key.MaxTokensPerReq)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
 	now := time.Now()
@@ -69,9 +69,9 @@ func (qt *RedisQuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estim
 	if key.DailyRequestLimit > 0 {
 		dailyKey := fmt.Sprintf("%s%s:daily:%s", qt.prefix, key.Key, now.Format("2006-01-02"))
 		pipe := qt.client.Pipeline()
-		pipe.Incr(ctx, dailyKey)
-		pipe.Expire(ctx, dailyKey, 48*time.Hour)
-		results, err := pipe.Exec(ctx)
+		pipe.Incr(timeoutCtx, dailyKey)
+		pipe.Expire(timeoutCtx, dailyKey, 48*time.Hour)
+		results, err := pipe.Exec(timeoutCtx)
 		if err != nil {
 			logger.Error("redis_quota_daily_failed", "error", err.Error(), "key", key.Key)
 			// Fail open
@@ -89,9 +89,9 @@ func (qt *RedisQuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estim
 	if key.MonthlyTokenLimit > 0 {
 		monthlyKey := fmt.Sprintf("%s%s:monthly:%s", qt.prefix, key.Key, now.Format("2006-01"))
 		pipe := qt.client.Pipeline()
-		pipe.IncrBy(ctx, monthlyKey, int64(estimatedTokens))
-		pipe.Expire(ctx, monthlyKey, 40*24*time.Hour)
-		results, err := pipe.Exec(ctx)
+		pipe.IncrBy(timeoutCtx, monthlyKey, int64(estimatedTokens))
+		pipe.Expire(timeoutCtx, monthlyKey, 40*24*time.Hour)
+		results, err := pipe.Exec(timeoutCtx)
 		if err != nil {
 			logger.Error("redis_quota_monthly_failed", "error", err.Error(), "key", key.Key)
 			// Fail open
@@ -109,25 +109,25 @@ func (qt *RedisQuotaTracker) CheckRequest(key *ScopedAPIKey, model string, estim
 }
 
 // RecordUsage records actual token usage against monthly quota.
-func (qt *RedisQuotaTracker) RecordUsage(key string, tokens int) {
+func (qt *RedisQuotaTracker) RecordUsage(ctx context.Context, key string, tokens int) {
 	if key == "" || tokens <= 0 || qt.client == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	monthlyKey := fmt.Sprintf("%s%s:monthly:%s", qt.prefix, key, time.Now().Format("2006-01"))
-	qt.client.IncrBy(ctx, monthlyKey, int64(tokens))
+	qt.client.IncrBy(timeoutCtx, monthlyKey, int64(tokens))
 }
 
 // DailyCount returns the current daily request count.
-func (qt *RedisQuotaTracker) DailyCount(key string) int {
+func (qt *RedisQuotaTracker) DailyCount(ctx context.Context, key string) int {
 	if key == "" || qt.client == nil {
 		return 0
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	dailyKey := fmt.Sprintf("%s%s:daily:%s", qt.prefix, key, time.Now().Format("2006-01-02"))
-	val, err := qt.client.Get(ctx, dailyKey).Int()
+	val, err := qt.client.Get(timeoutCtx, dailyKey).Int()
 	if err != nil {
 		return 0
 	}
@@ -135,14 +135,14 @@ func (qt *RedisQuotaTracker) DailyCount(key string) int {
 }
 
 // MonthlyTokens returns the current monthly token count.
-func (qt *RedisQuotaTracker) MonthlyTokens(key string) int {
+func (qt *RedisQuotaTracker) MonthlyTokens(ctx context.Context, key string) int {
 	if key == "" || qt.client == nil {
 		return 0
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	monthlyKey := fmt.Sprintf("%s%s:monthly:%s", qt.prefix, key, time.Now().Format("2006-01"))
-	val, err := qt.client.Get(ctx, monthlyKey).Int()
+	val, err := qt.client.Get(timeoutCtx, monthlyKey).Int()
 	if err != nil {
 		return 0
 	}

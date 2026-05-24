@@ -500,9 +500,9 @@ func (r *Registry) RouteRequest(ctx context.Context, req *llm.ChatRequest) (*llm
 		return nil, fmt.Errorf("provider not found: %s", providerName)
 	}
 
-	// Update model to provider-specific format
-	req.Model = modelName
-	return p.Chat(ctx, req)
+	routedReq := llm.DeepCopyRequest(req)
+	routedReq.Model = modelName
+	return p.Chat(ctx, routedReq)
 }
 
 // RouteStreamRequest routes a streaming request to the appropriate provider.
@@ -517,8 +517,9 @@ func (r *Registry) RouteStreamRequest(ctx context.Context, req *llm.ChatRequest)
 		return nil, fmt.Errorf("provider not found: %s", providerName)
 	}
 
-	req.Model = modelName
-	return p.ChatStream(ctx, req)
+	routedReq := llm.DeepCopyRequest(req)
+	routedReq.Model = modelName
+	return p.ChatStream(ctx, routedReq)
 }
 
 // ReadSSE reads server-sent events from a reader.

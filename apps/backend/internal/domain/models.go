@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/mail"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,7 +22,7 @@ type User struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
-func (u *User) IsAdmin() bool { return u.Role == "admin" }
+func (u *User) IsAdmin() bool { return u.Role == "admin" || u.Role == "superadmin" }
 
 func (u *User) HasPermission(permission string) bool {
 	if u.Role == "superadmin" {
@@ -131,10 +132,28 @@ func (r *SignupRequest) Validate() *AppError {
 	if _, err := mail.ParseAddress(r.Email); err != nil {
 		return NewError(ErrBadRequest, 400, "Invalid email format")
 	}
-	if r.Password == "" || len(r.Password) < 6 {
-		return NewError(ErrBadRequest, 400, "Password must be at least 6 characters")
+	if r.Password == "" || len(r.Password) < 8 {
+		return NewError(ErrBadRequest, 400, "Password must be at least 8 characters")
+	}
+	if !isPasswordComplex(r.Password) {
+		return ErrPasswordTooWeak
 	}
 	return nil
+}
+
+func isPasswordComplex(password string) bool {
+	var hasUpper, hasLower, hasDigit bool
+	for _, c := range password {
+		switch {
+		case c >= 'A' && c <= 'Z':
+			hasUpper = true
+		case c >= 'a' && c <= 'z':
+			hasLower = true
+		case c >= '0' && c <= '9':
+			hasDigit = true
+		}
+	}
+	return hasUpper && hasLower && hasDigit
 }
 
 type AuthResponse struct {
@@ -225,10 +244,37 @@ func (r *CreateWebhookRequest) Validate() *AppError {
 	if r.URL == "" {
 		return NewError(ErrBadRequest, 400, "URL is required")
 	}
+	parsed, err := url.ParseRequestURI(r.URL)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return NewError(ErrBadRequest, 400, "URL must be a valid HTTP(S) URL")
+	}
 	if len(r.Events) == 0 {
 		return NewError(ErrBadRequest, 400, "At least one event is required")
 	}
+	for _, e := range r.Events {
+		if !isValidWebhookEvent(e) {
+			return NewError(ErrBadRequest, 400, "Unknown event type: "+e)
+		}
+	}
 	return nil
+}
+
+var validWebhookEvents = map[string]bool{
+	"chat.completed":       true,
+	"credits.purchased":    true,
+	"credits.deducted":     true,
+	"request.completed":    true,
+	"request.failed":       true,
+	"user.created":         true,
+	"user.deleted":         true,
+	"key.created":          true,
+	"key.revoked":          true,
+	"budget.exceeded":      true,
+	"*":                    true,
+}
+
+func isValidWebhookEvent(event string) bool {
+	return validWebhookEvents[event]
 }
 
 type WebhookDelivery struct {

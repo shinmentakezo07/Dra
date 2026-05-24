@@ -13,38 +13,50 @@ func TestSignupRequest_Validate(t *testing.T) {
 	}{
 		{
 			name:    "valid signup",
-			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: "password123"},
+			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: "Password123"},
 			wantErr: false,
 		},
 		{
 			name:    "name too short",
-			req:     SignupRequest{Name: "A", Email: "alice@example.com", Password: "password123"},
+			req:     SignupRequest{Name: "A", Email: "alice@example.com", Password: "Password123"},
 			wantErr: true,
 			wantMsg: "Name must be at least 2 characters",
 		},
 		{
 			name:    "name empty",
-			req:     SignupRequest{Name: "", Email: "alice@example.com", Password: "password123"},
+			req:     SignupRequest{Name: "", Email: "alice@example.com", Password: "Password123"},
 			wantErr: true,
 			wantMsg: "Name must be at least 2 characters",
 		},
 		{
 			name:    "email empty",
-			req:     SignupRequest{Name: "Alice", Email: "", Password: "password123"},
+			req:     SignupRequest{Name: "Alice", Email: "", Password: "Password123"},
 			wantErr: true,
 			wantMsg: "Email is required",
 		},
 		{
 			name:    "password too short",
-			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: "123"},
+			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: "Ab1"},
 			wantErr: true,
-			wantMsg: "Password must be at least 6 characters",
+			wantMsg: "Password must be at least 8 characters",
 		},
 		{
 			name:    "password empty",
 			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: ""},
 			wantErr: true,
-			wantMsg: "Password must be at least 6 characters",
+			wantMsg: "Password must be at least 8 characters",
+		},
+		{
+			name:    "password no uppercase",
+			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: "password123"},
+			wantErr: true,
+			wantMsg: "Password does not meet complexity requirements",
+		},
+		{
+			name:    "password no digit",
+			req:     SignupRequest{Name: "Alice", Email: "alice@example.com", Password: "Passwordd"},
+			wantErr: true,
+			wantMsg: "Password does not meet complexity requirements",
 		},
 	}
 

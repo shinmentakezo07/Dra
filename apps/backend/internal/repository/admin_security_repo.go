@@ -18,7 +18,10 @@ func NewAdminSecurityRepo(d *db.DB) *AdminSecurityRepo { return &AdminSecurityRe
 
 func (r *AdminSecurityRepo) AddIPEntry(ctx context.Context, e *domain.IPList) error {
 	_, err := r.db.Exec(ctx, `INSERT INTO ip_lists(id,ip_or_cidr,action,scope,scope_id,reason,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7)`, e.ID, e.IPOrCIDR, e.Action, e.Scope, e.ScopeID, e.Reason, e.ExpiresAt)
-	return fmt.Errorf("add ip: %w", err)
+	if err != nil {
+		return fmt.Errorf("add ip: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminSecurityRepo) ListIPEntries(ctx context.Context, action string) ([]domain.IPList, error) {
@@ -89,7 +92,10 @@ func (r *AdminSecurityRepo) ListSuspicious(ctx context.Context, f domain.Suspici
 
 func (r *AdminSecurityRepo) ReviewSuspicious(ctx context.Context, id int64, action string, _ string) error {
 	_, err := r.db.Exec(ctx, `UPDATE suspicious_activities SET reviewed=true,resolved=$2 WHERE id=$1`, id, action == "dismiss")
-	return fmt.Errorf("review: %w", err)
+	if err != nil {
+		return fmt.Errorf("review: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminSecurityRepo) StartImpersonation(ctx context.Context, adminID, userID, reason string) (*domain.ImpersonationSession, error) {
