@@ -53,11 +53,11 @@ export const SearchModal = ({ open, onClose, items, onNavigate }: SearchModalPro
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] as const }}
-            className="w-full max-w-lg rounded-xl bg-[#0c0c0e] border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden"
+            className="w-full max-w-lg rounded-2xl bg-[#0c0c0e] border border-white/[0.08] shadow-2xl shadow-black/60 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.05]">
-              <Search className="w-4 h-4 text-white/25" />
+              <Search className="w-4.5 h-4.5 text-white/30" />
               <input
                 autoFocus
                 type="text"
@@ -65,7 +65,7 @@ export const SearchModal = ({ open, onClose, items, onNavigate }: SearchModalPro
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search documentation"
-                className="flex-1 bg-transparent border-none outline-none text-white/80 placeholder:text-white/20 text-sm"
+                className="flex-1 bg-transparent border-none outline-none text-white/90 placeholder:text-white/20 text-sm"
               />
               <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono text-white/20 bg-white/[0.04] border border-white/[0.06]">
                 <Command className="w-2.5 h-2.5" />K
@@ -74,7 +74,7 @@ export const SearchModal = ({ open, onClose, items, onNavigate }: SearchModalPro
             <div className="max-h-[50vh] overflow-y-auto p-2">
               {filteredNav.length === 0 ? (
                 <div className="px-4 py-12 text-center">
-                  <p className="text-sm text-white/20">No matching pages</p>
+                  <p className="text-sm text-white/25">No matching pages</p>
                 </div>
               ) : (
                 filteredNav.map((item) => {
@@ -84,10 +84,10 @@ export const SearchModal = ({ open, onClose, items, onNavigate }: SearchModalPro
                     <button
                       key={item.id}
                       onClick={() => onNavigate(item.id)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] text-left text-sm text-white/40 hover:text-white/80 transition-all duration-150 cursor-pointer group"
+                      className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-white/[0.05] text-left text-sm text-white/[0.45] hover:text-white/90 transition-all duration-150 cursor-pointer group"
                     >
-                      <FileText className="w-3.5 h-3.5 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
-                      <span className="flex-1">{item.label}</span>
+                      <FileText className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
+                      <span className="flex-1 font-medium">{item.label}</span>
                       {cat && (
                         <span className={`text-[9px] font-mono font-semibold uppercase tracking-wider ${catColor} opacity-40 group-hover:opacity-70 transition-opacity`}>
                           {cat}

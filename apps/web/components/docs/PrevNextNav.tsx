@@ -58,21 +58,21 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
   return (
     <nav
       aria-label="Documentation page navigation"
-      className="mt-20 pt-10 border-t border-white/[0.05]"
+      className="mt-20 pt-10 border-t border-white/[0.06]"
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-stretch justify-between gap-4">
         <div className="flex-1 min-w-0">
           {prev && (
             <Link
               href={`/docs/${prev.id}`}
-              className="group block text-left"
+              className="group block text-left h-full"
             >
-              <span className="text-[10px] font-mono text-white/20 uppercase tracking-wider block mb-2">
+              <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.15em] block mb-2.5">
                 Previous
               </span>
-              <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/[0.1] transition-all duration-200">
-                <ChevronLeft className="w-4 h-4 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
-                <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors truncate">
+              <div className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10 transition-all duration-200 h-full">
+                <ChevronLeft className="w-4 h-4 text-white/20 group-hover:text-emerald-400/50 group-hover:-translate-x-0.5 transition-all flex-shrink-0" />
+                <span className="text-sm text-white/[0.55] group-hover:text-white/80 transition-colors truncate font-medium">
                   {prev.label}
                 </span>
               </div>
@@ -83,16 +83,16 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
           {next && (
             <Link
               href={`/docs/${next.id}`}
-              className="group block text-right"
+              className="group block text-right h-full"
             >
-              <span className="text-[10px] font-mono text-white/20 uppercase tracking-wider block mb-2">
+              <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.15em] block mb-2.5">
                 Next
               </span>
-              <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/[0.1] transition-all duration-200">
-                <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors truncate">
+              <div className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10 transition-all duration-200 h-full">
+                <span className="text-sm text-white/[0.55] group-hover:text-white/80 transition-colors truncate font-medium">
                   {next.label}
                 </span>
-                <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-emerald-400/50 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
               </div>
             </Link>
           )}

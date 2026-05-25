@@ -187,7 +187,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
       {/* Main content */}
       <div className="lg:ml-[260px] relative z-10">
-        <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[72px] pb-20">
+        <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[76px] pb-20">
             <DocsPageShell>{children}</DocsPageShell>
           </main>
       </div>
@@ -221,12 +221,12 @@ function SidebarContent({
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5">
-          <div className={`w-7 h-7 rounded-lg ${currentColor?.bg || "bg-blue-500/[0.08]"} border ${currentColor?.border || "border-blue-500/[0.12]"} flex items-center justify-center`}>
-            <Book className={`w-3.5 h-3.5 ${currentColor?.text || "text-blue-400/70"}`} />
+          <div className={`w-8 h-8 rounded-xl ${currentColor?.bg || "bg-blue-500/[0.08]"} border ${currentColor?.border || "border-blue-500/[0.12]"} flex items-center justify-center shadow-sm`}>
+            <Book className={`w-4 h-4 ${currentColor?.text || "text-blue-400/70"}`} />
           </div>
           <div>
-            <span className="text-[13px] font-semibold text-white/70 block leading-tight">Documentation</span>
-            <span className="text-[10px] font-mono text-white/20">v1.0</span>
+            <span className="text-[13px] font-semibold text-white/75 block leading-tight">Documentation</span>
+            <span className="text-[10px] font-mono text-white/25">v1.0</span>
           </div>
         </div>
         {mobile && onClose && (
@@ -243,14 +243,14 @@ function SidebarContent({
       {/* Filter */}
       <div className="px-4 pt-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/15" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
           <input
             type="text"
             placeholder="Filter..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             aria-label="Filter documentation pages"
-            className={`w-full bg-white/[0.02] border border-white/[0.05] rounded-lg pl-9 pr-3 py-2 text-xs text-white/50 placeholder:text-white/12 font-mono outline-none focus:border-white/[0.12] focus:bg-white/[0.03] transition-all duration-200`}
+            className={`w-full bg-white/[0.02] border border-white/[0.06] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white/55 placeholder:text-white/15 font-mono outline-none focus:border-white/[0.14] focus:bg-white/[0.03] transition-all duration-200`}
           />
         </div>
       </div>
@@ -276,27 +276,27 @@ function SidebarContent({
                         key={item.id}
                         onClick={() => navigateTo(item.id)}
                         aria-current={isActive ? "page" : undefined}
-                        className={`relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-sm w-full text-left transition-all duration-200 cursor-pointer group ${
+                        className={`relative flex items-center gap-3 px-3 py-[10px] rounded-xl text-sm w-full text-left transition-all duration-200 cursor-pointer group ${
                           isActive
-                            ? `text-white ${groupColor.bg}`
-                            : "text-white/25 hover:text-white/50 hover:bg-white/[0.02]"
+                            ? `text-white ${groupColor.bg} border ${groupColor.border}/20`
+                            : "text-white/30 hover:text-white/55 hover:bg-white/[0.03] border border-transparent"
                         }`}
                       >
                         {isActive && (
                           <motion.div
                             layoutId="sidebar-active"
-                            className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${groupColor.text} opacity-80`}
+                            className={`absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full ${groupColor.text} opacity-80`}
                             transition={{ type: "spring", stiffness: 350, damping: 30 }}
                           />
                         )}
                         <item.icon className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${
                           isActive
                             ? groupColor.text
-                            : "text-white/15 group-hover:text-white/30"
+                            : "text-white/18 group-hover:text-white/35"
                         }`} />
                         <span className="truncate text-[13px] font-medium">{item.label}</span>
                         {isActive && (
-                          <ChevronRight className={`w-3 h-3 ${groupColor.text} opacity-30 ml-auto flex-shrink-0`} />
+                          <ChevronRight className={`w-3 h-3 ${groupColor.text} opacity-40 ml-auto flex-shrink-0`} />
                         )}
                       </button>
                     );
@@ -306,17 +306,17 @@ function SidebarContent({
             );
           })
         ) : (
-          <div className="text-xs text-white/15 text-center py-10 font-mono">No matching pages</div>
+          <div className="text-xs text-white/20 text-center py-10 font-mono">No matching pages</div>
         )}
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-white/[0.05]">
+      <div className="px-4 py-4 border-t border-white/[0.06]">
         <a
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-mono text-white/20 hover:text-white/40 hover:bg-white/[0.02] transition-all duration-200 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-mono text-white/25 hover:text-white/50 hover:bg-white/[0.03] transition-all duration-200 cursor-pointer"
         >
           <ArrowUpRight className="w-3 h-3" />
           <span>Report an issue</span>

@@ -64,10 +64,10 @@ export default function WebhooksPage() {
           <EndpointCard method="POST" path="/api/webhooks" description="Create a new webhook endpoint. Requires a target URL and at least one event type. Optionally set a secret for HMAC signing and custom headers.">
             <p className="text-sm text-white/30 mb-3">Request body fields:</p>
             <ul className="text-xs text-white/30 space-y-1 mb-4 pl-4 list-disc">
-              <li><code className="text-white/60">url</code> (required) — Target URL that receives POST requests</li>
-              <li><code className="text-white/60">events</code> (required) — Array of event types to subscribe to</li>
-              <li><code className="text-white/60">secret</code> (optional) — Secret key for HMAC-SHA256 signature generation</li>
-              <li><code className="text-white/60">headers</code> (optional) — Custom HTTP headers included in each delivery</li>
+              <li><code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">url</code> (required) — Target URL that receives POST requests</li>
+              <li><code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">events</code> (required) — Array of event types to subscribe to</li>
+              <li><code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">secret</code> (optional) — Secret key for HMAC-SHA256 signature generation</li>
+              <li><code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">headers</code> (optional) — Custom HTTP headers included in each delivery</li>
             </ul>
             <CodeBlock
               language="json"
@@ -153,7 +153,7 @@ export default function WebhooksPage() {
         </p>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+          <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
             <h4 className="text-white font-semibold text-sm mb-2">Request Headers</h4>
             <dl className="space-y-2 text-xs">
               <div><dt className="text-white/60 font-mono">Content-Type</dt><dd className="text-white/30">application/json</dd></div>
@@ -163,7 +163,7 @@ export default function WebhooksPage() {
               <div><dt className="text-white/60 font-mono">X-Webhook-Signature</dt><dd className="text-white/30">HMAC-SHA256 signature (<code className="text-white/40">sha256=...</code>)</dd></div>
             </dl>
           </div>
-          <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+          <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
             <h4 className="text-white font-semibold text-sm mb-2">Signature Verification</h4>
             <p className="text-xs text-white/30 mb-3">Verify incoming webhooks using your secret:</p>
             <CodeBlock
@@ -190,7 +190,7 @@ function verifyWebhook(payload, signature, secret) {
             { title: "Delivery Status", desc: "Each webhook tracks delivery status, attempt count, HTTP response codes, and error messages for debugging." },
             { title: "Concurrency Limit", desc: "A maximum of 20 concurrent webhook deliveries are allowed across all endpoints to prevent overwhelming your servers." },
           ].map((item) => (
-            <div key={item.title} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div key={item.title} className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
               <h4 className="text-white font-semibold text-sm mb-1">{item.title}</h4>
               <p className="text-xs text-white/30 leading-relaxed">{item.desc}</p>
             </div>

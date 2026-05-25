@@ -31,7 +31,7 @@ export default function PricingPage() {
             { label: "Transaction history", endpoint: "GET /api/transactions", desc: "View all past credit transactions." },
             { label: "Budget limits", endpoint: "GET /api/credits/budget", desc: "Track your usage and costs over time." },
           ].map((item) => (
-            <div key={item.label} className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div key={item.label} className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
               <h3 className="text-white font-semibold text-sm mb-1">{item.label}</h3>
               <code className="text-blue-400 font-mono text-xs">{item.endpoint}</code>
               <p className="text-xs text-white/30 mt-2">{item.desc}</p>

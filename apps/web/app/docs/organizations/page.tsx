@@ -103,7 +103,7 @@ export default function OrganizationsPage() {
           <ol className="space-y-3 text-sm text-white/30">
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 text-[10px] font-bold font-mono">1</span>
-              <span>Admin calls <code className="text-white/60">POST /api/organizations/{'{id}'}/invite</code> with the invitee&apos;s email and role.</span>
+              <span>Admin calls <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">POST /api/organizations/{'{id}'}/invite</code> with the invitee&apos;s email and role.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 text-[10px] font-bold font-mono">2</span>
@@ -111,7 +111,7 @@ export default function OrganizationsPage() {
             </li>
             <li className="flex items-start gap-3">
               <span className="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-500/[0.08] flex items-center justify-center text-blue-400 text-[10px] font-bold font-mono">3</span>
-              <span>The invitee calls <code className="text-white/60">POST /api/invites/accept</code> with the token to join the organization.</span>
+              <span>The invitee calls <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">POST /api/invites/accept</code> with the token to join the organization.</span>
             </li>
           </ol>
         </div>

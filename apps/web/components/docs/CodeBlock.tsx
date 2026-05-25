@@ -171,24 +171,24 @@ export const CodeBlock = ({
   return (
     <div className={`relative rounded-xl overflow-hidden bg-[#0a0a0c] border border-white/[0.06] group ${hasSingleLine ? "not-prose" : ""}`}>
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-black/20">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-gradient-to-r from-white/[0.02] to-transparent">
         <div className="flex items-center gap-1.5">
           {examples ? (
             <>
               {/* Terminal dot indicator */}
-              <span className="hidden sm:flex gap-1 mr-2">
-                <span className="w-2 h-2 rounded-full bg-red-500/30" />
-                <span className="w-2 h-2 rounded-full bg-yellow-500/30" />
-                <span className="w-2 h-2 rounded-full bg-green-500/30" />
+              <span className="hidden sm:flex gap-1.5 mr-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/40 ring-1 ring-red-500/20" />
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/40 ring-1 ring-yellow-500/20" />
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500/40 ring-1 ring-green-500/20" />
               </span>
               {(Object.keys(examples) as Lang[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setActiveLang(lang)}
-                  className={`text-[11px] font-mono px-2.5 py-1 rounded-md transition-all duration-200 cursor-pointer ${
+                  className={`text-[11px] font-mono px-2.5 py-1 rounded-lg transition-all duration-200 cursor-pointer ${
                     activeLang === lang
-                      ? "text-white/80 bg-white/[0.06] border border-white/[0.08] shadow-sm"
-                      : "text-white/25 hover:text-white/50 border border-transparent"
+                      ? "text-white/90 bg-white/[0.08] border border-white/[0.1] shadow-sm shadow-black/20"
+                      : "text-white/25 hover:text-white/50 border border-transparent hover:bg-white/[0.02]"
                   }`}
                 >
                   {langLabels[lang]}
@@ -197,27 +197,27 @@ export const CodeBlock = ({
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <TerminalIcon className="w-3 h-3 text-white/20" />
-              <span className="text-[11px] font-mono text-white/20 uppercase tracking-wider">{language}</span>
+              <TerminalIcon className="w-3.5 h-3.5 text-white/25" />
+              <span className="text-[11px] font-mono text-white/25 uppercase tracking-wider">{language}</span>
             </div>
           )}
         </div>
         <div className="flex items-center gap-2">
           {title && (
-            <span className="text-[11px] text-white/15 font-mono hidden sm:block">{title}</span>
+            <span className="text-[11px] text-white/20 font-mono hidden sm:block">{title}</span>
           )}
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono text-white/25 hover:text-white/60 hover:bg-white/[0.05] transition-all duration-200 cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
           >
             {copied ? (
-              <span className="flex items-center gap-1 text-emerald-400/80">
-                <Check className="w-3 h-3" />
+              <span className="flex items-center gap-1 text-emerald-400/90">
+                <Check className="w-3.5 h-3.5" />
                 <span>Copied</span>
               </span>
             ) : (
               <span className="flex items-center gap-1">
-                <Copy className="w-3 h-3" />
+                <Copy className="w-3.5 h-3.5" />
                 <span>Copy</span>
               </span>
             )}
@@ -226,7 +226,7 @@ export const CodeBlock = ({
       </div>
 
       {/* Code */}
-      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.65] text-white/65 scrollbar-thin scrollbar-thumb-white/[0.04]">
+      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.7] text-white/65 scrollbar-thin scrollbar-thumb-white/[0.06] scrollbar-track-transparent">
         <code>
           {typeof highlightedCode === "string" ? displayCode : highlightedCode}
         </code>

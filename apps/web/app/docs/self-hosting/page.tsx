@@ -20,12 +20,12 @@ export default function SelfHostingPage() {
         <p>
           When self-hosting Yapapa, you need to configure the base URL so that
           documentation code examples point to your own API endpoint instead of{" "}
-          <code className="text-white/60">localhost:8080</code>.
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">localhost:8080</code>.
         </p>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Setting the Docs Base URL
           </h3>
           <p>
@@ -40,7 +40,7 @@ export default function SelfHostingPage() {
                 <h4 className="text-white font-semibold text-sm">Environment Variable</h4>
               </div>
               <p className="text-xs text-white/30 mb-4">
-                Set the <code className="text-white/60">NEXT_PUBLIC_DOCS_BASE_URL</code> env var before building the web app. This is the recommended approach for deployments.
+                Set the <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">NEXT_PUBLIC_DOCS_BASE_URL</code> env var before building the web app. This is the recommended approach for deployments.
               </p>
               <CodeBlock
                 language="bash"
@@ -55,7 +55,7 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`}
                 <h4 className="text-white font-semibold text-sm">Admin Settings Panel</h4>
               </div>
               <p className="text-xs text-white/30 mb-4">
-                Navigate to <code className="text-white/60">/admin/settings</code> and edit the Docs Base URL card. Changes are saved to the database immediately.
+                Navigate to <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">/admin/settings</code> and edit the Docs Base URL card. Changes are saved to the database immediately.
               </p>
               <CodeBlock
                 language="bash"
@@ -67,8 +67,8 @@ docs_base_url = "https://api.yourdomain.com"`}
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Fallback chain
           </h3>
           <p className="mb-4">
@@ -100,8 +100,8 @@ docs_base_url = "https://api.yourdomain.com"`}
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Full deployment example
           </h3>
           <CodeBlock
@@ -152,8 +152,8 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`,
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Docker Compose environment
           </h3>
           <p className="text-sm text-white/40 mb-4">
@@ -183,8 +183,8 @@ OPENAI_API_KEY=sk-...
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Verifying the base URL
           </h3>
           <p className="mb-4">
@@ -201,8 +201,8 @@ curl https://api.yourdomain.com/api/chat ...`}
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Post-deployment verification
           </h3>
           <p className="text-sm text-white/40 mb-4">

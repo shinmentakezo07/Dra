@@ -5,16 +5,16 @@ import { useState } from "react";
 import { Lock, ChevronRight } from "lucide-react";
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: "bg-emerald-500/[0.08] text-emerald-400 border-emerald-500/[0.15]",
-  POST: "bg-blue-500/[0.08] text-blue-400 border-blue-500/[0.15]",
-  PUT: "bg-amber-500/[0.08] text-amber-400 border-amber-500/[0.15]",
-  PATCH: "bg-orange-500/[0.08] text-orange-400 border-orange-500/[0.15]",
-  DELETE: "bg-red-500/[0.08] text-red-400 border-red-500/[0.15]",
+  GET: "bg-emerald-500/[0.1] text-emerald-400 border-emerald-500/[0.2] shadow-emerald-500/[0.05]",
+  POST: "bg-blue-500/[0.1] text-blue-400 border-blue-500/[0.2] shadow-blue-500/[0.05]",
+  PUT: "bg-amber-500/[0.1] text-amber-400 border-amber-500/[0.2] shadow-amber-500/[0.05]",
+  PATCH: "bg-orange-500/[0.1] text-orange-400 border-orange-500/[0.2] shadow-orange-500/[0.05]",
+  DELETE: "bg-red-500/[0.1] text-red-400 border-red-500/[0.2] shadow-red-500/[0.05]",
 };
 
 export const MethodBadge = ({ method }: { method: string }) => (
   <span
-    className={`inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] font-bold tracking-wider border ${
+    className={`inline-flex items-center px-2.5 py-1 rounded-lg font-mono text-[10px] font-bold tracking-wider border shadow-sm ${
       METHOD_COLORS[method] || METHOD_COLORS.GET
     }`}
   >
@@ -40,7 +40,7 @@ export const EndpointCard = ({
   return (
     <motion.div
       layout
-      className="rounded-xl border border-white/[0.06] bg-[#0a0a0c] overflow-hidden transition-all duration-200 hover:border-white/[0.12]"
+      className="rounded-xl border border-white/[0.06] bg-[#0a0a0c] overflow-hidden transition-all duration-200 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10"
     >
       <button
         onClick={() => setOpen(!open)}
@@ -50,7 +50,7 @@ export const EndpointCard = ({
         <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors flex-shrink min-w-0 truncate">
           {path}
         </code>
-        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/12 truncate pl-4">{description}</span>
+        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/15 truncate pl-4">{description}</span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {auth && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.05] text-[9px] font-medium text-white/20">
@@ -76,9 +76,9 @@ export const EndpointCard = ({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-4 border-t border-white/[0.04] pt-4">
-              <p className="text-sm text-white/40 flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400/30 mt-1 flex-shrink-0" />
-                <span>{description}</span>
+              <p className="text-sm text-white/[0.45] flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400/40 mt-1.5 flex-shrink-0" />
+                <span className="leading-relaxed">{description}</span>
               </p>
               <div className="pl-4 border-l-2 border-white/[0.06]">
                 {children}

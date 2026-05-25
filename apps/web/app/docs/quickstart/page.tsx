@@ -19,13 +19,13 @@ export default function QuickstartPage() {
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
     >
       <Section id="quickstart" icon={Zap} title="Quick Start" accent="emerald">
-        <p className="text-lg text-white/80 leading-[1.6]">
+        <p className="text-lg text-white/80 leading-[1.65]">
           Get started with Yapapa AI Gateway in under 5 minutes. The backend runs on{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400 font-mono text-xs border border-blue-500/[0.1]">
+          <code className="px-1.5 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400/90 font-mono text-xs border border-blue-500/[0.1]">
             {BASE_URL}
           </code>{" "}
           and the frontend on{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400 font-mono text-xs border border-blue-500/[0.1]">
+          <code className="px-1.5 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400/90 font-mono text-xs border border-blue-500/[0.1]">
             http://localhost:3000
           </code>
           .
@@ -40,22 +40,22 @@ export default function QuickstartPage() {
             <Link
               key={card.step}
               href={card.href}
-              className="group relative p-6 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-blue-500/[0.15] hover:bg-blue-500/[0.02] transition-all duration-300 cursor-pointer"
+              className="group relative p-6 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-blue-500/[0.2] hover:bg-blue-500/[0.02] hover:shadow-lg hover:shadow-blue-500/[0.03] transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/[0.06] border border-blue-500/[0.1] text-blue-400 text-xs font-bold font-mono">{card.step}</span>
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/[0.12] to-blue-600/[0.04] border border-blue-500/[0.15] text-blue-400 text-xs font-bold font-mono shadow-sm shadow-black/10">{card.step}</span>
                 <div className="h-px flex-1 bg-gradient-to-r from-white/[0.06] to-transparent" />
               </div>
-              <h3 className="text-white font-semibold text-sm mb-2 group-hover:text-blue-400 transition-colors">{card.title}</h3>
-              <p className="text-xs text-white/30 leading-relaxed">{card.desc}</p>
-              <ArrowRight className="absolute bottom-5 right-5 w-3.5 h-3.5 text-white/[0.06] group-hover:text-blue-400/30 group-hover:translate-x-0.5 transition-all duration-300" />
+              <h3 className="text-white/90 font-semibold text-sm mb-2 group-hover:text-blue-400 transition-colors">{card.title}</h3>
+              <p className="text-xs text-white/35 leading-relaxed">{card.desc}</p>
+              <ArrowRight className="absolute bottom-5 right-5 w-3.5 h-3.5 text-white/[0.08] group-hover:text-blue-400/40 group-hover:translate-x-0.5 transition-all duration-300" />
             </Link>
           ))}
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Your first API call
           </h3>
           <CodeBlock

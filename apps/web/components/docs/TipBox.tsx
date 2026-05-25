@@ -50,14 +50,17 @@ export function TipBox({ children, variant = "tip" }: { children: React.ReactNod
   const Icon = cfg.icon;
 
   return (
-    <div className={`group relative rounded-r-lg rounded-l-sm border-l-[3px] ${cfg.border} ${cfg.bg} text-sm text-white/50 my-8 overflow-hidden`}>
+    <div className={`group relative rounded-r-xl rounded-l-sm border-l-[3px] ${cfg.border} ${cfg.bg} text-sm text-white/[0.55] my-8 overflow-hidden backdrop-blur-sm`}>
       {/* Subtle glow on hover */}
       <div className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${cfg.glow} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-      <div className="relative flex items-start gap-3.5 p-4">
-        <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${cfg.iconColor}`} />
-        <div className="min-w-0">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-white/25 block mb-1">{cfg.label}</span>
-          <span>{children}</span>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.01] to-transparent" />
+      <div className="relative flex items-start gap-4 p-5">
+        <div className={`w-8 h-8 rounded-lg ${cfg.bg} border border-white/[0.05] flex items-center justify-center flex-shrink-0 mt-0.5`}>
+          <Icon className={`w-4 h-4 ${cfg.iconColor}`} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.15em] text-white/30 block mb-1.5">{cfg.label}</span>
+          <span className="leading-relaxed">{children}</span>
         </div>
       </div>
     </div>

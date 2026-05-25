@@ -19,12 +19,12 @@ export default function ErrorHandlingPage() {
     >
       <Section id="error-handling" icon={AlertTriangle} title="Error Handling" accent="amber">
         <p>
-          The API returns consistent error responses with descriptive messages. All errors return a JSON body with a <code className="text-white/60">success</code> field set to <code className="text-white/60">false</code>, an <code className="text-white/60">error</code> field with the error type, and a human-readable <code className="text-white/60">message</code>.
+          The API returns consistent error responses with descriptive messages. All errors return a JSON body with a <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">success</code> field set to <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">false</code>, an <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">error</code> field with the error type, and a human-readable <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">message</code>.
         </p>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Error response format
           </h3>
           <CodeBlock
@@ -60,8 +60,8 @@ export default function ErrorHandlingPage() {
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Example: failed request
           </h3>
           <p className="text-sm text-white/40 mb-4">
@@ -74,8 +74,8 @@ export default function ErrorHandlingPage() {
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Retry strategy
           </h3>
           <p className="text-sm text-white/40 mb-4">

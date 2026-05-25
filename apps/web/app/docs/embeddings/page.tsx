@@ -23,13 +23,13 @@ export default function EmbeddingsPage() {
         </p>
 
         <div className="flex items-center gap-3 mt-4 mb-2">
-          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/15">POST</span>
+          <span className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-emerald-500/[0.12] to-emerald-600/[0.04] text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/[0.2] shadow-sm">POST</span>
           <code className="text-white/60 font-mono text-sm">{BASE_URL}/api/embeddings</code>
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Request
           </h3>
           <CodeBlock
@@ -93,8 +93,8 @@ fmt.Printf("%+v\\n", embeddings)`,
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Response format
           </h3>
           <CodeBlock
@@ -114,15 +114,15 @@ fmt.Printf("%+v\\n", embeddings)`,
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             OpenAI-compatible endpoint
           </h3>
           <p className="text-sm text-white/40 mb-4">
-            For OpenAI SDK compatibility, use the <code className="text-white/60">/v1/embeddings</code> endpoint. It accepts the standard OpenAI embedding request format and returns OpenAI-shaped responses.
+            For OpenAI SDK compatibility, use the <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">/v1/embeddings</code> endpoint. It accepts the standard OpenAI embedding request format and returns OpenAI-shaped responses.
           </p>
           <div className="flex items-center gap-3 mb-3">
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/15">POST</span>
+            <span className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-emerald-500/[0.12] to-emerald-600/[0.04] text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/[0.2] shadow-sm">POST</span>
             <code className="text-white/60 font-mono text-sm">{BASE_URL}/v1/embeddings</code>
           </div>
           <CodeBlock
@@ -137,26 +137,26 @@ fmt.Printf("%+v\\n", embeddings)`,
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Use cases
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1">Semantic Search</h4>
-              <p className="text-xs text-white/30">Compare query embeddings against a document corpus using cosine similarity to find semantically relevant results.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5">Semantic Search</h4>
+              <p className="text-xs text-white/35 leading-relaxed">Compare query embeddings against a document corpus using cosine similarity to find semantically relevant results.</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1">Clustering</h4>
-              <p className="text-xs text-white/30">Group similar documents by embedding proximity. Useful for topic discovery, content organization, and deduplication.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5">Clustering</h4>
+              <p className="text-xs text-white/35 leading-relaxed">Group similar documents by embedding proximity. Useful for topic discovery, content organization, and deduplication.</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1">RAG Pipelines</h4>
-              <p className="text-xs text-white/30">Store document embeddings in a vector database and retrieve relevant context before sending to an LLM for generation.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5">RAG Pipelines</h4>
+              <p className="text-xs text-white/35 leading-relaxed">Store document embeddings in a vector database and retrieve relevant context before sending to an LLM for generation.</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1">Recommendation</h4>
-              <p className="text-xs text-white/30">Compute similarity between user preferences and item descriptions to power content-based recommendation engines.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5">Recommendation</h4>
+              <p className="text-xs text-white/35 leading-relaxed">Compute similarity between user preferences and item descriptions to power content-based recommendation engines.</p>
             </div>
           </div>
         </div>

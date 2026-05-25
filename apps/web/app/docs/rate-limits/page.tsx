@@ -28,14 +28,14 @@ export default function RateLimitsPage() {
               <stat.icon className="w-5 h-5 text-blue-400/50 mx-auto mb-3" />
               <div className="text-3xl font-black text-blue-400 mb-1 group-hover:scale-110 transition-transform duration-300">{stat.value}</div>
               <div className="text-sm text-white font-medium mb-1">{stat.label}</div>
-              <div className="text-xs text-white/30">{stat.desc}</div>
+              <div className="text-xs text-white/35 leading-relaxed">{stat.desc}</div>
             </div>
           ))}
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Rate limit headers
           </h3>
           <p className="text-sm text-white/40 mb-4">
@@ -49,28 +49,28 @@ X-RateLimit-Reset: 1684567890
 Retry-After: 2`}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1"><code className="text-white/70 font-mono text-xs">X-RateLimit-Limit</code></h4>
-              <p className="text-xs text-white/30">Maximum requests allowed in the current window.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5"><code className="text-white/70 font-mono text-xs">X-RateLimit-Limit</code></h4>
+              <p className="text-xs text-white/35 leading-relaxed">Maximum requests allowed in the current window.</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1"><code className="text-white/70 font-mono text-xs">X-RateLimit-Remaining</code></h4>
-              <p className="text-xs text-white/30">Number of requests remaining in the current window.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5"><code className="text-white/70 font-mono text-xs">X-RateLimit-Remaining</code></h4>
+              <p className="text-xs text-white/35 leading-relaxed">Number of requests remaining in the current window.</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1"><code className="text-white/70 font-mono text-xs">X-RateLimit-Reset</code></h4>
-              <p className="text-xs text-white/30">Unix timestamp when the current window resets.</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5"><code className="text-white/70 font-mono text-xs">X-RateLimit-Reset</code></h4>
+              <p className="text-xs text-white/35 leading-relaxed">Unix timestamp when the current window resets.</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <h4 className="text-white font-semibold text-xs mb-1"><code className="text-white/70 font-mono text-xs">Retry-After</code></h4>
-              <p className="text-xs text-white/30">Seconds to wait before retrying (only on 429 responses).</p>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+              <h4 className="text-white/90 font-semibold text-xs mb-1.5"><code className="text-white/70 font-mono text-xs">Retry-After</code></h4>
+              <p className="text-xs text-white/35 leading-relaxed">Seconds to wait before retrying (only on 429 responses).</p>
             </div>
           </div>
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Rate limited response (429)
           </h3>
           <CodeBlock
@@ -91,8 +91,8 @@ Retry-After: 2
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Endpoint-specific limits
           </h3>
           <p className="text-sm text-white/40 mb-4">

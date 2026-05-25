@@ -36,8 +36,8 @@ export default function AuthPage() {
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Using your API Key
           </h3>
           <CodeBlock
@@ -55,8 +55,8 @@ export default function AuthPage() {
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             OAuth Login
           </h3>
           <p className="text-sm text-white/40 mb-4">
@@ -74,15 +74,15 @@ export default function AuthPage() {
         </div>
 
         <div className="mt-10">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50" />
+          <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Forgot / Reset Password
           </h3>
           <p className="text-sm text-white/40 mb-4">
             Users can request a password reset email and complete the reset with a token. The token is sent via email when SMTP is configured.
           </p>
           <div className="space-y-4">
-            <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
               <h4 className="text-white font-semibold text-sm mb-2">Request Reset</h4>
               <p className="text-xs text-white/30 mb-2">POST /auth/forgot-password - sends reset link to email</p>
               <CodeBlock
@@ -92,7 +92,7 @@ export default function AuthPage() {
 }`}
               />
             </div>
-            <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
               <h4 className="text-white font-semibold text-sm mb-2">Complete Reset</h4>
               <p className="text-xs text-white/30 mb-2">POST /auth/reset-password - reset password with token</p>
               <CodeBlock

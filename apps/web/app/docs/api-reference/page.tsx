@@ -19,12 +19,12 @@ export default function ApiReferencePage() {
     >
       <Section id="api-reference" icon={Code2} title="API Reference" accent="emerald">
         <div className="flex items-center gap-3 mb-6">
-          <span className="text-sm text-white/30 font-mono">Base URL</span>
-          <code className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-blue-400 font-mono text-sm">{BASE_URL}</code>
+          <span className="text-sm text-white/35 font-mono">Base URL</span>
+          <code className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-blue-400/90 font-mono text-sm">{BASE_URL}</code>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/60" />
+        <h3 className="text-lg font-bold text-white/95 mb-4 flex items-center gap-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" />
           Public Endpoints
         </h3>
         <div className="space-y-2 mb-10">
@@ -45,8 +45,8 @@ export default function ApiReferencePage() {
           <EndpointCard method="GET" path="/health/providers" description="Health status of all configured LLM providers with latency and last-checked info." auth={false} />
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
+        <h3 className="text-lg font-bold text-white/95 mb-4 flex items-center gap-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70" />
           Protected Endpoints
         </h3>
         <div className="space-y-2">
@@ -98,8 +98,8 @@ export default function ApiReferencePage() {
           <EndpointCard method="POST" path="/api/invites/accept" description="Accept a pending organization invitation." />
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 mt-10">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-400/60" />
+        <h3 className="text-lg font-bold text-white/95 mb-4 flex items-center gap-2.5 mt-10">
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-400/70" />
           OpenAI-Compatible Endpoints
         </h3>
         <div className="space-y-2 mb-10">
@@ -108,13 +108,13 @@ export default function ApiReferencePage() {
           <EndpointCard method="GET" path="/v1/models" description="OpenAI-compatible models list. Returns available models in OpenAI format." />
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400/60" />
+        <h3 className="text-lg font-bold text-white/95 mb-4 flex items-center gap-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400/70" />
           Admin Endpoints
         </h3>
         <div className="space-y-2 mb-10">
           <div className="mb-4">
-            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">User Management</h4>
+            <h4 className="text-xs font-mono text-white/25 uppercase tracking-wider mb-2 px-1">User Management</h4>
             <div className="space-y-2">
               <EndpointCard method="GET" path="/api/admin/users" description="[Admin] List all platform users with pagination and search." />
               <EndpointCard method="GET" path="/api/admin/users/{id}" description="[Admin] Get detailed user information including role, status, and usage." />
@@ -122,13 +122,13 @@ export default function ApiReferencePage() {
             </div>
           </div>
           <div className="mb-4">
-            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">Billing & Credits</h4>
+            <h4 className="text-xs font-mono text-white/25 uppercase tracking-wider mb-2 px-1">Billing &amp; Credits</h4>
             <div className="space-y-2">
               <EndpointCard method="POST" path="/api/admin/users/{id}/credits" description="[Admin] Adjust user credit balance (add or deduct credits)." />
             </div>
           </div>
           <div className="mb-4">
-            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">System Settings</h4>
+            <h4 className="text-xs font-mono text-white/25 uppercase tracking-wider mb-2 px-1">System Settings</h4>
             <div className="space-y-2">
               <EndpointCard method="GET" path="/api/admin/settings" description="[Admin] Get platform-wide settings including rate limits, features, and branding." />
               <EndpointCard method="PUT" path="/api/admin/settings" description="[Admin] Update platform settings." />
@@ -137,7 +137,7 @@ export default function ApiReferencePage() {
             </div>
           </div>
           <div className="mb-4">
-            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">LLM & Providers</h4>
+            <h4 className="text-xs font-mono text-white/25 uppercase tracking-wider mb-2 px-1">LLM &amp; Providers</h4>
             <div className="space-y-2">
               <EndpointCard method="GET" path="/api/admin/circuit-breakers" description="[Admin] View circuit breaker states for all LLM providers." />
               <EndpointCard method="GET" path="/api/admin/providers" description="[Admin] List all configured LLM providers with health status." />
@@ -145,7 +145,7 @@ export default function ApiReferencePage() {
             </div>
           </div>
           <div className="mb-4">
-            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">Audit & Monitoring</h4>
+            <h4 className="text-xs font-mono text-white/25 uppercase tracking-wider mb-2 px-1">Audit &amp; Monitoring</h4>
             <div className="space-y-2">
               <EndpointCard method="GET" path="/api/admin/stats" description="[Admin] Get platform-wide statistics: total users, requests, credits spent." />
               <EndpointCard method="GET" path="/api/admin/logs" description="[Admin] View platform-wide request logs with user context." />
@@ -153,7 +153,7 @@ export default function ApiReferencePage() {
             </div>
           </div>
           <div className="mb-4">
-            <h4 className="text-xs font-mono text-white/20 uppercase tracking-wider mb-2 px-1">Announcements & Content</h4>
+            <h4 className="text-xs font-mono text-white/25 uppercase tracking-wider mb-2 px-1">Announcements &amp; Content</h4>
             <div className="space-y-2">
               <EndpointCard method="GET" path="/api/admin/announcements" description="[Admin] List all platform announcements." />
               <EndpointCard method="POST" path="/api/admin/announcements" description="[Admin] Create a new platform announcement." />
@@ -162,8 +162,8 @@ export default function ApiReferencePage() {
           </div>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 mt-10">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400/60" />
+        <h3 className="text-lg font-bold text-white/95 mb-4 flex items-center gap-2.5 mt-10">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-400/70" />
           Webhooks
         </h3>
         <div className="space-y-2">
