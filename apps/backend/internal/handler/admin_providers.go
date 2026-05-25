@@ -1,32 +1,63 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/pkg/response"
 	"github.com/go-chi/chi/v5"
 )
 
+// validProviderTypes is the set of recognized provider types.
+var validProviderTypes = map[string]bool{
+	"openai":    true,
+	"anthropic": true,
+	"generic":   true,
+	"groq":      true,
+	"nvidia":    true,
+	"gemini":    true,
+}
+
+// validProviderStatuses is the set of recognized provider statuses.
+var validProviderStatuses = map[domain.ProviderStatus]bool{
+	domain.ProviderStatusActive:      true,
+	domain.ProviderStatusInactive:    true,
+	domain.ProviderStatusMaintenance: true,
+	domain.ProviderStatusDeprecated:  true,
+}
+
 func (h *Handler) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	providers, err := h.adminSvc.ListProviders(r.Context())
-	if err != nil { response.Error(w, 500, err.Error()); return }
+	if err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, providers)
 }
 
 func (h *Handler) AdminGetProvider(w http.ResponseWriter, r *http.Request) {
 	p, err := h.adminSvc.GetProvider(r.Context(), chi.URLParam(r, "id"))
-	if err != nil { response.Error(w, 500, err.Error()); return }
-	if p == nil { response.Error(w, 404, "Not found"); return }
+	if err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
+	if p == nil {
+		response.Error(w, 404, "Not found")
+		return
+	}
 	response.OK(w, p)
 }
 
 // AdminCreateProvider creates a new provider. Accepts optional apiKey and models
 // fields for a one-step "add OpenAI-compatible provider" flow.
+// When no models are provided, it auto-discovers them from the upstream /v1/models.
 func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		domain.Provider
@@ -46,6 +77,34 @@ func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "baseUrl is required")
 		return
 	}
+	if !isValidHTTPURL(req.BaseURL) {
+		response.Error(w, 400, "baseUrl must be a valid http or https URL")
+		return
+	}
+	if req.ProviderType != "" && !validProviderTypes[req.ProviderType] {
+		response.Error(w, 400, fmt.Sprintf("invalid providerType %q; supported: openai, anthropic, generic, groq, nvidia, gemini", req.ProviderType))
+		return
+	}
+
+	// Auto-discover models from upstream when none are explicitly provided.
+	if len(req.Models) == 0 && req.BaseURL != "" {
+		upstream, _, fetchErr := h.fetchModelsFromUpstream(r.Context(), req.BaseURL, req.APIKey)
+		if fetchErr != nil {
+			response.Error(w, 400, fmt.Sprintf("failed to auto-discover models from upstream: %v — provide models manually or check baseUrl/apiKey", fetchErr))
+			return
+		}
+		req.Models = make([]domain.ModelRegistry, 0, len(upstream))
+		for _, m := range upstream {
+			if m.ID == "" {
+				continue
+			}
+			req.Models = append(req.Models, domain.ModelRegistry{
+				ModelID:     m.ID,
+				DisplayName: m.ID,
+				Status:      domain.ModelStatusActive,
+			})
+		}
+	}
 
 	if err := h.adminSvc.CreateProviderFull(r.Context(), &req.Provider, req.APIKey, req.Models); err != nil {
 		response.Error(w, 500, err.Error())
@@ -54,24 +113,58 @@ func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, req.Provider)
 }
 
+// AdminUpdateProvider updates a provider. The provider ID from the URL path
+// takes precedence over any ID in the request body.
 func (h *Handler) AdminUpdateProvider(w http.ResponseWriter, r *http.Request) {
+	urlID := chi.URLParam(r, "id")
 	var p domain.Provider
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil { response.Error(w, 400, "Invalid body"); return }
-	if err := h.adminSvc.UpdateProvider(r.Context(), &p); err != nil { response.Error(w, 500, err.Error()); return }
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
+	// URL path ID always wins — prevents authorization bypass.
+	p.ID = urlID
+
+	if p.BaseURL != "" && !isValidHTTPURL(p.BaseURL) {
+		response.Error(w, 400, "baseUrl must be a valid http or https URL")
+		return
+	}
+
+	if err := h.adminSvc.UpdateProvider(r.Context(), &p); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, map[string]string{"status": "updated"})
 }
 
+// AdminUpdateProviderStatus toggles a provider's status with validation.
 func (h *Handler) AdminUpdateProviderStatus(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var req struct{ Status string }
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid body"); return }
-	if err := h.adminSvc.ToggleProviderStatus(r.Context(), id, domain.ProviderStatus(req.Status)); err != nil { response.Error(w, 500, err.Error()); return }
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
+	status := domain.ProviderStatus(req.Status)
+	if !validProviderStatuses[status] {
+		response.Error(w, 400, fmt.Sprintf("invalid status %q; supported: active, inactive, maintenance, deprecated", req.Status))
+		return
+	}
+	if err := h.adminSvc.ToggleProviderStatus(r.Context(), id, status); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, map[string]string{"status": "updated"})
 }
 
 func (h *Handler) AdminListProviderKeys(w http.ResponseWriter, r *http.Request) {
 	keys, err := h.adminSvc.ListProviderKeys(r.Context(), chi.URLParam(r, "id"))
-	if err != nil { response.Error(w, 500, err.Error()); return }
+	if err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, keys)
 }
 
@@ -101,8 +194,15 @@ func (h *Handler) AdminAddProviderKey(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, req.ProviderKey)
 }
 
+// AdminDeleteProviderKey deletes a provider key. Uses the provider ID from
+// the URL path to avoid O(N*M) scanning of all providers.
 func (h *Handler) AdminDeleteProviderKey(w http.ResponseWriter, r *http.Request) {
-	if err := h.adminSvc.DeleteProviderKey(r.Context(), chi.URLParam(r, "keyId")); err != nil { response.Error(w, 500, err.Error()); return }
+	providerID := chi.URLParam(r, "id")
+	keyID := chi.URLParam(r, "keyId")
+	if err := h.adminSvc.DeleteProviderKey(r.Context(), providerID, keyID); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, map[string]string{"status": "deleted"})
 }
 
@@ -116,10 +216,25 @@ func (h *Handler) AdminDeleteProvider(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AdminReorderProviderKeys(w http.ResponseWriter, r *http.Request) {
-	var req struct{ KeyIDs []string }
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid body"); return }
-	if err := h.adminSvc.ReorderProviderKeys(r.Context(), chi.URLParam(r, "id"), req.KeyIDs); err != nil { response.Error(w, 500, err.Error()); return }
+	var req struct {
+		KeyIDs []string `json:"keyIds"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
+	if err := h.adminSvc.ReorderProviderKeys(r.Context(), chi.URLParam(r, "id"), req.KeyIDs); err != nil {
+		response.Error(w, 500, err.Error())
+		return
+	}
 	response.OK(w, map[string]string{"status": "reordered"})
+}
+
+// upstreamModel mirrors the OpenAI /v1/models response shape.
+type upstreamModel struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	OwnedBy string `json:"owned_by"`
 }
 
 // AdminFetchModels calls <baseURL>/v1/models to discover available models from an OpenAI-compatible provider.
@@ -136,70 +251,82 @@ func (h *Handler) AdminFetchModels(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "baseUrl is required")
 		return
 	}
-
-	// Normalize base URL: strip trailing /v1 if present, then append /v1/models
-	baseURL := strings.TrimRight(req.BaseURL, "/")
-	if strings.HasSuffix(baseURL, "/v1") {
-		baseURL = strings.TrimSuffix(baseURL, "/v1")
-	}
-	modelsURL := baseURL + "/v1/models"
-
-	client := &http.Client{}
-	httpReq, err := http.NewRequestWithContext(r.Context(), "GET", modelsURL, nil)
-	if err != nil {
-		response.Error(w, 500, fmt.Sprintf("create request: %v", err))
+	if !isValidHTTPURL(req.BaseURL) {
+		response.Error(w, 400, "baseUrl must be a valid http or https URL")
 		return
 	}
+
+	upstream, statusCode, fetchErr := h.fetchModelsFromUpstream(r.Context(), req.BaseURL, req.APIKey)
+	if fetchErr != nil {
+		response.Error(w, statusCode, fmt.Sprintf("failed to fetch models: %v", fetchErr))
+		return
+	}
+
+	type ModelInfo struct {
+		ID      string `json:"id"`
+		Object  string `json:"object,omitempty"`
+		OwnedBy string `json:"owned_by,omitempty"`
+	}
+	out := make([]ModelInfo, 0, len(upstream))
+	for _, m := range upstream {
+		out = append(out, ModelInfo{
+			ID:      m.ID,
+			Object:  m.Object,
+			OwnedBy: m.OwnedBy,
+		})
+	}
+
+	response.OK(w, map[string]interface{}{
+		"models": out,
+		"total":  len(out),
+	})
+}
+
+// fetchModelsFromUpstream calls the upstream /v1/models endpoint and returns
+// the raw upstream models, an HTTP status code for error responses, and an error.
+func (h *Handler) fetchModelsFromUpstream(ctx context.Context, baseURL, apiKey string) ([]upstreamModel, int, error) {
+	normalized := strings.TrimRight(baseURL, "/")
+	if strings.HasSuffix(normalized, "/v1") {
+		normalized = strings.TrimSuffix(normalized, "/v1")
+	}
+	modelsURL := normalized + "/v1/models"
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", modelsURL, nil)
+	if err != nil {
+		return nil, 500, fmt.Errorf("create request: %w", err)
+	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	if req.APIKey != "" {
-		httpReq.Header.Set("Authorization", "Bearer "+req.APIKey)
+	if apiKey != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+apiKey)
 	}
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		response.Error(w, 502, fmt.Sprintf("failed to fetch models: %v", err))
-		return
+		return nil, 502, fmt.Errorf("upstream request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		response.Error(w, resp.StatusCode, fmt.Sprintf("provider returned %d: %s", resp.StatusCode, string(body)))
-		return
+		return nil, resp.StatusCode, fmt.Errorf("provider returned %d: %s", resp.StatusCode, string(body))
 	}
 
-	// Parse OpenAI-compatible response: {"data": [{"id": "...", ...}, ...]}
 	var result struct {
-		Data []map[string]interface{} `json:"data"`
+		Data []upstreamModel `json:"data"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		response.Error(w, 500, fmt.Sprintf("parse response: %v", err))
-		return
+		return nil, 500, fmt.Errorf("parse response: %w", err)
 	}
 
-	// Transform to a simpler format for the admin UI
-	type ModelInfo struct {
-		ID     string `json:"id"`
-		Object string `json:"object,omitempty"`
-		Owned  string `json:"owned_by,omitempty"`
-	}
-	models := make([]ModelInfo, 0, len(result.Data))
-	for _, m := range result.Data {
-		info := ModelInfo{}
-		if id, ok := m["id"].(string); ok {
-			info.ID = id
-		}
-		if obj, ok := m["object"].(string); ok {
-			info.Object = obj
-		}
-		if owned, ok := m["owned_by"].(string); ok {
-			info.Owned = owned
-		}
-		models = append(models, info)
-	}
+	return result.Data, 0, nil
+}
 
-	response.OK(w, map[string]interface{}{
-		"models": models,
-		"total":  len(models),
-	})
+// isValidHTTPURL checks that a string is a well-formed http or https URL.
+func isValidHTTPURL(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+	return u.Scheme == "http" || u.Scheme == "https"
 }

@@ -215,11 +215,7 @@ func (s *AdminService) CreateProviderFull(ctx context.Context, p *domain.Provide
 
 	// Register with LLM runtime
 	if s.llmRegistry != nil && p.BaseURL != "" {
-		if apiKey != "" {
-			s.registerProviderWithKey(p, apiKey)
-		} else {
-			s.registerProviderRuntime(p)
-		}
+		s.registerProviderRuntime(p, apiKey)
 	}
 
 	return nil
@@ -242,7 +238,7 @@ func (s *AdminService) AddProviderKeyRaw(ctx context.Context, k *domain.Provider
 	if rawKey != "" && s.llmRegistry != nil {
 		p, err := s.providerRepo.Get(ctx, k.ProviderID)
 		if err == nil && p != nil {
-			s.registerProviderWithKey(p, rawKey)
+			s.registerProviderRuntime(p, rawKey)
 		}
 	}
 	return nil
@@ -259,7 +255,7 @@ func (s *AdminService) UpdateProvider(ctx context.Context, p *domain.Provider) e
 			if refreshed.Status == domain.ProviderStatusActive && refreshed.BaseURL != "" {
 				rawKey := s.getActiveRawKeyForProvider(ctx, refreshed.ID)
 				if rawKey != "" {
-					s.registerProviderWithKey(refreshed, rawKey)
+					s.registerProviderRuntime(refreshed, rawKey)
 				} else {
 					s.registerProviderRuntime(refreshed)
 				}
@@ -282,7 +278,7 @@ func (s *AdminService) ToggleProviderStatus(ctx context.Context, id string, stat
 			if status == domain.ProviderStatusActive && p.BaseURL != "" {
 				rawKey := s.getActiveRawKeyForProvider(ctx, p.ID)
 				if rawKey != "" {
-					s.registerProviderWithKey(p, rawKey)
+					s.registerProviderRuntime(p, rawKey)
 				} else {
 					s.registerProviderRuntime(p)
 				}
@@ -315,12 +311,16 @@ func (s *AdminService) DeleteProvider(ctx context.Context, id string) error {
 }
 
 // registerProviderRuntime creates a GenericProvider from DB config and registers it.
-func (s *AdminService) registerProviderRuntime(p *domain.Provider) {
+// If apiKey is provided, the provider is registered with authentication.
+func (s *AdminService) registerProviderRuntime(p *domain.Provider, apiKey ...string) {
 	if s.llmRegistry == nil {
 		return
 	}
 	opts := []llmprovider.Option{
 		llmprovider.WithBaseURL(p.BaseURL),
+	}
+	if len(apiKey) > 0 && apiKey[0] != "" {
+		opts = append(opts, llmprovider.WithAPIKey(apiKey[0]))
 	}
 	if s.llmCache != nil {
 		opts = append(opts, llmprovider.WithCache(s.llmCache))
@@ -354,50 +354,7 @@ func (s *AdminService) registerProviderRuntime(p *domain.Provider) {
 	prov := llmprovider.NewGenericProvider(p.Name, p.BaseURL, opts...)
 	s.llmRegistry.Register(prov)
 	s.llmRegistry.InvalidateCache()
-	logger.Info("admin_provider_registered_runtime", "provider", p.Name, "base_url", p.BaseURL)
-}
-
-// registerProviderWithKey registers a provider using a specific API key.
-func (s *AdminService) registerProviderWithKey(p *domain.Provider, apiKey string) {
-	if s.llmRegistry == nil || p.BaseURL == "" {
-		return
-	}
-	opts := []llmprovider.Option{
-		llmprovider.WithBaseURL(p.BaseURL),
-		llmprovider.WithAPIKey(apiKey),
-	}
-	if s.llmCache != nil {
-		opts = append(opts, llmprovider.WithCache(s.llmCache))
-	}
-	if s.llmWatcher != nil {
-		opts = append(opts, llmprovider.WithWatcher(s.llmWatcher))
-	}
-
-	models, mErr := s.modelRepo.ListModelsByProvider(context.Background(), p.ID)
-	if mErr == nil && len(models) > 0 {
-		llmModels := make([]llm.ModelInfo, 0, len(models))
-		for _, m := range models {
-			llmModels = append(llmModels, llm.ModelInfo{
-				ID:               fmt.Sprintf("%s/%s", p.Name, m.ModelID),
-				Name:             m.DisplayName,
-				Provider:         p.Name,
-				InputPricePer1k:  m.InputPricePer1k,
-				OutputPricePer1k: m.OutputPricePer1k,
-				ContextWindow:    m.ContextWindow,
-				Description:      m.Description,
-				Capabilities:     m.Capabilities,
-				SupportsVision:   m.SupportsVision,
-				SupportsTools:    m.SupportsTools,
-				SupportsThinking: m.SupportsThinking,
-			})
-		}
-		opts = append(opts, llmprovider.WithModels(llmModels))
-	}
-
-	prov := llmprovider.NewGenericProvider(p.Name, p.BaseURL, opts...)
-	s.llmRegistry.Register(prov)
-	s.llmRegistry.InvalidateCache()
-	logger.Info("admin_provider_registered_with_key", "provider", p.Name)
+	logger.Info("admin_provider_registered_runtime", "provider", p.Name, "base_url", p.BaseURL, "has_key", len(apiKey) > 0 && apiKey[0] != "")
 }
 
 // ─── Provider Keys ───
@@ -417,7 +374,7 @@ func (s *AdminService) AddProviderKey(ctx context.Context, k *domain.ProviderKey
 		if err == nil && p != nil && p.BaseURL != "" {
 			rawKey := s.getActiveRawKeyForProvider(ctx, p.ID)
 			if rawKey != "" {
-				s.registerProviderWithKey(p, rawKey)
+				s.registerProviderRuntime(p, rawKey)
 			} else {
 				s.registerProviderRuntime(p)
 			}
@@ -430,29 +387,10 @@ func (s *AdminService) UpdateProviderKey(ctx context.Context, k *domain.Provider
 	return s.providerRepo.UpdateKey(ctx, k)
 }
 
-func (s *AdminService) DeleteProviderKey(ctx context.Context, id string) error {
-	// Find the provider so we can refresh runtime after key deletion
-	var providerID string
-	// We need to find which provider this key belongs to; scan all keys
-	// A better approach would be to store providerID on the key, but for now
-	// we iterate providers to find it
-	providers, _ := s.providerRepo.List(context.Background())
-	for _, p := range providers {
-		keys, _ := s.providerRepo.ListKeys(context.Background(), p.ID)
-		for _, k := range keys {
-			if k.ID == id {
-				providerID = p.ID
-				break
-			}
-		}
-		if providerID != "" {
-			break
-		}
-	}
+func (s *AdminService) DeleteProviderKey(ctx context.Context, providerID, keyID string) error {
+	s.deleteRawKey(keyID)
 
-	s.deleteRawKey(id)
-
-	if err := s.providerRepo.DeleteKey(ctx, id); err != nil {
+	if err := s.providerRepo.DeleteKey(ctx, keyID); err != nil {
 		return err
 	}
 
@@ -533,7 +471,7 @@ func (s *AdminService) refreshProviderModels(ctx context.Context, providerID str
 	}
 	rawKey := s.getActiveRawKeyForProvider(ctx, p.ID)
 	if rawKey != "" {
-		s.registerProviderWithKey(p, rawKey)
+		s.registerProviderRuntime(p, rawKey)
 	} else {
 		s.registerProviderRuntime(p)
 	}
