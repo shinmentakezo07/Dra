@@ -277,6 +277,8 @@ func registerRoutes(
 		r.Get("/api/messages/unread-count", h.GetUnreadMessageCount)
 		r.Post("/api/messages/{id}/read", h.MarkMessageRead)
 		r.Post("/api/messages/read-all", h.MarkAllMessagesRead)
+
+		r.Get("/api/announcements", h.GetUserAnnouncements)
 	})
 
 	// Stripe webhook (public, signature verified in handler)

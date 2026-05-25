@@ -3,7 +3,8 @@ import type {
   Provider, ProviderKey, ModelRegistry, ModelAlias,
   CreditAdjustment, UsageRecord, UsageDaily, SystemSetting, FeatureFlag,
   AuditLog, IPListEntry, IPAccessLog, SuspiciousActivity,
-  Announcement, PromoCode, PromoRedemption,
+  ImpersonationSession,
+  Announcement, UserAnnouncement, PromoCode, PromoRedemption,
   UserGroup, ScheduledReport, ChangelogEntry, SSOConfig,
   ProviderPlugin, RateLimitTier, RBACPermission, RBACRole,
   CostBreakdown, DashboardStats, MessageStats,
@@ -268,9 +269,18 @@ export interface EmbeddingResponse {
 
 export interface NotificationEvent {
   type: string;
-  title: string;
-  message: string;
-  read: boolean;
+  title?: string;
+  message?: string;
+  read?: boolean;
+  payload?: {
+    type?: string;
+    title?: string;
+    body?: string;
+    message?: string;
+    id?: string;
+    priority?: string;
+  };
+  time?: string;
 }
 
 export interface CircuitBreakerStatus {
@@ -1168,6 +1178,12 @@ class DraSDK {
     return this.request<{ marked: number }>("POST", "/api/messages/read-all");
   }
 
+  // User Announcements
+
+  getUserAnnouncements() {
+    return this.request<UserAnnouncement[]>("GET", "/api/announcements");
+  }
+
   // Comparisons
 
   listComparisons(page?: number, limit?: number) {
@@ -1672,7 +1688,7 @@ export type {
   SystemSetting, FeatureFlag,
   AuditLog, IPListEntry, IPAccessLog, SuspiciousActivity,
   ImpersonationSession,
-  Announcement, PromoCode, PromoRedemption,
+  Announcement, UserAnnouncement, PromoCode, PromoRedemption,
   UserGroup, ScheduledReport, ChangelogEntry, SSOConfig,
   ProviderPlugin, RateLimitTier, RBACPermission, RBACRole,
   MessageStats, CostBreakdown, DashboardStats,

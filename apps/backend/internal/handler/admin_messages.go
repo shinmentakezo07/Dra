@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -157,6 +158,15 @@ func (h *Handler) AdminCreateMessage(w http.ResponseWriter, r *http.Request) {
 		"sentAt":   sentAt,
 		"targetType": req.TargetType,
 	})
+
+	// Send SSE notification to targeted users
+	go h.notifyNewMessage(r.Context(), req.TargetType, req.TargetIds, map[string]interface{}{
+		"type":     "new_message",
+		"id":       id,
+		"title":    req.Title,
+		"body":     req.Body,
+		"priority": req.Priority,
+	})
 }
 
 func (h *Handler) AdminDeleteMessage(w http.ResponseWriter, r *http.Request) {
@@ -216,6 +226,49 @@ func (h *Handler) AdminGetMessageStats(w http.ResponseWriter, r *http.Request) {
 }
 
 // --- User-facing endpoints ---
+
+func (h *Handler) GetUserAnnouncements(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	rows, err := h.db.Query(ctx, `
+		SELECT id, title, body, priority, target_type, starts_at, ends_at, created_at
+		FROM announcements
+		WHERE show_in_app = true
+		  AND (starts_at IS NULL OR starts_at <= NOW())
+		  AND (ends_at IS NULL OR ends_at >= NOW())
+		ORDER BY created_at DESC
+		LIMIT 50`)
+	if err != nil {
+		response.Error(w, 500, "failed to fetch announcements")
+		return
+	}
+	defer rows.Close()
+
+	type userAnnouncement struct {
+		ID        string     `json:"id"`
+		Title     string     `json:"title"`
+		Body      string     `json:"body"`
+		Priority  string     `json:"priority"`
+		StartDate time.Time  `json:"startDate"`
+		EndDate   *time.Time `json:"endDate,omitempty"`
+		CreatedAt time.Time  `json:"createdAt"`
+	}
+
+	var announcements []userAnnouncement
+	for rows.Next() {
+		var a userAnnouncement
+		var targetType string
+		if err := rows.Scan(&a.ID, &a.Title, &a.Body, &a.Priority, &targetType, &a.StartDate, &a.EndDate, &a.CreatedAt); err != nil {
+			continue
+		}
+		announcements = append(announcements, a)
+	}
+	if announcements == nil {
+		announcements = []userAnnouncement{}
+	}
+
+	response.OK(w, announcements)
+}
 
 func (h *Handler) GetUserMessages(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
@@ -413,4 +466,46 @@ func (h *Handler) MarkAllMessagesRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, map[string]int64{"marked": result.RowsAffected()})
+}
+
+// notifyNewMessage sends SSE notifications to targeted users after a message is created.
+func (h *Handler) notifyNewMessage(ctx context.Context, targetType string, targetIds []string, payload interface{}) {
+	if h.notificationHub == nil {
+		return
+	}
+
+	switch targetType {
+	case "all":
+		h.notificationHub.Broadcast("new_message", payload)
+	case "user":
+		h.notificationHub.SendToUsers(targetIds, "new_message", payload)
+	case "tier":
+		rows, err := h.db.Query(ctx, `SELECT u.id FROM users u JOIN rate_limit_tiers rlt ON rlt.id = u.rate_limit_tier_id WHERE rlt.name = ANY($1)`, targetIds)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+		var userIDs []string
+		for rows.Next() {
+			var uid string
+			if err := rows.Scan(&uid); err == nil {
+				userIDs = append(userIDs, uid)
+			}
+		}
+		h.notificationHub.SendToUsers(userIDs, "new_message", payload)
+	case "group":
+		rows, err := h.db.Query(ctx, `SELECT DISTINCT ugm.user_id FROM user_group_members ugm JOIN user_groups ug ON ug.id = ugm.group_id WHERE ug.name = ANY($1)`, targetIds)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+		var userIDs []string
+		for rows.Next() {
+			var uid string
+			if err := rows.Scan(&uid); err == nil {
+				userIDs = append(userIDs, uid)
+			}
+		}
+		h.notificationHub.SendToUsers(userIDs, "new_message", payload)
+	}
 }

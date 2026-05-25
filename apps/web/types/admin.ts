@@ -302,6 +302,16 @@ export interface Announcement {
   createdAt: string
 }
 
+export interface UserAnnouncement {
+  id: string
+  title: string
+  body: string
+  priority: string
+  startDate: string
+  endDate?: string
+  createdAt: string
+}
+
 export interface UserGroup {
   id: string
   name: string

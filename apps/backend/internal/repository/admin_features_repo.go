@@ -18,7 +18,10 @@ func NewAdminFeaturesRepo(d *db.DB) *AdminFeaturesRepo { return &AdminFeaturesRe
 func (r *AdminFeaturesRepo) CreateAnnouncement(ctx context.Context, a *domain.Announcement) error {
 	_, err := r.db.Exec(ctx, `INSERT INTO announcements(id,title,body,priority,target_type,target_ids,starts_at,ends_at,show_in_app,send_email,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
 		a.ID, a.Title, a.Body, a.Priority, a.TargetType, a.TargetIDs, a.StartsAt, a.EndsAt, a.ShowInApp, a.SendEmail, a.CreatedBy)
-	return fmt.Errorf("create announcement: %w", err)
+	if err != nil {
+		return fmt.Errorf("create announcement: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminFeaturesRepo) ListAnnouncements(ctx context.Context) ([]domain.Announcement, error) {
@@ -37,7 +40,10 @@ func (r *AdminFeaturesRepo) ListAnnouncements(ctx context.Context) ([]domain.Ann
 func (r *AdminFeaturesRepo) CreatePromoCode(ctx context.Context, p *domain.PromoCode) error {
 	_, err := r.db.Exec(ctx, `INSERT INTO promo_codes(id,code,type,value,max_uses,min_purchase,expires_at,is_active,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(code) DO NOTHING`,
 		p.ID, p.Code, p.Type, p.Value, p.MaxUses, p.MinPurchase, p.ExpiresAt, p.IsActive, p.CreatedBy)
-	return fmt.Errorf("create promo: %w", err)
+	if err != nil {
+		return fmt.Errorf("create promo: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminFeaturesRepo) ListPromoCodes(ctx context.Context) ([]domain.PromoCode, error) {
@@ -82,7 +88,10 @@ func (r *AdminFeaturesRepo) ListGroups(ctx context.Context) ([]domain.UserGroup,
 func (r *AdminFeaturesRepo) CreateGroup(ctx context.Context, g *domain.UserGroup) error {
 	g.ID = uuid.New().String()
 	_, err := r.db.Exec(ctx, `INSERT INTO user_groups(id,name,description,created_by) VALUES($1,$2,$3,$4)`, g.ID, g.Name, g.Description, g.CreatedBy)
-	return fmt.Errorf("create group: %w", err)
+	if err != nil {
+		return fmt.Errorf("create group: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminFeaturesRepo) ListScheduledReports(ctx context.Context) ([]domain.ScheduledReport, error) {
@@ -102,14 +111,20 @@ func (r *AdminFeaturesRepo) CreateScheduledReport(ctx context.Context, s *domain
 	s.ID = uuid.New().String()
 	_, err := r.db.Exec(ctx, `INSERT INTO scheduled_reports(id,name,frequency,format,sections,recipients,next_send_at,is_active) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
 		s.ID, s.Name, s.Frequency, s.Format, s.Sections, s.Recipients, s.NextSendAt, s.IsActive)
-	return fmt.Errorf("create report: %w", err)
+	if err != nil {
+		return fmt.Errorf("create report: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminFeaturesRepo) CreateChangelog(ctx context.Context, e *domain.ChangelogEntry) error {
 	e.ID = uuid.New().String()
 	_, err := r.db.Exec(ctx, `INSERT INTO api_changelog(id,title,body,version,type,is_draft,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)`,
 		e.ID, e.Title, e.Body, e.Version, e.Type, e.IsDraft, e.CreatedBy)
-	return fmt.Errorf("create changelog: %w", err)
+	if err != nil {
+		return fmt.Errorf("create changelog: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminFeaturesRepo) ListChangelog(ctx context.Context, drafts bool) ([]domain.ChangelogEntry, error) {
@@ -130,7 +145,10 @@ func (r *AdminFeaturesRepo) ListChangelog(ctx context.Context, drafts bool) ([]d
 
 func (r *AdminFeaturesRepo) PublishChangelog(ctx context.Context, id string) error {
 	_, err := r.db.Exec(ctx, `UPDATE api_changelog SET is_draft=false,published_at=NOW() WHERE id=$1`, id)
-	return fmt.Errorf("publish changelog: %w", err)
+	if err != nil {
+		return fmt.Errorf("publish changelog: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminFeaturesRepo) ListSSOConfigs(ctx context.Context) ([]domain.SSOConfig, error) {

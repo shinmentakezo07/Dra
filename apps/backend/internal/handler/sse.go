@@ -87,6 +87,35 @@ func (hub *NotificationHub) Send(userID, eventType string, payload interface{}) 
 	}
 }
 
+// Broadcast sends an event to all connected users.
+func (hub *NotificationHub) Broadcast(eventType string, payload interface{}) {
+	data, _ := json.Marshal(payload)
+	hub.mu.RLock()
+	userIDs := make([]string, 0, len(hub.clients))
+	for uid := range hub.clients {
+		userIDs = append(userIDs, uid)
+	}
+	hub.mu.RUnlock()
+
+	for _, uid := range userIDs {
+		select {
+		case hub.broadcastCh <- SSEEvent{UserID: uid, Type: eventType, Payload: data, Time: time.Now()}:
+		default:
+		}
+	}
+}
+
+// SendToUsers delivers an event to a list of specific users.
+func (hub *NotificationHub) SendToUsers(userIDs []string, eventType string, payload interface{}) {
+	data, _ := json.Marshal(payload)
+	for _, uid := range userIDs {
+		select {
+		case hub.broadcastCh <- SSEEvent{UserID: uid, Type: eventType, Payload: data, Time: time.Now()}:
+		default:
+		}
+	}
+}
+
 // NotificationsStream handles SSE connections for real-time notifications.
 func (h *Handler) NotificationsStream(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)

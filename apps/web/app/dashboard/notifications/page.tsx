@@ -19,7 +19,8 @@ const SKIP_TYPES = new Set(["connected", "ping"]);
 function mapEventType(rawType: string): NotificationItem["type"] {
   if (rawType.includes("error") || rawType.includes("fail")) return "error";
   if (rawType.includes("success") || rawType.includes("complete")) return "success";
-  if (rawType.includes("warn") || rawType.includes("alert")) return "warning";
+  if (rawType.includes("warn") || rawType.includes("new_message")) return "warning";
+  if (rawType.includes("new_announcement")) return "info";
   return "info";
 }
 
@@ -64,8 +65,8 @@ export default function NotificationsPage() {
         const notif: NotificationItem = {
           id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           type: mapEventType(event.type),
-          title: event.title || event.type,
-          message: event.message || "",
+          title: event.title || event.payload?.title || event.payload?.type || event.type,
+          message: event.message || event.payload?.body || event.payload?.message || "",
           timestamp: new Date().toISOString(),
           read: false,
         };

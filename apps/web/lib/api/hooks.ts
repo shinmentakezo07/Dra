@@ -648,6 +648,18 @@ export function useMarkAllMessagesRead() {
 }
 
 // ============================================================================
+// User Announcements
+// ============================================================================
+
+export function useUserAnnouncements() {
+  return useQuery({
+    queryKey: ["user-announcements"],
+    queryFn: () => sdk.getUserAnnouncements(),
+    refetchInterval: 60_000,
+  });
+}
+
+// ============================================================================
 // Comparisons
 // ============================================================================
 

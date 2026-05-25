@@ -124,11 +124,31 @@ func (h *Handler) AdminListAnnouncements(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) AdminCreateAnnouncement(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "not authenticated")
+		return
+	}
+
 	var a domain.Announcement
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil { response.Error(w, 400, "Invalid body"); return }
+	if a.Title == "" { response.Error(w, 400, "title is required"); return }
+	if a.Body == "" { response.Error(w, 400, "body is required"); return }
 	a.ID = uuid.New().String()
+	a.CreatedBy = u.ID
 	if err := h.adminSvc.CreateAnnouncement(r.Context(), &a); err != nil { response.Error(w, 500, err.Error()); return }
-	response.OK(w, a)
+	response.Created(w, a)
+
+	// Send SSE notification to all users if show_in_app
+	if a.ShowInApp {
+		go h.notifyNewMessage(r.Context(), "all", nil, map[string]interface{}{
+			"type":     "new_announcement",
+			"id":       a.ID,
+			"title":    a.Title,
+			"body":     a.Body,
+			"priority": a.Priority,
+		})
+	}
 }
 
 func (h *Handler) AdminListPromoCodes(w http.ResponseWriter, r *http.Request) {
