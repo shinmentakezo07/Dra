@@ -11,47 +11,57 @@ interface ArchitecturePanelProps {
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const modalityStyles: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+const modalityStyles: Record<string, { bg: string; border: string; text: string; dot: string; icon: string }> = {
   text: {
-    bg: "bg-sky-500/[0.08]",
-    border: "border-sky-500/15",
+    bg: "bg-sky-500/[0.06]",
+    border: "border-sky-500/12",
     text: "text-sky-400",
     dot: "bg-sky-400",
+    icon: "T",
   },
   image: {
-    bg: "bg-violet-500/[0.08]",
-    border: "border-violet-500/15",
+    bg: "bg-violet-500/[0.06]",
+    border: "border-violet-500/12",
     text: "text-violet-400",
     dot: "bg-violet-400",
+    icon: "I",
   },
   audio: {
-    bg: "bg-amber-500/[0.08]",
-    border: "border-amber-500/15",
+    bg: "bg-amber-500/[0.06]",
+    border: "border-amber-500/12",
     text: "text-amber-400",
     dot: "bg-amber-400",
+    icon: "A",
   },
   video: {
-    bg: "bg-rose-500/[0.08]",
-    border: "border-rose-500/15",
+    bg: "bg-rose-500/[0.06]",
+    border: "border-rose-500/12",
     text: "text-rose-400",
     dot: "bg-rose-400",
+    icon: "V",
   },
 };
 
-function ModalityPill({ mod }: { mod: string }) {
+function ModalityPill({ mod, index }: { mod: string; index: number }) {
+  const prefersReduced = useReducedMotion();
   const style = modalityStyles[mod.toLowerCase()] ?? {
-    bg: "bg-white/[0.04]",
+    bg: "bg-white/[0.03]",
     border: "border-white/[0.06]",
     text: "text-gray-400",
     dot: "bg-gray-400",
+    icon: "?",
   };
   return (
-    <div
+    <motion.div
+      initial={prefersReduced ? undefined : { opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
       className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border font-mono text-[12px] font-semibold ${style.bg} ${style.border} ${style.text}`}
     >
       <div className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-      <span>{mod}</span>
-    </div>
+      <span className="capitalize">{mod}</span>
+    </motion.div>
   );
 }
 
@@ -104,8 +114,8 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
               <div className="flex flex-col gap-2">
                 <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Input</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {arch.input_modalities.map((mod: string) => (
-                    <ModalityPill key={`in-${mod}`} mod={mod} />
+                  {arch.input_modalities.map((mod: string, i: number) => (
+                    <ModalityPill key={`in-${mod}`} mod={mod} index={i} />
                   ))}
                 </div>
               </div>
@@ -114,9 +124,9 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
             {hasInput && hasOutput && (
               <div className="hidden sm:flex items-center pt-4">
                 <div className="flex items-center gap-1">
-                  <div className="w-6 h-px" style={{ backgroundColor: `${accent}15` }} />
-                  <ArrowRight className="w-3.5 h-3.5" style={{ color: `${accent}40` }} />
-                  <div className="w-6 h-px" style={{ backgroundColor: `${accent}15` }} />
+                  <div className="w-8 h-px" style={{ background: `linear-gradient(90deg, ${accent}20, ${accent}40)` }} />
+                  <ArrowRight className="w-3.5 h-3.5" style={{ color: `${accent}50` }} />
+                  <div className="w-8 h-px" style={{ background: `linear-gradient(90deg, ${accent}40, ${accent}20)` }} />
                 </div>
               </div>
             )}
@@ -125,8 +135,8 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
               <div className="flex flex-col gap-2">
                 <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Output</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {arch.output_modalities.map((mod: string) => (
-                    <ModalityPill key={`out-${mod}`} mod={mod} />
+                  {arch.output_modalities.map((mod: string, i: number) => (
+                    <ModalityPill key={`out-${mod}`} mod={mod} index={i} />
                   ))}
                 </div>
               </div>

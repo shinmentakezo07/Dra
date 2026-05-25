@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Coins } from "lucide-react";
 import type { OpenRouterModelData } from "@/types/model";
 import { formatPricePerM } from "@/lib/model-utils";
@@ -10,19 +10,32 @@ interface PricingPanelProps {
   model: OpenRouterModelData
 }
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
 function PriceRow({
   label,
   value,
   sub,
   accent,
+  delay,
 }: {
   label: string;
   value: string;
   sub: string;
   accent?: string;
+  delay?: number;
 }) {
+  const prefersReduced = useReducedMotion();
+
   return (
-    <div className="flex items-baseline justify-between py-2.5 first:pt-0 last:pb-0" style={{ borderBottomColor: `${accent}08` }}>
+    <motion.div
+      initial={prefersReduced ? undefined : { opacity: 0, x: -8 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, ease, delay: delay ?? 0 }}
+      className="flex items-baseline justify-between py-2.5 first:pt-0 last:pb-0"
+      style={{ borderBottomColor: `${accent}08` }}
+    >
       <span className="text-[11px] font-mono text-gray-500">{label}</span>
       <div className="text-right">
         <span
@@ -33,7 +46,7 @@ function PriceRow({
         </span>
         <span className="text-[10px] font-mono text-gray-700 ml-1.5">{sub}</span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -46,13 +59,14 @@ export function PricingPanel({ model }: PricingPanelProps) {
   const hasCache = !!cacheRead || !!cacheWrite;
   const theme = getProviderTheme(model.id);
   const accent = theme?.accent || "#6366f1";
+  const prefersReduced = useReducedMotion();
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 16 }}
+      initial={prefersReduced ? undefined : { opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease }}
       aria-label="Pricing"
       id="pricing"
     >
@@ -87,12 +101,14 @@ export function PricingPanel({ model }: PricingPanelProps) {
             value={formatPricePerM(model, "prompt")}
             sub="/1M tokens"
             accent={accent}
+            delay={0}
           />
           <PriceRow
             label="Output"
             value={formatPricePerM(model, "completion")}
             sub="/1M tokens"
             accent={shiftBrightness(accent, 30)}
+            delay={0.05}
           />
         </div>
 
@@ -110,6 +126,7 @@ export function PricingPanel({ model }: PricingPanelProps) {
                     value={(parseFloat(cacheRead) * 1000000).toFixed(2)}
                     sub="/1M tokens"
                     accent={`${accent}aa`}
+                    delay={0.1}
                   />
                 )}
                 {cacheWrite && (
@@ -118,6 +135,7 @@ export function PricingPanel({ model }: PricingPanelProps) {
                     value={(parseFloat(cacheWrite) * 1000000).toFixed(2)}
                     sub="/1M tokens"
                     accent={`${accent}aa`}
+                    delay={0.15}
                   />
                 )}
               </div>
@@ -133,6 +151,7 @@ export function PricingPanel({ model }: PricingPanelProps) {
                 value={(parseFloat(model.pricing.web_search) * 1000).toFixed(2)}
                 sub="/1K searches"
                 accent={`${accent}aa`}
+                delay={0.2}
               />
             </div>
           </div>

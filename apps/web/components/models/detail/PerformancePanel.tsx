@@ -47,31 +47,34 @@ function MetricCard({
           <span className="text-gray-600 font-mono text-[10px] ml-1">{sub}</span>
         </div>
       </div>
-      {/* Animated progress track */}
-      <div className="relative h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: `${color}10` }}>
+      {/* Progress track with dot indicator */}
+      <div className="relative h-1 rounded-full overflow-visible" style={{ backgroundColor: `${color}10` }}>
         <motion.div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{ backgroundColor: color }}
           initial={{ width: 0 }}
           whileInView={{ width: `${Math.min(percentage, 100)}%` }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8, delay, ease }}
+          transition={{ duration: 1, delay, ease: [0.22, 1, 0.36, 1] }}
         />
-        {/* Glow overlay */}
+        {/* Glow at bar end */}
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full"
-          initial={{ width: 0, opacity: 0.5 }}
-          whileInView={{ width: `${Math.min(percentage, 100)}%`, opacity: 0.2 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay, ease }}
+          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2"
           style={{
-            background: `linear-gradient(90deg, transparent, ${color})`,
+            borderColor: color,
+            backgroundColor: "#000",
+            boxShadow: `0 0 8px ${color}40`,
           }}
+          initial={{ left: 0, opacity: 0 }}
+          whileInView={{ left: `${Math.min(percentage, 100)}%`, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, delay, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
-      {/* Percentage label */}
-      <div className="mt-1 text-right">
-        <span className="text-[10px] font-mono text-gray-700">{Math.round(percentage)}%</span>
+      <div className="mt-2 text-right">
+        <span className="text-[10px] font-mono" style={{ color: `${color}80` }}>
+          {Math.round(percentage)}%
+        </span>
       </div>
     </motion.div>
   );
@@ -84,8 +87,6 @@ export function PerformancePanel({ model }: PerformancePanelProps) {
   const theme = getProviderTheme(model.id);
   const accent = theme?.accent || "#818cf8";
 
-  // Derive two tones from the accent
-  const primaryColor = accent;
   const secondaryColor = shiftHue(accent, 30);
 
   return (
@@ -98,44 +99,42 @@ export function PerformancePanel({ model }: PerformancePanelProps) {
       id="performance"
     >
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: primaryColor }}>
+        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
           02
         </span>
         <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
           Performance
         </h2>
-        <span className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}12` }} />
+        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
       </div>
 
       <div
         className="rounded-2xl border p-6 relative overflow-hidden"
-        style={{ borderColor: `${primaryColor}12`, backgroundColor: `${primaryColor}04` }}
+        style={{ borderColor: `${accent}12`, backgroundColor: `${accent}04` }}
       >
         {/* Top highlight line */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{
-            background: `linear-gradient(90deg, ${primaryColor}30, transparent)`,
-          }}
+          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
         />
         {/* Corner accent badge */}
         <div
-          className="absolute top-3 right-3 px-2 py-1 rounded-lg text-[8px] font-mono font-bold uppercase tracking-wider"
+          className="absolute top-3 right-3 px-2 py-1 rounded-md text-[8px] font-mono font-bold uppercase tracking-wider"
           style={{
-            backgroundColor: `${primaryColor}10`,
-            color: primaryColor,
+            backgroundColor: `${accent}10`,
+            color: accent,
           }}
         >
           Tokens
         </div>
 
-        <div className="space-y-6 mt-2">
+        <div className="space-y-7 mt-2">
           <MetricCard
             label="Context Window"
             value={formatContextLabel(model.context_length)}
             sub="tokens"
             percentage={contextPct}
-            color={primaryColor}
+            color={accent}
             delay={0.1}
           />
           <MetricCard
@@ -149,7 +148,10 @@ export function PerformancePanel({ model }: PerformancePanelProps) {
         </div>
 
         {model.top_provider?.is_moderated && (
-          <div className="flex items-center gap-2 mt-6 pt-4" style={{ borderTopColor: `${primaryColor}08`, borderTopWidth: 1 }}>
+          <div
+            className="flex items-center gap-2 mt-6 pt-4"
+            style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}
+          >
             <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             <span className="text-[11px] font-mono text-gray-400">Content moderation enabled</span>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { getProviderTheme } from "@/lib/model-utils";
 import { SlidersHorizontal } from "lucide-react";
 
@@ -28,8 +28,11 @@ interface ParametersPanelProps {
   modelId?: string
 }
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
 export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
   const [hovered, setHovered] = useState<string | null>(null);
+  const prefersReduced = useReducedMotion();
   const theme = modelId ? getProviderTheme(modelId) : null;
   const accent = theme?.accent || "#6366f1";
 
@@ -37,10 +40,10 @@ export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 16 }}
+      initial={prefersReduced ? undefined : { opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease }}
       aria-label="Supported parameters"
       id="parameters"
     >
@@ -68,17 +71,21 @@ export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
           <span className="text-[10px] font-mono text-gray-600">{params.length} supported</span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Supported parameters">
           {params.map((param) => (
             <button
               key={param}
               onMouseEnter={() => setHovered(param)}
               onMouseLeave={() => setHovered(null)}
-              className="px-2.5 py-1.5 rounded-lg border font-mono text-[11px] font-medium transition-all duration-150 cursor-default"
+              onFocus={() => setHovered(param)}
+              onBlur={() => setHovered(null)}
+              className="px-2.5 py-1.5 rounded-lg border font-mono text-[11px] font-medium transition-all duration-150 cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-black"
               style={{
                 backgroundColor: hovered === param ? `${accent}10` : `${accent}06`,
                 borderColor: hovered === param ? `${accent}20` : `${accent}0a`,
                 color: hovered === param ? "#fff" : `${accent}aa`,
+                // @ts-expect-error CSS custom property
+                "--tw-ring-color": `${accent}40`,
               }}
             >
               {param.replace(/_/g, " ")}
@@ -90,7 +97,7 @@ export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
           {hovered && paramDescriptions[hovered] && (
             <motion.div
               key={hovered}
-              initial={{ opacity: 0, y: 4 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.15 }}

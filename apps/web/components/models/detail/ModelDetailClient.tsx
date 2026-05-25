@@ -111,31 +111,42 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
         <div className="min-h-screen bg-[#000000] text-white relative">
             <AmbientBackground accentColor={theme.accent} />
 
-            {/* Floating top bar — appears on scroll */}
+            {/* Floating top bar — appears on scroll, accent-aware */}
             <motion.header
                 initial={false}
                 animate={{ y: scrolledPast ? 0 : -80, opacity: scrolledPast ? 1 : 0 }}
                 transition={{ duration: 0.3, ease: containerEase }}
-                className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/80 border-b border-white/[0.04]"
-                style={{ pointerEvents: scrolledPast ? "auto" : "none" }}
+                className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-black/85"
+                style={{
+                    pointerEvents: scrolledPast ? "auto" : "none",
+                    borderBottom: `1px solid ${theme.accent}12`,
+                }}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
-                    <span className="text-[11px] font-mono tracking-wider text-gray-400 truncate">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-11">
+                    <span className="text-[11px] font-mono tracking-wider text-gray-500 truncate">
                         {model.id}
                     </span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5">
                         {sections.map((s) => (
                             <button
                                 key={s.id}
                                 onClick={() => scrollTo(s.id)}
                                 className={cn(
-                                    "text-[9px] font-mono tracking-[0.15em] uppercase px-2 py-1 rounded transition-all duration-200",
+                                    "relative text-[9px] font-mono tracking-[0.15em] uppercase px-2.5 py-1.5 rounded-md transition-all duration-200 cursor-pointer",
                                     activeSection === s.id
                                         ? "text-white"
                                         : "text-gray-600 hover:text-gray-400"
                                 )}
                             >
-                                {s.label}
+                                {activeSection === s.id && (
+                                    <motion.div
+                                        layoutId="floating-active"
+                                        className="absolute inset-0 rounded-md"
+                                        style={{ backgroundColor: `${theme.accent}10` }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{s.label}</span>
                             </button>
                         ))}
                     </div>
@@ -144,37 +155,43 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
 
             {/* Right-rail section navigator */}
             <nav
-                className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-end gap-5"
+                className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-end gap-4"
                 aria-label="Section navigation"
             >
-                {sections.map((s) => (
-                    <button
-                        key={s.id}
-                        onClick={() => scrollTo(s.id)}
-                        className="group flex items-center gap-3"
-                        aria-label={`Scroll to ${s.label}`}
-                    >
-                        <span
-                            className={cn(
-                                "text-[9px] font-mono tracking-[0.2em] uppercase transition-all duration-300",
-                                activeSection === s.id
-                                    ? "text-white"
-                                    : "text-gray-700 opacity-0 group-hover:opacity-100"
-                            )}
+                {sections.map((s) => {
+                    const isActive = activeSection === s.id;
+                    return (
+                        <button
+                            key={s.id}
+                            onClick={() => scrollTo(s.id)}
+                            className="group flex items-center gap-3 cursor-pointer"
+                            aria-label={`Scroll to ${s.label}`}
+                            aria-current={isActive ? "true" : undefined}
                         >
-                            {s.label}
-                        </span>
-                        <div
-                            className={cn(
-                                "h-px transition-all duration-500",
-                                activeSection === s.id ? "w-8" : "w-4"
-                            )}
-                            style={{
-                                backgroundColor: activeSection === s.id ? theme.accent : "rgba(255,255,255,0.08)",
-                            }}
-                        />
-                    </button>
-                ))}
+                            <motion.span
+                                initial={false}
+                                animate={{
+                                    opacity: isActive ? 1 : 0,
+                                    x: isActive ? 0 : 4,
+                                }}
+                                transition={{ duration: 0.25 }}
+                                className="text-[9px] font-mono tracking-[0.2em] uppercase group-hover:!opacity-100 transition-opacity duration-200"
+                                style={{ color: isActive ? theme.accent : "rgba(255,255,255,0.25)" }}
+                            >
+                                {s.label}
+                            </motion.span>
+                            <motion.div
+                                className="h-px"
+                                initial={false}
+                                animate={{
+                                    width: isActive ? 32 : 16,
+                                    backgroundColor: isActive ? theme.accent : "rgba(255,255,255,0.06)",
+                                }}
+                                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                            />
+                        </button>
+                    );
+                })}
             </nav>
 
             {/* Main content */}
@@ -206,7 +223,11 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
                                                 background: `linear-gradient(90deg, ${theme.accent}30, transparent)`,
                                             }}
                                         />
-                                        <p className="text-[15px] sm:text-base leading-[1.85] text-gray-300 font-[425]">
+                                        <div
+                                            className="absolute left-0 top-6 bottom-6 w-[2px] rounded-full"
+                                            style={{ backgroundColor: `${theme.accent}20` }}
+                                        />
+                                        <p className="text-[15px] sm:text-base leading-[1.85] text-gray-300 font-[425] pl-4">
                                             {model.description}
                                         </p>
                                     </div>

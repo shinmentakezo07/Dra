@@ -15,6 +15,9 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Respect reduced motion — show static glow only
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     let animId: number;
     let particles: { x: number; y: number; vx: number; vy: number; r: number; alpha: number }[] = [];
 
@@ -25,53 +28,78 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
     resize();
     window.addEventListener("resize", resize);
 
-    // Generate floating particles
-    const count = Math.min(Math.floor((canvas.width * canvas.height) / 30000), 60);
+    // Parse accent into RGB
+    let ar = 99, ag = 102, ab = 241;
+    const hex = accentColor.replace("#", "");
+    if (hex.length === 6) {
+      ar = parseInt(hex.slice(0, 2), 16);
+      ag = parseInt(hex.slice(2, 4), 16);
+      ab = parseInt(hex.slice(4, 6), 16);
+    }
+
+    const drawStatic = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Single centered glow
+      const g = ctx.createRadialGradient(
+        canvas.width * 0.5, canvas.height * 0.35, 0,
+        canvas.width * 0.5, canvas.height * 0.35, Math.max(canvas.width, canvas.height) * 0.6
+      );
+      g.addColorStop(0, `rgba(${ar},${ag},${ab},0.04)`);
+      g.addColorStop(0.4, `rgba(${ar},${ag},${ab},0.02)`);
+      g.addColorStop(1, "transparent");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
+
+    if (prefersReduced) {
+      drawStatic();
+      window.addEventListener("resize", drawStatic);
+      return () => {
+        cancelAnimationFrame(animId);
+        window.removeEventListener("resize", resize);
+        window.removeEventListener("resize", drawStatic);
+      };
+    }
+
+    // Animated mode — fewer particles on mobile
+    const count = Math.min(Math.floor((canvas.width * canvas.height) / 40000), 45);
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
       r: Math.random() * 1.5 + 0.5,
-      alpha: Math.random() * 0.3 + 0.1,
+      alpha: Math.random() * 0.25 + 0.08,
     }));
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Parse accent into RGB for glow
-      let r = 99, g = 102, b = 241;
-      const hex = accentColor.replace("#", "");
-      if (hex.length === 6) {
-        r = parseInt(hex.slice(0, 2), 16);
-        g = parseInt(hex.slice(2, 4), 16);
-        b = parseInt(hex.slice(4, 6), 16);
-      }
-
-      // Glow orb 1 — top right
+      // Glow orb — top right (asymmetric)
       const g1 = ctx.createRadialGradient(
-        canvas.width * 0.75, canvas.height * 0.2, 0,
-        canvas.width * 0.75, canvas.height * 0.2, 500
+        canvas.width * 0.72, canvas.height * 0.18, 0,
+        canvas.width * 0.72, canvas.height * 0.18, 500
       );
-      g1.addColorStop(0, `rgba(${r},${g},${b},0.06)`);
-      g1.addColorStop(0.5, `rgba(${r},${g},${b},0.03)`);
+      g1.addColorStop(0, `rgba(${ar},${ag},${ab},0.055)`);
+      g1.addColorStop(0.5, `rgba(${ar},${ag},${ab},0.025)`);
       g1.addColorStop(1, "transparent");
       ctx.fillStyle = g1;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Glow orb 2 — bottom left
+      // Glow orb — bottom left (cross-axis)
       const g2 = ctx.createRadialGradient(
-        canvas.width * 0.25, canvas.height * 0.8, 0,
-        canvas.width * 0.25, canvas.height * 0.8, 400
+        canvas.width * 0.28, canvas.height * 0.82, 0,
+        canvas.width * 0.28, canvas.height * 0.82, 400
       );
-      g2.addColorStop(0, `rgba(${g},${b},${r},0.05)`);
-      g2.addColorStop(0.5, `rgba(${g},${b},${r},0.02)`);
+      g2.addColorStop(0, `rgba(${ag},${ab},${ar},0.04)`);
+      g2.addColorStop(0.5, `rgba(${ag},${ab},${ar},0.015)`);
       g2.addColorStop(1, "transparent");
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Particles
-      particles.forEach((p) => {
+      for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0) p.x = canvas.width;
@@ -81,9 +109,9 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${r},${g},${b},${p.alpha})`;
+        ctx.fillStyle = `rgba(${ar},${ag},${ab},${p.alpha})`;
         ctx.fill();
-      });
+      }
 
       animId = requestAnimationFrame(draw);
     };
@@ -97,16 +125,9 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none bg-[#000000]" aria-hidden="true">
-      {/* Canvas particles */}
       <canvas ref={canvasRef} className="absolute inset-0" aria-hidden="true" />
-
-      {/* Grid overlay */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" aria-hidden="true" />
-
-      {/* Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#000_85%)]" aria-hidden="true" />
-
-      {/* Noise texture */}
       <div
         className="absolute inset-0 opacity-[0.015]"
         style={{
