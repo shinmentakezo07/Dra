@@ -115,3 +115,57 @@ func (r *AdminUserRepo) SearchByEmail(ctx context.Context, email string) (*domai
 	}
 	return &u, nil
 }
+
+// ListAdminUsers returns all active admin users.
+func (r *AdminUserRepo) ListAdminUsers(ctx context.Context) ([]domain.AdminUser, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT au.user_id, au.role, au.permissions, COALESCE(au.is_active, true),
+		       COALESCE(au.created_by::text, ''), au.created_at, COALESCE(au.updated_at, au.created_at)
+		FROM admin_users au
+		JOIN users u ON u.id = au.user_id
+		WHERE au.is_active = true
+		ORDER BY au.created_at`)
+	if err != nil {
+		return nil, fmt.Errorf("list admin users: %w", err)
+	}
+	defer rows.Close()
+
+	var admins []domain.AdminUser
+	for rows.Next() {
+		var a domain.AdminUser
+		if err := rows.Scan(&a.UserID, &a.Role, &a.Permissions, &a.IsActive,
+			&a.CreatedBy, &a.CreatedAt, &a.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("scan admin user: %w", err)
+		}
+		admins = append(admins, a)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate admin users: %w", err)
+	}
+	return admins, nil
+}
+
+// CreateAdminUser creates or reactivates an admin user.
+func (r *AdminUserRepo) CreateAdminUser(ctx context.Context, userID, role, createdBy string) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO admin_users (user_id, role, permissions, is_active, created_by)
+		VALUES ($1, $2, '{}', true, $3)
+		ON CONFLICT (user_id) DO UPDATE SET role = $2, is_active = true`,
+		userID, role, createdBy)
+	if err != nil {
+		return fmt.Errorf("create admin user: %w", err)
+	}
+	return nil
+}
+
+// RemoveAdmin deactivates an admin user.
+func (r *AdminUserRepo) RemoveAdmin(ctx context.Context, userID string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM admin_users WHERE user_id = $1`, userID)
+	if err != nil {
+		return fmt.Errorf("remove admin: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("admin user not found: %s", userID)
+	}
+	return nil
+}

@@ -142,6 +142,21 @@ func (s *AdminService) DeleteUser(ctx context.Context, userID string) error {
 	return s.userRepo.SoftDelete(ctx, userID)
 }
 
+// ListAdminUsers returns all active admin users.
+func (s *AdminService) ListAdminUsers(ctx context.Context) ([]domain.AdminUser, error) {
+	return s.userRepo.ListAdminUsers(ctx)
+}
+
+// CreateAdminUser creates or reactivates an admin user.
+func (s *AdminService) CreateAdminUser(ctx context.Context, userID, role string) error {
+	return s.userRepo.CreateAdminUser(ctx, userID, role, "")
+}
+
+// RemoveAdmin deactivates an admin user.
+func (s *AdminService) RemoveAdmin(ctx context.Context, userID string) error {
+	return s.userRepo.RemoveAdmin(ctx, userID)
+}
+
 // ─── Providers ───
 
 func (s *AdminService) ListProviders(ctx context.Context) ([]domain.Provider, error) {
@@ -599,6 +614,11 @@ func (s *AdminService) ListPromoCodes(ctx context.Context) ([]domain.PromoCode, 
 
 func (s *AdminService) CreatePromoCode(ctx context.Context, p *domain.PromoCode) error {
 	return s.featuresRepo.CreatePromoCode(ctx, p)
+}
+
+// TogglePromoStatus updates the active status of a promo code.
+func (s *AdminService) TogglePromoStatus(ctx context.Context, id string, isActive bool) error {
+	return s.featuresRepo.TogglePromoStatus(ctx, id, isActive)
 }
 
 func (s *AdminService) GetPromoRedemptions(ctx context.Context, promoID string) ([]domain.PromoRedemption, error) {

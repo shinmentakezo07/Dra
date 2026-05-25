@@ -59,6 +59,18 @@ func (r *AdminFeaturesRepo) ListPromoCodes(ctx context.Context) ([]domain.PromoC
 	return promos, nil
 }
 
+// TogglePromoStatus updates the active status of a promo code.
+func (r *AdminFeaturesRepo) TogglePromoStatus(ctx context.Context, id string, isActive bool) error {
+	tag, err := r.db.Exec(ctx, `UPDATE promo_codes SET is_active = $2 WHERE id = $1`, id, isActive)
+	if err != nil {
+		return fmt.Errorf("toggle promo status: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("promo code not found: %s", id)
+	}
+	return nil
+}
+
 func (r *AdminFeaturesRepo) GetPromoRedemptions(ctx context.Context, promoID string) ([]domain.PromoRedemption, error) {
 	rows, err := r.db.Query(ctx, `SELECT id,promo_id,user_id,discount,credits_awarded,redeemed_at FROM promo_redemptions WHERE promo_id=$1 ORDER BY redeemed_at DESC`, promoID)
 	if err != nil { return nil, fmt.Errorf("list redemptions: %w", err) }

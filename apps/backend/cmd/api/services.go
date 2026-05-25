@@ -14,6 +14,7 @@ import (
 	"dra-platform/backend/pkg/llm/cache"
 	"dra-platform/backend/pkg/llm/circuitbreaker"
 	"dra-platform/backend/pkg/llm/guardrails"
+	"dra-platform/backend/pkg/llm/embeddings"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
 	"dra-platform/backend/pkg/llm/router"
 	"dra-platform/backend/pkg/llm/watcher"
@@ -90,6 +91,9 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 		logger.Info("email_sender_noop")
 	}
 
+	// Embedding registry
+	embeddingRegistry := initEmbeddingRegistry(cfg)
+
 	// Core services
 	userSvc := service.NewUserService(userRepo, cfg.AuthSecret)
 	keySvc := service.NewAPIKeyService(keyRepo)
@@ -123,6 +127,7 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 	h.SetLLMCache(llmCache)
 	h.SetAdminService(adminSvc)
 	h.SetAdminSessionRepo(adminSessionRepo)
+	h.SetEmbeddingRegistry(embeddingRegistry)
 
 	// Fine-tuning
 	fineTuningSvc := service.NewFineTuningService(repository.NewFineTuningRepo(database))
@@ -342,4 +347,21 @@ func initAdminServices(ctx context.Context, database *db.DB, repoCache repositor
 
 	adminSessionRepo := repository.NewAdminSessionRepo(database)
 	return adminSvc, adminSessionRepo
+}
+
+func initEmbeddingRegistry(cfg *config.Config) *embeddings.Registry {
+	registry := embeddings.NewRegistry()
+
+	// Register OpenAI embedding provider
+	if cfg.OpenAIAPIKey != "" {
+		registry.Register(embeddings.NewOpenAIProvider(cfg.OpenAIAPIKey))
+		logger.Info("embedding_provider_registered", "provider", "openai")
+	}
+
+	// Log warning if no embedding providers are configured
+	if _, ok := registry.Get("openai"); !ok {
+		logger.Warn("no_embedding_providers_configured")
+	}
+
+	return registry
 }

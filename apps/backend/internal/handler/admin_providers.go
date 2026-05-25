@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -36,7 +37,7 @@ var validProviderStatuses = map[domain.ProviderStatus]bool{
 func (h *Handler) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	providers, err := h.adminSvc.ListProviders(r.Context())
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_list_providers_failed")
 		return
 	}
 	response.OK(w, providers)
@@ -45,7 +46,7 @@ func (h *Handler) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdminGetProvider(w http.ResponseWriter, r *http.Request) {
 	p, err := h.adminSvc.GetProvider(r.Context(), chi.URLParam(r, "id"))
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_get_provider_failed")
 		return
 	}
 	if p == nil {
@@ -107,7 +108,7 @@ func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.adminSvc.CreateProviderFull(r.Context(), &req.Provider, req.APIKey, req.Models); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_create_provider_failed")
 		return
 	}
 	response.OK(w, req.Provider)
@@ -131,7 +132,7 @@ func (h *Handler) AdminUpdateProvider(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.adminSvc.UpdateProvider(r.Context(), &p); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_update_provider_failed")
 		return
 	}
 	response.OK(w, map[string]string{"status": "updated"})
@@ -153,7 +154,7 @@ func (h *Handler) AdminUpdateProviderStatus(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if err := h.adminSvc.ToggleProviderStatus(r.Context(), id, status); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_update_provider_status_failed")
 		return
 	}
 	response.OK(w, map[string]string{"status": "updated"})
@@ -162,7 +163,7 @@ func (h *Handler) AdminUpdateProviderStatus(w http.ResponseWriter, r *http.Reque
 func (h *Handler) AdminListProviderKeys(w http.ResponseWriter, r *http.Request) {
 	keys, err := h.adminSvc.ListProviderKeys(r.Context(), chi.URLParam(r, "id"))
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_list_provider_keys_failed")
 		return
 	}
 	response.OK(w, keys)
@@ -188,7 +189,7 @@ func (h *Handler) AdminAddProviderKey(w http.ResponseWriter, r *http.Request) {
 	}
 	req.ProviderKey.ProviderID = chi.URLParam(r, "id")
 	if err := h.adminSvc.AddProviderKeyRaw(r.Context(), &req.ProviderKey, req.RawKey); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_add_provider_key_failed")
 		return
 	}
 	response.OK(w, req.ProviderKey)
@@ -200,7 +201,7 @@ func (h *Handler) AdminDeleteProviderKey(w http.ResponseWriter, r *http.Request)
 	providerID := chi.URLParam(r, "id")
 	keyID := chi.URLParam(r, "keyId")
 	if err := h.adminSvc.DeleteProviderKey(r.Context(), providerID, keyID); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_delete_provider_key_failed")
 		return
 	}
 	response.OK(w, map[string]string{"status": "deleted"})
@@ -209,7 +210,7 @@ func (h *Handler) AdminDeleteProviderKey(w http.ResponseWriter, r *http.Request)
 func (h *Handler) AdminDeleteProvider(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if err := h.adminSvc.DeleteProvider(r.Context(), id); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_delete_provider_failed")
 		return
 	}
 	response.OK(w, map[string]string{"status": "deleted"})
@@ -224,7 +225,7 @@ func (h *Handler) AdminReorderProviderKeys(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if err := h.adminSvc.ReorderProviderKeys(r.Context(), chi.URLParam(r, "id"), req.KeyIDs); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_reorder_provider_keys_failed")
 		return
 	}
 	response.OK(w, map[string]string{"status": "reordered"})
@@ -253,6 +254,10 @@ func (h *Handler) AdminFetchModels(w http.ResponseWriter, r *http.Request) {
 	}
 	if !isValidHTTPURL(req.BaseURL) {
 		response.Error(w, 400, "baseUrl must be a valid http or https URL")
+		return
+	}
+	if err := validateNotPrivateURL(req.BaseURL); err != nil {
+		response.Error(w, 400, "baseUrl must not point to a private or reserved IP address")
 		return
 	}
 
@@ -329,4 +334,41 @@ func isValidHTTPURL(rawURL string) bool {
 		return false
 	}
 	return u.Scheme == "http" || u.Scheme == "https"
+}
+
+// skipSSRFCheck is a test-only flag to bypass SSRF validation.
+// Set via testing.T.Setenv or similar in tests.
+var skipSSRFCheck bool
+
+// SetSkipSSRFCheck sets the SSRF check bypass flag (for testing only).
+func SetSkipSSRFCheck(skip bool) {
+	skipSSRFCheck = skip
+}
+
+// validateNotPrivateURL blocks requests to private, loopback, and link-local IPs to prevent SSRF.
+func validateNotPrivateURL(rawURL string) error {
+	if skipSSRFCheck {
+		return nil
+	}
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL")
+	}
+	host := u.Hostname()
+	if host == "" {
+		return fmt.Errorf("missing hostname")
+	}
+	// Resolve hostname to IP — this catches DNS rebinding attempts too
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		// If we can't resolve, let the request proceed (it'll fail at connection time)
+		return nil
+	}
+	for _, ip := range ips {
+		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+			return fmt.Errorf("URL resolves to private/reserved IP %s", ip)
+		}
+	}
+	return nil
 }

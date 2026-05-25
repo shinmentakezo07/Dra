@@ -23,7 +23,7 @@ func (h *Handler) AdminRevenueSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	data, err := h.adminSvc.RevenueSummary(r.Context(), from, to)
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_revenue_summary_failed")
 		return
 	}
 	response.OK(w, data)
@@ -39,7 +39,7 @@ func (h *Handler) AdminListTransactions(w http.ResponseWriter, r *http.Request) 
 	}
 	records, total, err := h.adminSvc.ListUsageRecords(r.Context(), filter)
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_list_transactions_failed")
 		return
 	}
 	response.Paginated(w, records, total, page, limit)
@@ -62,14 +62,14 @@ func (h *Handler) AdminAdjustCredits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	adj := &domain.CreditAdjustment{
-		UserID:    req.UserID,
-		Amount:    req.Amount,
-		Reason:    req.Reason,
-		AdminID:   u.ID,
+		UserID:      req.UserID,
+		Amount:      req.Amount,
+		Reason:      req.Reason,
+		AdminID:     u.ID,
 		ReferenceID: req.ReferenceID,
 	}
 	if err := h.adminSvc.AdjustCredits(r.Context(), adj); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_adjust_credits_failed")
 		return
 	}
 	response.OK(w, adj)
@@ -83,7 +83,7 @@ func (h *Handler) AdminListAdjustments(w http.ResponseWriter, r *http.Request) {
 	page, limit := parsePagination(r)
 	adjustments, total, err := h.adminSvc.ListAdjustments(r.Context(), userID, page, limit)
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_list_adjustments_failed")
 		return
 	}
 	response.Paginated(w, adjustments, total, page, limit)
@@ -100,7 +100,7 @@ func (h *Handler) AdminUsageDaily(w http.ResponseWriter, r *http.Request) {
 	}
 	data, err := h.adminSvc.UsageDaily(r.Context(), from, to, r.URL.Query().Get("groupBy"))
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_usage_daily_failed")
 		return
 	}
 	response.OK(w, data)

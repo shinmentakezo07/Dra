@@ -22,13 +22,8 @@ func (h *Handler) AdminTogglePromoStatus(w http.ResponseWriter, r *http.Request)
 		response.Error(w, 400, "Invalid body")
 		return
 	}
-	tag, err := h.db.Exec(r.Context(), `UPDATE promo_codes SET is_active=$2 WHERE id=$1`, id, req.IsActive)
-	if err != nil {
-		response.Error(w, 500, err.Error())
-		return
-	}
-	if tag.RowsAffected() == 0 {
-		response.Error(w, 404, "Promo not found")
+	if err := h.adminSvc.TogglePromoStatus(r.Context(), id, req.IsActive); err != nil {
+		adminError(w, r, err, "admin_toggle_promo_status_failed")
 		return
 	}
 	response.OK(w, map[string]bool{"isActive": req.IsActive})
@@ -78,17 +73,17 @@ func (h *Handler) AdminCreatePromoCodeWithRandom(w http.ResponseWriter, r *http.
 		}
 	}
 	p := domain.PromoCode{
-		ID:       uuid.New().String(),
-		Code:     code,
-		Type:     req.Type,
-		Value:    req.Value,
-		MaxUses:  req.MaxUses,
+		ID:        uuid.New().String(),
+		Code:      code,
+		Type:      req.Type,
+		Value:     req.Value,
+		MaxUses:   req.MaxUses,
 		ExpiresAt: expiresAt,
-		IsActive: true,
+		IsActive:  true,
 		CreatedBy: u.ID,
 	}
 	if err := h.adminSvc.CreatePromoCode(r.Context(), &p); err != nil {
-		response.Error(w, 500, err.Error())
+		adminError(w, r, err, "admin_create_promo_code_with_random_failed")
 		return
 	}
 	response.OK(w, p)
@@ -113,7 +108,8 @@ func (h *Handler) RedeemPromoCode(w http.ResponseWriter, r *http.Request) {
 	}
 	redemption, credits, err := h.adminSvc.RedeemPromoCode(r.Context(), req.Code, u.ID)
 	if err != nil {
-		response.Error(w, 400, err.Error())
+		// For user-facing promo redemption, show a safe error
+		response.Error(w, 400, "Invalid or expired promo code")
 		return
 	}
 	response.OK(w, map[string]interface{}{

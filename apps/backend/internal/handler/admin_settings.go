@@ -12,7 +12,10 @@ import (
 
 func (h *Handler) AdminListSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := h.adminSvc.ListSettings(r.Context(), r.URL.Query().Get("group"))
-	if err != nil { response.Error(w, 500, err.Error()); return }
+	if err != nil {
+		adminError(w, r, err, "admin_list_settings_failed")
+		return
+	}
 	response.OK(w, settings)
 }
 
@@ -24,7 +27,10 @@ func (h *Handler) AdminUpdateSetting(w http.ResponseWriter, r *http.Request) {
 		GroupName   string          `json:"groupName"`
 		IsEncrypted bool            `json:"isEncrypted"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid body"); return }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
 	setting := domain.SystemSetting{
 		Key:         chi.URLParam(r, "key"),
 		Value:       req.Value,
@@ -33,13 +39,19 @@ func (h *Handler) AdminUpdateSetting(w http.ResponseWriter, r *http.Request) {
 		GroupName:   req.GroupName,
 		IsEncrypted: req.IsEncrypted,
 	}
-	if err := h.adminSvc.UpdateSetting(r.Context(), &setting); err != nil { response.Error(w, 500, err.Error()); return }
+	if err := h.adminSvc.UpdateSetting(r.Context(), &setting); err != nil {
+		adminError(w, r, err, "admin_update_setting_failed")
+		return
+	}
 	response.OK(w, setting)
 }
 
 func (h *Handler) AdminListFeatureFlags(w http.ResponseWriter, r *http.Request) {
 	flags, err := h.adminSvc.ListFeatureFlags(r.Context())
-	if err != nil { response.Error(w, 500, err.Error()); return }
+	if err != nil {
+		adminError(w, r, err, "admin_list_feature_flags_failed")
+		return
+	}
 	response.OK(w, flags)
 }
 
@@ -50,7 +62,10 @@ func (h *Handler) AdminCreateFeatureFlag(w http.ResponseWriter, r *http.Request)
 		Description string `json:"description"`
 		Enabled     bool   `json:"enabled"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid body"); return }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
 	f := domain.FeatureFlag{
 		ID:          uuid.New().String(),
 		Key:         req.Key,
@@ -58,7 +73,10 @@ func (h *Handler) AdminCreateFeatureFlag(w http.ResponseWriter, r *http.Request)
 		Description: req.Description,
 		Enabled:     req.Enabled,
 	}
-	if err := h.adminSvc.CreateFeatureFlag(r.Context(), &f); err != nil { response.Error(w, 500, err.Error()); return }
+	if err := h.adminSvc.CreateFeatureFlag(r.Context(), &f); err != nil {
+		adminError(w, r, err, "admin_create_feature_flag_failed")
+		return
+	}
 	response.OK(w, f)
 }
 
@@ -67,7 +85,13 @@ func (h *Handler) AdminToggleFeatureFlag(w http.ResponseWriter, r *http.Request)
 	var req struct {
 		Enabled bool `json:"enabled"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { response.Error(w, 400, "Invalid body"); return }
-	if err := h.adminSvc.ToggleFeatureFlag(r.Context(), id, req.Enabled); err != nil { response.Error(w, 500, err.Error()); return }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, 400, "Invalid body")
+		return
+	}
+	if err := h.adminSvc.ToggleFeatureFlag(r.Context(), id, req.Enabled); err != nil {
+		adminError(w, r, err, "admin_toggle_feature_flag_failed")
+		return
+	}
 	response.OK(w, map[string]string{"status": "updated"})
 }

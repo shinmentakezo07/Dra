@@ -15,7 +15,7 @@ type embeddingRequest struct {
 	Input []string `json:"input"`
 }
 
-// Embed handles embedding requests.
+// Embed handles embedding requests with provider routing.
 func (h *Handler) Embed(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
 	if u == nil {
@@ -37,14 +37,21 @@ func (h *Handler) Embed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use OpenAI embeddings by default
-	provider := embeddings.NewOpenAIProvider(h.cfg.OpenAIAPIKey)
-	resp, err := provider.Embed(r.Context(), &embeddings.EmbeddingRequest{
+	// Use embedding registry for provider routing
+	if h.embeddingRegistry == nil {
+		response.Error(w, 503, "Embedding service not configured")
+		return
+	}
+
+	embedReq := &embeddings.EmbeddingRequest{
 		Model: req.Model,
 		Input: req.Input,
-	})
+	}
+
+	resp, err := h.embeddingRegistry.RouteRequest(r.Context(), embedReq)
 	if err != nil {
 		logger.Error("embedding_failed", "error", err.Error(), "user_id", u.ID, "model", req.Model)
+		// Return safe error message without leaking internal details
 		response.Error(w, 502, "Embedding provider unavailable")
 		return
 	}

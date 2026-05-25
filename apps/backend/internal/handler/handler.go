@@ -19,6 +19,7 @@ import (
 	"dra-platform/backend/internal/service"
 	"dra-platform/backend/pkg/llm"
 	"dra-platform/backend/pkg/llm/cache"
+	"dra-platform/backend/pkg/llm/embeddings"
 	"dra-platform/backend/pkg/llm/moderation"
 	"dra-platform/backend/pkg/llm/router"
 	"dra-platform/backend/pkg/webhook"
@@ -62,6 +63,7 @@ type Handler struct {
 	abRouter        *router.ABRouter
 	emailSender     email.Sender
 	stripeSvc       *service.StripeService
+	embeddingRegistry *embeddings.Registry
 }
 
 func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService, p *service.ProviderService, w *service.WebhookService, b *service.BatchService, o *service.OrganizationService) *Handler {
@@ -94,6 +96,7 @@ func (h *Handler) SetAdminService(s *service.AdminService)   { h.adminSvc = s }
 func (h *Handler) SetAdminSessionRepo(r *repository.AdminSessionRepo) { h.adminSessionRepo = r }
 func (h *Handler) SetEmailSender(s email.Sender)             { h.emailSender = s }
 func (h *Handler) SetStripeService(s *service.StripeService) { h.stripeSvc = s }
+func (h *Handler) SetEmbeddingRegistry(r *embeddings.Registry) { h.embeddingRegistry = r }
 
 func (h *Handler) ChatFnForBatch() func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {
 	return func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {

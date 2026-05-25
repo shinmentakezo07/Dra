@@ -10,6 +10,11 @@ import (
 	"dra-platform/backend/internal/handler"
 )
 
+func init() {
+	// Skip SSRF validation in tests (httptest.NewServer uses localhost)
+	handler.SetSkipSSRFCheck(true)
+}
+
 func TestAdminFetchModels_InvalidBody(t *testing.T) {
 	h := &handler.Handler{}
 
