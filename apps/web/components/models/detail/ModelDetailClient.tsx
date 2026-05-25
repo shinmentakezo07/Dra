@@ -13,7 +13,6 @@ import { ArchitecturePanel } from "./ArchitecturePanel";
 import { PricingPanel } from "./PricingPanel";
 import { ParametersPanel } from "./ParametersPanel";
 import { QuickStartCard } from "./QuickStartCard";
-import { cn } from "@/lib/utils";
 
 interface ModelDetailClientProps {
     model: OpenRouterModelData | null;
@@ -35,15 +34,11 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
     const router = useRouter();
     const prefersReduced = useReducedMotion();
     const [activeSection, setActiveSection] = useState<string>("about");
-    const [scrolledPast, setScrolledPast] = useState(false);
     const theme = model && providerId ? getProviderTheme(model.id) : null;
 
-    // Track scroll position for nav indicator
+    // Track which section is in view
     useEffect(() => {
         const handleScroll = () => {
-            setScrolledPast(window.scrollY > 300);
-
-            // Find which section is in view
             const sectionIds = sections.map((s) => s.id);
             for (let i = sectionIds.length - 1; i >= 0; i--) {
                 const el = document.getElementById(sectionIds[i]);
@@ -110,55 +105,6 @@ export function ModelDetailClient({ model, providerId }: ModelDetailClientProps)
     return (
         <div className="min-h-screen bg-[#000000] text-white relative">
             <AmbientBackground accentColor={theme.accent} />
-
-            {/* Floating section chip — left-aligned, below main header */}
-            <motion.div
-                initial={false}
-                animate={{ x: scrolledPast ? 0 : -20, opacity: scrolledPast ? 1 : 0 }}
-                transition={{ duration: 0.3, ease: containerEase }}
-                className="fixed top-[84px] left-4 z-40 hidden lg:block"
-                style={{ pointerEvents: scrolledPast ? "auto" : "none" }}
-            >
-                <div
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-xl backdrop-blur-2xl bg-black/85 border shadow-lg shadow-black/30"
-                    style={{ borderColor: `${theme.accent}15` }}
-                >
-                    {/* Model ID pill */}
-                    <span
-                        className="text-[10px] font-mono tracking-wider text-gray-500 truncate max-w-[140px] px-2"
-                    >
-                        {model.id}
-                    </span>
-
-                    <div className="w-px h-4 bg-white/[0.06]" />
-
-                    {/* Section buttons */}
-                    <div className="flex items-center gap-0.5">
-                        {sections.map((s) => (
-                            <button
-                                key={s.id}
-                                onClick={() => scrollTo(s.id)}
-                                className={cn(
-                                    "relative text-[8px] font-mono tracking-[0.15em] uppercase px-2 py-1 rounded-lg transition-all duration-200 cursor-pointer",
-                                    activeSection === s.id
-                                        ? "text-white"
-                                        : "text-gray-600 hover:text-gray-400"
-                                )}
-                            >
-                                {activeSection === s.id && (
-                                    <motion.div
-                                        layoutId="floating-active"
-                                        className="absolute inset-0 rounded-lg"
-                                        style={{ backgroundColor: `${theme.accent}12` }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                                    />
-                                )}
-                                <span className="relative z-10">{s.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </motion.div>
 
             {/* Right-rail section navigator */}
             <nav
