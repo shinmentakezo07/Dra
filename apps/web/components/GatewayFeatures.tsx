@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
 import {
   Terminal,
   Activity,
@@ -171,21 +171,45 @@ function StatsBlock() {
 /* ── Pricing Visual ── */
 function PricingBlock() {
   const items = [
-    { model: "GPT-4o", price: "$2.50", per: "1M", color: "text-green-400" },
-    { model: "Claude Opus", price: "$15.00", per: "1M", color: "text-purple-400" },
-    { model: "Gemini Pro", price: "$0.35", per: "1M", color: "text-blue-400" },
-    { model: "Llama 3", price: "$0.20", per: "1M", color: "text-amber-400" },
+    { model: "GPT-4o", price: "2.50", dot: "bg-blue-500" },
+    { model: "Claude Opus", price: "15.00", dot: "bg-purple-500" },
+    { model: "Gemini Pro", price: "0.35", dot: "bg-teal-500" },
+    { model: "Llama 3", price: "0.20", dot: "bg-amber-500" },
   ];
+
   return (
-    <div className="flex flex-wrap gap-2 mt-4">
-      {items.map((m) => (
-        <div key={m.model} className="px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.06] min-w-[110px]">
-          <div className="text-[9px] font-mono tracking-wider text-white/30">{m.model}</div>
-          <div className={`text-sm font-mono font-bold ${m.color}`}>
-            {m.price}<span className="text-[10px] font-normal text-white/30">/{m.per}</span>
-          </div>
-        </div>
-      ))}
+    <div className="mt-6 lg:mt-8 relative">
+      <div className="flex flex-col divide-y divide-white/[0.04]">
+        {items.map((m, i) => (
+          <motion.div
+            key={m.model}
+            initial={{ opacity: 0, x: -10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1, duration: 0.4 }}
+            className="grid grid-cols-[1fr_auto_auto] items-center gap-4 py-3.5 group cursor-default"
+          >
+            <div className="flex items-center gap-3">
+              <span className={`w-1.5 h-1.5 rounded-full ${m.dot} opacity-60 group-hover:opacity-100 transition-opacity`} />
+              <span className="text-sm text-white/50 font-mono tracking-wide group-hover:text-white transition-colors">
+                {m.model}
+              </span>
+            </div>
+
+            <div className="text-right">
+              <span className="text-lg lg:text-xl font-semibold text-white font-mono tracking-tighter group-hover:text-white transition-colors">
+                ${m.price}
+              </span>
+            </div>
+
+            <div className="w-12 text-right">
+              <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">
+                /1M
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -217,8 +241,71 @@ function RoutingTags() {
   );
 }
 
+/* ── Animated Counter Hook ── */
+function useCountUp(end: number, duration: number = 2000, decimals: number = 0) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+    let startTime: number | null = null;
+    let frame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(parseFloat((eased * end).toFixed(decimals)));
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [isInView, end, duration, decimals]);
+
+  return { count, ref };
+}
+
+/* ── Stat Display ── */
+interface StatDisplayConfig {
+  rawValue: number;
+  suffix: string;
+  label: string;
+  gradient: string;
+  decimals: number;
+  customValue?: string;
+}
+
+const STATS_DISPLAY: StatDisplayConfig[] = [
+  { rawValue: 100, suffix: "+", label: "Models", gradient: "from-blue-300 to-cyan-300", decimals: 0 },
+  { rawValue: 50, suffix: "+", label: "Regions", gradient: "from-purple-300 to-pink-300", decimals: 0 },
+  { rawValue: 99.99, suffix: "%", label: "Uptime", gradient: "from-emerald-300 to-teal-300", decimals: 2 },
+  { rawValue: 0, suffix: "", label: "SDK", gradient: "from-amber-300 to-orange-300", decimals: 0, customValue: "OpenAI-compat" },
+];
+
+function StatCounter({ stat }: { stat: (typeof STATS_DISPLAY)[number] }) {
+  const { count, ref } = useCountUp(stat.rawValue, 2400, stat.decimals);
+  return (
+    <div className="flex flex-col items-center">
+      <span
+        ref={ref}
+        className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b ${stat.gradient} font-mono tabular-nums tracking-tight`}
+      >
+        {stat.customValue ?? `${count}${stat.suffix}`}
+      </span>
+      <span className="mt-1.5 text-[10px] font-mono tracking-[0.2em] uppercase text-white/20">
+        {stat.label}
+      </span>
+    </div>
+  );
+}
+
 /* ── Main Card ── */
-function FeatureCard({ feature }: { feature: typeof FEATURES[number] }) {
+function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
   const Icon = feature.icon;
 
   return (
@@ -319,25 +406,29 @@ export function GatewayFeatures() {
           ))}
         </motion.div>
 
-        {/* Bottom stat bar */}
+        {/* Bottom stat strip — numbers only, no containers */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-8 lg:gap-16 px-6 py-5 rounded-2xl bg-white/[0.02] border border-white/[0.04]"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-16 lg:mt-24 relative"
         >
-          {[
-            { value: "100+", label: "Models" },
-            { value: "50+", label: "Regions" },
-            { value: "99.99%", label: "Uptime" },
-            { value: "OpenAI-compat", label: "SDK" },
-          ].map((s) => (
-            <div key={s.label} className="flex items-center gap-3">
-              <span className="text-lg lg:text-xl font-bold text-white font-mono">{s.value}</span>
-              <span className="text-[11px] font-mono tracking-widest uppercase text-white/30">{s.label}</span>
-            </div>
-          ))}
+          {/* Single hairline */}
+          <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+          <div className="pt-10 pb-4 flex items-start justify-between px-2">
+            {STATS_DISPLAY.map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 + i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <StatCounter stat={s} />
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </section>

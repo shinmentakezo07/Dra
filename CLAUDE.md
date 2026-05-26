@@ -6,6 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Yapapa (DRA Platform) is a Universal LLM Gateway: an OpenRouter-style platform that proxies AI requests to OpenAI, Anthropic, Gemini, Groq, NVIDIA NIM, and other model providers. This is a monorepo with a Next.js 16 frontend and a Go 1.25 backend.
 
+## Quick Start
+
+```bash
+npm install
+cp apps/web/.env.local.example apps/web/.env.local
+cp apps/backend/.env.example apps/backend/.env
+bash scripts/dev.sh   # Installs deps, starts Postgres + Redis, pushes schema, seeds, launches both apps
+```
+
+Services: Frontend on `:3000`, Backend on `:8080`, Postgres on `:5432`, Redis on `:6379`.
+
 ## Common commands
 
 ### Root
@@ -81,6 +92,7 @@ docker-compose --profile mongo up -d # Start Postgres + Mongo profile
 - `examples/llmtests/`: LLM test examples.
 - `AGENTS.md`, `apps/web/AGENTS.md`, `apps/backend/AGENTS.md`: Additional repo and app-specific guidance.
 - `ops.md`: Operational debt and known architecture issues (P0–P3 priority tracking, testing gaps, dependency audits). This is the canonical source for "what's broken or missing."
+- `olla.md`: Complete standalone project reference covering architecture, full DB schema, all API endpoints, auth flows, and environment config. Use when you need exhaustive detail beyond this file.
 - `UPDATE.md`: Historical record of completed major refactors and feature wiring (codebase cleanup, SDK verification, test additions).
 
 ### Frontend architecture
