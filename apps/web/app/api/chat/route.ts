@@ -54,8 +54,7 @@ export async function POST(request: Request) {
   // Inject backend Bearer token from NextAuth session if no explicit auth header
   if (!authHeader) {
     try {
-      const session = await auth();
-      const backendToken = session?.user?.backendToken;
+      const backendToken = (session?.user as Record<string, unknown>)?.backendToken as string | undefined;
       if (backendToken) {
         headers.set("Authorization", `Bearer ${backendToken}`);
       }

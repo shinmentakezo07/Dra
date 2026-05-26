@@ -50,14 +50,14 @@ func (s *CreditService) Purchase(ctx context.Context, userID string, req domain.
 	}
 	var result *domain.CreditTransaction
 	err := s.db.WithTx(ctx, func(tx db.Querier) error {
-		if err := s.creditsRepo.Upsert(ctx, userID, req.Amount, req.Amount); err != nil {
+		if err := s.creditsRepo.UpsertTx(ctx, tx, userID, req.Amount, req.Amount); err != nil {
 			return domain.Wrap(domain.ErrInternal, 500, "failed to update credits", err)
 		}
 		desc := req.Description
 		if desc == "" {
 			desc = "Credit purchase"
 		}
-		txn, err := s.txRepo.Create(ctx, userID, req.Amount, "purchase", desc, nil)
+		txn, err := s.txRepo.CreateTx(ctx, tx, userID, req.Amount, "purchase", desc, nil)
 		if err != nil {
 			return domain.Wrap(domain.ErrInternal, 500, "failed to record transaction", err)
 		}

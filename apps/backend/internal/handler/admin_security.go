@@ -39,7 +39,12 @@ func (h *Handler) AdminListSuspicious(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AdminReviewSuspicious(w http.ResponseWriter, r *http.Request) {
-	adminID := middleware.GetUser(r).ID
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Not authenticated")
+		return
+	}
+	adminID := u.ID
 	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	var req struct{ Action string }
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -104,7 +109,12 @@ func (h *Handler) AdminListIPAccessLogs(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) AdminStartImpersonation(w http.ResponseWriter, r *http.Request) {
-	adminID := middleware.GetUser(r).ID
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Not authenticated")
+		return
+	}
+	adminID := u.ID
 	targetUserID := chi.URLParam(r, "id")
 	var req struct{ Reason string }
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

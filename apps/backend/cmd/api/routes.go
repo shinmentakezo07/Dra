@@ -85,16 +85,6 @@ func registerRoutes(
 					if u.Permissions == nil {
 						u.Permissions = []string{}
 					}
-				} else {
-					_, insertErr := database.Exec(ctx,
-						`INSERT INTO admin_users (user_id, role, permissions, is_active, created_by)
-						 VALUES ($1, 'superadmin', ARRAY['*'], true, $1)
-						 ON CONFLICT (user_id) DO NOTHING`,
-						userID)
-					if insertErr == nil {
-						u.Permissions = []string{"*"}
-						logger.Info("auto_provisioned_admin_permissions", "user_id", userID)
-					}
 				}
 			}
 			return u, nil

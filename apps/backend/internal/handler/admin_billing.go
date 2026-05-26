@@ -47,6 +47,10 @@ func (h *Handler) AdminListTransactions(w http.ResponseWriter, r *http.Request) 
 
 func (h *Handler) AdminAdjustCredits(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Not authenticated")
+		return
+	}
 	var req struct {
 		UserID      string `json:"userId"`
 		Amount      int    `json:"amount"`

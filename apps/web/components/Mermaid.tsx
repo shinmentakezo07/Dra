@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
+import DOMPurify from "dompurify";
 
 mermaid.initialize({
   startOnLoad: false,
@@ -11,10 +12,7 @@ mermaid.initialize({
 });
 
 function sanitizeSvg(svg: string): string {
-  let cleaned = svg.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
-  cleaned = cleaned.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, "");
-  cleaned = cleaned.replace(/javascript:/gi, "");
-  return cleaned;
+  return DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true } });
 }
 
 interface MermaidProps {
@@ -33,7 +31,9 @@ export default function Mermaid({ chart }: MermaidProps) {
           const { svg } = await mermaid.render(id, chart);
           setSvg(sanitizeSvg(svg));
         } catch (error) {
-          console.error("Mermaid rendering failed:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Mermaid rendering failed:", error);
+          }
           setSvg(`<div class="text-red-400 text-xs p-2 border border-red-500/20 rounded bg-red-500/10">Failed to render diagram</div>`);
         }
       }

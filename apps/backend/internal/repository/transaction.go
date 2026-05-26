@@ -46,3 +46,16 @@ func (r *TransactionRepo) Create(ctx context.Context, userID string, amount int,
 	}
 	return &t, nil
 }
+
+// CreateTx runs Create within an existing transaction.
+func (r *TransactionRepo) CreateTx(ctx context.Context, tx db.Querier, userID string, amount int, txType, description string, relatedLogID *string) (*domain.CreditTransaction, error) {
+	id := domain.NewID()
+	row := tx.QueryRow(ctx,
+		`INSERT INTO credit_transactions (id, user_id, amount, type, description, related_log_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, amount, type, description, related_log_id, created_at`,
+		id, userID, amount, txType, description, relatedLogID)
+	var t domain.CreditTransaction
+	if err := row.Scan(&t.ID, &t.UserID, &t.Amount, &t.Type, &t.Description, &t.RelatedLogID, &t.CreatedAt); err != nil {
+		return nil, err
+	}
+	return &t, nil
+}

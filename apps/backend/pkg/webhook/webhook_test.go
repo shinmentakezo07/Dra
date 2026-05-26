@@ -4,10 +4,16 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
 )
+
+func TestMain(m *testing.M) {
+	SetSkipWebhookSSRFCheck(true)
+	os.Exit(m.Run())
+}
 
 func TestIsEventAllowed(t *testing.T) {
 	tests := []struct {

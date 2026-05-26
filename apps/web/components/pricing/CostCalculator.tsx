@@ -150,6 +150,7 @@ function AnimatedCost({ value }: { value: number }) {
         const duration = Math.abs(value - prevValue.current) < 0.001 ? 150 : 400;
         const start = prevValue.current;
         const startTime = performance.now();
+        let rafId: number;
 
         const animate = (now: number) => {
             const elapsed = now - startTime;
@@ -157,11 +158,12 @@ function AnimatedCost({ value }: { value: number }) {
             const eased = 1 - Math.pow(1 - progress, 3);
             const current = start + (value - start) * eased;
             setText(formatCurrency(current));
-            if (progress < 1) requestAnimationFrame(animate);
+            if (progress < 1) rafId = requestAnimationFrame(animate);
         };
 
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
         prevValue.current = value;
+        return () => cancelAnimationFrame(rafId);
     }, [value]);
 
     return <span>{text}</span>;

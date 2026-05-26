@@ -138,7 +138,6 @@ func (h *Handler) NotificationsStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	w.WriteHeader(http.StatusOK)
 
 	ch := h.notificationHub.Subscribe(u.ID)
 	if ch == nil {
@@ -146,6 +145,8 @@ func (h *Handler) NotificationsStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer h.notificationHub.Unsubscribe(u.ID, ch)
+
+	w.WriteHeader(http.StatusOK)
 
 	// Send initial connected event
 	fmt.Fprintf(w, "data: %s\n\n", `{"type":"connected"}`)

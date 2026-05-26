@@ -87,7 +87,10 @@ func (r *AdminUserRepo) UpdateUserRole(ctx context.Context, userID, role string)
 
 func (r *AdminUserRepo) SoftDelete(ctx context.Context, userID string) error {
 	_, err := r.db.Exec(ctx, `UPDATE users SET email='deleted-'||id||'@deleted',name='Deleted User',password='',status='deleted',deleted_at=NOW() WHERE id=$1`, userID)
-	return fmt.Errorf("soft delete: %w", err)
+	if err != nil {
+		return fmt.Errorf("soft delete: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminUserRepo) GetAdminUser(ctx context.Context, userID string) (*domain.AdminUser, error) {

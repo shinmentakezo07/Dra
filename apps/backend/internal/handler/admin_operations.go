@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -172,7 +173,11 @@ func (h *Handler) AdminDashboardStats(w http.ResponseWriter, r *http.Request) {
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	yesterday := now.Add(-24 * time.Hour)
 
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users").Scan(&stats.Users.Total)
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users").Scan(&stats.Users.Total); err != nil {
+		logger.Error("admin_stats_users_failed", "error", err.Error())
+		response.Error(w, 500, "Failed to load dashboard stats")
+		return
+	}
 	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE last_login_at >= $1", yesterday).Scan(&stats.Users.ActiveToday)
 	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE created_at >= $1", todayStart).Scan(&stats.Users.NewToday)
 	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE status='suspended'").Scan(&stats.Users.Suspended)

@@ -11,7 +11,9 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"net"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -76,6 +78,11 @@ func (d *Dispatcher) SendWithIdempotency(ctx context.Context, cfg Config, event 
 		URL:    cfg.URL,
 		Event:  event,
 		SentAt: time.Now(),
+	}
+
+	if err := ValidateWebhookURL(cfg.URL); err != nil {
+		delivery.Error = err.Error()
+		return delivery, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.URL, bytes.NewReader(payload))
@@ -185,4 +192,37 @@ func generateID() string {
 	b := make([]byte, 16)
 	_, _ = rand.Read(b)
 	return fmt.Sprintf("wh_%x", b)
+}
+
+// skipWebhookSSRFCheck is a test-only flag to bypass SSRF validation.
+var skipWebhookSSRFCheck bool
+
+// SetSkipWebhookSSRFCheck sets the SSRF check bypass flag (for testing only).
+func SetSkipWebhookSSRFCheck(skip bool) {
+	skipWebhookSSRFCheck = skip
+}
+
+// ValidateWebhookURL checks that a webhook URL does not point to a private/reserved IP to prevent SSRF.
+func ValidateWebhookURL(rawURL string) error {
+	if skipWebhookSSRFCheck {
+		return nil
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid webhook URL")
+	}
+	host := u.Hostname()
+	if host == "" {
+		return fmt.Errorf("webhook URL missing hostname")
+	}
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		return nil
+	}
+	for _, ip := range ips {
+		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+			return fmt.Errorf("webhook URL resolves to private/reserved IP %s", ip)
+		}
+	}
+	return nil
 }

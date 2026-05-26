@@ -38,7 +38,11 @@ func (h *Handler) OpenAIChatCompletions(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	isSandbox := r.Header.Get("X-Sandbox") == "true"
+	isSandbox := false
+	if r.Header.Get("X-Sandbox") == "true" {
+		u := middleware.GetUser(r)
+		isSandbox = u != nil && u.IsAdmin()
+	}
 	span.SetTag("sandbox", fmt.Sprintf("%v", isSandbox))
 
 	var userID string
@@ -212,7 +216,11 @@ func (h *Handler) handleOpenAIStream(w http.ResponseWriter, r *http.Request, req
 	}
 
 FINISH:
-	inputTokens := llm.EstimateTokens(outputBuf.String())
+	// Estimate input tokens from the request messages, not the output buffer
+	inputTokens := 0
+	for _, m := range req.Messages {
+		inputTokens += llm.EstimateTokens(string(m.Role)) + llm.EstimateTokens(m.Content)
+	}
 	if inputTokens == 0 {
 		inputTokens = len(req.Messages) * 50
 	}

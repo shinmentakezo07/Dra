@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"dra-platform/backend/internal/pkg/logger"
@@ -72,6 +73,13 @@ func RedisRateLimit(rl *RedisRateLimiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			key := r.RemoteAddr
+			if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+				if idx := strings.Index(xff, ","); idx > 0 {
+					key = strings.TrimSpace(xff[:idx])
+				} else {
+					key = strings.TrimSpace(xff)
+				}
+			}
 			if u := GetUser(r); u != nil {
 				key = u.ID
 			}

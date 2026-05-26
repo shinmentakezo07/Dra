@@ -85,23 +85,24 @@ func (qt *RedisQuotaTracker) CheckRequest(ctx context.Context, key *ScopedAPIKey
 		}
 	}
 
-	// Monthly token limit using Redis INCRBY with expiry
+	// Monthly token limit using Lua script for atomic check-then-increment
 	if key.MonthlyTokenLimit > 0 {
 		monthlyKey := fmt.Sprintf("%s%s:monthly:%s", qt.prefix, key.Key, now.Format("2006-01"))
-		pipe := qt.client.Pipeline()
-		pipe.IncrBy(timeoutCtx, monthlyKey, int64(estimatedTokens))
-		pipe.Expire(timeoutCtx, monthlyKey, 40*24*time.Hour)
-		results, err := pipe.Exec(timeoutCtx)
+		script := redis.NewScript(`
+			local current = tonumber(redis.call('GET', KEYS[1]) or '0')
+			if current + tonumber(ARGV[1]) > tonumber(ARGV[2]) then
+				return -1
+			end
+			redis.call('INCRBY', KEYS[1], ARGV[1])
+			redis.call('EXPIRE', KEYS[1], ARGV[3])
+			return current + tonumber(ARGV[1])
+		`)
+		result, err := script.Run(timeoutCtx, qt.client, []string{monthlyKey}, estimatedTokens, key.MonthlyTokenLimit, 40*24*3600).Int()
 		if err != nil {
 			logger.Error("redis_quota_monthly_failed", "error", err.Error(), "key", key.Key)
 			// Fail open
-		} else if len(results) > 0 {
-			if countCmd, ok := results[0].(*redis.IntCmd); ok {
-				count := int(countCmd.Val())
-				if count > key.MonthlyTokenLimit {
-					return fmt.Errorf("monthly token limit %d exceeded", key.MonthlyTokenLimit)
-				}
-			}
+		} else if result == -1 {
+			return fmt.Errorf("monthly token limit %d exceeded", key.MonthlyTokenLimit)
 		}
 	}
 

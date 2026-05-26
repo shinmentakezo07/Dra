@@ -7,8 +7,8 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: dra
-      POSTGRES_PASSWORD: dra_secret
+      POSTGRES_USER: ${POSTGRES_USER:-dra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dra_secret}
       POSTGRES_DB: dra_platform
     volumes:
       - postgres_data:/var/lib/postgresql/data

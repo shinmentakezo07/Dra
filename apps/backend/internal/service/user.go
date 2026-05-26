@@ -2,19 +2,12 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/subtle"
-	"encoding/base64"
-	"fmt"
-	"strings"
 	"time"
 
 	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/pkg/password"
 	"dra-platform/backend/internal/pkg/token"
 	"dra-platform/backend/internal/repository"
-
-	"golang.org/x/crypto/argon2"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -39,7 +32,7 @@ func (s *UserService) Register(ctx context.Context, req domain.SignupRequest) (*
 		return nil, domain.ErrEmailExists
 	}
 
-	hash, err := HashPassword(req.Password)
+	hash, err := password.Hash(req.Password)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "password hashing failed", err)
 	}
@@ -71,7 +64,7 @@ func (s *UserService) Authenticate(ctx context.Context, req domain.LoginRequest)
 		return nil, domain.NewError(domain.ErrUnauthorized, 401, "Invalid credentials")
 	}
 
-	if !CheckPassword(req.Password, *user.Password) {
+	if !password.Check(req.Password, *user.Password) {
 		return nil, domain.NewError(domain.ErrUnauthorized, 401, "Invalid credentials")
 	}
 
@@ -122,10 +115,10 @@ func (s *UserService) ChangePassword(ctx context.Context, id, currentPassword, n
 	if user == nil || user.Password == nil {
 		return domain.ErrUserNotFound
 	}
-	if !CheckPassword(currentPassword, *user.Password) {
+	if !password.Check(currentPassword, *user.Password) {
 		return domain.NewError(domain.ErrUnauthorized, 401, "Current password is incorrect")
 	}
-	hash, err := HashPassword(newPassword)
+	hash, err := password.Hash(newPassword)
 	if err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "password hashing failed", err)
 	}
@@ -144,7 +137,7 @@ func (s *UserService) OAuthLogin(ctx context.Context, email, name, provider stri
 
 	if user == nil {
 		// Create user with random password for OAuth users
-		randomPass, _ := HashPassword(domain.NewID() + "@oauth" + provider)
+		randomPass, _ := password.Hash(domain.NewID() + "@oauth" + provider)
 		user, err = s.repo.Create(ctx, name, email, randomPass, "user")
 		if err != nil {
 			return nil, domain.Wrap(domain.ErrInternal, 500, "failed to create oauth user", err)
@@ -165,57 +158,6 @@ func (s *UserService) Delete(ctx context.Context, id string) *domain.AppError {
 		return domain.Wrap(domain.ErrInternal, 500, "failed to delete user", err)
 	}
 	return nil
-}
-
-const (
-	argon2Time    = 1
-	argon2Memory  = 64 * 1024
-	argon2Threads = 4
-	argon2KeyLen  = 32
-)
-
-func HashPassword(password string) (string, error) {
-	salt := make([]byte, 16)
-	if _, err := rand.Read(salt); err != nil {
-		return "", err
-	}
-	hash := argon2.IDKey([]byte(password), salt, argon2Time, argon2Memory, argon2Threads, argon2KeyLen)
-	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
-	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
-	return fmt.Sprintf("$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s", argon2Memory, argon2Time, argon2Threads, b64Salt, b64Hash), nil
-}
-
-func CheckPassword(password, hash string) bool {
-	if strings.HasPrefix(hash, "$2a$") || strings.HasPrefix(hash, "$2b$") || strings.HasPrefix(hash, "$2y$") {
-		return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
-	}
-	if !strings.HasPrefix(hash, "$argon2id$") {
-		return false
-	}
-	parts := strings.Split(hash, "$")
-	if len(parts) != 6 {
-		return false
-	}
-	var version int
-	_, err := fmt.Sscanf(parts[2], "v=%d", &version)
-	if err != nil || version != 19 {
-		return false
-	}
-	var memory, time, threads int
-	_, err = fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memory, &time, &threads)
-	if err != nil {
-		return false
-	}
-	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
-	if err != nil {
-		return false
-	}
-	expectedHash, err := base64.RawStdEncoding.DecodeString(parts[5])
-	if err != nil {
-		return false
-	}
-	computedHash := argon2.IDKey([]byte(password), salt, uint32(time), uint32(memory), uint8(threads), uint32(len(expectedHash)))
-	return subtle.ConstantTimeCompare(computedHash, expectedHash) == 1
 }
 
 // RequestPasswordReset creates a reset token for the given email.
@@ -256,7 +198,7 @@ func (s *UserService) ResetPassword(ctx context.Context, tokenStr, newPassword s
 		return domain.NewError(domain.ErrBadRequest, 400, "Invalid token")
 	}
 
-	hash, err := HashPassword(newPassword)
+	hash, err := password.Hash(newPassword)
 	if err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "password hashing failed", err)
 	}

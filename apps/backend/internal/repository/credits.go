@@ -71,6 +71,19 @@ func (r *CreditsRepo) Deduct(ctx context.Context, userID string, amount int) (bo
 	return tag.RowsAffected() > 0, nil
 }
 
+// UpsertTx runs Upsert within an existing transaction.
+func (r *CreditsRepo) UpsertTx(ctx context.Context, tx db.Querier, userID string, balanceDelta, purchasedDelta int) error {
+	_, err := tx.Exec(ctx, `
+		INSERT INTO user_credits (id, user_id, balance, total_purchased, total_spent)
+		VALUES ($1, $2, $3, $4, 0)
+		ON CONFLICT (user_id) DO UPDATE SET
+			balance = user_credits.balance + $3,
+			total_purchased = user_credits.total_purchased + $4,
+			updated_at = NOW()
+	`, domain.NewID(), userID, balanceDelta, purchasedDelta)
+	return err
+}
+
 func (r *CreditsRepo) Totals(ctx context.Context) (balance, purchased, spent int64, err error) {
 	err = r.db.QueryRow(ctx, `
 		SELECT COALESCE(SUM(balance), 0), COALESCE(SUM(total_purchased), 0), COALESCE(SUM(total_spent), 0)

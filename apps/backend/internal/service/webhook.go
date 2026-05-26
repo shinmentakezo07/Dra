@@ -42,6 +42,9 @@ func (s *WebhookService) Create(ctx context.Context, userID string, req domain.C
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
+	if err := webhook.ValidateWebhookURL(req.URL); err != nil {
+		return nil, domain.NewError(domain.ErrBadRequest, 400, err.Error())
+	}
 	w, err := s.repo.Create(ctx, userID, req.URL, req.Secret, req.Events, req.Headers)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to create webhook", err)

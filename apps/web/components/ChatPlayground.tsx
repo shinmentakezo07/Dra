@@ -89,6 +89,7 @@ export default function ChatPlayground() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  const isSwitchingRef = useRef(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -131,6 +132,10 @@ export default function ChatPlayground() {
 
   // Persist messages into active session (autosave)
   useEffect(() => {
+    if (isSwitchingRef.current) {
+      isSwitchingRef.current = false;
+      return;
+    }
     if (!activeSessionId) return;
     setSessions((prev) => {
       const next = prev.map((s) => {
@@ -249,6 +254,7 @@ export default function ChatPlayground() {
 
   const handleSwitchChat = (id: string) => {
     if (id === activeSessionId) return;
+    isSwitchingRef.current = true;
     const session = sessions.find((s) => s.id === id);
     setActiveSessionId(id);
     setMessages(session?.messages ?? []);

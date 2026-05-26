@@ -280,6 +280,10 @@ export default function PlaygroundMain() {
   const codeCache = useRef<Record<string, string>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const autoSaverRef = useRef<AutoSaver | null>(null);
+  const activeLangRef = useRef<LanguageKey>(activeLang);
+  const codeRef = useRef(code);
+  activeLangRef.current = activeLang;
+  codeRef.current = code;
 
   useEffect(() => {
     setIsMounted(true);
@@ -301,8 +305,8 @@ export default function PlaygroundMain() {
     // Initialize auto-saver
     autoSaverRef.current = new AutoSaver(() => {
       saveSession({
-        language: LANGUAGES[activeLang].name,
-        code,
+        language: LANGUAGES[activeLangRef.current].name,
+        code: codeRef.current,
         timestamp: Date.now()
       });
       setLastSaved(new Date());
@@ -319,6 +323,13 @@ export default function PlaygroundMain() {
       autoSaverRef.current?.schedule();
     }
   }, [code, isMounted, activeLang]);
+
+  // Sync fullscreen state with browser
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
 
   const handleLangChange = (lang: LanguageKey) => {
     codeCache.current[activeLang] = code;
@@ -373,10 +384,8 @@ export default function PlaygroundMain() {
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
     } else {
       document.exitFullscreen();
-      setIsFullscreen(false);
     }
   };
   
@@ -412,7 +421,7 @@ export default function PlaygroundMain() {
       terminalRef.current.reset();
       terminalRef.current.writeln(`\x1b[1;33m⚡ Running ${currentLang.name}...\x1b[0m`);
       terminalRef.current.writeln('');
-    } else {
+    } else if (process.env.NODE_ENV === "development") {
       console.warn('Terminal not ready yet');
     }
 
@@ -477,13 +486,13 @@ export default function PlaygroundMain() {
           if (result.message) {
             terminalRef.current.writeln(`\x1b[90m${result.message}\x1b[0m`);
           }
-          console.error('Piston API error:', result);
+          if (process.env.NODE_ENV === "development") console.error('Piston API error:', result);
         }
-      } else {
+      } else if (process.env.NODE_ENV === "development") {
         console.error('Terminal not available to display output');
       }
     } catch (error) {
-      console.error('Code execution error:', error);
+      if (process.env.NODE_ENV === "development") console.error('Code execution error:', error);
       if (terminalRef.current) {
         terminalRef.current.writeln('');
         terminalRef.current.writeln(`\x1b[1;31m✗ Error: ${error instanceof Error ? error.message : String(error)}\x1b[0m`);
@@ -492,7 +501,7 @@ export default function PlaygroundMain() {
     } finally {
       setIsRunning(false);
     }
-  }, [code, activeLang, isRunning]);
+  }, [code, activeLang]);
 
   // Keyboard shortcuts
   useEffect(() => {

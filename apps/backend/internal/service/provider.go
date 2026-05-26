@@ -225,7 +225,7 @@ func (s *ProviderService) EstimateTokens(modelID string, messages []domain.ChatM
 	if inputTokens == 0 {
 		inputTokens = len(messages) * 50
 	}
-	outputTokens = inputTokens
+	outputTokens = inputTokens / 3
 	return
 }
 

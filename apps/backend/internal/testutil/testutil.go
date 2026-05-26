@@ -14,6 +14,7 @@ import (
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/handler"
 	"dra-platform/backend/internal/middleware"
+	"dra-platform/backend/internal/pkg/password"
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
@@ -201,9 +202,9 @@ func CleanTables(d *db.DB) error {
 }
 
 // SeedUser creates a test user directly in the DB.
-func SeedUser(d *db.DB, name, email, password string) (*domain.User, error) {
+func SeedUser(d *db.DB, name, email, pass string) (*domain.User, error) {
 	ctx := context.Background()
-	hash, err := service.HashPassword(password)
+	hash, err := password.Hash(pass)
 	if err != nil {
 		return nil, err
 	}
@@ -212,9 +213,9 @@ func SeedUser(d *db.DB, name, email, password string) (*domain.User, error) {
 }
 
 // SeedAdmin creates a test admin directly in the DB.
-func SeedAdmin(d *db.DB, name, email, password string) (*domain.User, error) {
+func SeedAdmin(d *db.DB, name, email, pass string) (*domain.User, error) {
 	ctx := context.Background()
-	hash, err := service.HashPassword(password)
+	hash, err := password.Hash(pass)
 	if err != nil {
 		return nil, err
 	}

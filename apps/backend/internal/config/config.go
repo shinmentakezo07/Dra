@@ -66,6 +66,9 @@ type Config struct {
 	StripeSecretKey     string
 	StripeWebhookSecret string
 	StripePriceID       string
+
+	// Frontend
+	FrontendURL string
 }
 
 func Load() (*Config, error) {
@@ -124,6 +127,7 @@ func Load() (*Config, error) {
 		StripeSecretKey:        getEnv("STRIPE_SECRET_KEY", ""),
 		StripeWebhookSecret:    getEnv("STRIPE_WEBHOOK_SECRET", ""),
 		StripePriceID:          getEnv("STRIPE_PRICE_ID", ""),
+		FrontendURL:            getEnv("FRONTEND_URL", getEnv("NEXTAUTH_URL", "")),
 	}
 
 	if cfg.AuthSecret == "" {

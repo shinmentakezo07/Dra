@@ -5,18 +5,25 @@ import (
 	"net/http"
 
 	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/middleware"
 	"dra-platform/backend/internal/pkg/response"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func (h *Handler) CreateProviderPlugin(w http.ResponseWriter, r *http.Request) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Not authenticated")
+		return
+	}
+
 	var req domain.CreateProviderPluginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, 400, "Invalid JSON body")
 		return
 	}
-	p, err := h.providerPluginSvc.Create(r.Context(), "", req)
+	p, err := h.providerPluginSvc.Create(r.Context(), u.ID, req)
 	if err != nil {
 		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
 		return

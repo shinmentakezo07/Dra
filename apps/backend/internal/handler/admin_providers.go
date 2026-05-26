@@ -82,6 +82,10 @@ func (h *Handler) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "baseUrl must be a valid http or https URL")
 		return
 	}
+	if err := validateNotPrivateURL(req.BaseURL); err != nil {
+		response.Error(w, 400, "baseUrl must not point to a private or reserved IP address")
+		return
+	}
 	if req.ProviderType != "" && !validProviderTypes[req.ProviderType] {
 		response.Error(w, 400, fmt.Sprintf("invalid providerType %q; supported: openai, anthropic, generic, groq, nvidia, gemini", req.ProviderType))
 		return

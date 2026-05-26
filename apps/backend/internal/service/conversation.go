@@ -66,8 +66,19 @@ func (s *ConversationService) DeleteConversation(ctx context.Context, userID, id
 	return nil
 }
 
-// AddMessage adds a message to a conversation.
-func (s *ConversationService) AddMessage(ctx context.Context, convID, role, content string, inputTokens, outputTokens int) (*repository.ConversationMessage, *domain.AppError) {
+// AddMessage adds a message to a conversation after verifying ownership.
+func (s *ConversationService) AddMessage(ctx context.Context, userID, convID, role, content string, inputTokens, outputTokens int) (*repository.ConversationMessage, *domain.AppError) {
+	conv, err := s.repo.GetConversation(ctx, convID)
+	if err != nil {
+		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to verify conversation", err)
+	}
+	if conv == nil {
+		return nil, domain.NewError(domain.ErrNotFound, 404, "Conversation not found")
+	}
+	if conv.UserID != userID {
+		return nil, domain.NewError(domain.ErrForbidden, 403, "Access denied")
+	}
+
 	msg, err := s.repo.AddMessage(ctx, convID, role, content, inputTokens, outputTokens)
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to add message", err)

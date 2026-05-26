@@ -41,6 +41,10 @@ func generatePromoCode(length int) string {
 
 func (h *Handler) AdminCreatePromoCodeWithRandom(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Not authenticated")
+		return
+	}
 	var req struct {
 		Code        string `json:"code"`
 		Type        string `json:"type"`

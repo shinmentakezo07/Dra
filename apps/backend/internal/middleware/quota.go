@@ -247,7 +247,11 @@ func QuotaCheck(tracker QuotaTrackerInterface, getKey func(r *http.Request) *Sco
 			}
 
 			if err := tracker.CheckRequest(r.Context(), key, model, tokens, clientIP); err != nil {
-				logger.Warn("quota_check_failed", "error", err.Error(), "key", key.Key)
+				keyPrefix := key.Key
+				if len(keyPrefix) > 8 {
+					keyPrefix = keyPrefix[:8] + "..."
+				}
+				logger.Warn("quota_check_failed", "error", err.Error(), "key_prefix", keyPrefix)
 				response.Error(w, 429, err.Error())
 				return
 			}

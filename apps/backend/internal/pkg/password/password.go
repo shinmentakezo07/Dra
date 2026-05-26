@@ -2,6 +2,7 @@ package password
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"strings"
@@ -48,5 +49,5 @@ func Check(password, hash string) bool {
 		return false
 	}
 	hashBytes := argon2.IDKey([]byte(password), salt, argon2Time, argon2Memory, argon2Threads, argon2KeyLen)
-	return string(hashBytes) == string(expected)
+	return subtle.ConstantTimeCompare(hashBytes, expected) == 1
 }

@@ -101,7 +101,10 @@ func (r *AdminSecurityRepo) ReviewSuspicious(ctx context.Context, id int64, acti
 func (r *AdminSecurityRepo) StartImpersonation(ctx context.Context, adminID, userID, reason string) (*domain.ImpersonationSession, error) {
 	s := &domain.ImpersonationSession{ID: uuid.New().String(), AdminID: adminID, TargetUserID: userID, Reason: reason, StartedAt: time.Now()}
 	_, err := r.db.Exec(ctx, `INSERT INTO admin_impersonations(id,admin_id,target_user_id,reason,started_at) VALUES($1,$2,$3,$4,$5)`, s.ID, s.AdminID, s.TargetUserID, s.Reason, s.StartedAt)
-	return s, fmt.Errorf("start impersonation: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("start impersonation: %w", err)
+	}
+	return s, nil
 }
 
 func (r *AdminSecurityRepo) EndImpersonation(ctx context.Context, id string) error {

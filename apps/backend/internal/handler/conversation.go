@@ -109,7 +109,7 @@ func (h *Handler) AddMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg, appErr := h.conversationSvc.AddMessage(r.Context(), convID, req.Role, req.Content, req.InputTokens, req.OutputTokens)
+	msg, appErr := h.conversationSvc.AddMessage(r.Context(), u.ID, convID, req.Role, req.Content, req.InputTokens, req.OutputTokens)
 	if appErr != nil {
 		response.Error(w, appErr.Status, appErr.Message)
 		return

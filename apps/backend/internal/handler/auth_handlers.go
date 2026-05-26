@@ -178,7 +178,7 @@ func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if token != "" && h.emailSender != nil {
-		origin := r.Header.Get("Origin")
+		origin := h.cfg.FrontendURL
 		if origin == "" {
 			origin = "http://localhost:3000"
 		}
