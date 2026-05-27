@@ -80,8 +80,7 @@ func (c *SemanticCache) Get(ctx context.Context, key string) (*llm.ChatResponse,
 func (c *SemanticCache) Set(ctx context.Context, key string, value *llm.ChatResponse, ttl time.Duration) error {
 	embedding, err := decodeEmbedding(key)
 	if err != nil {
-		// Fall back to storing without semantic key
-		return nil
+		return fmt.Errorf("semantic cache: decode embedding: %w", err)
 	}
 
 	c.mu.Lock()

@@ -298,13 +298,13 @@ func hashMessages(messages []llm.Message) string {
 			h.Write([]byte(m.ToolCallID))
 		}
 	}
-	return hex.EncodeToString(h.Sum(nil))[:16]
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func hashTools(tools []llm.ToolDefinition) string {
 	data, _ := json.Marshal(tools)
 	h := sha256.Sum256(data)
-	return hex.EncodeToString(h[:])[:16]
+	return hex.EncodeToString(h[:])
 }
 
 func hashString(s string) string {

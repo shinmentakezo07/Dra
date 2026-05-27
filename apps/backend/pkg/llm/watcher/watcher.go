@@ -182,9 +182,8 @@ func (w *Watcher) classify(err error, provider, model, requestID string) ErrorRe
 }
 
 func containsAny(s string, substrs []string) bool {
-	lower := fmt.Sprintf("%s", s)
 	for _, sub := range substrs {
-		if containsCaseInsensitive(lower, sub) {
+		if containsCaseInsensitive(s, sub) {
 			return true
 		}
 	}
