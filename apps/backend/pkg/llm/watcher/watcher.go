@@ -3,7 +3,7 @@ package watcher
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 )
@@ -91,13 +91,13 @@ func (w *Watcher) Watch(ctx context.Context, err error, provider, model, request
 
 	for _, h := range handlers {
 		if handleErr := h(ctx, record); handleErr != nil {
-			log.Printf("handler error for %s: %v", record.Category, handleErr)
+			slog.Warn("handler error", "category", record.Category, "error", handleErr.Error())
 		}
 	}
 
 	for _, h := range allHandlers {
 		if handleErr := h(ctx, record); handleErr != nil {
-			log.Printf("global handler error: %v", handleErr)
+			slog.Warn("global handler error", "error", handleErr.Error())
 		}
 	}
 
@@ -111,8 +111,7 @@ func (w *Watcher) HandleError(ctx context.Context, err error) {
 
 // EmitEvent implements the llm.Watcher interface.
 func (w *Watcher) EmitEvent(ctx context.Context, event string, data map[string]interface{}) {
-	// Events are currently logged; extend if needed.
-	log.Printf("event=%s data=%v", event, data)
+	slog.Info("watcher event", "event", event, "data", data)
 }
 
 // History returns recent error records.

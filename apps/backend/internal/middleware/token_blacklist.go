@@ -25,7 +25,7 @@ func TokenBlacklist(checker TokenBlacklistChecker) func(http.Handler) http.Handl
 				return
 			}
 
-			// Extract token from request
+			// Extract token or API key from request
 			tokenStr := ""
 			if auth := r.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
 				tokenStr = auth[7:]
@@ -38,6 +38,11 @@ func TokenBlacklist(checker TokenBlacklistChecker) func(http.Handler) http.Handl
 					}
 				}
 			}
+			if tokenStr == "" {
+				if k := GetAPIKey(r); k != nil {
+					tokenStr = k.Key
+				}
+			}
 
 			if tokenStr == "" {
 				next.ServeHTTP(w, r)
@@ -47,8 +52,8 @@ func TokenBlacklist(checker TokenBlacklistChecker) func(http.Handler) http.Handl
 			blacklisted, err := checker.IsBlacklisted(tokenStr)
 			if err != nil {
 				logger.Warn("blacklist_check_error", "error", err.Error())
-				// Don't block on checker error — fail open
-				next.ServeHTTP(w, r)
+				// Fail-closed: deny request on checker error
+				response.Error(w, 503, "Token verification unavailable. Please try again.")
 				return
 			}
 

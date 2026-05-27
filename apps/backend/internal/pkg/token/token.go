@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const defaultExpiry = 7 * 24 * time.Hour
+const defaultExpiry = 24 * time.Hour
 
 type Claims struct {
 	UserID string `json:"sub"`

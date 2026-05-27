@@ -12,6 +12,19 @@ if (!secret) {
   throw new Error('AUTH_SECRET or NEXTAUTH_SECRET environment variable is required');
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+    if (!payload.exp) return false;
+    // Treat as expired if less than 60 seconds remaining
+    return payload.exp < Math.floor(Date.now() / 1000) + 60;
+  } catch {
+    return true;
+  }
+}
+
 async function backendLogin(email: string, password: string) {
   const res = await fetch(`${BACKEND_URL}/auth/login`, {
     method: "POST",
@@ -68,7 +81,15 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Allow all sign-ins; OAuth backend sync happens in jwt callback
+      // For OAuth providers, verify backend accepts the sign-in
+      if (account && account.provider !== "credentials") {
+        const email = user.email;
+        const name = user.name || email;
+        if (email) {
+          const data = await backendOAuth(email, name, account.provider);
+          if (!data) return false;
+        }
+      }
       return true;
     },
     async jwt({ token, user, account, profile }) {
@@ -77,6 +98,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         token.id = user.id;
         token.role = user.role;
         token.backendToken = user.backendToken;
+        token.provider = account?.provider;
       }
 
       // For OAuth providers, sync with backend if we don't have a backend token yet
@@ -90,6 +112,27 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             token.role = data.user.role;
             token.backendToken = data.token;
           }
+        }
+      }
+
+      // Refresh backend token if expired
+      if (token.backendToken && isTokenExpired(token.backendToken as string)) {
+        const email = token.email as string;
+        const name = (token.name as string) || email;
+        const provider = account?.provider || token.provider || "credentials";
+        if (email && provider !== "credentials") {
+          const data = await backendOAuth(email, name, provider);
+          if (data) {
+            token.id = data.user.id;
+            token.role = data.user.role;
+            token.backendToken = data.token;
+          } else {
+            // Refresh failed — clear token so user re-authenticates
+            token.backendToken = undefined;
+          }
+        } else {
+          // Credentials flow: clear expired token to force re-login
+          token.backendToken = undefined;
         }
       }
 

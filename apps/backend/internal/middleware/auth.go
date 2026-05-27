@@ -66,7 +66,11 @@ func Auth(cfg *config.Config, apiKeyLookup APIKeyLookup, userLookup UserLookup) 
 			}, jwt.WithValidMethods([]string{"HS256"}))
 
 			if err != nil || !token.Valid {
-				logger.Warn("jwt_validation_failed", "error", err.Error(), "remote_addr", r.RemoteAddr)
+				errMsg := "token invalid"
+				if err != nil {
+					errMsg = err.Error()
+				}
+				logger.Warn("jwt_validation_failed", "error", errMsg, "remote_addr", r.RemoteAddr)
 				response.Error(w, 401, "Invalid or expired token")
 				return
 			}

@@ -38,7 +38,11 @@ export function clearSession(): void {
 }
 
 export function hasSession(): boolean {
-  return localStorage.getItem(STORAGE_KEY) !== null;
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
 }
 
 // Auto-save hook implementation

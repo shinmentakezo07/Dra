@@ -40,6 +40,7 @@ type QuotaTracker struct {
 	mu       sync.RWMutex
 	daily    map[string]*dailyQuota
 	monthly  map[string]*monthlyQuota
+	stopCh   chan struct{}
 }
 
 type dailyQuota struct {
@@ -57,9 +58,15 @@ func NewQuotaTracker() *QuotaTracker {
 	qt := &QuotaTracker{
 		daily:   make(map[string]*dailyQuota),
 		monthly: make(map[string]*monthlyQuota),
+		stopCh:  make(chan struct{}),
 	}
 	go qt.cleanup()
 	return qt
+}
+
+// Stop terminates the background cleanup goroutine.
+func (qt *QuotaTracker) Stop() {
+	close(qt.stopCh)
 }
 
 // CheckRequest checks if a request is within quota and scoping rules.
@@ -124,7 +131,6 @@ func (qt *QuotaTracker) CheckRequest(_ context.Context, key *ScopedAPIKey, model
 			qt.mu.Unlock()
 			return fmt.Errorf("monthly token limit %d exceeded", key.MonthlyTokenLimit)
 		}
-		mq.tokens += estimatedTokens
 		qt.mu.Unlock()
 	}
 
@@ -133,13 +139,16 @@ func (qt *QuotaTracker) CheckRequest(_ context.Context, key *ScopedAPIKey, model
 
 // RecordUsage records actual token usage after a request completes.
 func (qt *QuotaTracker) RecordUsage(_ context.Context, key string, tokens int) {
-	if key == "" || tokens <= 0 {
+	if key == "" || tokens == 0 {
 		return
 	}
 	qt.mu.Lock()
 	defer qt.mu.Unlock()
 	if mq, ok := qt.monthly[key]; ok {
 		mq.tokens += tokens
+		if mq.tokens < 0 {
+			mq.tokens = 0
+		}
 	}
 }
 
@@ -165,20 +174,26 @@ func (qt *QuotaTracker) MonthlyTokens(_ context.Context, key string) int {
 
 func (qt *QuotaTracker) cleanup() {
 	ticker := time.NewTicker(time.Hour)
-	for range ticker.C {
-		qt.mu.Lock()
-		now := time.Now()
-		for k, v := range qt.daily {
-			if v.resetAt.Before(now) {
-				delete(qt.daily, k)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			qt.mu.Lock()
+			now := time.Now()
+			for k, v := range qt.daily {
+				if v.resetAt.Before(now) {
+					delete(qt.daily, k)
+				}
 			}
-		}
-		for k, v := range qt.monthly {
-			if v.resetAt.Before(now) {
-				delete(qt.monthly, k)
+			for k, v := range qt.monthly {
+				if v.resetAt.Before(now) {
+					delete(qt.monthly, k)
+				}
 			}
+			qt.mu.Unlock()
+		case <-qt.stopCh:
+			return
 		}
-		qt.mu.Unlock()
 	}
 }
 
@@ -234,6 +249,7 @@ func QuotaCheck(tracker QuotaTrackerInterface, getKey func(r *http.Request) *Sco
 					r.Body.Close()
 					r.Body = io.NopCloser(bytes.NewReader(body))
 					model, tokens = parseRequest(r)
+					r.Body = io.NopCloser(bytes.NewReader(body))
 				}
 			}
 

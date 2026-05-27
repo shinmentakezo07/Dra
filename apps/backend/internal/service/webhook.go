@@ -141,11 +141,12 @@ func (s *WebhookService) Dispatch(ctx context.Context, userID string, event webh
 					logger.Error("webhook_dispatch_panic", "webhook_id", webhookID, "recover", r)
 				}
 			}()
+			bgCtx := context.Background()
 			select {
 			case s.sem <- struct{}{}:
-				s.sendAndTrack(ctx, webhookID, c, e)
+				s.sendAndTrack(bgCtx, webhookID, c, e)
 				<-s.sem
-			case <-ctx.Done():
+			case <-bgCtx.Done():
 				return
 			}
 		}(w.ID, cfg, event)

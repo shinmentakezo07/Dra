@@ -2,6 +2,7 @@ package tokens
 
 import (
 	"math"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -119,14 +120,25 @@ func NewCostCalculator() *CostCalculator {
 	return &CostCalculator{}
 }
 
+// sortedModelKeys returns PricingTable keys sorted by length descending for deterministic longest-prefix matching.
+func sortedModelKeys() []string {
+	keys := make([]string, 0, len(PricingTable))
+	for k := range PricingTable {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return len(keys[i]) > len(keys[j])
+	})
+	return keys
+}
+
 // Calculate returns the cost in USD for given tokens and model.
 func (c *CostCalculator) Calculate(model string, inputTokens, outputTokens int) float64 {
 	pricing, ok := PricingTable[model]
 	if !ok {
-		// Fallback: search by suffix
-		for id, p := range PricingTable {
+		for _, id := range sortedModelKeys() {
 			if strings.HasSuffix(id, "/"+model) || strings.HasPrefix(id, model) {
-				pricing = p
+				pricing = PricingTable[id]
 				ok = true
 				break
 			}
@@ -155,9 +167,9 @@ func (c *CostCalculator) GetContextWindow(model string) int {
 	if ok {
 		return pricing.ContextWindow
 	}
-	for id, p := range PricingTable {
+	for _, id := range sortedModelKeys() {
 		if strings.HasSuffix(id, "/"+model) || strings.HasPrefix(id, model) {
-			return p.ContextWindow
+			return PricingTable[id].ContextWindow
 		}
 	}
 	return 128000

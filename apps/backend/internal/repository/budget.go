@@ -2,10 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/domain"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type BudgetRepo struct {
@@ -70,6 +73,9 @@ func (r *BudgetRepo) GetUserCap(ctx context.Context, userID string) (*domain.Bud
 		`SELECT id, user_id, hard_limit, soft_limit, action_on_exceed, is_active, created_at FROM budget_caps WHERE user_id = $1`, userID).
 		Scan(&c.ID, &c.UserID, &c.HardLimit, &c.SoftLimit, &c.ActionOnExceed, &c.IsActive, &c.CreatedAt)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &c, nil

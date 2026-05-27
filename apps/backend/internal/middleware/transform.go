@@ -81,7 +81,12 @@ func applyRequestTransforms(body []byte, cfg TransformConfig) []byte {
 				if first, ok := messages[0].(map[string]interface{}); ok {
 					if role, _ := first["role"].(string); role == "system" {
 						hasSystem = true
-						first["content"] = prompt
+						newFirst := make(map[string]interface{}, len(first))
+						for k, v := range first {
+							newFirst[k] = v
+						}
+						newFirst["content"] = prompt
+						messages[0] = newFirst
 					}
 				}
 			}

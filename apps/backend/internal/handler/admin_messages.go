@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -160,7 +161,7 @@ func (h *Handler) AdminCreateMessage(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Send SSE notification to targeted users
-	go h.notifyNewMessage(r.Context(), req.TargetType, req.TargetIds, map[string]interface{}{
+	go h.notifyNewMessage(context.Background(), req.TargetType, req.TargetIds, map[string]interface{}{
 		"type":     "new_message",
 		"id":       id,
 		"title":    req.Title,

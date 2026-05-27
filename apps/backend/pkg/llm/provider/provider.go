@@ -238,7 +238,10 @@ func (p *AnthropicProvider) Chat(ctx context.Context, req *llm.ChatRequest) (*ll
 	}
 	defer resp.Body.Close()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("anthropic: read response body: %w", readErr)
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("anthropic: HTTP %d: %s", resp.StatusCode, string(respBody))
@@ -457,9 +460,9 @@ func (r *Registry) Providers() []string {
 func (r *Registry) AllModels(ctx context.Context) ([]llm.ModelInfo, error) {
 	r.mu.RLock()
 	if r.models != nil {
-		r.mu.RUnlock()
 		result := make([]llm.ModelInfo, len(r.models))
 		copy(result, r.models)
+		r.mu.RUnlock()
 		return result, nil
 	}
 	r.mu.RUnlock()

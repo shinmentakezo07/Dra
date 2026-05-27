@@ -6,6 +6,8 @@ import (
 
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/domain"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type RateLimitRepo struct {
@@ -19,7 +21,10 @@ func (r *RateLimitRepo) GetUserTier(ctx context.Context, userID string) (string,
 	err := r.db.QueryRow(ctx,
 		`SELECT COALESCE(rl.tier, 'free') FROM user_rate_limits rl WHERE rl.user_id = $1`, userID).Scan(&tier)
 	if err != nil {
-		return "free", nil
+		if err == pgx.ErrNoRows {
+			return "free", nil
+		}
+		return "", err
 	}
 	return tier, nil
 }

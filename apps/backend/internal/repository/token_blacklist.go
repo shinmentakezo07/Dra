@@ -43,7 +43,7 @@ func (r *TokenBlacklistRepo) IsBlacklisted(ctx context.Context, token string) (b
 	tokenHash := hashToken(token)
 	var exists bool
 	err := r.db.Pool.QueryRow(ctx,
-		`SELECT EXISTS(SELECT 1 FROM token_blacklist WHERE token_hash = $1)`,
+		`SELECT EXISTS(SELECT 1 FROM token_blacklist WHERE token_hash = $1 AND expires_at > NOW())`,
 		tokenHash).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("check blacklist: %w", err)

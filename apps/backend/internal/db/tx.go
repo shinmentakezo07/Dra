@@ -63,17 +63,20 @@ type mongoTx struct {
 
 func (t *mongoTx) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
 	mq := newMongoQuerier(t.db)
-	return mq.Query(ctx, sql, args...)
+	sessionCtx := mongo.NewSessionContext(ctx, t.session)
+	return mq.Query(sessionCtx, sql, args...)
 }
 
 func (t *mongoTx) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	mq := newMongoQuerier(t.db)
-	return mq.QueryRow(ctx, sql, args...)
+	sessionCtx := mongo.NewSessionContext(ctx, t.session)
+	return mq.QueryRow(sessionCtx, sql, args...)
 }
 
 func (t *mongoTx) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
 	mq := newMongoQuerier(t.db)
-	return mq.Exec(ctx, sql, args...)
+	sessionCtx := mongo.NewSessionContext(ctx, t.session)
+	return mq.Exec(sessionCtx, sql, args...)
 }
 
 func (t *mongoTx) Commit(ctx context.Context) error {

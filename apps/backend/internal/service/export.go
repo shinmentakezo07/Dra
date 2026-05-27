@@ -13,12 +13,13 @@ import (
 )
 
 type ExportService struct {
-	repo   *repository.ExportRepo
-	logRepo *repository.LogRepo
+	repo      *repository.ExportRepo
+	logRepo   *repository.LogRepo
+	auditRepo *repository.AdminAuditRepo
 }
 
-func NewExportService(repo *repository.ExportRepo, logRepo *repository.LogRepo) *ExportService {
-	return &ExportService{repo: repo, logRepo: logRepo}
+func NewExportService(repo *repository.ExportRepo, logRepo *repository.LogRepo, auditRepo *repository.AdminAuditRepo) *ExportService {
+	return &ExportService{repo: repo, logRepo: logRepo, auditRepo: auditRepo}
 }
 
 func (s *ExportService) CreateJob(ctx context.Context, userID string, req domain.CreateExportJobRequest) (*domain.ExportJob, *domain.AppError) {
@@ -97,7 +98,7 @@ func (s *ExportService) exportLogs(ctx context.Context, userID, format, dir stri
 }
 
 func (s *ExportService) exportAuditLogs(ctx context.Context, userID, format, dir string) (string, error) {
-	logs, _, err := s.logRepo.ByUser(ctx, userID, 1, 10000)
+	logs, _, err := s.auditRepo.List(ctx, domain.AuditLogFilter{ActorID: userID, Page: 1, Limit: 10000})
 	if err != nil {
 		return "", err
 	}
@@ -114,17 +115,13 @@ func (s *ExportService) exportAuditLogs(ctx context.Context, userID, format, dir
 	w := csv.NewWriter(f)
 	defer w.Flush()
 
-	_ = w.Write([]string{"id", "user_id", "api_key_id", "model", "provider", "input_tokens", "output_tokens", "cost", "latency", "status", "error_message", "created_at"})
+	_ = w.Write([]string{"id", "actor_id", "actor_email", "action", "target_type", "target_id", "changes", "ip_address", "severity", "created_at"})
 	for _, l := range logs {
-		keyID := ""
-		if l.APIKeyID != nil {
-			keyID = *l.APIKeyID
+		changes := ""
+		if l.Changes != nil {
+			changes = string(l.Changes)
 		}
-		errMsg := ""
-		if l.ErrorMessage != nil {
-			errMsg = *l.ErrorMessage
-		}
-		_ = w.Write([]string{l.ID, userID, keyID, l.Model, l.Provider, fmt.Sprintf("%d", l.InputTokens), fmt.Sprintf("%d", l.OutputTokens), fmt.Sprintf("%d", l.Cost), fmt.Sprintf("%d", l.Latency), l.Status, errMsg, l.CreatedAt.Format(time.RFC3339)})
+		_ = w.Write([]string{l.ID, l.ActorID, l.ActorEmail, l.Action, l.TargetType, l.TargetID, changes, l.IPAddress, l.Severity, l.CreatedAt.Format(time.RFC3339)})
 	}
 	return filePath, nil
 }

@@ -8,7 +8,7 @@ import { useAnalytics, useModels, usePublicProviderHealth } from "@/lib/api/hook
 import type { ModelInfo } from "@/lib/api/sdk";
 
 interface GatewayDashboardProps {
-  user: any;
+  user?: unknown;
 }
 
 function formatPricePer1M(pricePer1k: number): string {

@@ -26,7 +26,13 @@ import Mermaid from "./Mermaid";
 import { AIThinkingProcess } from "./AIThinkingProcess";
 import { GlassCard } from "./ui/glass-card";
 
-type StoredMessage = any;
+interface StoredMessage {
+  id: string;
+  role: string;
+  content: string;
+  createdAt?: number;
+  [key: string]: unknown;
+}
 
 type ChatSession = {
   id: string;

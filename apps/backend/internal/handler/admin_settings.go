@@ -66,6 +66,10 @@ func (h *Handler) AdminCreateFeatureFlag(w http.ResponseWriter, r *http.Request)
 		response.Error(w, 400, "Invalid body")
 		return
 	}
+	if req.Key == "" {
+		response.Error(w, 400, "Key is required")
+		return
+	}
 	f := domain.FeatureFlag{
 		ID:          uuid.New().String(),
 		Key:         req.Key,

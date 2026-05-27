@@ -47,6 +47,7 @@ type Message struct {
 	ToolCalls  []ToolCall     `json:"tool_calls,omitempty"`
 	ToolCallID string         `json:"tool_call_id,omitempty"`
 	Name       string         `json:"name,omitempty"`
+	Metadata   map[string]any `json:"metadata,omitempty"`
 }
 
 // ContentBlock represents a structured content block.

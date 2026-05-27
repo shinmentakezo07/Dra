@@ -304,16 +304,30 @@ func (h *Handler) OpenAIEmbeddings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use OpenAI embeddings provider
-	embedProvider := embeddings.NewOpenAIProvider(h.cfg.OpenAIAPIKey)
-	resp, err := embedProvider.Embed(r.Context(), &embeddings.EmbeddingRequest{
-		Model: req.Model,
-		Input: inputs,
-	})
-	if err != nil {
-		logger.Error("embedding_failed", "error", err.Error(), "user_id", userID, "model", req.Model)
-		writeOpenAIError(w, http.StatusBadGateway, "api_error", fmt.Sprintf("Embedding provider error: %v", err))
-		return
+	var resp *embeddings.EmbeddingResponse
+	if h.embeddingRegistry != nil {
+		var embedErr error
+		resp, embedErr = h.embeddingRegistry.RouteRequest(r.Context(), &embeddings.EmbeddingRequest{
+			Model: req.Model,
+			Input: inputs,
+		})
+		if embedErr != nil {
+			logger.Error("embedding_route_failed", "error", embedErr.Error(), "user_id", userID, "model", req.Model)
+			writeOpenAIError(w, http.StatusBadGateway, "api_error", "Embedding provider error")
+			return
+		}
+	} else {
+		embedProvider := embeddings.NewOpenAIProvider(h.cfg.OpenAIAPIKey)
+		var embedErr error
+		resp, embedErr = embedProvider.Embed(r.Context(), &embeddings.EmbeddingRequest{
+			Model: req.Model,
+			Input: inputs,
+		})
+		if embedErr != nil {
+			logger.Error("embedding_failed", "error", embedErr.Error(), "user_id", userID, "model", req.Model)
+			writeOpenAIError(w, http.StatusBadGateway, "api_error", "Embedding provider error")
+			return
+		}
 	}
 
 	// Convert to OpenAI response format
@@ -336,8 +350,10 @@ func (h *Handler) OpenAIEmbeddings(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	// Async billing
-	h.asyncLogAndDeduct(r.Context(), userID, apiKeyID, req.Model, resp.TotalTokens, 0)
+	// Async billing (skip in sandbox mode)
+	if r.Header.Get("X-Sandbox") != "true" {
+		h.asyncLogAndDeduct(r.Context(), userID, apiKeyID, req.Model, resp.TotalTokens, 0)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

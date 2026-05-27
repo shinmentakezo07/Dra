@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -161,7 +162,10 @@ func (r *Router) Route(ctx context.Context, req *llm.ChatRequest) (llm.Provider,
 	case StrategyCapability:
 		return r.routeByCapability(candidates, req)
 	case StrategyRandom:
-		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(candidates))))
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(candidates))))
+		if err != nil {
+			return candidates[0], nil
+		}
 		return candidates[n.Int64()], nil
 	default:
 		return candidates[0], nil
@@ -189,17 +193,33 @@ func (r *Router) RecordResult(provider string, success bool) {
 }
 
 func (r *Router) filterByCapability(providers []llm.Provider, req *llm.ChatRequest) []llm.Provider {
-	// If tools requested, filter to tool-supporting providers
 	if len(req.Tools) > 0 {
 		var filtered []llm.Provider
 		for _, p := range providers {
-			if p.SupportsThinking() || strings.Contains(p.Name(), "openai") || strings.Contains(p.Name(), "anthropic") {
+			if supportsTools(p) {
 				filtered = append(filtered, p)
 			}
 		}
 		return filtered
 	}
 	return providers
+}
+
+var toolCapableProviders = map[string]bool{
+	"openai":    true,
+	"anthropic": true,
+	"groq":      true,
+	"nvidia":    true,
+}
+
+func supportsTools(p llm.Provider) bool {
+	name := strings.ToLower(p.Name())
+	for prefix := range toolCapableProviders {
+		if strings.Contains(name, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Router) routeByCost(ctx context.Context, providers []llm.Provider, req *llm.ChatRequest) (llm.Provider, error) {
@@ -344,7 +364,13 @@ func (ab *ABRouter) Route(ctx context.Context) (llm.Provider, string, error) {
 	n, _ := rand.Int(rand.Reader, big.NewInt(1<<53))
 	r := float64(n.Int64()) / float64(1<<53)
 	cumulative := 0.0
-	for _, v := range ab.variants {
+	keys := make([]string, 0, len(ab.variants))
+	for k := range ab.variants {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := ab.variants[k]
 		cumulative += v.TrafficPct
 		if r <= cumulative {
 			atomic.AddUint64(&v.counter, 1)
@@ -353,10 +379,7 @@ func (ab *ABRouter) Route(ctx context.Context) (llm.Provider, string, error) {
 	}
 
 	// Fallback to last variant
-	var last *Variant
-	for _, v := range ab.variants {
-		last = v
-	}
+	last := ab.variants[keys[len(keys)-1]]
 	atomic.AddUint64(&last.counter, 1)
 	return last.Provider, last.Name, nil
 }

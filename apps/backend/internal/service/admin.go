@@ -317,10 +317,15 @@ func (s *AdminService) DeleteProvider(ctx context.Context, id string) error {
 	if s.llmRegistry != nil {
 		s.llmRegistry.Unregister(p.Name)
 	}
-	keys, _ := s.providerRepo.ListKeys(ctx, id)
+	keys, err := s.providerRepo.ListKeys(ctx, id)
+	if err != nil {
+		logger.Warn("delete_provider_list_keys_failed", "provider_id", id, "error", err.Error())
+	}
 	for _, k := range keys {
 		s.deleteRawKey(k.ID)
-		_ = s.providerRepo.DeleteKey(ctx, k.ID)
+		if err := s.providerRepo.DeleteKey(ctx, k.ID); err != nil {
+			logger.Warn("delete_provider_key_failed", "key_id", k.ID, "error", err.Error())
+		}
 	}
 	return s.providerRepo.Delete(ctx, id)
 }

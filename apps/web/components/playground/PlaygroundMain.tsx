@@ -519,7 +519,15 @@ export default function PlaygroundMain() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [runCode, downloadCode]);
 
-  if (!isMounted) return null;
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col md:flex-row h-[calc(100vh-240px)] md:h-[calc(100vh-220px)] bg-[#0e0e0e] overflow-hidden rounded-2xl border border-white/10 relative shadow-2xl animate-pulse">
+        <div className="flex-1 bg-white/[0.02]" />
+        <div className="h-1 md:h-auto md:w-1 bg-white/5" />
+        <div className="h-48 md:flex-1 bg-white/[0.02]" />
+      </div>
+    );
+  }
 
   return (
     <>

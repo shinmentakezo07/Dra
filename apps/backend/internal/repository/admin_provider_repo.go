@@ -37,7 +37,10 @@ func (r *AdminProviderRepo) Create(ctx context.Context, p *domain.Provider) erro
 		p.TimeoutMS, p.CircuitBreakerEnabled, p.CircuitBreakerThreshold,
 		p.CircuitBreakerRecoveryMS, p.CircuitBreakerHalfOpenMax, p.MaxRetries,
 		p.RateLimitRPM, p.RateLimitTPM, p.Metadata)
-	return fmt.Errorf("create provider: %w", err)
+	if err != nil {
+		return fmt.Errorf("create provider: %w", err)
+	}
+	return nil
 }
 
 func (r *AdminProviderRepo) Get(ctx context.Context, id string) (*domain.Provider, error) {

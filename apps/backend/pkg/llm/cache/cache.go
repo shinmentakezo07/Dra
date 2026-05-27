@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -189,31 +190,34 @@ func (c *MemoryCache) evictOldest(n int) {
 		items = append(items, kv{key: k, entry: v})
 	}
 	// Sort by access count (LFU) then created time
-	for i := 0; i < len(items)-1; i++ {
-		for j := i + 1; j < len(items); j++ {
-			if items[i].entry.AccessCount > items[j].entry.AccessCount {
-				items[i], items[j] = items[j], items[i]
-			} else if items[i].entry.AccessCount == items[j].entry.AccessCount {
-				if items[i].entry.CreatedAt.After(items[j].entry.CreatedAt) {
-					items[i], items[j] = items[j], items[i]
-				}
-			}
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].entry.AccessCount != items[j].entry.AccessCount {
+			return items[i].entry.AccessCount < items[j].entry.AccessCount
 		}
-	}
+		return items[i].entry.CreatedAt.Before(items[j].entry.CreatedAt)
+	})
 	for i := 0; i < n && i < len(items); i++ {
 		delete(c.entries, items[i].key)
 	}
 }
 
 // StartCleanup starts a background goroutine to clean expired entries.
-func (c *MemoryCache) StartCleanup(interval time.Duration) {
+// Returns a stop function that cancels the goroutine.
+func (c *MemoryCache) StartCleanup(interval time.Duration) func() {
+	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
-		for range ticker.C {
-			c.cleanup()
+		for {
+			select {
+			case <-ticker.C:
+				c.cleanup()
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
+	return cancel
 }
 
 func (c *MemoryCache) cleanup() {
@@ -314,6 +318,21 @@ func deepCopyResponse(resp *llm.ChatResponse) *llm.ChatResponse {
 	}
 	cpy := *resp
 	cpy.Choices = make([]llm.Choice, len(resp.Choices))
-	copy(cpy.Choices, resp.Choices)
+	for i, ch := range resp.Choices {
+		cpy.Choices[i] = ch
+		if ch.Message.Content != "" {
+			cpy.Choices[i].Message.Content = strings.Clone(ch.Message.Content)
+		}
+		if len(ch.Message.ToolCalls) > 0 {
+			tc := make([]llm.ToolCall, len(ch.Message.ToolCalls))
+			copy(tc, ch.Message.ToolCalls)
+			for j := range tc {
+				argsCopy := make([]byte, len(tc[j].Function.Arguments))
+				copy(argsCopy, tc[j].Function.Arguments)
+				tc[j].Function.Arguments = argsCopy
+			}
+			cpy.Choices[i].Message.ToolCalls = tc
+		}
+	}
 	return &cpy
 }

@@ -216,9 +216,6 @@ func (r *ChatRequest) Validate() *AppError {
 	if len(r.Messages) == 0 {
 		return NewError(ErrBadRequest, 400, "Messages are required")
 	}
-	if r.Model == "" {
-		r.Model = "qwen/qwen3-coder-480b-a35b-instruct"
-	}
 	return nil
 }
 

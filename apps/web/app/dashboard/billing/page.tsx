@@ -23,14 +23,17 @@ export default function BillingPage() {
       const data = (result as any)?.data ?? result;
       if (data?.checkoutUrl) {
         const url = data.checkoutUrl as string;
-        if (
-          typeof url === "string" &&
-          (url.startsWith("https://checkout.stripe.com/") ||
-            url.startsWith("https://buy.stripe.com/") ||
-            url.startsWith("https://stripe.com/"))
-        ) {
-          window.location.href = url;
-          return;
+        if (typeof url === "string") {
+          try {
+            const parsed = new URL(url);
+            const allowedHosts = ["checkout.stripe.com", "buy.stripe.com", "stripe.com"];
+            if (allowedHosts.includes(parsed.hostname)) {
+              window.location.href = url;
+              return;
+            }
+          } catch {
+            // Invalid URL
+          }
         }
         alert("Invalid checkout URL received.");
         return;

@@ -49,7 +49,7 @@ func Metrics(next http.Handler) http.Handler {
 
 		duration := time.Since(start).Seconds()
 		status := strconv.Itoa(rr.status)
-		path := r.URL.Path
+		path := "/"
 		if rc := chi.RouteContext(r.Context()); rc != nil {
 			if pattern := rc.RoutePattern(); pattern != "" {
 				path = pattern

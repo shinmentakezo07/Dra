@@ -174,7 +174,7 @@ func (cb *CircuitBreaker) recordResult(err error) {
 				cb.halfOpenCalls = 0
 			}
 		case StateClosed:
-			if cb.successes >= cb.config.FailureThreshold {
+			if cb.successes >= cb.config.SuccessThreshold {
 				cb.failures = 0
 			}
 		}
@@ -190,7 +190,6 @@ func (cb *CircuitBreaker) wrapStream(ch <-chan llm.StreamChunk) <-chan llm.Strea
 			select {
 			case out <- chunk:
 			case <-time.After(5 * time.Second):
-				cb.recordResult(fmt.Errorf("stream timeout"))
 				return
 			}
 			if chunk.FinishReason != nil && *chunk.FinishReason == llm.FinishReasonStop {
@@ -200,8 +199,7 @@ func (cb *CircuitBreaker) wrapStream(ch <-chan llm.StreamChunk) <-chan llm.Strea
 		if success {
 			cb.recordResult(nil)
 		} else {
-			// Stream ended without explicit success; treat as success if we got data
-			cb.recordResult(nil)
+			cb.recordResult(fmt.Errorf("stream ended without success"))
 		}
 	}()
 	return out

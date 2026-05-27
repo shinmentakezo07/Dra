@@ -112,7 +112,7 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 
 	// Stripe
 	stripeRepo := repository.NewStripeRepo(database)
-	stripeSvc := service.NewStripeService(cfg.StripeSecretKey, cfg.StripeWebhookSecret, userRepo, creditsRepo, txRepo, stripeRepo)
+	stripeSvc := service.NewStripeService(cfg.StripeSecretKey, cfg.StripeWebhookSecret, database, userRepo, creditsRepo, txRepo, stripeRepo)
 	if stripeSvc.IsConfigured() {
 		logger.Info("stripe_service_configured")
 	}

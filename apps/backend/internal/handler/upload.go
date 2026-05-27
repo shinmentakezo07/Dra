@@ -54,7 +54,7 @@ func (h *Handler) UploadFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var uploaded []UploadedFile
+	uploaded := make([]UploadedFile, 0)
 	for _, header := range files {
 		f, err := processUpload(header)
 		if err != nil {
@@ -116,6 +116,10 @@ func processUpload(header *multipart.FileHeader) (*UploadedFile, error) {
 
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return nil, err
+	}
+
+	if _, ok := supportedImageTypes[contentType]; !ok {
+		return nil, fmt.Errorf("unsupported file type: %s", contentType)
 	}
 
 	data, err := io.ReadAll(file)

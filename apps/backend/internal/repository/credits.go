@@ -71,6 +71,21 @@ func (r *CreditsRepo) Deduct(ctx context.Context, userID string, amount int) (bo
 	return tag.RowsAffected() > 0, nil
 }
 
+// DeductTx runs Deduct within an existing transaction.
+func (r *CreditsRepo) DeductTx(ctx context.Context, tx db.Querier, userID string, amount int) (bool, error) {
+	tag, err := tx.Exec(ctx, `
+		UPDATE user_credits
+		SET balance = balance - $2,
+			total_spent = total_spent + $2,
+			updated_at = NOW()
+		WHERE user_id = $1 AND balance >= $2
+	`, userID, amount)
+	if err != nil {
+		return false, err
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
 // UpsertTx runs Upsert within an existing transaction.
 func (r *CreditsRepo) UpsertTx(ctx context.Context, tx db.Querier, userID string, balanceDelta, purchasedDelta int) error {
 	_, err := tx.Exec(ctx, `

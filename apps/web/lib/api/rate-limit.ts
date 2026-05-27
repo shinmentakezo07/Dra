@@ -1,3 +1,9 @@
+// NOTE: This is a best-effort in-memory rate limiter.
+// In serverless environments (e.g., Vercel), each function instance has its own
+// memory, so this limiter only applies within a single instance. For production
+// serverless deployments, use a Redis-backed rate limiter (e.g., @upstash/ratelimit)
+// for accurate cross-instance rate limiting.
+
 import { RateLimitError } from "./errors";
 
 interface RateLimitEntry {

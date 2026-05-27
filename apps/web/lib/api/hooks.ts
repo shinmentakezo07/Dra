@@ -453,8 +453,11 @@ export function useNotificationsStream(enabled: boolean = true) {
           events.push(event);
           if (events.length >= 20) break;
         }
-      } catch {
-        // Stream closed
+      } catch (err) {
+        // Log auth errors so they aren't silently swallowed
+        if (err instanceof Error && (err.message.includes("401") || err.message.includes("403") || err.message.includes("Unauthorized"))) {
+          console.error("[useNotificationsStream] Auth error:", err.message);
+        }
       } finally {
         clearTimeout(timeout);
       }

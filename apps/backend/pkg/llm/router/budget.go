@@ -88,7 +88,10 @@ func (br *BudgetRouter) FindAffordableModel(ctx context.Context, requestedModel 
 			continue
 		}
 
-		estCost := CostEstimate(estimatedInputTokens, estimatedOutputTokens)
+		estCost := int((float64(estimatedInputTokens)/1000.0*m.InputPricePer1k + float64(estimatedOutputTokens)/1000.0*m.OutputPricePer1k) * 100)
+		if estCost < 100 {
+			estCost = 100
+		}
 
 		candidates = append(candidates, ModelOption{
 			ModelID:       modelID,

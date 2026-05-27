@@ -5,6 +5,8 @@ import (
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/repository"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type ComparisonService struct {
@@ -29,6 +31,9 @@ func (s *ComparisonService) Create(ctx context.Context, userID string, req domai
 func (s *ComparisonService) GetByID(ctx context.Context, userID, id string) (*domain.ABComparison, *domain.AppError) {
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, domain.NewError(domain.ErrNotFound, 404, "Comparison not found")
+		}
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to get comparison", err)
 	}
 	if c.UserID != userID {

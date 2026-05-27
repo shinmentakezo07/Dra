@@ -174,7 +174,7 @@ func (h *HealthChecker) runChecks() {
 }
 
 func (h *HealthChecker) checkProvider(name string, fn HealthCheckFunc) {
-	ctx, cancel := context.WithTimeout(context.Background(), h.timeout)
+	ctx, cancel := context.WithTimeout(h.ctx, h.timeout)
 	defer cancel()
 
 	start := time.Now()

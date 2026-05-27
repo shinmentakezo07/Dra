@@ -80,13 +80,18 @@ func Load() (*Config, error) {
 		}
 	}
 
+	authSecret, err := mustGetEnv("AUTH_SECRET")
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &Config{
 		Port:            getEnv("PORT", "8080"),
 		DBType:          dbType,
 		DatabaseURL:     getEnv("DATABASE_URL", ""),
 		MongoDBURI:      getEnv("MONGODB_URI", ""),
 		MongoDBName:     getEnv("MONGODB_NAME", "dra_platform"),
-		AuthSecret:      mustGetEnv("AUTH_SECRET"),
+		AuthSecret:      authSecret,
 		NvidiaAPIKey:              getEnv("NVIDIA_API_KEY", ""),
 		NvidiaSecondaryAPIKeys:    getEnvSlice("NVIDIA_API_KEY_2"),
 		OpenAIAPIKey:              getEnv("OPENAI_API_KEY", ""),
@@ -188,12 +193,12 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func mustGetEnv(key string) string {
+func mustGetEnv(key string) (string, error) {
 	v := os.Getenv(key)
 	if v == "" {
-		panic(fmt.Sprintf("required environment variable %s is not set", key))
+		return "", fmt.Errorf("required environment variable %s is not set", key)
 	}
-	return v
+	return v, nil
 }
 
 func getEnvInt(key string, fallback int) int {

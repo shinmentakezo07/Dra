@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"dra-platform/backend/internal/domain"
+	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/repository"
 )
 
@@ -74,8 +75,18 @@ func (s *AnalyticsService) PlatformStats(ctx context.Context) (map[string]interf
 	if err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "database error", err)
 	}
-	successCount, _ := s.logRepo.CountByStatus(ctx, "success")
-	errorCount, _ := s.logRepo.CountByStatus(ctx, "error")
+	successCount := 0
+	errorCount := 0
+	if sc, err := s.logRepo.CountByStatus(ctx, "success"); err != nil {
+		logger.Warn("platform_stats_success_count_failed", "error", err.Error())
+	} else {
+		successCount = sc
+	}
+	if ec, err := s.logRepo.CountByStatus(ctx, "error"); err != nil {
+		logger.Warn("platform_stats_error_count_failed", "error", err.Error())
+	} else {
+		errorCount = ec
+	}
 
 	balance, purchased, spent, err := s.creditsRepo.Totals(ctx)
 	if err != nil {

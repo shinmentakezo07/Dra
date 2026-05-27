@@ -115,16 +115,23 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {sortedData.map((row, index) => (
+            {sortedData.map((row, index) => {
+              const rowId = (row as Record<string, unknown>)["id"] ?? (row as Record<string, unknown>)["key"] ?? index;
+              const rowLabel = `Row ${index + 1}`;
+              return (
               <motion.tr
-                key={index}
+                key={String(rowId)}
                 custom={index}
                 variants={rowVariants}
                 initial="hidden"
                 animate="visible"
                 onClick={() => onRowClick?.(row)}
+                onKeyDown={onRowClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRowClick(row); } } : undefined}
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-                className={`transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
+                role={onRowClick ? "button" : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={onRowClick ? rowLabel : undefined}
+                className={`transition-colors ${onRowClick ? "cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500/50" : ""}`}
               >
                 {columns.map((column) => (
                   <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
@@ -134,7 +141,7 @@ export function DataTable<T>({
                   </td>
                 ))}
               </motion.tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>

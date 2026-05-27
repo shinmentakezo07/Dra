@@ -134,6 +134,12 @@ func (h *Handler) AdminUpdateProvider(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "baseUrl must be a valid http or https URL")
 		return
 	}
+	if p.BaseURL != "" {
+		if err := validateNotPrivateURL(p.BaseURL); err != nil {
+			response.Error(w, 400, "baseUrl must not point to a private or reserved IP address")
+			return
+		}
+	}
 
 	if err := h.adminSvc.UpdateProvider(r.Context(), &p); err != nil {
 		adminError(w, r, err, "admin_update_provider_failed")

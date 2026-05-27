@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/repository"
 
@@ -17,6 +18,7 @@ import (
 type StripeService struct {
 	secretKey     string
 	webhookSecret string
+	database      *db.DB
 	userRepo      *repository.UserRepo
 	creditsRepo   *repository.CreditsRepo
 	txRepo        *repository.TransactionRepo
@@ -24,11 +26,12 @@ type StripeService struct {
 }
 
 // NewStripeService creates a new Stripe service.
-func NewStripeService(secretKey, webhookSecret string, userRepo *repository.UserRepo, creditsRepo *repository.CreditsRepo, txRepo *repository.TransactionRepo, stripeRepo *repository.StripeRepo) *StripeService {
+func NewStripeService(secretKey, webhookSecret string, database *db.DB, userRepo *repository.UserRepo, creditsRepo *repository.CreditsRepo, txRepo *repository.TransactionRepo, stripeRepo *repository.StripeRepo) *StripeService {
 	stripe.Key = secretKey
 	return &StripeService{
 		secretKey:     secretKey,
 		webhookSecret: webhookSecret,
+		database:      database,
 		userRepo:      userRepo,
 		creditsRepo:   creditsRepo,
 		txRepo:        txRepo,
@@ -109,17 +112,30 @@ func (s *StripeService) FulfillCheckout(ctx context.Context, session *stripe.Che
 		return nil // Already fulfilled
 	}
 
-	// Record invoice
-	if err := s.stripeRepo.CreateInvoice(ctx, userID, session.ID, session.AmountTotal); err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to record invoice", err)
-	}
-
-	// Add credits (1 cent = 1 credit for simplicity, or parse from metadata)
 	credits := int(session.AmountTotal)
 	if c, ok := session.Metadata["credits"]; ok {
 		fmt.Sscanf(c, "%d", &credits)
 	}
 
+	if s.database != nil {
+		return s.database.WithTx(ctx, func(tx db.Querier) error {
+			if err := s.stripeRepo.CreateInvoiceTx(ctx, tx, userID, session.ID, session.AmountTotal); err != nil {
+				return fmt.Errorf("failed to record invoice: %w", err)
+			}
+			if err := s.creditsRepo.UpsertTx(ctx, tx, userID, credits, credits); err != nil {
+				return fmt.Errorf("failed to add credits: %w", err)
+			}
+			if _, err := s.txRepo.CreateTx(ctx, tx, userID, credits, "purchase", "Stripe checkout", nil); err != nil {
+				return fmt.Errorf("failed to record transaction: %w", err)
+			}
+			return nil
+		})
+	}
+
+	// Fallback without transaction
+	if err := s.stripeRepo.CreateInvoice(ctx, userID, session.ID, session.AmountTotal); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to record invoice", err)
+	}
 	if err := s.creditsRepo.Upsert(ctx, userID, credits, credits); err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "failed to add credits", err)
 	}

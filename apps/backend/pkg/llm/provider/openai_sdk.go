@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"time"
 
@@ -264,6 +265,9 @@ func chatStreamWithSDK(ctx context.Context, p *BaseProvider, req *llm.ChatReques
 		for {
 			resp, err := stream.Recv()
 			if err != nil {
+				if err != io.EOF {
+					slog.Error("stream_recv_error", "provider", p.name, "model", req.Model, "error", err)
+				}
 				return
 			}
 			chunk := fromOpenAIStreamChunk(resp, req.Model, p.name)

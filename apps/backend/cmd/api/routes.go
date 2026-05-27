@@ -280,6 +280,8 @@ func registerRoutes(
 	// Admin routes
 	r.Group(func(r chi.Router) {
 		r.Use(authMW)
+		r.Use(tokenBlacklistMW)
+		r.Use(quotaMW)
 
 		r.Get("/api/admin/dashboard", appmiddleware.RequireAdmin(h.AdminDashboardStats))
 		r.Get("/api/admin/users", appmiddleware.RequireAdmin(h.AdminListUsers))

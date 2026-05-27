@@ -45,8 +45,25 @@ func (r *StripeRepo) InvoiceExists(ctx context.Context, stripeInvoiceID string) 
 	return count > 0, nil
 }
 
+func (r *StripeRepo) InvoiceExistsTx(ctx context.Context, tx db.Querier, stripeInvoiceID string) (bool, error) {
+	var count int
+	err := tx.QueryRow(ctx,
+		`SELECT COUNT(*) FROM stripe_invoices WHERE stripe_invoice_id = $1`, stripeInvoiceID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r *StripeRepo) CreateInvoice(ctx context.Context, userID, stripeInvoiceID string, amount int64) error {
 	_, err := r.db.Exec(ctx,
+		`INSERT INTO stripe_invoices (user_id, stripe_invoice_id, amount, currency, status) VALUES ($1, $2, $3, $4, $5)`,
+		userID, stripeInvoiceID, amount, "usd", "paid")
+	return err
+}
+
+func (r *StripeRepo) CreateInvoiceTx(ctx context.Context, tx db.Querier, userID, stripeInvoiceID string, amount int64) error {
+	_, err := tx.Exec(ctx,
 		`INSERT INTO stripe_invoices (user_id, stripe_invoice_id, amount, currency, status) VALUES ($1, $2, $3, $4, $5)`,
 		userID, stripeInvoiceID, amount, "usd", "paid")
 	return err

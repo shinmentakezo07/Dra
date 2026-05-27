@@ -53,25 +53,35 @@ type Job struct {
 
 // Processor handles batch job execution.
 type Processor struct {
-	jobs      map[string]*Job
-	mu        sync.RWMutex
+	jobs        map[string]*Job
+	mu          sync.RWMutex
 	workerCount int
-	chatFn    func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error)
+	chatFn      func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error)
+	ctx         context.Context
+	cancel      context.CancelFunc
 }
 
 // NewProcessor creates a new batch processor.
-func NewProcessor(workerCount int, chatFn func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error)) *Processor {
+func NewProcessor(ctx context.Context, workerCount int, chatFn func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error)) *Processor {
 	if workerCount <= 0 {
 		workerCount = 4
 	}
+	ctx, cancel := context.WithCancel(ctx)
 	return &Processor{
 		jobs:        make(map[string]*Job),
+		ctx:         ctx,
+		cancel:      cancel,
 		workerCount: workerCount,
 		chatFn:      chatFn,
 	}
 }
 
-// Submit creates and queues a new batch job. The ctx is used as the parent context for processing.
+// Stop cancels all in-flight batch processing.
+func (p *Processor) Stop() {
+	p.cancel()
+}
+
+// Submit creates and queues a new batch job.
 func (p *Processor) Submit(ctx context.Context, items []JobItem) *Job {
 	job := &Job{
 		ID:        generateID(),
@@ -86,7 +96,7 @@ func (p *Processor) Submit(ctx context.Context, items []JobItem) *Job {
 	p.jobs[job.ID] = job
 	p.mu.Unlock()
 
-	go p.process(ctx, job)
+	go p.process(p.ctx, job)
 	return job
 }
 

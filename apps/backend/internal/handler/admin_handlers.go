@@ -41,7 +41,7 @@ func (h *Handler) ProviderHealth(w http.ResponseWriter, r *http.Request) {
 		}
 		if s.LastError != nil {
 			errStr := s.LastError.Error()
-			if strings.Contains(errStr, "http") || strings.Contains(errStr, "sk-") || strings.Contains(errStr, "nvapi-") || strings.Contains(errStr, "key") {
+			if strings.Contains(errStr, "http") || strings.Contains(errStr, "sk-") || strings.Contains(errStr, "nvapi-") || strings.Contains(errStr, "key") || strings.Contains(errStr, "gsk-") || strings.Contains(errStr, "xai-") || strings.Contains(errStr, "AIza") {
 				errStr = "provider request failed"
 			}
 			item["last_error"] = errStr

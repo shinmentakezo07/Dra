@@ -317,7 +317,7 @@ func SanitizeContent(content string) string {
 	return content
 }
 
-// ValidateRequest validates a chat request.
+// ValidateRequest validates a chat request without mutating it.
 func ValidateRequest(req *ChatRequest) error {
 	if req.Model == "" {
 		return fmt.Errorf("model is required")
@@ -334,10 +334,14 @@ func ValidateRequest(req *ChatRequest) error {
 		}
 	}
 	if req.Temperature != nil {
-		*req.Temperature = ClampTemperature(*req.Temperature)
+		if *req.Temperature < 0 || *req.Temperature > 2 {
+			return fmt.Errorf("temperature must be between 0 and 2")
+		}
 	}
 	if req.TopP != nil {
-		*req.TopP = ClampTopP(*req.TopP)
+		if *req.TopP < 0 || *req.TopP > 1 {
+			return fmt.Errorf("top_p must be between 0 and 1")
+		}
 	}
 	return nil
 }
@@ -366,11 +370,15 @@ func BuildAssistantMessage(content string) Message {
 
 // BuildToolResultMessage creates a tool result message.
 func BuildToolResultMessage(toolCallID, content string, isError bool) Message {
-	return Message{
+	msg := Message{
 		Role:       RoleTool,
 		Content:    content,
 		ToolCallID: toolCallID,
 	}
+	if isError {
+		msg.Metadata = map[string]any{"is_error": true}
+	}
+	return msg
 }
 
 // DeepCopyRequest creates a deep copy of a ChatRequest.

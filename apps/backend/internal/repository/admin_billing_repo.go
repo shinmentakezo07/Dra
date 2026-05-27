@@ -25,7 +25,7 @@ func (r *AdminBillingRepo) AdjustCredits(ctx context.Context, adj *domain.Credit
 	defer tx.Rollback(ctx)
 
 	var balance int
-	err = tx.QueryRow(ctx, `SELECT COALESCE(SUM(amount), 0) FROM user_credits WHERE user_id=$1`, adj.UserID).Scan(&balance)
+	err = tx.QueryRow(ctx, `SELECT COALESCE(balance, 0) FROM user_credits WHERE user_id=$1 FOR UPDATE`, adj.UserID).Scan(&balance)
 	if err != nil {
 		return fmt.Errorf("get balance: %w", err)
 	}
@@ -33,10 +33,10 @@ func (r *AdminBillingRepo) AdjustCredits(ctx context.Context, adj *domain.Credit
 	adj.BalanceBefore = balance
 	adj.BalanceAfter = balance + adj.Amount
 
-	_, err = tx.Exec(ctx, `INSERT INTO user_credits (user_id, amount, created_at) VALUES ($1, $2, NOW())`,
+	_, err = tx.Exec(ctx, `UPDATE user_credits SET balance = balance + $2, total_purchased = total_purchased + GREATEST($2, 0), total_spent = total_spent + GREATEST(-$2, 0), updated_at = NOW() WHERE user_id = $1`,
 		adj.UserID, adj.Amount)
 	if err != nil {
-		return fmt.Errorf("insert credit: %w", err)
+		return fmt.Errorf("update credits: %w", err)
 	}
 
 	_, err = tx.Exec(ctx, `

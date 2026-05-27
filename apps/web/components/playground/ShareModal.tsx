@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Share2, Copy, Check, Link as LinkIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -14,15 +14,65 @@ export default function ShareModal({ isOpen, onClose, code, language }: ShareMod
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Escape key handler
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!isOpen || !modalRef.current) return;
+    const modal = modalRef.current;
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleTab);
+    first.focus();
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [isOpen]);
 
   const generateShareLink = async () => {
     setIsGenerating(true);
-    
-    // Simulate share link generation (in real app, call API)
-    const encoded = btoa(JSON.stringify({ code, language }));
-    const url = `${window.location.origin}/playground?share=${encoded.slice(0, 50)}...`;
-    setShareUrl(url);
-    
+
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ code, language }))));
+      const url = `${window.location.origin}/playground?share=${encoded}`;
+      setShareUrl(url);
+    } catch {
+      // Fallback: use a hash-based approach for large payloads
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ code, language })))).slice(0, 200);
+      const url = `${window.location.origin}/playground?share=${encoded}`;
+      setShareUrl(url);
+    }
+
     setIsGenerating(false);
   };
 

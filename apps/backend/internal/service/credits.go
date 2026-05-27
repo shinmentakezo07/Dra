@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strings"
+	"sync"
 	"time"
 
 	"dra-platform/backend/internal/db"
@@ -74,16 +75,22 @@ func (s *CreditService) Purchase(ctx context.Context, userID string, req domain.
 }
 
 func (s *CreditService) DeductForUsage(ctx context.Context, userID string, amount int, logID string) *domain.AppError {
-	ok, err := s.creditsRepo.Deduct(ctx, userID, amount)
+	err := s.db.WithTx(ctx, func(tx db.Querier) error {
+		ok, err := s.creditsRepo.DeductTx(ctx, tx, userID, amount)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return domain.ErrNoCredits
+		}
+		_, err = s.txRepo.CreateTx(ctx, tx, userID, -amount, "usage", "API usage deduction", &logID)
+		return err
+	})
 	if err != nil {
+		if appErr, ok := err.(*domain.AppError); ok {
+			return appErr
+		}
 		return domain.Wrap(domain.ErrInternal, 500, "failed to deduct credits", err)
-	}
-	if !ok {
-		return domain.ErrNoCredits
-	}
-	_, err = s.txRepo.Create(ctx, userID, -amount, "usage", "API usage deduction", &logID)
-	if err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to record transaction", err)
 	}
 	return nil
 }

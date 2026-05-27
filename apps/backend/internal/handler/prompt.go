@@ -21,17 +21,10 @@ type renderPromptRequest struct {
 	Variables map[string]string `json:"variables"`
 }
 
-func requirePromptUser(w http.ResponseWriter, r *http.Request) bool {
+func (h *Handler) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 	u := middleware.GetUser(r)
 	if u == nil {
 		response.Error(w, 401, "Authentication required")
-		return false
-	}
-	return true
-}
-
-func (h *Handler) CreatePrompt(w http.ResponseWriter, r *http.Request) {
-	if !requirePromptUser(w, r) {
 		return
 	}
 	var req createPromptRequest
@@ -40,7 +33,7 @@ func (h *Handler) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt, appErr := h.promptSvc.CreatePrompt(r.Context(), req.Name, req.Template, req.Model, req.Config)
+	prompt, appErr := h.promptSvc.CreatePrompt(r.Context(), u.ID, req.Name, req.Template, req.Model, req.Config)
 	if appErr != nil {
 		response.Error(w, appErr.Status, appErr.Message)
 		return
@@ -49,11 +42,13 @@ func (h *Handler) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListPrompts(w http.ResponseWriter, r *http.Request) {
-	if !requirePromptUser(w, r) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
 		return
 	}
 	page, limit := parsePagination(r)
-	prompts, appErr := h.promptSvc.ListPrompts(r.Context(), page, limit)
+	prompts, appErr := h.promptSvc.ListPrompts(r.Context(), u.ID, page, limit)
 	if appErr != nil {
 		response.Error(w, appErr.Status, appErr.Message)
 		return
@@ -62,11 +57,13 @@ func (h *Handler) ListPrompts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetPrompt(w http.ResponseWriter, r *http.Request) {
-	if !requirePromptUser(w, r) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
 		return
 	}
 	name := chi.URLParam(r, "name")
-	prompt, appErr := h.promptSvc.GetPrompt(r.Context(), name)
+	prompt, appErr := h.promptSvc.GetPrompt(r.Context(), u.ID, name)
 	if appErr != nil {
 		response.Error(w, appErr.Status, appErr.Message)
 		return
@@ -75,7 +72,9 @@ func (h *Handler) GetPrompt(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RenderPrompt(w http.ResponseWriter, r *http.Request) {
-	if !requirePromptUser(w, r) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
 		return
 	}
 	name := chi.URLParam(r, "name")
@@ -85,7 +84,7 @@ func (h *Handler) RenderPrompt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt, rendered, appErr := h.promptSvc.RenderPrompt(r.Context(), name, req.Variables)
+	prompt, rendered, appErr := h.promptSvc.RenderPrompt(r.Context(), u.ID, name, req.Variables)
 	if appErr != nil {
 		response.Error(w, appErr.Status, appErr.Message)
 		return
@@ -98,11 +97,13 @@ func (h *Handler) RenderPrompt(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeletePrompt(w http.ResponseWriter, r *http.Request) {
-	if !requirePromptUser(w, r) {
+	u := middleware.GetUser(r)
+	if u == nil {
+		response.Error(w, 401, "Authentication required")
 		return
 	}
 	name := chi.URLParam(r, "name")
-	appErr := h.promptSvc.DeletePrompt(r.Context(), name)
+	appErr := h.promptSvc.DeletePrompt(r.Context(), u.ID, name)
 	if appErr != nil {
 		response.Error(w, appErr.Status, appErr.Message)
 		return

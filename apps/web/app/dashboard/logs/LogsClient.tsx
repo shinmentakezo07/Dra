@@ -344,7 +344,11 @@ export default function LogsClient() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.03, duration: 0.2 }}
                                 onClick={() => handleRowClick(log)}
-                                className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRowClick(log); } }}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`View details for ${log.model} request ${log.id}`}
+                                className="hover:bg-white/[0.03] transition-colors cursor-pointer group focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                               >
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex items-center gap-2 text-sm text-gray-400 font-mono">

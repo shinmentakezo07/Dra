@@ -101,6 +101,9 @@ func (h *Handler) AdminBulkSuspendUsers(w http.ResponseWriter, r *http.Request) 
 	}
 	suspended := 0
 	for _, userID := range req.UserIDs {
+		if userID == "" {
+			continue
+		}
 		if err := h.adminSvc.UpdateUserStatus(r.Context(), userID, "suspended", req.Reason); err == nil {
 			suspended++
 		}

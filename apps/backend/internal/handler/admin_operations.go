@@ -114,7 +114,10 @@ func (h *Handler) AdminGetForecast(w http.ResponseWriter, r *http.Request) {
 			total += t.Cost
 			count++
 		}
-		avgDaily := total / float64(count)
+		avgDaily := 0.0
+		if count > 0 {
+			avgDaily = total / float64(count)
+		}
 		daysRemaining := 30 - now.Day()
 		forecast := currentMonthCost + avgDaily*float64(daysRemaining)
 		response.OK(w, map[string]interface{}{
@@ -140,7 +143,7 @@ func (h *Handler) AdminCostBreakdown(w http.ResponseWriter, r *http.Request) {
 		SELECT model, COUNT(*) as reqs, COALESCE(SUM(cost),0) as total
 		FROM usage_records WHERE created_at >= $1 GROUP BY model ORDER BY total DESC LIMIT 20`, monthStart)
 	if err != nil {
-		response.Error(w, 500, err.Error())
+		response.Error(w, 500, "Failed to retrieve cost breakdown")
 		return
 	}
 	defer rows.Close()
@@ -178,17 +181,39 @@ func (h *Handler) AdminDashboardStats(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 500, "Failed to load dashboard stats")
 		return
 	}
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE last_login_at >= $1", yesterday).Scan(&stats.Users.ActiveToday)
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE created_at >= $1", todayStart).Scan(&stats.Users.NewToday)
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE status='suspended'").Scan(&stats.Users.Suspended)
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.TotalToday)
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Requests.TotalMonth)
-	_ = h.db.QueryRow(ctx, "SELECT COALESCE(AVG(duration_ms),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.AvgLatencyMs)
-	_ = h.db.QueryRow(ctx, "SELECT COALESCE(SUM(tokens),0) FROM usage_records WHERE created_at >= $1 AND tokens > 0", todayStart).Scan(&stats.Tokens.InputToday)
-	_ = h.db.QueryRow(ctx, "SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Revenue.TodayCents)
-	_ = h.db.QueryRow(ctx, "SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Revenue.MonthCents)
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM providers").Scan(&stats.Providers.Total)
-	_ = h.db.QueryRow(ctx, "SELECT COUNT(*) FROM providers WHERE status='active'").Scan(&stats.Providers.Healthy)
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE last_login_at >= $1", yesterday).Scan(&stats.Users.ActiveToday); err != nil {
+		logger.Warn("admin_stats_active_today_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE created_at >= $1", todayStart).Scan(&stats.Users.NewToday); err != nil {
+		logger.Warn("admin_stats_new_today_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE status='suspended'").Scan(&stats.Users.Suspended); err != nil {
+		logger.Warn("admin_stats_suspended_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.TotalToday); err != nil {
+		logger.Warn("admin_stats_requests_today_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Requests.TotalMonth); err != nil {
+		logger.Warn("admin_stats_requests_month_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COALESCE(AVG(duration_ms),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Requests.AvgLatencyMs); err != nil {
+		logger.Warn("admin_stats_avg_latency_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COALESCE(SUM(tokens),0) FROM usage_records WHERE created_at >= $1 AND tokens > 0", todayStart).Scan(&stats.Tokens.InputToday); err != nil {
+		logger.Warn("admin_stats_tokens_today_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1", todayStart).Scan(&stats.Revenue.TodayCents); err != nil {
+		logger.Warn("admin_stats_revenue_today_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COALESCE(SUM(cost),0) FROM usage_records WHERE created_at >= $1", monthStart).Scan(&stats.Revenue.MonthCents); err != nil {
+		logger.Warn("admin_stats_revenue_month_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM providers").Scan(&stats.Providers.Total); err != nil {
+		logger.Warn("admin_stats_providers_total_failed", "error", err.Error())
+	}
+	if err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM providers WHERE status='active'").Scan(&stats.Providers.Healthy); err != nil {
+		logger.Warn("admin_stats_providers_healthy_failed", "error", err.Error())
+	}
 
 	response.OK(w, stats)
 }

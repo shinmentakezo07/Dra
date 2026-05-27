@@ -39,7 +39,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password"),
-  role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
+  role: text("role", { enum: ["user", "admin", "superadmin"] }).default("user").notNull(),
   status: text("status").default("active").notNull(),
   tier: text("tier").notNull().default("free"),
   rateLimitTierId: uuid("rate_limit_tier_id").references(() => rateLimitTiers.id),
@@ -207,7 +207,7 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
 }));
 
 export const webhookDeliveryLogs = pgTable("webhook_delivery_logs", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   webhookId: uuid("webhook_id").references(() => webhooks.id).notNull(),
   eventType: text("event_type").notNull(),
   payload: jsonb("payload"),
@@ -401,7 +401,7 @@ export const providerKeys = pgTable("provider_keys", {
 }));
 
 export const providerKeyUsageLogs = pgTable("provider_key_usage_logs", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   keyId: uuid("key_id").references(() => providerKeys.id).notNull(),
   providerId: uuid("provider_id").references(() => providers.id).notNull(),
   requestId: text("request_id").notNull(),
@@ -420,7 +420,7 @@ export const providerKeyUsageLogs = pgTable("provider_key_usage_logs", {
 }));
 
 export const providerHealthChecks = pgTable("provider_health_checks", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   providerId: uuid("provider_id").references(() => providers.id).notNull(),
   status: text("status").notNull(),
   latencyMs: integer("latency_ms").default(0).notNull(),
@@ -499,7 +499,8 @@ export const creditAdjustments = pgTable("credit_adjustments", {
 // ============================================================================
 
 export const usageRecords = pgTable("usage_records", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // NOTE: userId is text (not UUID FK) for flexibility with non-UUID auth providers
   userId: text("user_id").notNull(),
   apiKeyId: text("api_key_id").default(""),
   providerId: uuid("provider_id").references(() => providers.id),
@@ -612,7 +613,7 @@ export const featureFlags = pgTable("feature_flags", {
 }));
 
 export const auditLogs = pgTable("audit_logs", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   actorId: text("actor_id").notNull(),
   actorEmail: text("actor_email").default("").notNull(),
   action: text("action").notNull(),
@@ -646,7 +647,7 @@ export const ipLists = pgTable("ip_lists", {
 }));
 
 export const ipAccessLogs = pgTable("ip_access_logs", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   ipAddress: text("ip_address").notNull(),
   userId: text("user_id").default(""),
   apiKeyId: text("api_key_id").default(""),
@@ -664,7 +665,7 @@ export const ipAccessLogs = pgTable("ip_access_logs", {
 }));
 
 export const suspiciousActivities = pgTable("suspicious_activities", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   category: text("category").notNull(),
   severity: text("severity").default("medium").notNull(),
   userId: text("user_id").default(""),
@@ -732,7 +733,7 @@ export const adminMessageReads = pgTable("admin_message_reads", {
 }, (table) => ({
   messageIdIdx: index("idx_admin_message_reads_message").on(table.messageId),
   userIdx: index("idx_admin_message_reads_user").on(table.userId),
-  messageUserUnique: index("idx_admin_message_reads_unique").on(table.messageId, table.userId),
+  messageUserUnique: uniqueIndex("idx_admin_message_reads_unique").on(table.messageId, table.userId),
 }));
 
 // ============================================================================
@@ -872,7 +873,7 @@ export const usageAlerts = pgTable("usage_alerts", {
 // ============================================================================
 
 export const costOptimizations = pgTable("cost_optimizations", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   type: text("type").notNull(),
   title: text("title").notNull(),
   description: text("description").default(""),
@@ -1004,7 +1005,7 @@ export const providerMaintenanceWindows = pgTable("provider_maintenance_windows"
 // ============================================================================
 
 export const cacheStats = pgTable("cache_stats", {
-  id: bigserial("id", { mode: "number" }),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   providerId: uuid("provider_id").references(() => providers.id),
   model: text("model").default("").notNull(),
   hits: bigint("hits", { mode: "number" }).default(0).notNull(),

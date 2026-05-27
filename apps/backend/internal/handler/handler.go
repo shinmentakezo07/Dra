@@ -70,6 +70,8 @@ func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service
 	return &Handler{
 		cfg: cfg, db: database, userSvc: u, keySvc: k, creditSvc: c, analyticsSvc: a,
 		logSvc: l, providerSvc: p, webhookSvc: w, batchSvc: b, orgSvc: o,
+		adminSvc:          service.NewAdminService(repository.NewAdminUserRepo(database), repository.NewAdminProviderRepo(database), repository.NewAdminModelRepo(database), repository.NewAdminBillingRepo(database), repository.NewAdminSettingsRepo(database), repository.NewAdminAuditRepo(database), repository.NewAdminSecurityRepo(database), repository.NewAdminFeaturesRepo(database), nil),
+		adminSessionRepo:  repository.NewAdminSessionRepo(database),
 		conversationSvc:   service.NewConversationService(repository.NewConversationRepo(database)),
 		promptSvc:         service.NewPromptService(repository.NewPromptRepo(database)),
 		fileSvc:           service.NewFileService(repository.NewFileRepo(database)),
@@ -79,13 +81,14 @@ func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service
 		comparisonSvc:     service.NewComparisonService(repository.NewComparisonRepo(database)),
 		fineTuningSvc:     service.NewFineTuningService(repository.NewFineTuningRepo(database)),
 		providerPluginSvc: service.NewProviderPluginService(repository.NewProviderPluginRepo(database)),
-		exportSvc:         service.NewExportService(repository.NewExportRepo(database), repository.NewLogRepo(database)),
+		exportSvc:         service.NewExportService(repository.NewExportRepo(database), repository.NewLogRepo(database), repository.NewAdminAuditRepo(database)),
 		tokenBlacklistRepo: repository.NewTokenBlacklistRepo(database),
 		moderator:         moderation.NewLocalModerator(),
 		notificationHub:   NewNotificationHub(),
 	}
 }
 
+func (h *Handler) UserService() *service.UserService           { return h.userSvc }
 func (h *Handler) SetModelRouter(r *router.Router)            { h.modelRouter = r }
 func (h *Handler) SetBudgetRouter(r *router.BudgetRouter)     { h.budgetRouter = r }
 func (h *Handler) SetBatchService(b *service.BatchService)    { h.batchSvc = b }
@@ -458,6 +461,7 @@ func (h *Handler) ChatProxy(w http.ResponseWriter, r *http.Request) {
 	span.SetTag("model", req.Model)
 	defer span.Finish()
 
+	start := time.Now()
 	ch, err := h.providerSvc.ChatStream(r.Context(), req)
 	if err != nil {
 		response.JSON(w, err.Status, response.Body{Success: false, Error: err.Message})
@@ -521,7 +525,7 @@ FINISH:
 	if cost < 100 {
 		cost = 100
 	}
-	latency := 0
+	latency := int(time.Since(start).Milliseconds())
 
 	apiKeyID := ""
 	if k := middleware.GetAPIKey(r); k != nil {

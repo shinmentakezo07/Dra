@@ -78,9 +78,11 @@ export async function proxyToBackend(request: Request, path: string): Promise<Re
       headers: response.headers,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Backend unreachable";
+    if (process.env.NODE_ENV === "development") {
+      console.error("[proxyToBackend]", err);
+    }
     return Response.json(
-      { success: false, error: `Backend error: ${message}` },
+      { success: false, error: "Backend service unavailable" },
       { status: 503 }
     );
   }

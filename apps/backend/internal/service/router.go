@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -196,7 +197,11 @@ func (mr *ModelRouter) Route(ctx context.Context, req *llm.ChatRequest) (llm.Pro
 	case RouterStrategyCapability:
 		return mr.routeByCapability(candidates, req)
 	case RouterStrategyRandom:
-		return candidates[0], nil
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(candidates))))
+		if err != nil {
+			return candidates[0], nil
+		}
+		return candidates[n.Int64()], nil
 	default:
 		return candidates[0], nil
 	}

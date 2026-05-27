@@ -348,15 +348,23 @@ func (s *ProviderService) DefaultSystemPrompt() string {
 // toLLMChatRequest converts a domain.ChatRequest to pkg/llm.ChatRequest.
 func toLLMChatRequest(req domain.ChatRequest) *llm.ChatRequest {
 	messages := make([]llm.Message, len(req.Messages))
+	hasSystem := false
 	for i, m := range req.Messages {
 		messages[i] = llm.Message{
 			Role:    llm.Role(m.Role),
 			Content: m.Content,
 		}
+		if m.Role == "system" {
+			hasSystem = true
+		}
+	}
+	var system string
+	if !hasSystem {
+		system = "You are Shinmen, a distinguished PhD in Computer Science and Information Technology with over 20 years of experience."
 	}
 	return &llm.ChatRequest{
 		Model:    req.Model,
 		Messages: messages,
-		System:   "You are Shinmen, a distinguished PhD in Computer Science and Information Technology with over 20 years of experience.",
+		System:   system,
 	}
 }

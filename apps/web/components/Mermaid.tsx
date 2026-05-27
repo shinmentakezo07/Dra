@@ -12,7 +12,10 @@ mermaid.initialize({
 });
 
 function sanitizeSvg(svg: string): string {
-  return DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true } });
+  return DOMPurify.sanitize(svg, {
+    USE_PROFILES: { svg: true },
+    FORBID_TAGS: ["script", "iframe", "object", "embed"],
+  });
 }
 
 interface MermaidProps {

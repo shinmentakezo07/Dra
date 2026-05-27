@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"dra-platform/backend/pkg/llm"
@@ -306,6 +307,5 @@ func (s *SandboxProvider) ListModels(ctx context.Context) ([]llm.ModelInfo, erro
 var sandboxCounter uint64
 
 func generateSandboxID() string {
-	// Simple unique ID for sandbox
-	return fmt.Sprintf("%d", time.Now().UnixNano())
+	return fmt.Sprintf("sandbox-%d-%d", time.Now().UnixNano(), atomic.AddUint64(&sandboxCounter, 1))
 }

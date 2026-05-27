@@ -15,6 +15,21 @@ type UserService struct {
 	secret string
 }
 
+func isPasswordComplex(password string) bool {
+	var hasUpper, hasLower, hasDigit bool
+	for _, c := range password {
+		switch {
+		case c >= 'A' && c <= 'Z':
+			hasUpper = true
+		case c >= 'a' && c <= 'z':
+			hasLower = true
+		case c >= '0' && c <= '9':
+			hasDigit = true
+		}
+	}
+	return hasUpper && hasLower && hasDigit
+}
+
 func NewUserService(repo *repository.UserRepo, secret string) *UserService {
 	return &UserService{repo: repo, secret: secret}
 }
@@ -101,6 +116,15 @@ func (s *UserService) List(ctx context.Context, page, limit int) ([]domain.User,
 }
 
 func (s *UserService) UpdateProfile(ctx context.Context, id, name, email string) *domain.AppError {
+	if email != "" {
+		existing, err := s.repo.ByEmail(ctx, email)
+		if err != nil {
+			return domain.Wrap(domain.ErrInternal, 500, "database error", err)
+		}
+		if existing != nil && existing.ID != id {
+			return domain.ErrEmailExists
+		}
+	}
 	if err := s.repo.UpdateProfile(ctx, id, name, email); err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "failed to update profile", err)
 	}
@@ -182,6 +206,12 @@ func (s *UserService) RequestPasswordReset(ctx context.Context, email string) (s
 
 // ResetPassword validates a reset token and updates the password.
 func (s *UserService) ResetPassword(ctx context.Context, tokenStr, newPassword string) *domain.AppError {
+	if newPassword == "" || len(newPassword) < 8 {
+		return domain.NewError(domain.ErrBadRequest, 400, "Password must be at least 8 characters")
+	}
+	if !isPasswordComplex(newPassword) {
+		return domain.ErrPasswordTooWeak
+	}
 	pr, err := s.repo.GetPasswordReset(ctx, tokenStr)
 	if err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "database error", err)

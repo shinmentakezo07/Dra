@@ -68,6 +68,7 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	// Content moderation (same as OpenAI proxy)
 	if h.moderator != nil && !isSandbox {
 		for _, m := range req.Messages {
+			// Handle both string and array content formats
 			var contentStr string
 			if err := json.Unmarshal(m.Content, &contentStr); err == nil && contentStr != "" {
 				modResult, modErr := h.moderator.Moderate(r.Context(), contentStr)
@@ -75,6 +76,24 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 					logger.Warn("anthropic_content_moderation_flagged", "user_id", userID, "categories", modResult.Categories, "score", modResult.Score)
 					writeAnthropicError(w, http.StatusBadRequest, "invalid_request_error", "Content flagged by moderation policy")
 					return
+				}
+			} else {
+				// Array content blocks format
+				var blocks []struct {
+					Type string `json:"type"`
+					Text string `json:"text"`
+				}
+				if err := json.Unmarshal(m.Content, &blocks); err == nil {
+					for _, block := range blocks {
+						if block.Type == "text" && block.Text != "" {
+							modResult, modErr := h.moderator.Moderate(r.Context(), block.Text)
+							if modErr == nil && modResult != nil && modResult.Flagged {
+								logger.Warn("anthropic_content_moderation_flagged", "user_id", userID, "categories", modResult.Categories, "score", modResult.Score)
+								writeAnthropicError(w, http.StatusBadRequest, "invalid_request_error", "Content flagged by moderation policy")
+								return
+							}
+						}
+					}
 				}
 			}
 		}
@@ -84,7 +103,7 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 
 	// API key scoping: max tokens per request
 	if apiKey := middleware.GetAPIKey(r); apiKey != nil && apiKey.MaxTokensPerRequest > 0 && !isSandbox {
-		estInput, estOutput := h.providerSvc.EstimateTokens(internalReq.Model, nil)
+		estInput, estOutput := h.providerSvc.EstimateTokens(internalReq.Model, req.Messages)
 		estimatedTokens := estInput + estOutput
 		if estimatedTokens > apiKey.MaxTokensPerRequest {
 			writeAnthropicError(w, http.StatusTooManyRequests, "invalid_request_error", "estimated tokens exceed max allowed per request for this API key")
@@ -272,11 +291,9 @@ func (h *Handler) handleAnthropicStream(w http.ResponseWriter, r *http.Request, 
 ANTHROPIC_FINISH:
 	// Estimate input tokens from messages if streaming didn't provide usage info
 	// outputTokens tracks actual output, inputTokens should be estimated from input
-	inputTokens := len(req.Messages) * 50
+	inputTokens := 0
 	for _, m := range req.Messages {
-		if len(m.Content) > 0 {
-			inputTokens += llm.EstimateTokens(m.Content)
-		}
+		inputTokens += llm.EstimateTokens(string(m.Role)) + llm.EstimateTokens(m.Content)
 	}
 	if outputTokens == 0 {
 		outputTokens = inputTokens / 2

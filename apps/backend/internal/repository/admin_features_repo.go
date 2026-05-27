@@ -226,6 +226,12 @@ func (r *AdminFeaturesRepo) RedeemPromo(ctx context.Context, code, userID string
 		return nil, 0, fmt.Errorf("credit user: %w", err)
 	}
 
+	_, err = tx.Exec(ctx, `INSERT INTO credit_transactions(id,user_id,amount,type,description) VALUES($1,$2,$3,$4,$5)`,
+		uuid.New().String(), userID, p.Value, "promo", "Promo code redemption: "+code)
+	if err != nil {
+		return nil, 0, fmt.Errorf("record promo transaction: %w", err)
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return nil, 0, fmt.Errorf("commit: %w", err)
 	}

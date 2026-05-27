@@ -3,6 +3,7 @@ package handler
 import (
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"net/http"
 	"time"
@@ -29,14 +30,17 @@ func (h *Handler) AdminTogglePromoStatus(w http.ResponseWriter, r *http.Request)
 	response.OK(w, map[string]bool{"isActive": req.IsActive})
 }
 
-func generatePromoCode(length int) string {
+func generatePromoCode(length int) (string, error) {
 	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	code := make([]byte, length)
 	for i := range code {
-		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		if err != nil {
+			return "", fmt.Errorf("generate promo code: %w", err)
+		}
 		code[i] = chars[n.Int64()]
 	}
-	return string(code)
+	return string(code), nil
 }
 
 func (h *Handler) AdminCreatePromoCodeWithRandom(w http.ResponseWriter, r *http.Request) {
@@ -62,12 +66,21 @@ func (h *Handler) AdminCreatePromoCodeWithRandom(w http.ResponseWriter, r *http.
 		response.Error(w, 400, "Value must be greater than 0")
 		return
 	}
+	if req.MaxUses < 0 {
+		response.Error(w, 400, "MaxUses must not be negative")
+		return
+	}
 	if req.Type == "" {
 		req.Type = "credits"
 	}
 	code := req.Code
 	if req.Random || code == "" {
-		code = generatePromoCode(10)
+		generated, err := generatePromoCode(10)
+		if err != nil {
+			response.Error(w, 500, "Failed to generate promo code")
+			return
+		}
+		code = generated
 	}
 	var expiresAt *time.Time
 	if req.ExpiresAt != "" {

@@ -36,7 +36,18 @@ export async function POST(request: Request) {
     throw err;
   }
 
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid JSON in request body" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    throw err;
+  }
 
   // Forward auth cookies and API key headers to Go backend
   const headers = new Headers();
@@ -70,8 +81,14 @@ export async function POST(request: Request) {
   });
 
   if (!backendRes.ok || !backendRes.body) {
-    const text = await backendRes.text();
-    return new Response(text, { status: backendRes.status, statusText: backendRes.statusText });
+    if (process.env.NODE_ENV === "development") {
+      const text = await backendRes.text();
+      return new Response(text, { status: backendRes.status, statusText: backendRes.statusText });
+    }
+    return new Response(JSON.stringify({ success: false, error: "Chat request failed" }), {
+      status: backendRes.status,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // Convert OpenAI SSE from Go backend to Vercel AI SDK Data Stream

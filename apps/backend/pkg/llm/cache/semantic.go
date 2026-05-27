@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -153,12 +154,17 @@ func BuildSemanticKey(req *llm.ChatRequest) string {
 		freq[w]++
 	}
 
+	sortedWords := make([]string, 0, len(freq))
+	for w := range freq {
+		sortedWords = append(sortedWords, w)
+	}
+	sort.Strings(sortedWords)
+
 	embedding := make([]float64, 0, len(freq)*2)
-	for w, c := range freq {
-		// Hash word to a float
+	for _, w := range sortedWords {
 		h := hashStringInt(w)
 		embedding = append(embedding, float64(h%1000)/1000.0)
-		embedding = append(embedding, float64(c))
+		embedding = append(embedding, float64(freq[w]))
 	}
 
 	data, _ := json.Marshal(embedding)

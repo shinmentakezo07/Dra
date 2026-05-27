@@ -403,6 +403,7 @@ class DraSDK {
   private apiKey?: string;
   private timeout: number;
   private retries: number;
+  private _requestCounter: number = 0;
   private _lastRequestId: string = "";
   private _lastRateLimit: RateLimitInfo = { limit: 0, remaining: 0, reset: 0 };
 
@@ -436,9 +437,11 @@ class DraSDK {
   }
 
   private headers(): HeadersInit {
+    // Use counter-based IDs to avoid UUID collisions and enable tracing
+    const requestId = `req-${++this._requestCounter}-${Date.now()}`;
     const h: Record<string, string> = {
       "Content-Type": "application/json",
-      "x-request-id": crypto.randomUUID(),
+      "x-request-id": requestId,
     };
     if (this.apiKey) {
       h["x-api-key"] = this.apiKey;
@@ -565,34 +568,62 @@ class DraSDK {
     const qs = params.toString();
     if (qs) url += `?${qs}`;
 
-    const res = await this.fetchWithTimeout(url, {
+    const init: RequestInit = {
       method: "GET",
       headers: this.headers(),
       credentials: "include",
-    });
-    this.extractResponseHeaders(res);
-
-    const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      if (!res.ok) {
-        const text = await res.text();
-        throw this.mapError(res.status, text || res.statusText);
-      }
-      return res as unknown as PaginatedResult<T>;
-    }
-
-    const json = (await res.json()) as ApiResponse<T[]>;
-    if (!res.ok || !json.success) {
-      throw this.mapError(res.status, json.error || res.statusText);
-    }
-
-    return {
-      data: (json.data ?? []) as T[],
-      total: json.meta?.total ?? 0,
-      page: json.meta?.page ?? 1,
-      limit: json.meta?.limit ?? 20,
-      totalPages: json.meta?.totalPages ?? 1,
     };
+
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt <= this.retries; attempt++) {
+      try {
+        const res = await this.fetchWithTimeout(url, init);
+        this.extractResponseHeaders(res);
+
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          if (!res.ok) {
+            const text = await res.text();
+            throw this.mapError(res.status, text || res.statusText);
+          }
+          return res as unknown as PaginatedResult<T>;
+        }
+
+        let json: ApiResponse<T[]>;
+        try {
+          json = (await res.json()) as ApiResponse<T[]>;
+        } catch {
+          throw this.mapError(res.status, "Invalid JSON response");
+        }
+        if (!res.ok || !json.success) {
+          throw this.mapError(res.status, json.error || res.statusText);
+        }
+
+        return {
+          data: (json.data ?? []) as T[],
+          total: json.meta?.total ?? 0,
+          page: json.meta?.page ?? 1,
+          limit: json.meta?.limit ?? 20,
+          totalPages: json.meta?.totalPages ?? 1,
+        };
+      } catch (err) {
+        lastError = err as Error;
+        if (err instanceof ApiError) {
+          if (err.status < 500 && err.status !== 429) {
+            throw err;
+          }
+        }
+        if (err instanceof DOMException && err.name === "AbortError") {
+          throw new ApiError("Request timeout", 408);
+        }
+        if (attempt < this.retries) {
+          await new Promise((r) =>
+            setTimeout(r, Math.pow(2, attempt) * 500)
+          );
+        }
+      }
+    }
+    throw lastError || new ApiError("Request failed");
   }
 
   // Health
@@ -765,8 +796,7 @@ class DraSDK {
                 yield content;
               }
             } catch {
-              // If not valid JSON, yield raw payload
-              yield payload;
+              // Skip malformed JSON chunks
             }
           }
         }

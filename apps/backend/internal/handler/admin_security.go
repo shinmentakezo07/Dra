@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -45,7 +46,11 @@ func (h *Handler) AdminReviewSuspicious(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	adminID := u.ID
-	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		response.Error(w, 400, "Invalid ID")
+		return
+	}
 	var req struct{ Action string }
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, 400, "Invalid body")
@@ -206,7 +211,7 @@ func (h *Handler) AdminCreateAnnouncement(w http.ResponseWriter, r *http.Request
 
 	// Send SSE notification to all users if show_in_app
 	if a.ShowInApp {
-		go h.notifyNewMessage(r.Context(), "all", nil, map[string]interface{}{
+		go h.notifyNewMessage(context.Background(), "all", nil, map[string]interface{}{
 			"type":     "new_announcement",
 			"id":       a.ID,
 			"title":    a.Title,

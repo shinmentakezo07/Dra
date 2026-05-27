@@ -366,17 +366,7 @@ export interface PaginatedResponse<T> {
   totalPages: number
 }
 
-export interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-  meta?: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-  }
-}
+export type { ApiResponse } from "@/lib/api/types"
 
 export interface ProviderPlugin {
   id: string
@@ -393,6 +383,7 @@ export interface ProviderPlugin {
 }
 
 export interface RateLimitTier {
+  id: string
   name: string
   rpm: number
   daily: number

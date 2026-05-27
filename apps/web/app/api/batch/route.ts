@@ -4,6 +4,12 @@ import { checkRateLimit } from "@/lib/api/rate-limit";
 import { RateLimitError } from "@/lib/api/errors";
 import { auth } from "@/auth";
 
+export async function GET(request: Request) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+  return proxyToBackend(request, "/api/batch");
+}
+
 export async function POST(request: Request) {
   const authError = await requireAuth(request);
   if (authError) return authError;

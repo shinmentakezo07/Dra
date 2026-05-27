@@ -73,18 +73,17 @@ func AutoMigrate(ctx context.Context, database *DB) error {
 			return fmt.Errorf("read migration %s: %w", f, err)
 		}
 
-		// Run migration inside a transaction
+		// Run migration inside a transaction and record it atomically
 		err = database.WithTx(ctx, func(tx Querier) error {
 			_, err := tx.Exec(ctx, string(data))
+			if err != nil {
+				return err
+			}
+			_, err = tx.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, f)
 			return err
 		})
 		if err != nil {
 			return fmt.Errorf("apply migration %s: %w", f, err)
-		}
-
-		_, err = database.Pool.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, f)
-		if err != nil {
-			return fmt.Errorf("record migration %s: %w", f, err)
 		}
 
 		logger.Info("migration applied", "file", f)

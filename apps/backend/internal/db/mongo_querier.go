@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -540,7 +541,22 @@ func parseSQL(sql string, args []any) (*parsedSQL, error) {
 func normalizeSQL(sql string) string {
 	// Replace newlines and extra spaces with single space
 	sql = strings.Join(strings.Fields(sql), " ")
-	return strings.ToLower(sql)
+
+	// Lowercase everything except content inside single quotes
+	var b strings.Builder
+	b.Grow(len(sql))
+	inQuote := false
+	for _, r := range sql {
+		if r == '\'' {
+			inQuote = !inQuote
+			b.WriteRune(r)
+		} else if inQuote {
+			b.WriteRune(r)
+		} else {
+			b.WriteRune(unicode.ToLower(r))
+		}
+	}
+	return b.String()
 }
 
 // matchSelect parses: SELECT cols FROM table [WHERE ...] [ORDER BY col [ASC|DESC]] [LIMIT $n] [OFFSET $n]
@@ -666,7 +682,7 @@ func matchUpdate(clean string, p *parsedSQL, args []any) bool {
 		}
 	}
 
-	p.filter = parseWhere(m[3], args[len(setMatches):])
+	p.filter = parseWhere(m[3], args)
 	return true
 }
 
@@ -718,7 +734,10 @@ func parseWhere(where string, args []any) bson.M {
 					}
 					var val any
 					if isPlaceholder(valStr) {
-						if argIdx < len(args) {
+						idx := parsePlaceholderIndex(valStr)
+						if idx > 0 && idx <= len(args) {
+							val = args[idx-1]
+						} else if argIdx < len(args) {
 							val = args[argIdx]
 							argIdx++
 						}

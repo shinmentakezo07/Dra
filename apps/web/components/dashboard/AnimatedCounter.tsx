@@ -20,6 +20,7 @@ export function AnimatedCounter({ target, duration = 800 }: AnimatedCounterProps
     const start = 0;
     const end = target;
     const startTime = performance.now();
+    let rafId: number;
 
     const animate = (now: number) => {
       const elapsed = now - startTime;
@@ -28,11 +29,12 @@ export function AnimatedCounter({ target, duration = 800 }: AnimatedCounterProps
       setCurrent(Math.round(start + (end - start) * eased));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, [target, duration]);
 
   return (

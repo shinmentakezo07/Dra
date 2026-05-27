@@ -45,9 +45,11 @@ func main() {
 	ctx := context.Background()
 	if err := db.AutoMigrate(ctx, database); err != nil {
 		logger.Error("auto_migrate_failed", "error", err.Error())
+		os.Exit(1)
 	}
 	if err := db.AutoSeed(ctx, database); err != nil {
 		logger.Error("auto_seed_failed", "error", err.Error())
+		os.Exit(1)
 	}
 
 	// Redis
@@ -67,9 +69,8 @@ func main() {
 
 	// Router
 	r := chi.NewRouter()
-	userSvc := service.NewUserService(repository.NewUserRepo(database), cfg.AuthSecret)
 	adminUserRepo := repository.NewAdminUserRepo(database)
-	registerRoutes(r, h, cfg, database, redisClient, userSvc, adminUserRepo)
+	registerRoutes(r, h, cfg, database, redisClient, h.UserService(), adminUserRepo)
 
 	// Metrics server
 	if cfg.EnableMetrics {

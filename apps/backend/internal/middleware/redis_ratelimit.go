@@ -54,14 +54,14 @@ func (rl *RedisRateLimiter) Allow(ctx context.Context, key string) bool {
 	results, err := pipe.Exec(timeoutCtx)
 	if err != nil {
 		logger.Error("redis_rate_limit_pipeline_failed", "error", err.Error(), "key", key)
-		return true // fail-open: allow requests when Redis is unavailable
+		return false // fail-closed: deny requests when Redis is unavailable
 	}
 
 	// results[2] is ZCard result
 	countCmd, ok := results[2].(*redis.IntCmd)
 	if !ok {
 		logger.Error("redis_rate_limit_unexpected_result", "key", key)
-		return true // fail-open on unexpected result
+		return false // fail-closed on unexpected result
 	}
 
 	count := int(countCmd.Val())
