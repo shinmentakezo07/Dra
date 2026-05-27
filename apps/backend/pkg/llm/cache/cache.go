@@ -51,12 +51,13 @@ type Stats struct {
 
 // MemoryCache is an in-memory cache implementation.
 type MemoryCache struct {
-	mu       sync.RWMutex
-	entries  map[string]*Entry
-	hits     int64
-	misses   int64
-	maxSize  int
+	mu         sync.RWMutex
+	entries    map[string]*Entry
+	hits       int64
+	misses     int64
+	maxSize    int
 	defaultTTL time.Duration
+	cleanupCancel context.CancelFunc
 }
 
 // Option configures a MemoryCache.
@@ -91,29 +92,23 @@ func NewMemoryCache(opts ...Option) *MemoryCache {
 
 // Get retrieves a cached response.
 func (c *MemoryCache) Get(ctx context.Context, key string) (*llm.ChatResponse, error) {
-	c.mu.RLock()
-	entry, exists := c.entries[key]
-	c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
+	entry, exists := c.entries[key]
 	if !exists {
-		c.mu.Lock()
 		c.misses++
-		c.mu.Unlock()
 		return nil, ErrCacheMiss
 	}
 
 	if entry.IsExpired() {
-		c.mu.Lock()
 		delete(c.entries, key)
 		c.misses++
-		c.mu.Unlock()
 		return nil, ErrCacheMiss
 	}
 
-	c.mu.Lock()
 	entry.AccessCount++
 	c.hits++
-	c.mu.Unlock()
 
 	// Return deep copy to prevent mutation
 	return deepCopyResponse(entry.Response), nil
@@ -161,6 +156,10 @@ func (c *MemoryCache) Delete(ctx context.Context, key string) error {
 func (c *MemoryCache) Clear(ctx context.Context) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.cleanupCancel != nil {
+		c.cleanupCancel()
+		c.cleanupCancel = nil
+	}
 	c.entries = make(map[string]*Entry)
 	c.hits = 0
 	c.misses = 0
@@ -205,6 +204,9 @@ func (c *MemoryCache) evictOldest(n int) {
 // Returns a stop function that cancels the goroutine.
 func (c *MemoryCache) StartCleanup(interval time.Duration) func() {
 	ctx, cancel := context.WithCancel(context.Background())
+	c.mu.Lock()
+	c.cleanupCancel = cancel
+	c.mu.Unlock()
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()

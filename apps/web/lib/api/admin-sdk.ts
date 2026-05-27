@@ -70,8 +70,8 @@ export class AdminSDK {
     return this.api.adminListProviderKeys(providerId);
   }
 
-  async createProviderKey(providerId: string, data: Partial<ProviderKey>): Promise<ProviderKey> {
-    return this.api.adminAddProviderKey(providerId, data as any) as unknown as ProviderKey;
+  async createProviderKey(providerId: string, data: { label: string; key: string; strategy?: string; weight?: number }): Promise<ProviderKey> {
+    return this.api.adminAddProviderKey(providerId, data) as unknown as ProviderKey;
   }
 
   async deleteProviderKey(providerId: string, keyId: string): Promise<void> {

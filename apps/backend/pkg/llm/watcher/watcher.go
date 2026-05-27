@@ -83,30 +83,37 @@ func (w *Watcher) Watch(ctx context.Context, err error, provider, model, request
 	}
 	w.mu.Unlock()
 
-	// Invoke category-specific handlers
 	w.mu.RLock()
 	handlers := w.handlers[record.Category]
 	allHandlers := w.allHandlers
 	w.mu.RUnlock()
 
+	var handlerErrors []error
 	for _, h := range handlers {
 		if handleErr := h(ctx, record); handleErr != nil {
 			slog.Warn("handler error", "category", record.Category, "error", handleErr.Error())
+			handlerErrors = append(handlerErrors, handleErr)
 		}
 	}
 
 	for _, h := range allHandlers {
 		if handleErr := h(ctx, record); handleErr != nil {
 			slog.Warn("global handler error", "error", handleErr.Error())
+			handlerErrors = append(handlerErrors, handleErr)
 		}
 	}
 
+	if len(handlerErrors) > 0 {
+		return fmt.Errorf("watcher: %d handler(s) failed: %w", len(handlerErrors), handlerErrors[0])
+	}
 	return nil
 }
 
 // HandleError implements the llm.Watcher interface.
 func (w *Watcher) HandleError(ctx context.Context, err error) {
-	_ = w.Watch(ctx, err, "", "", "")
+	if watchErr := w.Watch(ctx, err, "", "", ""); watchErr != nil {
+		slog.Error("watcher handler failed", "error", watchErr.Error())
+	}
 }
 
 // EmitEvent implements the llm.Watcher interface.

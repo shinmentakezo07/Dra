@@ -150,6 +150,8 @@ func (h *HealthChecker) loop() {
 			h.runChecks()
 		case <-h.stopCh:
 			return
+		case <-h.ctx.Done():
+			return
 		}
 	}
 }

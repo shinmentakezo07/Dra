@@ -78,7 +78,10 @@ export function usePurchaseCredits() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { amount: number }) => getSDK().purchaseCredits(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["credits", "transactions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["credits"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
   });
 }
 

@@ -27,7 +27,7 @@ export default function BillingPage() {
           try {
             const parsed = new URL(url);
             const allowedHosts = ["checkout.stripe.com", "buy.stripe.com", "stripe.com"];
-            if (allowedHosts.includes(parsed.hostname)) {
+            if (parsed.protocol === "https:" && allowedHosts.includes(parsed.hostname)) {
               window.location.href = url;
               return;
             }

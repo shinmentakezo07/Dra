@@ -232,11 +232,15 @@ func (s *UserService) ResetPassword(ctx context.Context, tokenStr, newPassword s
 	if err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "password hashing failed", err)
 	}
-	if err := s.repo.UpdatePassword(ctx, user.ID, hash); err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to update password", err)
-	}
+
+	// Mark token used first to prevent TOCTOU race — concurrent requests with the same
+	// token will fail here because the token is already marked used.
 	if err := s.repo.MarkPasswordResetUsed(ctx, tokenStr); err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "failed to mark token used", err)
+	}
+
+	if err := s.repo.UpdatePassword(ctx, user.ID, hash); err != nil {
+		return domain.Wrap(domain.ErrInternal, 500, "failed to update password", err)
 	}
 	return nil
 }

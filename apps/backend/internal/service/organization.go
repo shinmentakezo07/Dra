@@ -119,12 +119,15 @@ func (s *OrganizationService) AcceptInvite(ctx context.Context, userID, token st
 	if user.Email != invite.Email {
 		return nil, domain.NewError(domain.ErrForbidden, 403, "Invite email does not match your account")
 	}
+	// Mark invite used first to prevent TOCTOU race — concurrent requests with the same
+	// token will fail here because the invite is already marked used.
+	if err := s.repo.MarkInviteUsed(ctx, invite.ID); err != nil {
+		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to mark invite used", err)
+	}
+
 	// Add member
 	if _, err := s.repo.AddMember(ctx, invite.OrgID, userID, invite.Role); err != nil {
 		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to add member", err)
-	}
-	if err := s.repo.MarkInviteUsed(ctx, invite.ID); err != nil {
-		return nil, domain.Wrap(domain.ErrInternal, 500, "failed to mark invite used", err)
 	}
 	return s.Get(ctx, userID, invite.OrgID)
 }

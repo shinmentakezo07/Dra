@@ -305,10 +305,19 @@ func (r *Router) routeByReliability(providers []llm.Provider) (llm.Provider, err
 }
 
 func (r *Router) routeByCapability(providers []llm.Provider, req *llm.ChatRequest) (llm.Provider, error) {
-	// Prefer providers that explicitly support the requested features
-	for _, p := range providers {
-		if len(req.Tools) > 0 && p.SupportsThinking() {
-			return p, nil
+	// Prefer providers that support the requested features
+	if len(req.Tools) > 0 {
+		for _, p := range providers {
+			if supportsTools(p) {
+				return p, nil
+			}
+		}
+	}
+	if req.Thinking != nil && req.Thinking.Enabled {
+		for _, p := range providers {
+			if p.SupportsThinking() {
+				return p, nil
+			}
 		}
 	}
 	return providers[0], nil

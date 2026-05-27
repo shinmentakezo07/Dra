@@ -81,10 +81,9 @@ export async function POST(request: Request) {
   });
 
   if (!backendRes.ok || !backendRes.body) {
-    if (process.env.NODE_ENV === "development") {
-      const text = await backendRes.text();
-      return new Response(text, { status: backendRes.status, statusText: backendRes.statusText });
-    }
+    // Log backend error details server-side; never leak to client
+    const errorText = await backendRes.text();
+    console.error("[chat] Backend error:", backendRes.status, errorText);
     return new Response(JSON.stringify({ success: false, error: "Chat request failed" }), {
       status: backendRes.status,
       headers: { "Content-Type": "application/json" },

@@ -54,7 +54,7 @@ export async function requireApiKeyAuth(request: Request): Promise<ApiKeyAuthRes
 }
 
 export function requireAdmin(auth: ApiKeyAuthResult): void {
-  if (auth.role !== "admin") {
+  if (auth.role !== "admin" && auth.role !== "superadmin") {
     throw new ForbiddenError("Admin access required");
   }
 }

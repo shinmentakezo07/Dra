@@ -72,3 +72,9 @@ go test -race -cover -run TestName ./pkg/llm/tools/...  # Single test
 - `X-Sandbox: true` header skips quota, cost tracking, and logging — useful for testing but never ship with it.
 - Auth supports three methods: `Authorization: Bearer <jwt>`, cookie `authjs.session-token`, header `x-api-key`.
 - Frontend uses dual DB driver: `@neondatabase/serverless` for cloud, `pg` for local. Check `DATABASE_URL` for `neon.tech` to determine which.
+- Backend Makefile prepends `$(HOME)/.local/go/bin` to `PATH` — Go binaries installed there are available.
+- `turbo.json` passes build env vars but **NOT** `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY` — these are runtime-only.
+- `apps/web/tsconfig.json` excludes `db/seed*.ts` and `scripts/**/*` from type checking.
+- `DB_TYPE` modes: `postgres` (default), `neon` (cloud, skips local container), `mongodb` (backend auto-setup).
+- MongoDB in `docker-compose.yml` is behind a `mongo` profile — NOT started by default.
+- `opencode.json` configures this project to use its own Yapapa instance as the LLM provider.

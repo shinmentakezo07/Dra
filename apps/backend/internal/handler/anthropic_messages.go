@@ -45,9 +45,6 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	isSandbox := r.Header.Get("X-Sandbox") == "true"
-	span.SetTag("sandbox", fmt.Sprintf("%v", isSandbox))
-
 	var userID string
 	var apiKeyID *string
 	u := middleware.GetUser(r)
@@ -59,6 +56,13 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			apiKeyID = &key.ID
 		}
 	}
+
+	// Only admins can use sandbox mode (consistent with OpenAI proxy)
+	isSandbox := false
+	if r.Header.Get("X-Sandbox") == "true" {
+		isSandbox = u != nil && u.IsAdmin()
+	}
+	span.SetTag("sandbox", fmt.Sprintf("%v", isSandbox))
 
 	if userID == "" {
 		writeAnthropicError(w, http.StatusUnauthorized, "authentication_error", "Authentication required")
@@ -103,7 +107,15 @@ func (h *Handler) AnthropicMessages(w http.ResponseWriter, r *http.Request) {
 
 	// API key scoping: max tokens per request
 	if apiKey := middleware.GetAPIKey(r); apiKey != nil && apiKey.MaxTokensPerRequest > 0 && !isSandbox {
-		estInput, estOutput := h.providerSvc.EstimateTokens(internalReq.Model, req.Messages)
+		// Convert llm.Message to domain.ChatMessage for EstimateTokens
+		domainMessages := make([]domain.ChatMessage, len(internalReq.Messages))
+		for i, m := range internalReq.Messages {
+			domainMessages[i] = domain.ChatMessage{
+				Role:    string(m.Role),
+				Content: m.Content,
+			}
+		}
+		estInput, estOutput := h.providerSvc.EstimateTokens(internalReq.Model, domainMessages)
 		estimatedTokens := estInput + estOutput
 		if estimatedTokens > apiKey.MaxTokensPerRequest {
 			writeAnthropicError(w, http.StatusTooManyRequests, "invalid_request_error", "estimated tokens exceed max allowed per request for this API key")

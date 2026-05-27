@@ -60,7 +60,14 @@ func NewRedisCache(client RedisClient, opts ...RedisOption) *RedisCache {
 func (r *RedisCache) Get(ctx context.Context, key string) (*llm.ChatResponse, error) {
 	data, err := r.client.Get(ctx, r.prefixedKey(key))
 	if err != nil {
-		return nil, ErrCacheMiss
+		// Distinguish between "key not found" and infrastructure errors.
+		// Redis GET returns a nil error with empty string for missing keys in most clients,
+		// but some return a specific "redis: nil" error. Treat empty data as cache miss;
+		// propagate all other errors so callers can distinguish infra failures.
+		if data == "" {
+			return nil, ErrCacheMiss
+		}
+		return nil, fmt.Errorf("redis cache: get: %w", err)
 	}
 
 	var resp llm.ChatResponse

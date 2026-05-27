@@ -59,7 +59,9 @@ func (p *OpenAIProvider) Embed(ctx context.Context, req *EmbeddingRequest) (*Emb
 				Message string `json:"message"`
 			} `json:"error"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&errBody)
+		if decodeErr := json.NewDecoder(resp.Body).Decode(&errBody); decodeErr != nil || errBody.Error.Message == "" {
+			return nil, fmt.Errorf("openai: HTTP %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+		}
 		return nil, fmt.Errorf("openai: HTTP %d: %s", resp.StatusCode, errBody.Error.Message)
 	}
 

@@ -84,11 +84,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       // For OAuth providers, verify backend accepts the sign-in
       if (account && account.provider !== "credentials") {
         const email = user.email;
+        if (!email) return false; // Reject OAuth with no email
         const name = user.name || email;
-        if (email) {
-          const data = await backendOAuth(email, name, account.provider);
-          if (!data) return false;
-        }
+        const data = await backendOAuth(email, name, account.provider);
+        if (!data) return false;
       }
       return true;
     },

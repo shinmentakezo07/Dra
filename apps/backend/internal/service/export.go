@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -119,9 +120,22 @@ func (s *ExportService) exportAuditLogs(ctx context.Context, userID, format, dir
 	for _, l := range logs {
 		changes := ""
 		if l.Changes != nil {
-			changes = string(l.Changes)
+			if data, err := json.Marshal(l.Changes); err == nil {
+				changes = string(data)
+			}
 		}
-		_ = w.Write([]string{l.ID, l.ActorID, l.ActorEmail, l.Action, l.TargetType, l.TargetID, changes, l.IPAddress, l.Severity, l.CreatedAt.Format(time.RFC3339)})
+		_ = w.Write([]string{
+			fmt.Sprintf("%d", l.ID),
+			l.ActorID,
+			l.ActorEmail,
+			string(l.Action),
+			l.TargetType,
+			l.TargetID,
+			changes,
+			l.IPAddress,
+			string(l.Severity),
+			l.CreatedAt.Format(time.RFC3339),
+		})
 	}
 	return filePath, nil
 }

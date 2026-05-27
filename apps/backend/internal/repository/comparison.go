@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"dra-platform/backend/internal/db"
@@ -28,13 +29,17 @@ func (r *ComparisonRepo) Create(ctx context.Context, userID string, req domain.C
 }
 
 func (r *ComparisonRepo) UpdateResult(ctx context.Context, id, model string, result string, latency, cost, tokens int) error {
-	suffix := "a"
-	if model != "a" {
-		suffix = "b"
+	// Whitelist valid column suffixes to prevent SQL injection
+	var query string
+	switch model {
+	case "a":
+		query = `UPDATE ab_comparisons SET result_a = $1, latency_a = $2, cost_a = $3, tokens_a = $4 WHERE id = $5`
+	case "b":
+		query = `UPDATE ab_comparisons SET result_b = $1, latency_b = $2, cost_b = $3, tokens_b = $4 WHERE id = $5`
+	default:
+		return fmt.Errorf("invalid model suffix: %s", model)
 	}
-	_, err := r.db.Exec(ctx,
-		`UPDATE ab_comparisons SET result_`+suffix+` = $1, latency_`+suffix+` = $2, cost_`+suffix+` = $3, tokens_`+suffix+` = $4 WHERE id = $5`,
-		result, latency, cost, tokens, id)
+	_, err := r.db.Exec(ctx, query, result, latency, cost, tokens, id)
 	return err
 }
 

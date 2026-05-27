@@ -14,7 +14,6 @@ import (
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/pkg/logger"
 	"dra-platform/backend/internal/repository"
-	"dra-platform/backend/internal/service"
 	appredis "dra-platform/backend/internal/redis"
 
 	"github.com/go-chi/chi/v5"

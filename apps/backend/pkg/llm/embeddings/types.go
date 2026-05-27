@@ -1,6 +1,9 @@
 package embeddings
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 // Embedding represents a vector embedding for a single input.
 type Embedding struct {
@@ -32,6 +35,7 @@ type Provider interface {
 
 // Registry holds embedding providers.
 type Registry struct {
+	mu        sync.RWMutex
 	providers map[string]Provider
 }
 
@@ -42,11 +46,15 @@ func NewRegistry() *Registry {
 
 // Register adds an embedding provider.
 func (r *Registry) Register(p Provider) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.providers[p.Name()] = p
 }
 
 // Get retrieves a provider by name.
 func (r *Registry) Get(name string) (Provider, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	p, ok := r.providers[name]
 	return p, ok
 }
@@ -61,8 +69,10 @@ func (r *Registry) RouteRequest(ctx context.Context, req *EmbeddingRequest) (*Em
 	if !ok {
 		return nil, ErrProviderNotFound
 	}
-	req.Model = parts[1]
-	resp, err := p.Embed(ctx, req)
+	// Create a copy to avoid mutating the caller's request
+	routedReq := *req
+	routedReq.Model = parts[1]
+	resp, err := p.Embed(ctx, &routedReq)
 	if err != nil {
 		return nil, err
 	}

@@ -40,20 +40,11 @@ func (rl *RateLimiter) Stop() {
 }
 
 func (rl *RateLimiter) Allow(key string) bool {
-	now := time.Now()
-
-	rl.mu.RLock()
-	e, ok := rl.store[key]
-	if ok && e.resetAt.After(now) && e.count >= rl.max {
-		rl.mu.RUnlock()
-		return false
-	}
-	rl.mu.RUnlock()
-
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	e, ok = rl.store[key]
+	now := time.Now()
+	e, ok := rl.store[key]
 	if !ok || e.resetAt.Before(now) {
 		rl.store[key] = &rateEntry{count: 1, resetAt: now.Add(rl.window)}
 		return true

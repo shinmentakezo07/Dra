@@ -28,14 +28,28 @@ type WebhookService struct {
 	repo       *repository.WebhookRepo
 	dispatcher *webhook.Dispatcher
 	sem        chan struct{}
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 func NewWebhookService(repo *repository.WebhookRepo) *WebhookService {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &WebhookService{
 		repo:       repo,
 		dispatcher: webhook.NewDispatcher(),
 		sem:        make(chan struct{}, maxConcurrentWebhooks),
+		ctx:        ctx,
+		cancel:     cancel,
 	}
+}
+
+func (s *WebhookService) Start(ctx context.Context) {
+	s.cancel()
+	s.ctx, s.cancel = context.WithCancel(ctx)
+}
+
+func (s *WebhookService) Stop() {
+	s.cancel()
 }
 
 func (s *WebhookService) Create(ctx context.Context, userID string, req domain.CreateWebhookRequest) (*domain.Webhook, *domain.AppError) {
@@ -141,12 +155,11 @@ func (s *WebhookService) Dispatch(ctx context.Context, userID string, event webh
 					logger.Error("webhook_dispatch_panic", "webhook_id", webhookID, "recover", r)
 				}
 			}()
-			bgCtx := context.Background()
 			select {
 			case s.sem <- struct{}{}:
-				s.sendAndTrack(bgCtx, webhookID, c, e)
+				s.sendAndTrack(s.ctx, webhookID, c, e)
 				<-s.sem
-			case <-bgCtx.Done():
+			case <-s.ctx.Done():
 				return
 			}
 		}(w.ID, cfg, event)

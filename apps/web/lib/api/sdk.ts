@@ -546,6 +546,11 @@ class DraSDK {
         if (err instanceof DOMException && err.name === "AbortError") {
           throw new ApiError("Request timeout", 408);
         }
+        // Don't retry non-idempotent methods unless it's a rate limit (429)
+        const isIdempotent = method === "GET" || method === "HEAD";
+        if (!isIdempotent && !(err instanceof ApiError && err.status === 429)) {
+          throw err;
+        }
         if (attempt < this.retries) {
           await new Promise((r) =>
             setTimeout(r, Math.pow(2, attempt) * 500)

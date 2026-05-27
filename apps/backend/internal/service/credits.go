@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"strings"
-	"sync"
 	"time"
 
 	"dra-platform/backend/internal/db"
@@ -122,20 +121,21 @@ func (s *CreditService) checkBudget(c *domain.UserCredits, required int) *domain
 		return nil
 	}
 	now := time.Now()
-	// Reset budgets if needed
+	dailySpent := c.DailySpent
+	monthlySpent := c.MonthlySpent
 	if c.BudgetResetAt != nil {
 		reset := *c.BudgetResetAt
-		if now.Day() != reset.Day() || now.Month() != reset.Month() || now.Year() != reset.Year() {
-			c.DailySpent = 0
+		if now.Format("2006-01-02") != reset.Format("2006-01-02") {
+			dailySpent = 0
 		}
 		if now.Month() != reset.Month() || now.Year() != reset.Year() {
-			c.MonthlySpent = 0
+			monthlySpent = 0
 		}
 	}
-	if c.DailyBudget != nil && c.DailySpent+required > *c.DailyBudget {
+	if c.DailyBudget != nil && dailySpent+required > *c.DailyBudget {
 		return domain.NewError(domain.ErrBadRequest, 429, "daily budget exceeded")
 	}
-	if c.MonthlyBudget != nil && c.MonthlySpent+required > *c.MonthlyBudget {
+	if c.MonthlyBudget != nil && monthlySpent+required > *c.MonthlyBudget {
 		return domain.NewError(domain.ErrBadRequest, 429, "monthly budget exceeded")
 	}
 	return nil
@@ -196,7 +196,8 @@ func (s *CreditService) LogAndDeduct(ctx context.Context, userID string, apiKeyI
 		newMonthly := credits.MonthlySpent + cost
 		if credits.BudgetResetAt != nil {
 			reset := *credits.BudgetResetAt
-			if now.Day() != reset.Day() || now.Month() != reset.Month() || now.Year() != reset.Year() {
+			// Compare calendar dates properly — Day() alone misses month boundaries (e.g. Jan 15 → Feb 15)
+			if now.Format("2006-01-02") != reset.Format("2006-01-02") {
 				newDaily = cost
 			}
 			if now.Month() != reset.Month() || now.Year() != reset.Year() {

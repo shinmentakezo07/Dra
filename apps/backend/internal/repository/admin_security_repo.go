@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"dra-platform/backend/internal/db"
@@ -11,6 +13,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
+
+// allowedTables whitelists table names for paginated queries to prevent SQL injection.
+var allowedTables = map[string]bool{
+	"suspicious_activities": true,
+	"ip_access_logs":       true,
+	"users u":              true,
+	"users":                true,
+}
+
+// validIdentifier validates that a string is a safe SQL identifier (letters, digits, underscores, dots, spaces for aliases).
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.* ]*$`)
 
 type AdminSecurityRepo struct{ db *db.DB }
 
@@ -55,15 +68,41 @@ func (r *AdminSecurityRepo) RemoveIPEntry(ctx context.Context, id string) error 
 	return nil
 }
 
-// paginatedQuery builds a paginated SELECT with parameterized LIMIT/OFFSET.
-// n is the next available parameter index. Returns the query and the next index after LIMIT/OFFSET.
+func validateTableName(from string) error {
+	if !allowedTables[from] {
+		return fmt.Errorf("invalid table name: %s", from)
+	}
+	return nil
+}
+
+func validateColumns(cols string) error {
+	for _, col := range strings.Split(cols, ",") {
+		col = strings.TrimSpace(col)
+		if col == "" {
+			continue
+		}
+		if !validIdentifier.MatchString(col) {
+			return fmt.Errorf("invalid column identifier: %s", col)
+		}
+	}
+	return nil
+}
+
 func paginatedQuery(selectCols, from, where string, n int) (string, int) {
+	if err := validateTableName(from); err != nil {
+		panic(err)
+	}
+	if err := validateColumns(selectCols); err != nil {
+		panic(err)
+	}
 	q := fmt.Sprintf("SELECT %s FROM %s %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d", selectCols, from, where, n, n+1)
 	return q, n + 2
 }
 
-// countQuery builds a COUNT query with the same WHERE clause.
 func countQuery(from, where string) string {
+	if err := validateTableName(from); err != nil {
+		panic(err)
+	}
 	return fmt.Sprintf("SELECT COUNT(*) FROM %s %s", from, where)
 }
 

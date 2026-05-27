@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/middleware"
@@ -76,5 +78,19 @@ func (h *Handler) DownloadExportJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, 400, "Export not ready")
 		return
 	}
-	http.ServeFile(w, r, *job.FilePath)
+
+	// Prevent path traversal: ensure the resolved path stays within the exports directory
+	absPath, absErr := filepath.Abs(*job.FilePath)
+	if absErr != nil {
+		response.Error(w, 400, "Invalid file path")
+		return
+	}
+	exportsDir := filepath.Join("exports")
+	absExportsDir, _ := filepath.Abs(exportsDir)
+	if !strings.HasPrefix(absPath, absExportsDir+string(filepath.Separator)) && absPath != absExportsDir {
+		response.Error(w, 403, "Access denied")
+		return
+	}
+
+	http.ServeFile(w, r, absPath)
 }

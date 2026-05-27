@@ -118,7 +118,7 @@ func (s *StripeService) FulfillCheckout(ctx context.Context, session *stripe.Che
 	}
 
 	if s.database != nil {
-		return s.database.WithTx(ctx, func(tx db.Querier) error {
+		if err := s.database.WithTx(ctx, func(tx db.Querier) error {
 			if err := s.stripeRepo.CreateInvoiceTx(ctx, tx, userID, session.ID, session.AmountTotal); err != nil {
 				return fmt.Errorf("failed to record invoice: %w", err)
 			}
@@ -129,22 +129,14 @@ func (s *StripeService) FulfillCheckout(ctx context.Context, session *stripe.Che
 				return fmt.Errorf("failed to record transaction: %w", err)
 			}
 			return nil
-		})
+		}); err != nil {
+			return domain.Wrap(domain.ErrInternal, 500, "credit fulfillment failed", err)
+		}
+		return nil
 	}
 
-	// Fallback without transaction
-	if err := s.stripeRepo.CreateInvoice(ctx, userID, session.ID, session.AmountTotal); err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to record invoice", err)
-	}
-	if err := s.creditsRepo.Upsert(ctx, userID, credits, credits); err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to add credits", err)
-	}
-	_, err = s.txRepo.Create(ctx, userID, credits, "purchase", "Stripe checkout", nil)
-	if err != nil {
-		return domain.Wrap(domain.ErrInternal, 500, "failed to record transaction", err)
-	}
-
-	return nil
+	// Fallback without transaction is not safe for financial operations
+	return domain.Wrap(domain.ErrInternal, 500, "database transaction support required for credit fulfillment", fmt.Errorf("no transactional database available"))
 }
 
 func (s *StripeService) getOrCreateCustomer(ctx context.Context, userID string) (string, error) {

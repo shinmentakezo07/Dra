@@ -186,14 +186,20 @@ func (cb *CircuitBreaker) wrapStream(ch <-chan llm.StreamChunk) <-chan llm.Strea
 	go func() {
 		defer close(out)
 		success := false
+		timer := time.NewTimer(5 * time.Second)
+		defer timer.Stop()
 		for chunk := range ch {
+			timer.Reset(5 * time.Second)
 			select {
 			case out <- chunk:
-			case <-time.After(5 * time.Second):
+			case <-timer.C:
 				return
 			}
-			if chunk.FinishReason != nil && *chunk.FinishReason == llm.FinishReasonStop {
-				success = true
+			if chunk.FinishReason != nil {
+				reason := *chunk.FinishReason
+				if reason == llm.FinishReasonStop || reason == llm.FinishReasonToolCalls {
+					success = true
+				}
 			}
 		}
 		if success {

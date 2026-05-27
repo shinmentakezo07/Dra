@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"dra-platform/backend/internal/domain"
 	"dra-platform/backend/internal/middleware"
@@ -244,7 +245,8 @@ func (h *Handler) asyncLogAndDeduct(ctx context.Context, userID string, apiKeyID
 				logger.Error("async_billing_panic", "recover", r, "user_id", userID)
 			}
 		}()
-		bgCtx := context.Background()
+		bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		_, logErr := h.creditSvc.LogAndDeduct(bgCtx, userID, apiKeyID, model, inputTokens, outputTokens, cost, 0)
 		if logErr != nil {
 			logger.Error("openai_billing_failed", "error", logErr.Error(), "user_id", userID)
