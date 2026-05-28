@@ -4,10 +4,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  Book, Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
-  Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, Search, Users, Webhook, X,
-  ChevronRight, ArrowUpRight, Globe,
+  Book,
+  Zap,
+  Key,
+  Code2,
+  MessageSquare,
+  Database,
+  Boxes,
+  FileText,
+  Layers,
+  UploadCloud,
+  Shield,
+  AlertTriangle,
+  Cpu,
+  TrendingUp,
+  BarChart3,
+  Lock,
+  Terminal,
+  Search,
+  Users,
+  Webhook,
+  X,
+  ChevronRight,
+  ArrowUpRight,
+  Globe,
 } from "lucide-react";
 import { ScrollProgress } from "@/components/docs/ScrollProgress";
 import { SearchModal } from "@/components/docs/SearchModal";
@@ -17,10 +37,38 @@ import type { NavItem } from "@/components/docs/types";
 
 /* ── Section color system ── */
 const SECTION_COLORS = {
-  "Getting Started": { accent: "emerald", ring: "ring-emerald-500/20", text: "text-emerald-400", bg: "bg-emerald-500/[0.04]", border: "border-emerald-500/20", gradient: "from-emerald-500/20" },
-  "Core Features": { accent: "blue", ring: "ring-blue-500/20", text: "text-blue-400", bg: "bg-blue-500/[0.04]", border: "border-blue-500/20", gradient: "from-blue-500/20" },
-  "Platform": { accent: "amber", ring: "ring-amber-500/20", text: "text-amber-400", bg: "bg-amber-500/[0.04]", border: "border-amber-500/20", gradient: "from-amber-500/20" },
-  "Reference": { accent: "violet", ring: "ring-violet-500/20", text: "text-violet-400", bg: "bg-violet-500/[0.04]", border: "border-violet-500/20", gradient: "from-violet-500/20" },
+  "Getting Started": {
+    accent: "emerald",
+    ring: "ring-emerald-500/20",
+    text: "text-emerald-400",
+    bg: "bg-emerald-500/[0.04]",
+    border: "border-emerald-500/20",
+    gradient: "from-emerald-500/20",
+  },
+  "Core Features": {
+    accent: "blue",
+    ring: "ring-blue-500/20",
+    text: "text-blue-400",
+    bg: "bg-blue-500/[0.04]",
+    border: "border-blue-500/20",
+    gradient: "from-blue-500/20",
+  },
+  Platform: {
+    accent: "amber",
+    ring: "ring-amber-500/20",
+    text: "text-amber-400",
+    bg: "bg-amber-500/[0.04]",
+    border: "border-amber-500/20",
+    gradient: "from-amber-500/20",
+  },
+  Reference: {
+    accent: "violet",
+    ring: "ring-violet-500/20",
+    text: "text-violet-400",
+    bg: "bg-violet-500/[0.04]",
+    border: "border-violet-500/20",
+    gradient: "from-violet-500/20",
+  },
 } as const;
 
 interface NavGroup {
@@ -72,32 +120,45 @@ const navGroups: NavGroup[] = [
 
 const allNavItems = navGroups.flatMap((g) => g.items);
 
-function getSectionColor(label: string): typeof SECTION_COLORS[keyof typeof SECTION_COLORS] {
+function getSectionColor(
+  label: string,
+): (typeof SECTION_COLORS)[keyof typeof SECTION_COLORS] {
   for (const [groupName, color] of Object.entries(SECTION_COLORS)) {
-    if (navGroups.find((g) => g.label === groupName)?.items.some((i) => i.label === label)) {
+    if (
+      navGroups
+        .find((g) => g.label === groupName)
+        ?.items.some((i) => i.label === label)
+    ) {
       return color;
     }
   }
   return SECTION_COLORS["Reference"];
 }
 
-export default function DocsLayout({ children }: { children: React.ReactNode }) {
+export default function DocsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarFilter, setSidebarFilter] = useState("");
 
-  const currentSectionId = pathname.replace("/docs/", "").replace("/", "") || "index";
-  const currentItem = allNavItems.find(i => i.id === currentSectionId);
-  const currentColor = currentItem ? getSectionColor(currentItem.label) : SECTION_COLORS["Getting Started"];
+  const currentSectionId =
+    pathname.replace("/docs/", "").replace("/", "") || "index";
+  const currentItem = allNavItems.find((i) => i.id === currentSectionId);
+  const currentColor = currentItem
+    ? getSectionColor(currentItem.label)
+    : SECTION_COLORS["Getting Started"];
 
   const filteredNavGroups = sidebarFilter
     ? navGroups
         .map((g) => ({
           ...g,
           items: g.items.filter((i) =>
-            i.label.toLowerCase().includes(sidebarFilter.toLowerCase())
+            i.label.toLowerCase().includes(sidebarFilter.toLowerCase()),
           ),
         }))
         .filter((g) => g.items.length > 0)
@@ -118,17 +179,25 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const navigateTo = useCallback((id: string) => {
-    router.push(`/docs/${id}`);
-    setSearchOpen(false);
-    setSidebarOpen(false);
-  }, [router]);
+  const navigateTo = useCallback(
+    (id: string) => {
+      router.push(`/docs/${id}`);
+      setSearchOpen(false);
+      setSidebarOpen(false);
+    },
+    [router],
+  );
 
   return (
     <div className="min-h-screen bg-[#08080a] text-foreground relative selection:bg-blue-500/20 selection:text-white">
       <ScrollProgress />
 
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} items={allNavItems} onNavigate={navigateTo} />
+      <SearchModal
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        items={allNavItems}
+        onNavigate={navigateTo}
+      />
 
       <DocsNavbar
         onSearchOpen={() => setSearchOpen(true)}
@@ -188,8 +257,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       {/* Main content */}
       <div className="lg:ml-[260px] relative z-10">
         <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[76px] pb-20">
-            <DocsPageShell>{children}</DocsPageShell>
-          </main>
+          <DocsPageShell>{children}</DocsPageShell>
+        </main>
       </div>
     </div>
   );
@@ -214,18 +283,24 @@ function SidebarContent({
   setFilter: (v: string) => void;
   currentSectionId: string;
   navigateTo: (id: string) => void;
-  currentColor?: typeof SECTION_COLORS[keyof typeof SECTION_COLORS];
+  currentColor?: (typeof SECTION_COLORS)[keyof typeof SECTION_COLORS];
 }) {
   return (
     <>
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-xl ${currentColor?.bg || "bg-blue-500/[0.08]"} border ${currentColor?.border || "border-blue-500/[0.12]"} flex items-center justify-center shadow-sm`}>
-            <Book className={`w-4 h-4 ${currentColor?.text || "text-blue-400/70"}`} />
+          <div
+            className={`w-8 h-8 rounded-xl ${currentColor?.bg || "bg-blue-500/[0.08]"} border ${currentColor?.border || "border-blue-500/[0.12]"} flex items-center justify-center shadow-sm`}
+          >
+            <Book
+              className={`w-4 h-4 ${currentColor?.text || "text-blue-400/70"}`}
+            />
           </div>
           <div>
-            <span className="text-[13px] font-semibold text-white/75 block leading-tight">Documentation</span>
+            <span className="text-[13px] font-semibold text-white/75 block leading-tight">
+              Documentation
+            </span>
             <span className="text-[10px] font-mono text-white/25">v1.0</span>
           </div>
         </div>
@@ -256,17 +331,26 @@ function SidebarContent({
       </div>
 
       {/* Nav groups */}
-      <nav className="flex-1 overflow-y-auto py-3" role="navigation" aria-label="Documentation navigation">
+      <nav
+        className="flex-1 overflow-y-auto py-3"
+        role="navigation"
+        aria-label="Documentation navigation"
+      >
         {navGroups.length > 0 ? (
           navGroups.map((group) => {
-            const groupColor = SECTION_COLORS[group.label as keyof typeof SECTION_COLORS];
+            const groupColor =
+              SECTION_COLORS[group.label as keyof typeof SECTION_COLORS];
             return (
               <div key={group.label} className="mb-1">
                 <div className="flex items-center gap-2 px-4 pt-4 pb-1.5">
-                  <span className={`text-[9px] font-mono font-semibold uppercase tracking-[0.18em] ${groupColor.text} opacity-60`}>
+                  <span
+                    className={`text-[9px] font-mono font-semibold uppercase tracking-[0.18em] ${groupColor.text} opacity-60`}
+                  >
                     {group.label}
                   </span>
-                  <div className={`h-px flex-1 bg-gradient-to-r ${groupColor.gradient} to-transparent`} />
+                  <div
+                    className={`h-px flex-1 bg-gradient-to-r ${groupColor.gradient} to-transparent`}
+                  />
                 </div>
                 <div className="space-y-px px-2">
                   {group.items.map((item) => {
@@ -286,17 +370,27 @@ function SidebarContent({
                           <motion.div
                             layoutId="sidebar-active"
                             className={`absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full ${groupColor.text} opacity-80`}
-                            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 350,
+                              damping: 30,
+                            }}
                           />
                         )}
-                        <item.icon className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${
-                          isActive
-                            ? groupColor.text
-                            : "text-white/18 group-hover:text-white/35"
-                        }`} />
-                        <span className="truncate text-[13px] font-medium">{item.label}</span>
+                        <item.icon
+                          className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${
+                            isActive
+                              ? groupColor.text
+                              : "text-white/18 group-hover:text-white/35"
+                          }`}
+                        />
+                        <span className="truncate text-[13px] font-medium">
+                          {item.label}
+                        </span>
                         {isActive && (
-                          <ChevronRight className={`w-3 h-3 ${groupColor.text} opacity-40 ml-auto flex-shrink-0`} />
+                          <ChevronRight
+                            className={`w-3 h-3 ${groupColor.text} opacity-40 ml-auto flex-shrink-0`}
+                          />
                         )}
                       </button>
                     );
@@ -306,7 +400,9 @@ function SidebarContent({
             );
           })
         ) : (
-          <div className="text-xs text-white/20 text-center py-10 font-mono">No matching pages</div>
+          <div className="text-xs text-white/20 text-center py-10 font-mono">
+            No matching pages
+          </div>
         )}
       </nav>
 

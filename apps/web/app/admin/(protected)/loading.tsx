@@ -6,8 +6,10 @@ export default function AdminLoading() {
           <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
           <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
         </div>
-        <p className="text-[11px] font-mono tracking-[0.14em] uppercase text-[var(--admin-text-dim)]">Loading</p>
+        <p className="text-[11px] font-mono tracking-[0.14em] uppercase text-[var(--admin-text-dim)]">
+          Loading
+        </p>
       </div>
     </div>
-  )
+  );
 }

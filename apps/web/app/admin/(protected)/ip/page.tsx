@@ -1,56 +1,66 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getAdminSDK } from '@/lib/api/admin-sdk'
-import { CheckCircle, XCircle } from 'lucide-react'
-import type { IPListEntry, IPAccessLog } from '@/types/admin'
-import AdminPageHeader from '../../AdminPageHeader'
-import { cn } from '@/lib/utils'
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminSDK } from "@/lib/api/admin-sdk";
+import { CheckCircle, XCircle } from "lucide-react";
+import type { IPListEntry, IPAccessLog } from "@/types/admin";
+import AdminPageHeader from "../../AdminPageHeader";
+import { cn } from "@/lib/utils";
 
-const TABS = ['IP Lists', 'Access Logs'] as const
+const TABS = ["IP Lists", "Access Logs"] as const;
 
 function ActionBadge({ action }: { action: string }) {
   const styles: Record<string, string> = {
-    allow: 'text-emerald-400 bg-emerald-500/8 border border-emerald-500/15',
-    block: 'text-red-400 bg-red-500/8 border border-red-500/15',
-    challenge: 'text-amber-400 bg-amber-500/8 border border-amber-500/15',
-  }
+    allow: "text-emerald-400 bg-emerald-500/8 border border-emerald-500/15",
+    block: "text-red-400 bg-red-500/8 border border-red-500/15",
+    challenge: "text-amber-400 bg-amber-500/8 border border-amber-500/15",
+  };
   return (
-    <span className={`admin-badge ${styles[action] ?? 'text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]'}`}>
+    <span
+      className={`admin-badge ${styles[action] ?? "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]"}`}
+    >
       {action}
     </span>
-  )
+  );
 }
 
 export default function AdminIPPage() {
-  const [activeTab, setActiveTab] = useState<string>('IP Lists')
+  const [activeTab, setActiveTab] = useState<string>("IP Lists");
 
-  const { data: ipEntries, isLoading: entriesLoading } = useQuery<IPListEntry[]>({
-    queryKey: ['admin', 'ip', 'entries'],
+  const { data: ipEntries, isLoading: entriesLoading } = useQuery<
+    IPListEntry[]
+  >({
+    queryKey: ["admin", "ip", "entries"],
     queryFn: () => getAdminSDK().listIPEntries(),
-    enabled: activeTab === 'IP Lists',
-  })
+    enabled: activeTab === "IP Lists",
+  });
 
   const { data: accessLogs, isLoading: logsLoading } = useQuery({
-    queryKey: ['admin', 'ip', 'access-logs', { limit: 20 }],
+    queryKey: ["admin", "ip", "access-logs", { limit: 20 }],
     queryFn: () => getAdminSDK().listIPAccessLogs({ limit: 20 }),
-    enabled: activeTab === 'Access Logs',
-  })
+    enabled: activeTab === "Access Logs",
+  });
 
-  const isLoading = activeTab === 'IP Lists' ? entriesLoading : logsLoading
+  const isLoading = activeTab === "IP Lists" ? entriesLoading : logsLoading;
 
   return (
-    <AdminPageHeader title="IP Management" subtitle="IP allow/block lists and access logs">
+    <AdminPageHeader
+      title="IP Management"
+      subtitle="IP allow/block lists and access logs"
+    >
       {/* Tabs */}
       <div className="flex items-center gap-1 rounded-[12px] border border-[var(--admin-border)] bg-white/[0.01] p-1 w-fit">
         {TABS.map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
             className={`rounded-[9px] px-4 py-2 text-[12px] font-medium transition-all duration-200 ${
               activeTab === tab
-                ? 'bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10'
-                : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent'
-            }`}>
+                ? "bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10"
+                : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent"
+            }`}
+          >
             {tab}
           </button>
         ))}
@@ -63,7 +73,7 @@ export default function AdminIPPage() {
             <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
           </div>
         </div>
-      ) : activeTab === 'IP Lists' ? (
+      ) : activeTab === "IP Lists" ? (
         <div className="admin-table">
           <table className="w-full">
             <thead>
@@ -75,18 +85,31 @@ export default function AdminIPPage() {
               </tr>
             </thead>
             <tbody>
-              {(!ipEntries || ipEntries.length === 0) ? (
+              {!ipEntries || ipEntries.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-[12px] text-[var(--admin-text-dim)]">No IP entries configured</td>
+                  <td
+                    colSpan={4}
+                    className="text-center py-12 text-[12px] text-[var(--admin-text-dim)]"
+                  >
+                    No IP entries configured
+                  </td>
                 </tr>
               ) : (
                 ipEntries.map((entry: IPListEntry) => (
                   <tr key={entry.id}>
-                    <td className="font-mono text-[var(--admin-text)]">{entry.ipOrCidr}</td>
-                    <td><ActionBadge action={entry.action} /></td>
-                    <td className="text-[var(--admin-text-muted)]">{entry.reason ?? '—'}</td>
+                    <td className="font-mono text-[var(--admin-text)]">
+                      {entry.ipOrCidr}
+                    </td>
+                    <td>
+                      <ActionBadge action={entry.action} />
+                    </td>
+                    <td className="text-[var(--admin-text-muted)]">
+                      {entry.reason ?? "—"}
+                    </td>
                     <td className="text-right text-[var(--admin-text-dim)]">
-                      {entry.expiresAt ? new Date(entry.expiresAt).toLocaleDateString() : 'Never'}
+                      {entry.expiresAt
+                        ? new Date(entry.expiresAt).toLocaleDateString()
+                        : "Never"}
                     </td>
                   </tr>
                 ))
@@ -108,17 +131,28 @@ export default function AdminIPPage() {
               </tr>
             </thead>
             <tbody>
-              {(!accessLogs?.data || accessLogs.data.length === 0) ? (
+              {!accessLogs?.data || accessLogs.data.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-[12px] text-[var(--admin-text-dim)]">No access logs recorded</td>
+                  <td
+                    colSpan={6}
+                    className="text-center py-12 text-[12px] text-[var(--admin-text-dim)]"
+                  >
+                    No access logs recorded
+                  </td>
                 </tr>
               ) : (
                 (accessLogs.data as IPAccessLog[]).map((log: IPAccessLog) => (
                   <tr key={log.id}>
-                    <td className="font-mono text-[var(--admin-text)]">{log.ipAddress}</td>
+                    <td className="font-mono text-[var(--admin-text)]">
+                      {log.ipAddress}
+                    </td>
                     <td className="text-[var(--admin-text)]">{log.method}</td>
-                    <td className="max-w-[200px] truncate text-[var(--admin-text-muted)]">{log.path}</td>
-                    <td className="text-[var(--admin-text-muted)]">{log.country ?? '—'}</td>
+                    <td className="max-w-[200px] truncate text-[var(--admin-text-muted)]">
+                      {log.path}
+                    </td>
+                    <td className="text-[var(--admin-text-muted)]">
+                      {log.country ?? "—"}
+                    </td>
                     <td>
                       {log.blocked ? (
                         <span className="admin-badge text-red-400 bg-red-500/8 border border-red-500/15">
@@ -131,7 +165,12 @@ export default function AdminIPPage() {
                       )}
                     </td>
                     <td className="text-right text-[var(--admin-text-dim)]">
-                      {new Date(log.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(log.createdAt).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </td>
                   </tr>
                 ))
@@ -141,5 +180,5 @@ export default function AdminIPPage() {
         </div>
       )}
     </AdminPageHeader>
-  )
+  );
 }

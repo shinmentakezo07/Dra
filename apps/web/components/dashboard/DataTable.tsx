@@ -29,11 +29,7 @@ const rowVariants = {
   }),
 };
 
-export function DataTable<T>({
-  columns,
-  data,
-  onRowClick,
-}: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, onRowClick }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
 
@@ -59,7 +55,9 @@ export function DataTable<T>({
     }
     const aStr = String(aVal);
     const bStr = String(bVal);
-    return sortDir === "asc" ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+    return sortDir === "asc"
+      ? aStr.localeCompare(bStr)
+      : bStr.localeCompare(aStr);
   });
 
   return (
@@ -74,10 +72,14 @@ export function DataTable<T>({
                   <th
                     key={column.accessor}
                     className={`px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider ${
-                      column.sortable !== false ? "cursor-pointer select-none hover:text-gray-300 transition-colors" : ""
+                      column.sortable !== false
+                        ? "cursor-pointer select-none hover:text-gray-300 transition-colors"
+                        : ""
                     }`}
                     style={{ width: column.width }}
-                    onClick={() => column.sortable !== false && handleSort(column.accessor)}
+                    onClick={() =>
+                      column.sortable !== false && handleSort(column.accessor)
+                    }
                   >
                     <div className="flex items-center gap-1.5">
                       {column.header}
@@ -116,32 +118,53 @@ export function DataTable<T>({
           </thead>
           <tbody className="divide-y divide-white/5">
             {sortedData.map((row, index) => {
-              const rowId = (row as Record<string, unknown>)["id"] ?? (row as Record<string, unknown>)["key"] ?? index;
+              const rowId =
+                (row as Record<string, unknown>)["id"] ??
+                (row as Record<string, unknown>)["key"] ??
+                index;
               const rowLabel = `Row ${index + 1}`;
               return (
-              <motion.tr
-                key={String(rowId)}
-                custom={index}
-                variants={rowVariants}
-                initial="hidden"
-                animate="visible"
-                onClick={() => onRowClick?.(row)}
-                onKeyDown={onRowClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRowClick(row); } } : undefined}
-                whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-                role={onRowClick ? "button" : undefined}
-                tabIndex={onRowClick ? 0 : undefined}
-                aria-label={onRowClick ? rowLabel : undefined}
-                className={`transition-colors ${onRowClick ? "cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500/50" : ""}`}
-              >
-                {columns.map((column) => (
-                  <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
-                    {column.render
-                      ? column.render((row as Record<string, unknown>)[column.accessor], row)
-                      : (row as Record<string, unknown>)[column.accessor] as React.ReactNode}
-                  </td>
-                ))}
-              </motion.tr>
-            )})}
+                <motion.tr
+                  key={String(rowId)}
+                  custom={index}
+                  variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  onClick={() => onRowClick?.(row)}
+                  onKeyDown={
+                    onRowClick
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onRowClick(row);
+                          }
+                        }
+                      : undefined
+                  }
+                  whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+                  role={onRowClick ? "button" : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  aria-label={onRowClick ? rowLabel : undefined}
+                  className={`transition-colors ${onRowClick ? "cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500/50" : ""}`}
+                >
+                  {columns.map((column) => (
+                    <td
+                      key={column.accessor}
+                      className="px-6 py-4 whitespace-nowrap"
+                    >
+                      {column.render
+                        ? column.render(
+                            (row as Record<string, unknown>)[column.accessor],
+                            row,
+                          )
+                        : ((row as Record<string, unknown>)[
+                            column.accessor
+                          ] as React.ReactNode)}
+                    </td>
+                  ))}
+                </motion.tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

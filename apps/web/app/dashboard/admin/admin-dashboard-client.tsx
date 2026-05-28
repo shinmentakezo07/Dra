@@ -29,14 +29,31 @@ export default function AdminDashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const userLimit = 10;
 
-  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
-  const { data: health, isLoading: healthLoading, refetch: refetchHealth } = useProviderHealth();
-  const { data: circuitBreakers, isLoading: cbLoading, refetch: refetchCB } = useCircuitBreakers();
-  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useAdminUsers(userPage, userLimit);
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    refetch: refetchStats,
+  } = useAdminStats();
+  const {
+    data: health,
+    isLoading: healthLoading,
+    refetch: refetchHealth,
+  } = useProviderHealth();
+  const {
+    data: circuitBreakers,
+    isLoading: cbLoading,
+    refetch: refetchCB,
+  } = useCircuitBreakers();
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    refetch: refetchUsers,
+  } = useAdminUsers(userPage, userLimit);
   const deleteUser = useAdminDeleteUser();
 
   const users = (usersData as any)?.data ?? [];
-  const userTotal = (usersData as any)?.meta?.total ?? (usersData as any)?.total ?? 0;
+  const userTotal =
+    (usersData as any)?.meta?.total ?? (usersData as any)?.total ?? 0;
 
   const handleDelete = async (userId: string) => {
     setError(null);
@@ -283,7 +300,7 @@ export default function AdminDashboardClient() {
                       >
                         {p}
                       </button>
-                    )
+                    ),
                   )}
                 </div>
                 <button
@@ -340,8 +357,8 @@ function StatusBadge({ status }: { status: string }) {
     status === "healthy"
       ? "bg-green-500/20 text-green-400"
       : status === "degraded"
-      ? "bg-yellow-500/20 text-yellow-400"
-      : "bg-red-500/20 text-red-400";
+        ? "bg-yellow-500/20 text-yellow-400"
+        : "bg-red-500/20 text-red-400";
 
   return (
     <span
@@ -358,10 +375,10 @@ function CircuitBadge({ state }: { state: string }) {
     state === "closed"
       ? "bg-green-500/20 text-green-400"
       : state === "half-open"
-      ? "bg-yellow-500/20 text-yellow-400"
-      : state === "open"
-      ? "bg-red-500/20 text-red-400"
-      : "bg-gray-500/20 text-gray-400";
+        ? "bg-yellow-500/20 text-yellow-400"
+        : state === "open"
+          ? "bg-red-500/20 text-red-400"
+          : "bg-gray-500/20 text-gray-400";
 
   return (
     <span className={`px-2 py-1 rounded text-xs font-medium ${color}`}>
@@ -375,9 +392,7 @@ function RoleBadge({ role }: { role: string }) {
   return (
     <span
       className={`px-2 py-1 rounded text-xs font-medium ${
-        isAdmin
-          ? "bg-primary/20 text-primary"
-          : "bg-gray-800 text-gray-400"
+        isAdmin ? "bg-primary/20 text-primary" : "bg-gray-800 text-gray-400"
       }`}
     >
       {role}

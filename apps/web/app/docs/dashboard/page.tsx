@@ -16,11 +16,21 @@ export default function DashboardPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
-      <Section id="dashboard" icon={BarChart3} title="Dashboard" accent="violet">
+      <Section
+        id="dashboard"
+        icon={BarChart3}
+        title="Dashboard"
+        accent="violet"
+      >
         <p>
-          The dashboard provides real-time visibility into your API usage, credit balance, and request history. All data is served through the API — integrate the same endpoints into your own monitoring tools.
+          The dashboard provides real-time visibility into your API usage,
+          credit balance, and request history. All data is served through the
+          API — integrate the same endpoints into your own monitoring tools.
         </p>
 
         <h3 className="text-lg font-bold text-white mb-4 mt-8">Key features</h3>
@@ -32,7 +42,10 @@ export default function DashboardPage() {
             "Credit balance and transaction history",
             "Model performance and latency monitoring",
           ].map((item, i) => (
-            <li key={i} className="flex items-start gap-3 text-sm text-white/30">
+            <li
+              key={i}
+              className="flex items-start gap-3 text-sm text-white/30"
+            >
               <CheckCircle className="w-4 h-4 text-emerald-400/70 mt-0.5 flex-shrink-0" />
               <span>{item}</span>
             </li>
@@ -41,9 +54,14 @@ export default function DashboardPage() {
 
         <h3 className="text-lg font-bold text-white mb-4">Usage analytics</h3>
         <p className="text-sm text-white/40 mb-4">
-          Retrieve usage metrics including total requests, token counts, and costs over custom time ranges.
+          Retrieve usage metrics including total requests, token counts, and
+          costs over custom time ranges.
         </p>
-        <EndpointCard method="GET" path="/api/analytics" description="Get usage analytics: requests, tokens, costs over time.">
+        <EndpointCard
+          method="GET"
+          path="/api/analytics"
+          description="Get usage analytics: requests, tokens, costs over time."
+        >
           <CodeBlock
             examples={{
               curl: `curl ${BASE_URL}/api/analytics?period=7d \\
@@ -70,11 +88,18 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
           />
         </EndpointCard>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Credit balance</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Credit balance
+        </h3>
         <p className="text-sm text-white/40 mb-4">
-          Check your current credit balance, daily spending, and budget limits at any time.
+          Check your current credit balance, daily spending, and budget limits
+          at any time.
         </p>
-        <EndpointCard method="GET" path="/api/credits" description="Get current credit balance and spending.">
+        <EndpointCard
+          method="GET"
+          path="/api/credits"
+          description="Get current credit balance and spending."
+        >
           <CodeBlock
             examples={{
               curl: `curl ${BASE_URL}/api/credits \\
@@ -100,7 +125,9 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
         </EndpointCard>
 
         <div className="mt-6">
-          <h4 className="text-white font-semibold text-sm mb-3">Credit response</h4>
+          <h4 className="text-white font-semibold text-sm mb-3">
+            Credit response
+          </h4>
           <CodeBlock
             language="json"
             code={`{
@@ -115,11 +142,18 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
           />
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Request logs</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Request logs
+        </h3>
         <p className="text-sm text-white/40 mb-4">
-          View paginated request history with filtering by model, status, date range, and more.
+          View paginated request history with filtering by model, status, date
+          range, and more.
         </p>
-        <EndpointCard method="GET" path="/api/logs" description="Paginated request logs with model, status, tokens.">
+        <EndpointCard
+          method="GET"
+          path="/api/logs"
+          description="Paginated request logs with model, status, tokens."
+        >
           <CodeBlock
             examples={{
               curl: `curl "${BASE_URL}/api/logs?page=1&limit=20" \\
@@ -147,7 +181,11 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
         </EndpointCard>
 
         <TipBox>
-          The dashboard data refreshes automatically. Analytics data is available for the last 90 days. Use pagination parameters (<code className="text-blue-400 font-mono text-xs">page</code>, <code className="text-blue-400 font-mono text-xs">limit</code>) when fetching logs and transaction history.
+          The dashboard data refreshes automatically. Analytics data is
+          available for the last 90 days. Use pagination parameters (
+          <code className="text-blue-400 font-mono text-xs">page</code>,{" "}
+          <code className="text-blue-400 font-mono text-xs">limit</code>) when
+          fetching logs and transaction history.
         </TipBox>
       </Section>
     </motion.div>

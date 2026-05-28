@@ -4,7 +4,7 @@ import LogsClient from "./LogsClient";
 
 export default async function LogsPage() {
   const session = await auth();
-  
+
   if (!session?.user) {
     redirect("/login");
   }

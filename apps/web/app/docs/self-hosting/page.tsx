@@ -14,13 +14,24 @@ export default function SelfHostingPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
-      <Section id="self-hosting" icon={Globe} title="Self-Hosting & Configuration" accent="emerald">
+      <Section
+        id="self-hosting"
+        icon={Globe}
+        title="Self-Hosting & Configuration"
+        accent="emerald"
+      >
         <p>
           When self-hosting Yapapa, you need to configure the base URL so that
           documentation code examples point to your own API endpoint instead of{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">localhost:8080</code>.
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            localhost:8080
+          </code>
+          .
         </p>
 
         <div className="mt-8">
@@ -36,11 +47,20 @@ export default function SelfHostingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <div className="p-5 rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.02]">
               <div className="flex items-center gap-2 mb-3">
-                <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold">ENV</span>
-                <h4 className="text-white font-semibold text-sm">Environment Variable</h4>
+                <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold">
+                  ENV
+                </span>
+                <h4 className="text-white font-semibold text-sm">
+                  Environment Variable
+                </h4>
               </div>
               <p className="text-xs text-white/30 mb-4">
-                Set the <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">NEXT_PUBLIC_DOCS_BASE_URL</code> env var before building the web app. This is the recommended approach for deployments.
+                Set the{" "}
+                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+                  NEXT_PUBLIC_DOCS_BASE_URL
+                </code>{" "}
+                env var before building the web app. This is the recommended
+                approach for deployments.
               </p>
               <CodeBlock
                 language="bash"
@@ -51,11 +71,20 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`}
 
             <div className="p-5 rounded-xl border border-blue-500/[0.12] bg-blue-500/[0.02]">
               <div className="flex items-center gap-2 mb-3">
-                <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 text-[11px] font-mono font-bold">ADMIN</span>
-                <h4 className="text-white font-semibold text-sm">Admin Settings Panel</h4>
+                <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 text-[11px] font-mono font-bold">
+                  ADMIN
+                </span>
+                <h4 className="text-white font-semibold text-sm">
+                  Admin Settings Panel
+                </h4>
               </div>
               <p className="text-xs text-white/30 mb-4">
-                Navigate to <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">/admin/settings</code> and edit the Docs Base URL card. Changes are saved to the database immediately.
+                Navigate to{" "}
+                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+                  /admin/settings
+                </code>{" "}
+                and edit the Docs Base URL card. Changes are saved to the
+                database immediately.
               </p>
               <CodeBlock
                 language="bash"
@@ -71,28 +100,52 @@ docs_base_url = "https://api.yourdomain.com"`}
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Fallback chain
           </h3>
-          <p className="mb-4">
-            The base URL is resolved in this order:
-          </p>
+          <p className="mb-4">The base URL is resolved in this order:</p>
           <div className="rounded-xl border border-white/[0.06] bg-[#0c0c0e] overflow-hidden">
             <div className="px-4 py-2.5 border-b border-white/[0.04]">
-              <span className="text-[11px] font-mono text-white/20 uppercase tracking-wider">Priority</span>
+              <span className="text-[11px] font-mono text-white/20 uppercase tracking-wider">
+                Priority
+              </span>
             </div>
             <div className="divide-y divide-white/[0.04]">
               {[
-                { priority: "1", key: "NEXT_PUBLIC_DOCS_BASE_URL", desc: "Explicit docs URL — highest priority", example: "https://api.yourdomain.com" },
-                { priority: "2", key: "NEXT_PUBLIC_BACKEND_URL", desc: "Backend URL — used if docs URL is not set", example: "http://localhost:8080" },
-                { priority: "3", key: "Default fallback", desc: "Hardcoded default when neither env var is set", example: "http://localhost:8080" },
+                {
+                  priority: "1",
+                  key: "NEXT_PUBLIC_DOCS_BASE_URL",
+                  desc: "Explicit docs URL — highest priority",
+                  example: "https://api.yourdomain.com",
+                },
+                {
+                  priority: "2",
+                  key: "NEXT_PUBLIC_BACKEND_URL",
+                  desc: "Backend URL — used if docs URL is not set",
+                  example: "http://localhost:8080",
+                },
+                {
+                  priority: "3",
+                  key: "Default fallback",
+                  desc: "Hardcoded default when neither env var is set",
+                  example: "http://localhost:8080",
+                },
               ].map((item) => (
-                <div key={item.priority} className="flex items-center gap-4 px-4 py-3">
+                <div
+                  key={item.priority}
+                  className="flex items-center gap-4 px-4 py-3"
+                >
                   <span className="w-6 h-6 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[11px] font-mono font-bold text-white/30">
                     {item.priority}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <code className="text-[13px] text-white/70 font-mono">{item.key}</code>
-                    <p className="text-[11px] text-white/25 mt-0.5">{item.desc}</p>
+                    <code className="text-[13px] text-white/70 font-mono">
+                      {item.key}
+                    </code>
+                    <p className="text-[11px] text-white/25 mt-0.5">
+                      {item.desc}
+                    </p>
                   </div>
-                  <code className="text-[12px] text-blue-400/60 font-mono hidden sm:block">{item.example}</code>
+                  <code className="text-[12px] text-blue-400/60 font-mono hidden sm:block">
+                    {item.example}
+                  </code>
                 </div>
               ))}
             </div>
@@ -157,7 +210,8 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`,
             Docker Compose environment
           </h3>
           <p className="text-sm text-white/40 mb-4">
-            When deploying with Docker Compose, configure these environment variables for the backend service:
+            When deploying with Docker Compose, configure these environment
+            variables for the backend service:
           </p>
           <CodeBlock
             language="bash"
@@ -188,7 +242,9 @@ OPENAI_API_KEY=sk-...
             Verifying the base URL
           </h3>
           <p className="mb-4">
-            After configuring, visit any docs page with code examples. The base URL in curl commands, fetch calls, and Python/Go examples should reflect your configured value:
+            After configuring, visit any docs page with code examples. The base
+            URL in curl commands, fetch calls, and Python/Go examples should
+            reflect your configured value:
           </p>
           <CodeBlock
             language="bash"
@@ -206,7 +262,8 @@ curl https://api.yourdomain.com/api/chat ...`}
             Post-deployment verification
           </h3>
           <p className="text-sm text-white/40 mb-4">
-            After deploying, run a quick smoke test to verify that everything is wired correctly:
+            After deploying, run a quick smoke test to verify that everything is
+            wired correctly:
           </p>
           <CodeBlock
             language="bash"
@@ -228,7 +285,19 @@ curl https://api.yourdomain.com/api/chat \\
         </div>
 
         <TipBox variant="info">
-          The <code className="text-blue-400 font-mono text-xs">NEXT_PUBLIC_DOCS_BASE_URL</code> env var is baked in at build time. If you change it, rebuild the web app with <code className="text-blue-400 font-mono text-xs">npm run build</code> or restart the dev server. The admin settings value in <code className="text-blue-400 font-mono text-xs">system_settings</code> can be changed at runtime but only affects server-rendered pages — for full coverage, set the env var.
+          The{" "}
+          <code className="text-blue-400 font-mono text-xs">
+            NEXT_PUBLIC_DOCS_BASE_URL
+          </code>{" "}
+          env var is baked in at build time. If you change it, rebuild the web
+          app with{" "}
+          <code className="text-blue-400 font-mono text-xs">npm run build</code>{" "}
+          or restart the dev server. The admin settings value in{" "}
+          <code className="text-blue-400 font-mono text-xs">
+            system_settings
+          </code>{" "}
+          can be changed at runtime but only affects server-rendered pages — for
+          full coverage, set the env var.
         </TipBox>
       </Section>
     </motion.div>

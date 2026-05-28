@@ -8,7 +8,8 @@ export const ScrollProgress = () => {
   useEffect(() => {
     const onScroll = () => {
       const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
       setProgress(docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0);
     };
     window.addEventListener("scroll", onScroll, { passive: true });

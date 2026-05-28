@@ -49,11 +49,13 @@ apps/web/
 ### Task 1: Extract CodeBlock + highlight helpers
 
 **Files:**
+
 - Create: `apps/web/components/docs/CodeBlock.tsx`
 
 - [ ] **Step 1: Create CodeBlock.tsx**
 
 Extract from `apps/web/app/docs/page.tsx` lines 52-347:
+
 - `highlightJson`, `highlightBash`, `highlightPython`, `highlightGo`, `highlightJS` functions
 - `getHighlighted` dispatcher
 - `CodeExample` type, `Lang` type
@@ -84,7 +86,8 @@ interface CodeBlockProps {
 
 function highlightJson(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(\btrue\b|\bfalse\b|\bnull\b)|(\b\d+\.?\d*\b)|(\/\/.*)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(\btrue\b|\bfalse\b|\bnull\b)|(\b\d+\.?\d*\b)|(\/\/.*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -94,16 +97,36 @@ function highlightJson(code: string): JSX.Element {
       parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
     }
     if (match[1]) {
-      parts.push(<span key={key++} className="text-sky-300">{match[1]}</span>);
+      parts.push(
+        <span key={key++} className="text-sky-300">
+          {match[1]}
+        </span>,
+      );
       parts.push(<span key={key++}>:</span>);
     } else if (match[2]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[2]}</span>);
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[2]}
+        </span>,
+      );
     } else if (match[3]) {
-      parts.push(<span key={key++} className="text-purple-300">{match[3]}</span>);
+      parts.push(
+        <span key={key++} className="text-purple-300">
+          {match[3]}
+        </span>,
+      );
     } else if (match[4]) {
-      parts.push(<span key={key++} className="text-emerald-300">{match[4]}</span>);
+      parts.push(
+        <span key={key++} className="text-emerald-300">
+          {match[4]}
+        </span>,
+      );
     } else if (match[5]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[5]}</span>);
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[5]}
+        </span>,
+      );
     }
     lastIndex = match.index + match[0].length;
   }
@@ -115,7 +138,8 @@ function highlightJson(code: string): JSX.Element {
 
 function highlightBash(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go)(?=\s|$)|("(?:[^"\\]|\\.)*")|(-[a-zA-Z]|--[a-zA-Z-]+)|((?:https?:\/\/|localhost)\S*)/gm;
+  const regex =
+    /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go)(?=\s|$)|("(?:[^"\\]|\\.)*")|(-[a-zA-Z]|--[a-zA-Z-]+)|((?:https?:\/\/|localhost)\S*)/gm;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -125,13 +149,32 @@ function highlightBash(code: string): JSX.Element {
       parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
     }
     if (match[2]) {
-      parts.push(<span key={key++} className="text-green-300 font-semibold">{match[2]}</span>);
+      parts.push(
+        <span key={key++} className="text-green-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
     } else if (match[3]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[3]}</span>);
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[3]}
+        </span>,
+      );
     } else if (match[4]) {
-      parts.push(<span key={key++} className="text-blue-300">{match[4]}</span>);
+      parts.push(
+        <span key={key++} className="text-blue-300">
+          {match[4]}
+        </span>,
+      );
     } else if (match[5]) {
-      parts.push(<span key={key++} className="text-cyan-300 underline underline-offset-2 decoration-white/10">{match[5]}</span>);
+      parts.push(
+        <span
+          key={key++}
+          className="text-cyan-300 underline underline-offset-2 decoration-white/10"
+        >
+          {match[5]}
+        </span>,
+      );
     }
     lastIndex = match.index + match[0].length;
   }
@@ -143,7 +186,8 @@ function highlightBash(code: string): JSX.Element {
 
 function highlightPython(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b(def|import|from|class|return|if|else|elif|for|while|print|try|except|as|with|in|not|and|or|True|False|None)\b)|(#.*)|(\b\d+\.?\d*\b)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b(def|import|from|class|return|if|else|elif|for|while|print|try|except|as|with|in|not|and|or|True|False|None)\b)|(#.*)|(\b\d+\.?\d*\b)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -153,13 +197,29 @@ function highlightPython(code: string): JSX.Element {
       parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
     }
     if (match[1]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>);
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[1]}
+        </span>,
+      );
     } else if (match[2]) {
-      parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>);
+      parts.push(
+        <span key={key++} className="text-purple-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
     } else if (match[4]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>);
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[4]}
+        </span>,
+      );
     } else if (match[5]) {
-      parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>);
+      parts.push(
+        <span key={key++} className="text-emerald-300">
+          {match[5]}
+        </span>,
+      );
     }
     lastIndex = match.index + match[0].length;
   }
@@ -171,7 +231,8 @@ function highlightPython(code: string): JSX.Element {
 
 function highlightGo(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*"|`[^`]*`)|(\b(func|package|import|return|if|else|for|range|var|type|struct|interface|map|chan|go|defer|select|case|switch|break|continue|nil|true|false|err|error|string|int|bool|float64|any)\b)|(\/\/.*)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*"|`[^`]*`)|(\b(func|package|import|return|if|else|for|range|var|type|struct|interface|map|chan|go|defer|select|case|switch|break|continue|nil|true|false|err|error|string|int|bool|float64|any)\b)|(\/\/.*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -181,11 +242,23 @@ function highlightGo(code: string): JSX.Element {
       parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
     }
     if (match[1]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>);
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[1]}
+        </span>,
+      );
     } else if (match[2]) {
-      parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>);
+      parts.push(
+        <span key={key++} className="text-purple-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
     } else if (match[4]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>);
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[4]}
+        </span>,
+      );
     }
     lastIndex = match.index + match[0].length;
   }
@@ -197,7 +270,8 @@ function highlightGo(code: string): JSX.Element {
 
 function highlightJS(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b(const|let|var|function|async|await|return|import|from|export|default|if|else|for|of|in|try|catch|throw|new|class|extends|this|typeof|instanceof|true|false|null|undefined|Promise|console|fetch)\b)|(\/\/.*)|(\b\d+\.?\d*\b)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b(const|let|var|function|async|await|return|import|from|export|default|if|else|for|of|in|try|catch|throw|new|class|extends|this|typeof|instanceof|true|false|null|undefined|Promise|console|fetch)\b)|(\/\/.*)|(\b\d+\.?\d*\b)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -207,13 +281,29 @@ function highlightJS(code: string): JSX.Element {
       parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
     }
     if (match[1]) {
-      parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>);
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[1]}
+        </span>,
+      );
     } else if (match[2]) {
-      parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>);
+      parts.push(
+        <span key={key++} className="text-purple-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
     } else if (match[4]) {
-      parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>);
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[4]}
+        </span>,
+      );
     } else if (match[5]) {
-      parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>);
+      parts.push(
+        <span key={key++} className="text-emerald-300">
+          {match[5]}
+        </span>,
+      );
     }
     lastIndex = match.index + match[0].length;
   }
@@ -235,11 +325,16 @@ function getHighlighted(code: string, lang: string): JSX.Element | string {
   return code;
 }
 
-export function CodeBlock({ code, language = "bash", examples, title }: CodeBlockProps) {
+export function CodeBlock({
+  code,
+  language = "bash",
+  examples,
+  title,
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [activeLang, setActiveLang] = useState<Lang>("curl");
 
-  const displayCode = examples ? examples[activeLang] : code ?? "";
+  const displayCode = examples ? examples[activeLang] : (code ?? "");
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayCode);
@@ -305,7 +400,9 @@ export function CodeBlock({ code, language = "bash", examples, title }: CodeBloc
         </div>
         <div className="flex items-center gap-2">
           {title && (
-            <span className="text-[11px] text-white/20 font-mono hidden sm:block">{title}</span>
+            <span className="text-[11px] text-white/20 font-mono hidden sm:block">
+              {title}
+            </span>
           )}
           <button
             onClick={handleCopy}
@@ -340,7 +437,9 @@ export function CodeBlock({ code, language = "bash", examples, title }: CodeBloc
         </div>
         <pre className="flex-1 p-5 overflow-x-auto font-mono text-[13px] leading-relaxed">
           <code className="text-green-400/85">
-            {typeof highlightedCode === "string" ? displayCode : highlightedCode}
+            {typeof highlightedCode === "string"
+              ? displayCode
+              : highlightedCode}
           </code>
         </pre>
       </div>
@@ -358,6 +457,7 @@ Run: `tsc --noEmit --pretty false` in `apps/web/` to confirm no type errors.
 ### Task 2: Extract EndpointCard
 
 **Files:**
+
 - Create: `apps/web/components/docs/EndpointCard.tsx`
 
 - [ ] **Step 1: Create EndpointCard.tsx**
@@ -374,7 +474,8 @@ function MethodBadge({ method }: { method: string }) {
     GET: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5",
     POST: "bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-blue-500/5",
     PUT: "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-amber-500/5",
-    PATCH: "bg-orange-500/10 text-orange-400 border-orange-500/20 shadow-orange-500/5",
+    PATCH:
+      "bg-orange-500/10 text-orange-400 border-orange-500/20 shadow-orange-500/5",
     DELETE: "bg-red-500/10 text-red-400 border-red-500/20 shadow-red-500/5",
   };
   return (
@@ -396,7 +497,13 @@ interface EndpointCardProps {
   children?: React.ReactNode;
 }
 
-export function EndpointCard({ method, path, description, auth = true, children }: EndpointCardProps) {
+export function EndpointCard({
+  method,
+  path,
+  description,
+  auth = true,
+  children,
+}: EndpointCardProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -458,6 +565,7 @@ export function EndpointCard({ method, path, description, auth = true, children 
 ### Task 3: Extract TipBox, Section, ScrollProgress
 
 **Files:**
+
 - Create: `apps/web/components/docs/TipBox.tsx`
 - Create: `apps/web/components/docs/Section.tsx`
 - Create: `apps/web/components/docs/ScrollProgress.tsx`
@@ -543,7 +651,8 @@ export function ScrollProgress() {
   useEffect(() => {
     const onScroll = () => {
       const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
       setProgress(docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -567,6 +676,7 @@ export function ScrollProgress() {
 ### Task 4: Create search modal component
 
 **Files:**
+
 - Create: `apps/web/components/docs/SearchModal.tsx`
 
 - [ ] **Step 1: Create SearchModal.tsx**
@@ -588,11 +698,16 @@ interface SearchModalProps {
   onNavigate: (id: string) => void;
 }
 
-export function SearchModal({ open, onClose, items, onNavigate }: SearchModalProps) {
+export function SearchModal({
+  open,
+  onClose,
+  items,
+  onNavigate,
+}: SearchModalProps) {
   const [query, setQuery] = useState("");
 
   const filtered = items.filter((item) =>
-    item.label.toLowerCase().includes(query.toLowerCase())
+    item.label.toLowerCase().includes(query.toLowerCase()),
   );
 
   return (
@@ -631,7 +746,9 @@ export function SearchModal({ open, onClose, items, onNavigate }: SearchModalPro
               {filtered.length === 0 ? (
                 <div className="px-4 py-12 text-center">
                   <Search className="w-6 h-6 text-white/10 mx-auto mb-3" />
-                  <p className="text-sm text-white/30">No results for &ldquo;{query}&rdquo;</p>
+                  <p className="text-sm text-white/30">
+                    No results for &ldquo;{query}&rdquo;
+                  </p>
                 </div>
               ) : (
                 <AnimatePresence>
@@ -653,7 +770,8 @@ export function SearchModal({ open, onClose, items, onNavigate }: SearchModalPro
                         {item.label}
                       </span>
                       <span className="ml-auto text-[10px] text-white/15 font-mono group-hover:text-white/30 transition-colors">
-                        Jump to <ArrowRight className="w-2.5 h-2.5 inline ml-0.5" />
+                        Jump to{" "}
+                        <ArrowRight className="w-2.5 h-2.5 inline ml-0.5" />
                       </span>
                     </motion.button>
                   ))}
@@ -663,15 +781,21 @@ export function SearchModal({ open, onClose, items, onNavigate }: SearchModalPro
             <div className="flex items-center gap-4 px-5 py-3 border-t border-white/[0.04] bg-white/[0.01]">
               <div className="flex items-center gap-3 text-[10px] text-white/20">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono">↑↓</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono">
+                    ↑↓
+                  </kbd>
                   Navigate
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono">↵</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono">
+                    ↵
+                  </kbd>
                   Open
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono">ESC</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono">
+                    ESC
+                  </kbd>
                   Close
                 </span>
               </div>
@@ -687,6 +811,7 @@ export function SearchModal({ open, onClose, items, onNavigate }: SearchModalPro
 - [ ] **Step 2: Create shared types file**
 
 `apps/web/components/docs/types.ts`:
+
 ```ts
 import type { ElementType } from "react";
 
@@ -702,6 +827,7 @@ export interface NavItem {
 ### Task 5: Create docs layout
 
 **Files:**
+
 - Create: `apps/web/app/docs/layout.tsx`
 
 This layout wraps all docs pages with the sidebar, scroll progress, search modal, and ambient background.
@@ -715,9 +841,27 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Book, Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
-  Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, Search, Menu, X, ArrowRight,
+  Book,
+  Zap,
+  Key,
+  Code2,
+  MessageSquare,
+  Database,
+  Boxes,
+  FileText,
+  Layers,
+  UploadCloud,
+  Shield,
+  AlertTriangle,
+  Cpu,
+  TrendingUp,
+  BarChart3,
+  Lock,
+  Terminal,
+  Search,
+  Menu,
+  X,
+  ArrowRight,
 } from "lucide-react";
 import { ScrollProgress } from "@/components/docs/ScrollProgress";
 import { SearchModal } from "@/components/docs/SearchModal";
@@ -742,13 +886,18 @@ const navItems: NavItem[] = [
   { id: "examples", label: "Code Examples", icon: Terminal },
 ];
 
-export default function DocsLayout({ children }: { children: React.ReactNode }) {
+export default function DocsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const currentSectionId = pathname.replace("/docs/", "").replace("/", "") || "index";
+  const currentSectionId =
+    pathname.replace("/docs/", "").replace("/", "") || "index";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -765,11 +914,14 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const navigateTo = useCallback((id: string) => {
-    router.push(`/docs/${id}`);
-    setSearchOpen(false);
-    setSidebarOpen(false);
-  }, [router]);
+  const navigateTo = useCallback(
+    (id: string) => {
+      router.push(`/docs/${id}`);
+      setSearchOpen(false);
+      setSidebarOpen(false);
+    },
+    [router],
+  );
 
   return (
     <div className="min-h-screen bg-[#000000] text-foreground relative">
@@ -777,14 +929,28 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
       {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-1/4 w-[800px] h-[800px] bg-blue-500/[0.04] rounded-full blur-[180px] animate-pulse-slow" style={{ animationDuration: "8s" }} />
-        <div className="absolute bottom-[-10%] right-1/4 w-[700px] h-[700px] bg-violet-500/[0.03] rounded-full blur-[180px] animate-pulse-slow" style={{ animationDuration: "10s", animationDelay: "2s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/[0.02] rounded-full blur-[150px] animate-pulse-slow" style={{ animationDuration: "12s", animationDelay: "4s" }} />
+        <div
+          className="absolute top-[-10%] left-1/4 w-[800px] h-[800px] bg-blue-500/[0.04] rounded-full blur-[180px] animate-pulse-slow"
+          style={{ animationDuration: "8s" }}
+        />
+        <div
+          className="absolute bottom-[-10%] right-1/4 w-[700px] h-[700px] bg-violet-500/[0.03] rounded-full blur-[180px] animate-pulse-slow"
+          style={{ animationDuration: "10s", animationDelay: "2s" }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/[0.02] rounded-full blur-[150px] animate-pulse-slow"
+          style={{ animationDuration: "12s", animationDelay: "4s" }}
+        />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.03)_0%,_transparent_50%)]" />
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.015]" />
       </div>
 
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} items={navItems} onNavigate={navigateTo} />
+      <SearchModal
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        items={navItems}
+        onNavigate={navigateTo}
+      />
 
       {/* Mobile sidebar toggle */}
       <div className="fixed bottom-6 right-6 z-40 lg:hidden">
@@ -820,7 +986,9 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-[#0a0a0a] border-l border-white/[0.06] lg:hidden"
           >
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.04]">
-              <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest">Sections</h3>
+              <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest">
+                Sections
+              </h3>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40 hover:text-white/70 transition-colors"
@@ -863,7 +1031,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                 </span>
                 <span className="text-white/30 mx-2">/</span>
                 <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400/60 bg-clip-text text-transparent">
-                  {navItems.find(i => i.id === currentSectionId)?.label || "Docs"}
+                  {navItems.find((i) => i.id === currentSectionId)?.label ||
+                    "Docs"}
                 </span>
               </h1>
             </div>
@@ -902,7 +1071,11 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                         <motion.div
                           layoutId="activeIndicator"
                           className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-400 via-purple-400 to-blue-400"
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 30,
+                          }}
                         />
                       )}
                       <item.icon
@@ -921,9 +1094,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           </aside>
 
           {/* Page content */}
-          <main className="lg:col-span-9 min-h-[60vh]">
-            {children}
-          </main>
+          <main className="lg:col-span-9 min-h-[60vh]">{children}</main>
         </div>
       </div>
     </div>
@@ -936,6 +1107,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 ### Task 6: Create docs landing/index page
 
 **Files:**
+
 - Modify: `apps/web/app/docs/page.tsx`
 
 Replace the monolithic page with a compact index/landing page with cards linking to each section.
@@ -948,9 +1120,24 @@ Replace the monolithic page with a compact index/landing page with cards linking
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
-  Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
-  Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, ArrowRight, Book,
+  Zap,
+  Key,
+  Code2,
+  MessageSquare,
+  Database,
+  Boxes,
+  FileText,
+  Layers,
+  UploadCloud,
+  Shield,
+  AlertTriangle,
+  Cpu,
+  TrendingUp,
+  BarChart3,
+  Lock,
+  Terminal,
+  ArrowRight,
+  Book,
 } from "lucide-react";
 
 const containerVariants = {
@@ -971,35 +1158,114 @@ const cardVariants = {
 };
 
 const sections = [
-  { id: "quickstart", label: "Quick Start", icon: Zap, desc: "Get up and running in under 5 minutes." },
-  { id: "authentication", label: "Authentication", icon: Key, desc: "API keys, JWT, and bearer token auth." },
-  { id: "api-reference", label: "API Reference", icon: Code2, desc: "Complete endpoint documentation." },
-  { id: "chat", label: "Chat & Streaming", icon: MessageSquare, desc: "SSE streaming and standard chat." },
-  { id: "embeddings", label: "Embeddings", icon: Database, desc: "Generate text embeddings." },
-  { id: "conversations", label: "Conversations", icon: Boxes, desc: "Multi-turn conversation management." },
-  { id: "prompts", label: "Prompt Templates", icon: FileText, desc: "Reusable prompt templates." },
-  { id: "batch", label: "Batch API", icon: Layers, desc: "Process multiple requests at once." },
-  { id: "files", label: "File Upload", icon: UploadCloud, desc: "Upload images for vision models." },
-  { id: "rate-limits", label: "Rate Limits", icon: Shield, desc: "Usage limits and throttling." },
-  { id: "error-handling", label: "Error Handling", icon: AlertTriangle, desc: "Error codes and responses." },
-  { id: "models", label: "Available Models", icon: Cpu, desc: "Supported providers and models." },
-  { id: "pricing", label: "Pricing & Credits", icon: TrendingUp, desc: "Credit system and costs." },
-  { id: "dashboard", label: "Dashboard", icon: BarChart3, desc: "Usage analytics and monitoring." },
-  { id: "security", label: "Security", icon: Lock, desc: "Encryption, hashing, and CORS." },
-  { id: "examples", label: "Code Examples", icon: Terminal, desc: "Full examples in Python, JS, Go." },
+  {
+    id: "quickstart",
+    label: "Quick Start",
+    icon: Zap,
+    desc: "Get up and running in under 5 minutes.",
+  },
+  {
+    id: "authentication",
+    label: "Authentication",
+    icon: Key,
+    desc: "API keys, JWT, and bearer token auth.",
+  },
+  {
+    id: "api-reference",
+    label: "API Reference",
+    icon: Code2,
+    desc: "Complete endpoint documentation.",
+  },
+  {
+    id: "chat",
+    label: "Chat & Streaming",
+    icon: MessageSquare,
+    desc: "SSE streaming and standard chat.",
+  },
+  {
+    id: "embeddings",
+    label: "Embeddings",
+    icon: Database,
+    desc: "Generate text embeddings.",
+  },
+  {
+    id: "conversations",
+    label: "Conversations",
+    icon: Boxes,
+    desc: "Multi-turn conversation management.",
+  },
+  {
+    id: "prompts",
+    label: "Prompt Templates",
+    icon: FileText,
+    desc: "Reusable prompt templates.",
+  },
+  {
+    id: "batch",
+    label: "Batch API",
+    icon: Layers,
+    desc: "Process multiple requests at once.",
+  },
+  {
+    id: "files",
+    label: "File Upload",
+    icon: UploadCloud,
+    desc: "Upload images for vision models.",
+  },
+  {
+    id: "rate-limits",
+    label: "Rate Limits",
+    icon: Shield,
+    desc: "Usage limits and throttling.",
+  },
+  {
+    id: "error-handling",
+    label: "Error Handling",
+    icon: AlertTriangle,
+    desc: "Error codes and responses.",
+  },
+  {
+    id: "models",
+    label: "Available Models",
+    icon: Cpu,
+    desc: "Supported providers and models.",
+  },
+  {
+    id: "pricing",
+    label: "Pricing & Credits",
+    icon: TrendingUp,
+    desc: "Credit system and costs.",
+  },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: BarChart3,
+    desc: "Usage analytics and monitoring.",
+  },
+  {
+    id: "security",
+    label: "Security",
+    icon: Lock,
+    desc: "Encryption, hashing, and CORS.",
+  },
+  {
+    id: "examples",
+    label: "Code Examples",
+    icon: Terminal,
+    desc: "Full examples in Python, JS, Go.",
+  },
 ];
 
 export default function DocsIndexPage() {
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <motion.div variants={containerVariants} initial="hidden" animate="visible">
       <div className="mb-10">
-        <h2 className="text-3xl font-black tracking-tight text-white mb-3">Documentation</h2>
+        <h2 className="text-3xl font-black tracking-tight text-white mb-3">
+          Documentation
+        </h2>
         <p className="text-gray-500 text-sm font-mono max-w-lg">
-          Everything you need to integrate with 100+ AI models through one unified API.
+          Everything you need to integrate with 100+ AI models through one
+          unified API.
         </p>
       </div>
 
@@ -1020,7 +1286,9 @@ export default function DocsIndexPage() {
                   </h3>
                   <ArrowRight className="w-3.5 h-3.5 text-white/10 group-hover:text-blue-400/60 transition-all duration-300 -mr-1" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{section.desc}</p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                  {section.desc}
+                </p>
               </div>
             </Link>
           </motion.div>
@@ -1041,9 +1309,12 @@ export default function DocsIndexPage() {
           <div className="w-14 h-14 rounded-2xl bg-blue-500/[0.08] flex items-center justify-center text-blue-400 ring-1 ring-blue-500/[0.15] mx-auto mb-6">
             <Book className="w-7 h-7" />
           </div>
-          <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">Ready to Build?</h3>
+          <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">
+            Ready to Build?
+          </h3>
           <p className="text-white/40 mb-8 max-w-lg mx-auto text-sm md:text-base">
-            Start integrating with 100+ AI models through one unified, credit-based API.
+            Start integrating with 100+ AI models through one unified,
+            credit-based API.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
@@ -1067,6 +1338,7 @@ export default function DocsIndexPage() {
 ### Task 7: Create individual section pages
 
 **Files:**
+
 - Create: `apps/web/app/docs/quickstart/page.tsx`
 - Create: `apps/web/app/docs/authentication/page.tsx`
 - Create: `apps/web/app/docs/api-reference/page.tsx`
@@ -1075,6 +1347,7 @@ export default function DocsIndexPage() {
 Each page imports shared components and contains its section's content extracted from the original mega-page.
 
 The pattern for each page:
+
 ```tsx
 "use client";
 
@@ -1097,7 +1370,10 @@ export default function QuickstartPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
       {/* Section content extracted from original mega-page */}
     </motion.div>
@@ -1112,6 +1388,7 @@ Each page content is identical to the original section body but wrapped in page 
 ### Task 8: Delete the old monolithic content from page.tsx
 
 **Files:**
+
 - Modify: `apps/web/app/docs/page.tsx`
 
 The monolithic content is now replaced by the index page (Task 6). The old content (lines 15-1630) is deleted.

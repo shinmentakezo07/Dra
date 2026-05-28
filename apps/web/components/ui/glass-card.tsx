@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const GlassCard = React.forwardRef<
   HTMLDivElement,
@@ -11,12 +11,12 @@ const GlassCard = React.forwardRef<
     ref={ref}
     className={cn(
       "rounded-xl border border-white/10 bg-black/40 backdrop-blur-md shadow-xl",
-      className
+      className,
     )}
     {...props}
   />
-))
-GlassCard.displayName = "GlassCard"
+));
+GlassCard.displayName = "GlassCard";
 
 const GlassHeader = React.forwardRef<
   HTMLDivElement,
@@ -24,11 +24,14 @@ const GlassHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6 border-b border-white/5", className)}
+    className={cn(
+      "flex flex-col space-y-1.5 p-6 border-b border-white/5",
+      className,
+    )}
     {...props}
   />
-))
-GlassHeader.displayName = "GlassHeader"
+));
+GlassHeader.displayName = "GlassHeader";
 
 const GlassTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -36,18 +39,21 @@ const GlassTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight text-white", className)}
+    className={cn(
+      "font-semibold leading-none tracking-tight text-white",
+      className,
+    )}
     {...props}
   />
-))
-GlassTitle.displayName = "GlassTitle"
+));
+GlassTitle.displayName = "GlassTitle";
 
 const GlassContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-))
-GlassContent.displayName = "GlassContent"
+));
+GlassContent.displayName = "GlassContent";
 
-export { GlassCard, GlassHeader, GlassTitle, GlassContent }
+export { GlassCard, GlassHeader, GlassTitle, GlassContent };

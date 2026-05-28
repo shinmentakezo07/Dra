@@ -11,7 +11,11 @@ const BASE_URL = getDocsBaseUrl();
 
 const fadeIn = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" as const },
+  },
 };
 
 export default function ExamplesPage() {
@@ -19,17 +23,28 @@ export default function ExamplesPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
-      <Section id="examples" icon={Terminal} title="Code Examples" accent="violet">
+      <Section
+        id="examples"
+        icon={Terminal}
+        title="Code Examples"
+        accent="violet"
+      >
         <p className="text-white/80">
-          Full working examples in multiple languages to help you integrate quickly.
+          Full working examples in multiple languages to help you integrate
+          quickly.
         </p>
 
         <div className="space-y-10 mt-6">
           <motion.div variants={fadeIn}>
             <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-              <span className="px-2 py-1 rounded-lg bg-green-500/15 text-green-400 text-[11px] font-mono font-bold">Python</span>
+              <span className="px-2 py-1 rounded-lg bg-green-500/15 text-green-400 text-[11px] font-mono font-bold">
+                Python
+              </span>
               Full Client Example
             </h4>
             <CodeBlock
@@ -66,7 +81,9 @@ print(credits.json())`}
 
           <motion.div variants={fadeIn}>
             <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-              <span className="px-2 py-1 rounded-lg bg-yellow-500/15 text-yellow-400 text-[11px] font-mono font-bold">JavaScript</span>
+              <span className="px-2 py-1 rounded-lg bg-yellow-500/15 text-yellow-400 text-[11px] font-mono font-bold">
+                JavaScript
+              </span>
             </h4>
             <CodeBlock
               language="javascript"
@@ -95,7 +112,9 @@ console.log(data);`}
 
           <motion.div variants={fadeIn}>
             <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-              <span className="px-2 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 text-[11px] font-mono font-bold">Go</span>
+              <span className="px-2 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 text-[11px] font-mono font-bold">
+                Go
+              </span>
             </h4>
             <CodeBlock
               language="go"

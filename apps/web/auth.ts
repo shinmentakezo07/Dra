@@ -9,7 +9,9 @@ const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
 
 if (!secret) {
-  throw new Error('AUTH_SECRET or NEXTAUTH_SECRET environment variable is required');
+  throw new Error(
+    "AUTH_SECRET or NEXTAUTH_SECRET environment variable is required",
+  );
 }
 
 function isTokenExpired(token: string): boolean {
@@ -34,7 +36,10 @@ async function backendLogin(email: string, password: string) {
   if (!res.ok) return null;
   const json = await res.json();
   if (!json.success) return null;
-  return json.data as { user: { id: string; name: string; email: string; role: string }; token: string };
+  return json.data as {
+    user: { id: string; name: string; email: string; role: string };
+    token: string;
+  };
 }
 
 async function backendOAuth(email: string, name: string, provider: string) {
@@ -46,7 +51,10 @@ async function backendOAuth(email: string, name: string, provider: string) {
   if (!res.ok) return null;
   const json = await res.json();
   if (!json.success) return null;
-  return json.data as { user: { id: string; name: string; email: string; role: string }; token: string };
+  return json.data as {
+    user: { id: string; name: string; email: string; role: string };
+    token: string;
+  };
 }
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
@@ -101,9 +109,14 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       }
 
       // For OAuth providers, sync with backend if we don't have a backend token yet
-      if (account && account.provider !== "credentials" && !token.backendToken) {
+      if (
+        account &&
+        account.provider !== "credentials" &&
+        !token.backendToken
+      ) {
         const email = token.email as string;
-        const name = (token.name as string) || (profile?.name as string) || email;
+        const name =
+          (token.name as string) || (profile?.name as string) || email;
         if (email) {
           const data = await backendOAuth(email, name, account.provider);
           if (data) {
@@ -145,5 +158,5 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       }
       return session;
     },
-  }
+  },
 });

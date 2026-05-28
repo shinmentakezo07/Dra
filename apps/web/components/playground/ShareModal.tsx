@@ -10,7 +10,12 @@ interface ShareModalProps {
   language: string;
 }
 
-export default function ShareModal({ isOpen, onClose, code, language }: ShareModalProps) {
+export default function ShareModal({
+  isOpen,
+  onClose,
+  code,
+  language,
+}: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -34,7 +39,7 @@ export default function ShareModal({ isOpen, onClose, code, language }: ShareMod
     if (!isOpen || !modalRef.current) return;
     const modal = modalRef.current;
     const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     if (focusable.length === 0) return;
     const first = focusable[0];
@@ -63,12 +68,16 @@ export default function ShareModal({ isOpen, onClose, code, language }: ShareMod
     setIsGenerating(true);
 
     try {
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ code, language }))));
+      const encoded = btoa(
+        unescape(encodeURIComponent(JSON.stringify({ code, language }))),
+      );
       const url = `${window.location.origin}/playground?share=${encoded}`;
       setShareUrl(url);
     } catch {
       // Fallback: use a hash-based approach for large payloads
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ code, language })))).slice(0, 200);
+      const encoded = btoa(
+        unescape(encodeURIComponent(JSON.stringify({ code, language }))),
+      ).slice(0, 200);
       const url = `${window.location.origin}/playground?share=${encoded}`;
       setShareUrl(url);
     }
@@ -101,7 +110,9 @@ export default function ShareModal({ isOpen, onClose, code, language }: ShareMod
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Share Code</h2>
-              <p className="text-sm text-gray-400">Share your code with others</p>
+              <p className="text-sm text-gray-400">
+                Share your code with others
+              </p>
             </div>
           </div>
           <button
@@ -167,7 +178,8 @@ export default function ShareModal({ isOpen, onClose, code, language }: ShareMod
                   </button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Note: Share functionality is a demo. In production, this would generate a real shareable link.
+                  Note: Share functionality is a demo. In production, this would
+                  generate a real shareable link.
                 </p>
               </div>
             )}
@@ -176,7 +188,8 @@ export default function ShareModal({ isOpen, onClose, code, language }: ShareMod
           {/* Info */}
           <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-xs text-blue-300">
-              💡 Share links are read-only. Recipients can view and copy your code but cannot modify the original.
+              💡 Share links are read-only. Recipients can view and copy your
+              code but cannot modify the original.
             </p>
           </div>
         </div>

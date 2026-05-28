@@ -7,7 +7,7 @@ import { formatPricePerM } from "@/lib/model-utils";
 import { getProviderTheme } from "@/lib/model-utils";
 
 interface PricingPanelProps {
-  model: OpenRouterModelData
+  model: OpenRouterModelData;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -40,11 +40,16 @@ function PriceRow({
       <div className="text-right">
         <span
           className="text-base font-bold font-mono tracking-tight"
-          style={{ color: accent || "#fff", fontVariantNumeric: "tabular-nums" }}
+          style={{
+            color: accent || "#fff",
+            fontVariantNumeric: "tabular-nums",
+          }}
         >
           ${value}
         </span>
-        <span className="text-[10px] font-mono text-gray-700 ml-1.5">{sub}</span>
+        <span className="text-[10px] font-mono text-gray-700 ml-1.5">
+          {sub}
+        </span>
       </div>
     </motion.div>
   );
@@ -71,11 +76,19 @@ export function PricingPanel({ model }: PricingPanelProps) {
       id="pricing"
     >
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+        <span
+          className="text-[10px] font-mono font-bold tracking-wider"
+          style={{ color: accent }}
+        >
           04
         </span>
-        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">Pricing</h2>
-        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
+        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
+          Pricing
+        </h2>
+        <span
+          className="flex-1 h-px"
+          style={{ backgroundColor: `${accent}12` }}
+        />
       </div>
 
       <div
@@ -85,13 +98,32 @@ export function PricingPanel({ model }: PricingPanelProps) {
         {/* Top highlight */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+          style={{
+            background: `linear-gradient(90deg, ${accent}30, transparent)`,
+          }}
         />
 
         {isFree && (
-          <div className="px-5 py-3" style={{ backgroundColor: `${accent}0a`, borderBottomColor: `${accent}10`, borderBottomWidth: 1 }}>
-            <span className="font-mono text-xs font-bold" style={{ color: accent }}>Free to use</span>
-            <span className="font-mono text-[10px] ml-2" style={{ color: `${accent}60` }}>No per-token charges</span>
+          <div
+            className="px-5 py-3"
+            style={{
+              backgroundColor: `${accent}0a`,
+              borderBottomColor: `${accent}10`,
+              borderBottomWidth: 1,
+            }}
+          >
+            <span
+              className="font-mono text-xs font-bold"
+              style={{ color: accent }}
+            >
+              Free to use
+            </span>
+            <span
+              className="font-mono text-[10px] ml-2"
+              style={{ color: `${accent}60` }}
+            >
+              No per-token charges
+            </span>
           </div>
         )}
 
@@ -114,10 +146,15 @@ export function PricingPanel({ model }: PricingPanelProps) {
 
         {hasCache && (
           <div className="px-5 pb-5">
-            <div className="pt-4" style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
+            <div
+              className="pt-4"
+              style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}
+            >
               <div className="flex items-center gap-1.5 mb-3">
                 <Coins className="w-3 h-3" style={{ color: `${accent}50` }} />
-                <span className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.15em]">Context Caching</span>
+                <span className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.15em]">
+                  Context Caching
+                </span>
               </div>
               <div className="space-y-px">
                 {cacheRead && (
@@ -145,7 +182,10 @@ export function PricingPanel({ model }: PricingPanelProps) {
 
         {model.pricing?.web_search && (
           <div className="px-5 pb-5">
-            <div className="pt-4" style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
+            <div
+              className="pt-4"
+              style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}
+            >
               <PriceRow
                 label="Web Search"
                 value={(parseFloat(model.pricing.web_search) * 1000).toFixed(2)}
@@ -158,10 +198,22 @@ export function PricingPanel({ model }: PricingPanelProps) {
         )}
 
         {!isFree && (
-          <div className="px-5 py-3" style={{ backgroundColor: `${accent}06`, borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
+          <div
+            className="px-5 py-3"
+            style={{
+              backgroundColor: `${accent}06`,
+              borderTopColor: `${accent}08`,
+              borderTopWidth: 1,
+            }}
+          >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono text-gray-500">Est. 1K tokens</span>
-              <span className="font-mono text-sm font-bold text-white" style={{ fontVariantNumeric: "tabular-nums" }}>
+              <span className="text-[10px] font-mono text-gray-500">
+                Est. 1K tokens
+              </span>
+              <span
+                className="font-mono text-sm font-bold text-white"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
                 ${((inputPrice + outputPrice) / 1000).toFixed(4)}
               </span>
             </div>
@@ -172,14 +224,24 @@ export function PricingPanel({ model }: PricingPanelProps) {
       {model.knowledge_cutoff && (
         <div className="mt-5">
           <div className="flex items-center gap-3 mb-3">
-            <span className="flex-1 h-px" style={{ backgroundColor: `${accent}08` }} />
-            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Knowledge Cutoff</span>
+            <span
+              className="flex-1 h-px"
+              style={{ backgroundColor: `${accent}08` }}
+            />
+            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">
+              Knowledge Cutoff
+            </span>
           </div>
           <div
             className="rounded-2xl border px-5 py-3"
-            style={{ borderColor: `${accent}08`, backgroundColor: `${accent}02` }}
+            style={{
+              borderColor: `${accent}08`,
+              backgroundColor: `${accent}02`,
+            }}
           >
-            <span className="text-white font-mono text-sm tracking-tight">{model.knowledge_cutoff}</span>
+            <span className="text-white font-mono text-sm tracking-tight">
+              {model.knowledge_cutoff}
+            </span>
           </div>
         </div>
       )}

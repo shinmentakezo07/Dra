@@ -23,6 +23,7 @@ bash scripts/dev.sh --logs   # Show logs from last run
 ```
 
 This script performs:
+
 1. Checks dependencies (Node, npm, Go, Docker)
 2. Installs root, frontend, and backend dependencies
 3. Starts PostgreSQL via Docker Compose
@@ -58,11 +59,11 @@ npm run dev
 
 ### Services
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Frontend (Next.js) | `http://localhost:3000` | Web application |
-| Backend (Go) | `http://localhost:8080` | API server |
-| PostgreSQL | `localhost:5432` | Database |
+| Service            | URL                             | Description      |
+| ------------------ | ------------------------------- | ---------------- |
+| Frontend (Next.js) | `http://localhost:3000`         | Web application  |
+| Backend (Go)       | `http://localhost:8080`         | API server       |
+| PostgreSQL         | `localhost:5432`                | Database         |
 | Prometheus Metrics | `http://localhost:9090/metrics` | Metrics endpoint |
 
 ---
@@ -90,11 +91,11 @@ docker compose down
 
 ### Services
 
-| Service | Image | Port | Description |
-|---------|-------|------|-------------|
-| `postgres` | `postgres:16-alpine` | 5432 | Primary database with health check |
-| `web` | Custom build (root Dockerfile) | 3000 | Next.js standalone production build |
-| `backend` | Custom build (apps/backend/Dockerfile) | 8080 | Go production binary |
+| Service    | Image                                  | Port | Description                         |
+| ---------- | -------------------------------------- | ---- | ----------------------------------- |
+| `postgres` | `postgres:16-alpine`                   | 5432 | Primary database with health check  |
+| `web`      | Custom build (root Dockerfile)         | 3000 | Next.js standalone production build |
+| `backend`  | Custom build (apps/backend/Dockerfile) | 8080 | Go production binary                |
 
 ### MongoDB Profile
 
@@ -112,6 +113,7 @@ services:
 ### Environment
 
 Services inherit environment from the host or `.env` files. Key variables:
+
 - `DATABASE_URL` — PostgreSQL connection string
 - `AUTH_SECRET` — JWT signing secret (must match frontend & backend)
 - `NEXTAUTH_SECRET` — NextAuth session secret
@@ -129,11 +131,13 @@ Services inherit environment from the host or `.env` files. Key variables:
 Multi-stage build:
 
 **Stage 1: Builder** (`node:20-alpine`)
+
 - Installs dependencies via `npm ci` (with `--legacy-peer-deps` for `.npmrc` compat)
 - Runs `npm run build` (Turborepo build pipeline)
 - Produces `.next/standalone` output
 
 **Stage 2: Runner** (`node:20-alpine`)
+
 - Copies `.next/standalone` (Next.js standalone output + node_modules)
 - Copies `.next/static` for static assets
 - Copies `public/` directory
@@ -279,6 +283,7 @@ Two workflows in `.github/workflows/`:
 ### Metrics (Prometheus)
 
 Exposed on port 9090 (separate metrics server):
+
 - Request counts and latency histograms
 - Provider error rates
 - Cache hit/miss ratios
@@ -288,6 +293,7 @@ Exposed on port 9090 (separate metrics server):
 ### Logging (Structured)
 
 Backend uses `log/slog` with JSON output:
+
 - `ENV=development`: `slog.LevelDebug` with verbose logging
 - `ENV=production`: `slog.LevelInfo` with structured JSON
 

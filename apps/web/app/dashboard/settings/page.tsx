@@ -24,9 +24,11 @@ export default async function SettingsPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white mb-2">Account Settings</h1>
-        <p className="text-gray-400">Manage your profile and security preferences.</p>
+        <p className="text-gray-400">
+          Manage your profile and security preferences.
+        </p>
       </div>
-      
+
       <SettingsForm user={user} />
       <BudgetSettings />
     </div>

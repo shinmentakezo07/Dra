@@ -29,8 +29,11 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof RateLimitError) {
       return new Response(
-        JSON.stringify({ success: false, error: "Rate limit exceeded. Please slow down." }),
-        { status: 429, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Rate limit exceeded. Please slow down.",
+        }),
+        { status: 429, headers: { "Content-Type": "application/json" } },
       );
     }
     throw err;
@@ -42,8 +45,11 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof SyntaxError) {
       return new Response(
-        JSON.stringify({ success: false, error: "Invalid JSON in request body" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Invalid JSON in request body",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
     throw err;
@@ -65,7 +71,8 @@ export async function POST(request: Request) {
   // Inject backend Bearer token from NextAuth session if no explicit auth header
   if (!authHeader) {
     try {
-      const backendToken = (session?.user as Record<string, unknown>)?.backendToken as string | undefined;
+      const backendToken = (session?.user as Record<string, unknown>)
+        ?.backendToken as string | undefined;
       if (backendToken) {
         headers.set("Authorization", `Bearer ${backendToken}`);
       }
@@ -84,10 +91,13 @@ export async function POST(request: Request) {
     // Log backend error details server-side; never leak to client
     const errorText = await backendRes.text();
     console.error("[chat] Backend error:", backendRes.status, errorText);
-    return new Response(JSON.stringify({ success: false, error: "Chat request failed" }), {
-      status: backendRes.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: false, error: "Chat request failed" }),
+      {
+        status: backendRes.status,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   // Convert OpenAI SSE from Go backend to Vercel AI SDK Data Stream
@@ -112,7 +122,9 @@ export async function POST(request: Request) {
 
             const payload = trimmed.slice(6);
             if (payload === "[DONE]") {
-              controller.enqueue(new TextEncoder().encode(encodeStreamFinish()));
+              controller.enqueue(
+                new TextEncoder().encode(encodeStreamFinish()),
+              );
               controller.close();
               return;
             }
@@ -122,7 +134,9 @@ export async function POST(request: Request) {
               const delta = chunk.choices?.[0]?.delta;
               const content = delta?.content;
               if (typeof content === "string" && content.length > 0) {
-                controller.enqueue(new TextEncoder().encode(encodeDataStream(content)));
+                controller.enqueue(
+                  new TextEncoder().encode(encodeDataStream(content)),
+                );
               }
             } catch {
               // Ignore malformed JSON chunks
@@ -146,7 +160,7 @@ export async function POST(request: Request) {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 }

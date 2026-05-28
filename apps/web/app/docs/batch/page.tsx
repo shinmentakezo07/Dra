@@ -16,16 +16,28 @@ export default function BatchPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
       <Section id="batch" icon={Layers} title="Batch API" accent="amber">
         <p>
-          Process multiple chat requests in a single batch request. The Batch API reduces overhead when you need to process multiple independent requests. Each item in the batch is processed independently — failures in one item do not affect others.
+          Process multiple chat requests in a single batch request. The Batch
+          API reduces overhead when you need to process multiple independent
+          requests. Each item in the batch is processed independently — failures
+          in one item do not affect others.
         </p>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-8">Creating a batch</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-8">
+          Creating a batch
+        </h3>
         <div className="space-y-2 mb-6">
-          <EndpointCard method="POST" path="/api/batch" description="Submit a batch of chat requests. Each item specifies its own model and messages.">
+          <EndpointCard
+            method="POST"
+            path="/api/batch"
+            description="Submit a batch of chat requests. Each item specifies its own model and messages."
+          >
             <CodeBlock
               examples={{
                 curl: `curl -X POST ${BASE_URL}/api/batch \\
@@ -118,7 +130,9 @@ req.Header.Set("Content-Type", "application/json")`,
         </div>
 
         <div className="mt-8">
-          <h3 className="text-white font-semibold text-sm mb-3">Batch response</h3>
+          <h3 className="text-white font-semibold text-sm mb-3">
+            Batch response
+          </h3>
           <CodeBlock
             language="json"
             code={`{
@@ -132,9 +146,15 @@ req.Header.Set("Content-Type", "application/json")`,
           />
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Checking batch status</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Checking batch status
+        </h3>
         <div className="space-y-2 mb-6">
-          <EndpointCard method="GET" path="/api/batch/{id}" description="Check batch job status and retrieve results. Poll this endpoint until status is 'completed'.">
+          <EndpointCard
+            method="GET"
+            path="/api/batch/{id}"
+            description="Check batch job status and retrieve results. Poll this endpoint until status is 'completed'."
+          >
             <CodeBlock
               examples={{
                 curl: `curl ${BASE_URL}/api/batch/batch_xyz789 \\
@@ -184,7 +204,10 @@ def poll_batch(batch_id):
         </div>
 
         <TipBox>
-          Batch processing is asynchronous. Use the batch ID returned from the create call to poll for completion. Items within a batch are independent — partial results are returned as they complete. Maximum batch size is 50 items per request.
+          Batch processing is asynchronous. Use the batch ID returned from the
+          create call to poll for completion. Items within a batch are
+          independent — partial results are returned as they complete. Maximum
+          batch size is 50 items per request.
         </TipBox>
       </Section>
     </motion.div>

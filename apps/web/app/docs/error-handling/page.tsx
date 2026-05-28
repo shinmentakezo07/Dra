@@ -15,11 +15,36 @@ export default function ErrorHandlingPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
-      <Section id="error-handling" icon={AlertTriangle} title="Error Handling" accent="amber">
+      <Section
+        id="error-handling"
+        icon={AlertTriangle}
+        title="Error Handling"
+        accent="amber"
+      >
         <p>
-          The API returns consistent error responses with descriptive messages. All errors return a JSON body with a <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">success</code> field set to <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">false</code>, an <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">error</code> field with the error type, and a human-readable <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">message</code>.
+          The API returns consistent error responses with descriptive messages.
+          All errors return a JSON body with a{" "}
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            success
+          </code>{" "}
+          field set to{" "}
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            false
+          </code>
+          , an{" "}
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            error
+          </code>{" "}
+          field with the error type, and a human-readable{" "}
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            message
+          </code>
+          .
         </p>
 
         <div className="mt-8">
@@ -39,20 +64,63 @@ export default function ErrorHandlingPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
           {[
-            { code: "400", title: "Bad Request", desc: "Invalid request body or parameters. Check your JSON syntax and required fields." },
-            { code: "401", title: "Unauthorized", desc: "Missing or invalid API key or JWT. Check your X-Api-Key or Authorization header." },
-            { code: "403", title: "Forbidden", desc: "Insufficient permissions for the requested resource. Verify your API key scopes." },
-            { code: "404", title: "Not Found", desc: "The requested resource does not exist. Check the endpoint path and resource ID." },
-            { code: "409", title: "Conflict", desc: "Resource already exists (e.g., email already registered). Use a different identifier." },
-            { code: "429", title: "Rate Limited", desc: "Too many requests. Retry after the time specified in Retry-After header." },
-            { code: "500", title: "Server Error", desc: "Internal server error. Check server logs and contact support if the issue persists." },
-            { code: "502", title: "Bad Gateway", desc: "Upstream LLM provider returned an error. The provider may be experiencing issues." },
-            { code: "503", title: "Service Unavailable", desc: "Service is temporarily unavailable. This may be due to maintenance or overload." },
+            {
+              code: "400",
+              title: "Bad Request",
+              desc: "Invalid request body or parameters. Check your JSON syntax and required fields.",
+            },
+            {
+              code: "401",
+              title: "Unauthorized",
+              desc: "Missing or invalid API key or JWT. Check your X-Api-Key or Authorization header.",
+            },
+            {
+              code: "403",
+              title: "Forbidden",
+              desc: "Insufficient permissions for the requested resource. Verify your API key scopes.",
+            },
+            {
+              code: "404",
+              title: "Not Found",
+              desc: "The requested resource does not exist. Check the endpoint path and resource ID.",
+            },
+            {
+              code: "409",
+              title: "Conflict",
+              desc: "Resource already exists (e.g., email already registered). Use a different identifier.",
+            },
+            {
+              code: "429",
+              title: "Rate Limited",
+              desc: "Too many requests. Retry after the time specified in Retry-After header.",
+            },
+            {
+              code: "500",
+              title: "Server Error",
+              desc: "Internal server error. Check server logs and contact support if the issue persists.",
+            },
+            {
+              code: "502",
+              title: "Bad Gateway",
+              desc: "Upstream LLM provider returned an error. The provider may be experiencing issues.",
+            },
+            {
+              code: "503",
+              title: "Service Unavailable",
+              desc: "Service is temporarily unavailable. This may be due to maintenance or overload.",
+            },
           ].map((err) => (
-            <div key={err.code} className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
-              <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 text-xs font-bold font-mono">{err.code}</span>
+            <div
+              key={err.code}
+              className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]"
+            >
+              <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 text-xs font-bold font-mono">
+                {err.code}
+              </span>
               <div className="min-w-0">
-                <div className="text-white font-medium text-sm">{err.title}</div>
+                <div className="text-white font-medium text-sm">
+                  {err.title}
+                </div>
                 <div className="text-xs text-white/30 mt-0.5">{err.desc}</div>
               </div>
             </div>
@@ -69,7 +137,11 @@ export default function ErrorHandlingPage() {
           </p>
           <CodeBlock
             language="bash"
-            code={'curl ' + BASE_URL + '/api/chat \\\n  -H "Content-Type: application/json" \\\n  -H "X-Api-Key: INVALID_KEY" \\\n  -d \'{"model":"openai/gpt-4o","messages":[{"role":"user","content":"Hi"}]}\'\n\n# Response (401):\n# {\n#   "success": false,\n#   "error": "UNAUTHORIZED",\n#   "message": "Invalid API key"\n# }'}
+            code={
+              "curl " +
+              BASE_URL +
+              '/api/chat \\\n  -H "Content-Type: application/json" \\\n  -H "X-Api-Key: INVALID_KEY" \\\n  -d \'{"model":"openai/gpt-4o","messages":[{"role":"user","content":"Hi"}]}\'\n\n# Response (401):\n# {\n#   "success": false,\n#   "error": "UNAUTHORIZED",\n#   "message": "Invalid API key"\n# }'
+            }
           />
         </div>
 
@@ -79,7 +151,8 @@ export default function ErrorHandlingPage() {
             Retry strategy
           </h3>
           <p className="text-sm text-white/40 mb-4">
-            Implement exponential backoff for 429 (rate limit) and 5xx responses. Do not retry on 4xx errors other than 429.
+            Implement exponential backoff for 429 (rate limit) and 5xx
+            responses. Do not retry on 4xx errors other than 429.
           </p>
           <CodeBlock
             language="python"
@@ -105,7 +178,11 @@ def api_call_with_retry(url, headers, json, max_retries=3):
         </div>
 
         <TipBox>
-          Implement exponential backoff for 429 (rate limit) and 5xx responses. Start with 1s, double each retry, cap at 60s. Do not retry on 400 or 401 — those indicate a client-side issue that needs fixing. The <code className="text-blue-400 font-mono text-xs">Retry-After</code> header is included on 429 responses.
+          Implement exponential backoff for 429 (rate limit) and 5xx responses.
+          Start with 1s, double each retry, cap at 60s. Do not retry on 400 or
+          401 — those indicate a client-side issue that needs fixing. The{" "}
+          <code className="text-blue-400 font-mono text-xs">Retry-After</code>{" "}
+          header is included on 429 responses.
         </TipBox>
       </Section>
     </motion.div>

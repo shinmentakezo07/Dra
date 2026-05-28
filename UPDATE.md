@@ -10,46 +10,47 @@
 
 ### Deleted Files (21 files, −2,849 lines)
 
-| File | Lines | Why |
-|------|-------|-----|
-| `apps/backend/internal/handler/comparison.go` | 84 | Dead handler — routes removed, no callers |
-| `apps/backend/internal/handler/export.go` | 71 | Dead handler — no routes registered |
-| `apps/backend/internal/handler/fine_tuning.go` | 100 | Dead handler — only `ListFineTuningJobs` and `GetFineTuningJob` used; 3 others removed from `main.go` |
-| `apps/backend/internal/handler/provider_plugin.go` | 78 | Dead handler — no routes registered |
-| `apps/backend/internal/handler/rbac.go` | 112 | Dead handler — RBAC not implemented |
-| `apps/backend/internal/middleware/validate.go` | 37 | Dead middleware — not wired |
-| `apps/backend/internal/repository/interfaces.go` | 149 | Dead file — interface-based repo pattern abandoned; all repos use concrete structs |
-| `apps/backend/internal/service/experiment.go` | 249 | Dead service — A/B experiment logic unused |
-| `apps/backend/pkg/llm/context/compressor.go` | 139 | Dead package — context compression never wired into pipeline |
-| `apps/backend/pkg/llm/provider/balancer.go` | 209 | Dead package — replaced by `pkg/llm/provider/` registry |
-| `apps/backend/pkg/llm/provider/balancer_test.go` | 157 | Tests for dead balancer |
-| `apps/backend/pkg/llm/provider/fallback.go` | 189 | Dead package — fallback logic moved to circuit breaker |
-| `apps/backend/pkg/llm/provider/fallback_test.go` | 196 | Tests for dead fallback |
-| `apps/backend/pkg/llm/telemetry/logger.go` | 95 | Dead package — replaced by stdlib `slog` |
-| `apps/backend/pkg/llm/telemetry/span.go` | 120 | Dead package — no tracing backend configured |
-| `apps/backend/pkg/llm/translate/errors.go` | 55 | Dead package — error translation unused |
-| `apps/backend/pkg/llm/translate/errors_test.go` | 94 | Tests for dead translate/errors |
-| `apps/backend/pkg/llm/translate/validate.go` | 126 | Dead package — validation step removed from pipeline |
-| `apps/backend/pkg/llm/translate/validate_test.go` | 255 | Tests for dead translate/validate |
-| `apps/web/components/CodeEditor.tsx` | 145 | Orphaned component — no imports found |
-| `apps/web/components/ModelDetailModal.tsx` | 189 | Orphaned component — no imports found |
+| File                                               | Lines | Why                                                                                                   |
+| -------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------- |
+| `apps/backend/internal/handler/comparison.go`      | 84    | Dead handler — routes removed, no callers                                                             |
+| `apps/backend/internal/handler/export.go`          | 71    | Dead handler — no routes registered                                                                   |
+| `apps/backend/internal/handler/fine_tuning.go`     | 100   | Dead handler — only `ListFineTuningJobs` and `GetFineTuningJob` used; 3 others removed from `main.go` |
+| `apps/backend/internal/handler/provider_plugin.go` | 78    | Dead handler — no routes registered                                                                   |
+| `apps/backend/internal/handler/rbac.go`            | 112   | Dead handler — RBAC not implemented                                                                   |
+| `apps/backend/internal/middleware/validate.go`     | 37    | Dead middleware — not wired                                                                           |
+| `apps/backend/internal/repository/interfaces.go`   | 149   | Dead file — interface-based repo pattern abandoned; all repos use concrete structs                    |
+| `apps/backend/internal/service/experiment.go`      | 249   | Dead service — A/B experiment logic unused                                                            |
+| `apps/backend/pkg/llm/context/compressor.go`       | 139   | Dead package — context compression never wired into pipeline                                          |
+| `apps/backend/pkg/llm/provider/balancer.go`        | 209   | Dead package — replaced by `pkg/llm/provider/` registry                                               |
+| `apps/backend/pkg/llm/provider/balancer_test.go`   | 157   | Tests for dead balancer                                                                               |
+| `apps/backend/pkg/llm/provider/fallback.go`        | 189   | Dead package — fallback logic moved to circuit breaker                                                |
+| `apps/backend/pkg/llm/provider/fallback_test.go`   | 196   | Tests for dead fallback                                                                               |
+| `apps/backend/pkg/llm/telemetry/logger.go`         | 95    | Dead package — replaced by stdlib `slog`                                                              |
+| `apps/backend/pkg/llm/telemetry/span.go`           | 120   | Dead package — no tracing backend configured                                                          |
+| `apps/backend/pkg/llm/translate/errors.go`         | 55    | Dead package — error translation unused                                                               |
+| `apps/backend/pkg/llm/translate/errors_test.go`    | 94    | Tests for dead translate/errors                                                                       |
+| `apps/backend/pkg/llm/translate/validate.go`       | 126   | Dead package — validation step removed from pipeline                                                  |
+| `apps/backend/pkg/llm/translate/validate_test.go`  | 255   | Tests for dead translate/validate                                                                     |
+| `apps/web/components/CodeEditor.tsx`               | 145   | Orphaned component — no imports found                                                                 |
+| `apps/web/components/ModelDetailModal.tsx`         | 189   | Orphaned component — no imports found                                                                 |
 
 ### Modified Files — Dead Code Stripped
 
-| File | Change | Before | After |
-|------|--------|--------|-------|
-| `apps/backend/cmd/api/main.go` | −25 lines | Wired `dedupCache`, `semanticCache`, `guard`, 3 fine-tuning routes | Removed dead cache/guard setup, removed `ListFineTuningDatasets`, `GetFineTuningDataset`, `CreateFineTuningJob` routes. Added `AdminFetchModels` route. |
-| `apps/backend/internal/handler/handler.go` | −49 lines | Handler struct had `guard`, `dedupCache`, `semanticCache` fields + 5 setter methods | Removed dead fields and setters (`SetGuard`, `SetDedupCache`, `SetSemanticCache`) |
-| `apps/backend/internal/handler/admin_providers.go` | +85 lines | — | Added `AdminFetchModels` handler for admin provider model fetching |
-| `apps/backend/internal/service/fine_tuning.go` | −54 lines | 7 methods including `CreateFineTuningJob`, `ListDatasets`, etc. | Stripped to `GetJob` and `ListJobs` only |
-| `apps/backend/internal/service/provider.go` | −15 lines | Had `SetPipeline`, `SetModelRouter`, `SetABRouter` setters | Removed dead setters |
-| `apps/backend/internal/service/comparison.go` | −14 lines | Dead comparison service methods | Stripped unused methods |
-| `apps/backend/pkg/llm/pipeline/pipeline.go` | −216 lines | Had `StandardPipeline()`, `BuildPipeline()`, `ChainPipelines()`, `TokenCheckStep`, `MetricsStep`, 8 unused step types | Removed 3 dead factory functions + 8 unused step types. Kept 5 used steps: `ValidationStep`, `SanitizationStep`, `LoggingStep`, `CacheStep`, `GuardrailsStep` + core pipeline logic |
-| `apps/backend/internal/repository/cache.go` | −9 lines | Had `NewDedupCache`, `NewSemanticCache` constructors | Removed dead constructors |
-| `apps/backend/internal/repository/cache_test.go` | −13 lines | `TestNopRepoCache` tested dead cache | Removed dead test |
-| `apps/backend/internal/repository/prompt.go` | −12 lines | Dead prompt repo methods | Removed unused methods |
+| File                                               | Change     | Before                                                                                                                | After                                                                                                                                                                               |
+| -------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/backend/cmd/api/main.go`                     | −25 lines  | Wired `dedupCache`, `semanticCache`, `guard`, 3 fine-tuning routes                                                    | Removed dead cache/guard setup, removed `ListFineTuningDatasets`, `GetFineTuningDataset`, `CreateFineTuningJob` routes. Added `AdminFetchModels` route.                             |
+| `apps/backend/internal/handler/handler.go`         | −49 lines  | Handler struct had `guard`, `dedupCache`, `semanticCache` fields + 5 setter methods                                   | Removed dead fields and setters (`SetGuard`, `SetDedupCache`, `SetSemanticCache`)                                                                                                   |
+| `apps/backend/internal/handler/admin_providers.go` | +85 lines  | —                                                                                                                     | Added `AdminFetchModels` handler for admin provider model fetching                                                                                                                  |
+| `apps/backend/internal/service/fine_tuning.go`     | −54 lines  | 7 methods including `CreateFineTuningJob`, `ListDatasets`, etc.                                                       | Stripped to `GetJob` and `ListJobs` only                                                                                                                                            |
+| `apps/backend/internal/service/provider.go`        | −15 lines  | Had `SetPipeline`, `SetModelRouter`, `SetABRouter` setters                                                            | Removed dead setters                                                                                                                                                                |
+| `apps/backend/internal/service/comparison.go`      | −14 lines  | Dead comparison service methods                                                                                       | Stripped unused methods                                                                                                                                                             |
+| `apps/backend/pkg/llm/pipeline/pipeline.go`        | −216 lines | Had `StandardPipeline()`, `BuildPipeline()`, `ChainPipelines()`, `TokenCheckStep`, `MetricsStep`, 8 unused step types | Removed 3 dead factory functions + 8 unused step types. Kept 5 used steps: `ValidationStep`, `SanitizationStep`, `LoggingStep`, `CacheStep`, `GuardrailsStep` + core pipeline logic |
+| `apps/backend/internal/repository/cache.go`        | −9 lines   | Had `NewDedupCache`, `NewSemanticCache` constructors                                                                  | Removed dead constructors                                                                                                                                                           |
+| `apps/backend/internal/repository/cache_test.go`   | −13 lines  | `TestNopRepoCache` tested dead cache                                                                                  | Removed dead test                                                                                                                                                                   |
+| `apps/backend/internal/repository/prompt.go`       | −12 lines  | Dead prompt repo methods                                                                                              | Removed unused methods                                                                                                                                                              |
 
 ### Verification
+
 - `go build ./...` — passes
 - `go test -race -short ./...` — passes
 
@@ -63,6 +64,7 @@
 **After**: Uses 3 React Query hooks — `useAnalytics()`, `useModels()`, `usePublicProviderHealth()` — to fetch real data.
 
 Key changes:
+
 - Removed 6 mock model entries (lines 10–87)
 - Removed hardcoded `usageStats` object
 - Added `formatPricePer1M()` and `deriveCategory()` helpers for dynamic model categorization from API data
@@ -76,6 +78,7 @@ Key changes:
 **After**: Uses 5 React Query hooks — `useOrganizations()`, `useCreateOrganization()`, `useOrgMembers()`, `useInviteMember()`, `useRemoveMember()`.
 
 Key changes:
+
 - Removed hardcoded member list and `orgName` state
 - Replaced manual `addMember()` with `useInviteMember()` mutation (calls `POST /api/organizations/:id/invite`)
 - Replaced manual `removeMember()` with `useRemoveMember()` mutation (calls `DELETE /api/organizations/:id/members/:userId`)
@@ -90,6 +93,7 @@ Key changes:
 **After**: Real SSE stream via `getSDK().notificationsStream()`.
 
 Key changes:
+
 - Replaced `setInterval` mock with `AsyncGenerator` SSE stream
 - Added `AbortController` for clean disconnect on unmount
 - Added `mapEventType()` to map SSE event types to notification severity
@@ -103,6 +107,7 @@ Key changes:
 **After**: Real streaming chat via `getSDK().chatStream()`.
 
 Key changes:
+
 - Added `configureSDK({ baseUrl: ... })` on mount
 - Replaced `setTimeout` simulation with parallel `AsyncGenerator` streams per model
 - Each model streams independently; content accumulated and displayed in real-time
@@ -130,39 +135,39 @@ Also added `ModelInfo` import from SDK types.
 
 ### 2.7 Deleted Frontend Components
 
-| File | Lines | Why |
-|------|-------|-----|
-| `apps/web/components/CodeEditor.tsx` | 145 | No imports found anywhere in codebase |
-| `apps/web/components/ModelDetailModal.tsx` | 189 | No imports found anywhere in codebase |
+| File                                       | Lines | Why                                   |
+| ------------------------------------------ | ----- | ------------------------------------- |
+| `apps/web/components/CodeEditor.tsx`       | 145   | No imports found anywhere in codebase |
+| `apps/web/components/ModelDetailModal.tsx` | 189   | No imports found anywhere in codebase |
 
 ---
 
 ## 3. Summary by Layer
 
-| Layer | Files Deleted | Files Modified | Net Lines |
-|-------|--------------|----------------|-----------|
-| Backend handlers | 5 | 3 | −436 |
-| Backend services | 1 | 3 | −83 |
-| Backend middleware | 1 | 0 | −37 |
-| Backend repository | 1 | 3 | −170 |
-| Backend pkg/llm | 8 | 1 | −1,284 |
-| Frontend components | 2 | 5 | −343 |
-| Frontend pages | 0 | 4 | +478 |
-| Frontend lib/api | 0 | 2 | +16 |
-| Config/docs | 0 | 2 | −44 |
-| **Total** | **21** | **22** | **−2,265** |
+| Layer               | Files Deleted | Files Modified | Net Lines  |
+| ------------------- | ------------- | -------------- | ---------- |
+| Backend handlers    | 5             | 3              | −436       |
+| Backend services    | 1             | 3              | −83        |
+| Backend middleware  | 1             | 0              | −37        |
+| Backend repository  | 1             | 3              | −170       |
+| Backend pkg/llm     | 8             | 1              | −1,284     |
+| Frontend components | 2             | 5              | −343       |
+| Frontend pages      | 0             | 4              | +478       |
+| Frontend lib/api    | 0             | 2              | +16        |
+| Config/docs         | 0             | 2              | −44        |
+| **Total**           | **21**        | **22**         | **−2,265** |
 
 ---
 
 ## 4. Verification Status
 
-| Check | Status |
-|-------|--------|
-| `go build ./...` | Pass |
-| `go test -race -short ./...` | Pass |
-| TypeScript (changed files) | 0 errors |
-| TypeScript (pre-existing) | 19 Framer Motion type errors in admin pages (unrelated) |
-| Frontend build | Pre-existing Framer Motion type error in `Hero.tsx`/`AnimatedCounter.tsx` |
+| Check                        | Status                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `go build ./...`             | Pass                                                                      |
+| `go test -race -short ./...` | Pass                                                                      |
+| TypeScript (changed files)   | 0 errors                                                                  |
+| TypeScript (pre-existing)    | 19 Framer Motion type errors in admin pages (unrelated)                   |
+| Frontend build               | Pre-existing Framer Motion type error in `Hero.tsx`/`AnimatedCounter.tsx` |
 
 ---
 
@@ -171,7 +176,9 @@ Also added `ModelInfo` import from SDK types.
 Both SDKs already implement all ~40 methods listed in `docs/missing.md`. The gap analysis is outdated from a prior session.
 
 ### TypeScript SDK (`apps/web/lib/api/sdk.ts`) — 1060 lines
+
 All methods present:
+
 - **Auth extended**: `oauthLogin`, `forgotPassword`, `resetPassword`
 - **Budget**: `getBudget`, `setBudget`
 - **Budget Alerts & Caps**: `listBudgetAlerts`, `createBudgetAlert`, `deleteBudgetAlert`, `getBudgetCap`, `createBudgetCap`, `updateBudgetCap`, `deleteBudgetCap`
@@ -192,7 +199,9 @@ All methods present:
 - **Architectural**: `uploadFormData` helper, rate limit header extraction, request ID tracing, jittered retry
 
 ### Go SDK (`apps/backend/pkg/sdk/client.go`) — 1083 lines
+
 All methods present:
+
 - **Auth extended**: `OAuthLogin`, `ForgotPassword`, `ResetPassword`
 - **Budget**: `GetBudget`, `SetBudget`
 - **Conversations**: `ListConversations`, `CreateConversation`, `GetConversation`, `DeleteConversation`, `AddMessage`
@@ -210,6 +219,7 @@ All methods present:
 - **Architectural**: `doUpload` helper, rate limit header extraction, request ID tracing, jittered backoff retry
 
 ### Types — Both SDKs
+
 All types from `docs/missing.md` section E are present:
 `BudgetConfig`, `Conversation`, `ConversationMessage`, `Prompt`, `Webhook`, `Organization`, `OrgMember`, `BatchJob`, `FileInfo`, `CircuitBreakerStatus`, `ProviderHealthStatus`
 
@@ -221,34 +231,34 @@ All types from `docs/missing.md` section E are present:
 
 ### New Test Files (2 files, +300 lines)
 
-| File | Lines | What |
-|------|-------|------|
-| `apps/backend/internal/handler/admin_providers_test.go` | 189 | 6 unit tests for `AdminFetchModels` handler |
-| `apps/web/tests/lib/api/hooks.test.ts` | 111 | 6 wiring verification tests for React Query hooks |
+| File                                                    | Lines | What                                              |
+| ------------------------------------------------------- | ----- | ------------------------------------------------- |
+| `apps/backend/internal/handler/admin_providers_test.go` | 189   | 6 unit tests for `AdminFetchModels` handler       |
+| `apps/web/tests/lib/api/hooks.test.ts`                  | 111   | 6 wiring verification tests for React Query hooks |
 
 ### AdminFetchModels Handler Tests (Go)
 
-| Test | What It Verifies | Result |
-|------|-----------------|--------|
-| `TestAdminFetchModels_InvalidBody` | Returns 400 on malformed JSON | PASS |
-| `TestAdminFetchModels_MissingBaseURL` | Returns 400 when baseUrl empty | PASS |
-| `TestAdminFetchModels_Success` | Fetches models from mock provider, parses OpenAI-compatible response, returns transformed list with count | PASS |
-| `TestAdminFetchModels_StripsTrailingV1` | Normalizes baseUrl with trailing `/v1` before appending `/v1/models` | PASS |
-| `TestAdminFetchModels_ProviderError` | Propagates provider HTTP status (401) to client | PASS |
-| `TestAdminFetchModels_TransformsModelFields` | Strips extra fields (`created`, `permission`) from model response, keeps only `id`, `object`, `owned_by` | PASS |
+| Test                                         | What It Verifies                                                                                          | Result |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
+| `TestAdminFetchModels_InvalidBody`           | Returns 400 on malformed JSON                                                                             | PASS   |
+| `TestAdminFetchModels_MissingBaseURL`        | Returns 400 when baseUrl empty                                                                            | PASS   |
+| `TestAdminFetchModels_Success`               | Fetches models from mock provider, parses OpenAI-compatible response, returns transformed list with count | PASS   |
+| `TestAdminFetchModels_StripsTrailingV1`      | Normalizes baseUrl with trailing `/v1` before appending `/v1/models`                                      | PASS   |
+| `TestAdminFetchModels_ProviderError`         | Propagates provider HTTP status (401) to client                                                           | PASS   |
+| `TestAdminFetchModels_TransformsModelFields` | Strips extra fields (`created`, `permission`) from model response, keeps only `id`, `object`, `owned_by`  | PASS   |
 
 **Key design**: Tests use `&handler.Handler{}` directly since `AdminFetchModels` is a pure HTTP handler with no service dependencies — it makes an outbound HTTP call to the provider's `/v1/models` endpoint. Mock providers use `httptest.NewServer`.
 
 ### Hook-SDK Wiring Tests (TypeScript)
 
-| Test | What It Verifies | Result |
-|------|-----------------|--------|
-| `all query hooks call their corresponding SDK methods` | 22 query hooks (useKeys, useAnalytics, useModels, etc.) each call their SDK method | PASS |
-| `all mutation hooks call their corresponding SDK methods` | 26 mutation hooks (useCreateKey, useDeleteKey, etc.) each call their SDK method | PASS |
-| `hooks file imports getSDK from sdk module` | Correct import path | PASS |
-| `hooks file calls getSDK() at module level` | SDK initialized once at module scope | PASS |
-| `no hardcoded mock data in hooks` | No `const mock` patterns in hooks.ts | PASS |
-| `useNotificationsStream uses sdk.notificationsStream` | SSE stream hook wired correctly | PASS |
+| Test                                                      | What It Verifies                                                                   | Result |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ |
+| `all query hooks call their corresponding SDK methods`    | 22 query hooks (useKeys, useAnalytics, useModels, etc.) each call their SDK method | PASS   |
+| `all mutation hooks call their corresponding SDK methods` | 26 mutation hooks (useCreateKey, useDeleteKey, etc.) each call their SDK method    | PASS   |
+| `hooks file imports getSDK from sdk module`               | Correct import path                                                                | PASS   |
+| `hooks file calls getSDK() at module level`               | SDK initialized once at module scope                                               | PASS   |
+| `no hardcoded mock data in hooks`                         | No `const mock` patterns in hooks.ts                                               | PASS   |
+| `useNotificationsStream uses sdk.notificationsStream`     | SSE stream hook wired correctly                                                    | PASS   |
 
 ### Test Results Summary
 
@@ -269,10 +279,10 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 
 ## 8. Remaining Work
 
-| Priority | Task | Status |
-|----------|------|--------|
-| P2 | E2E tests | Not started |
-| P3 | Cache directive audit | Not started |
-| P3 | Webhook UI improvements | Not started |
-| P3 | Provider health UI polish | Not started |
-| P3 | Delete `docs/missing.md` (resolved) | Not started |
+| Priority | Task                                | Status      |
+| -------- | ----------------------------------- | ----------- |
+| P2       | E2E tests                           | Not started |
+| P3       | Cache directive audit               | Not started |
+| P3       | Webhook UI improvements             | Not started |
+| P3       | Provider health UI polish           | Not started |
+| P3       | Delete `docs/missing.md` (resolved) | Not started |

@@ -35,10 +35,14 @@ describe("playground storage", () => {
     });
 
     it("handles localStorage errors gracefully", () => {
-      const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-        throw new Error("Quota exceeded");
-      });
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const setItem = vi
+        .spyOn(Storage.prototype, "setItem")
+        .mockImplementation(() => {
+          throw new Error("Quota exceeded");
+        });
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       expect(() => saveSession(mockSession)).not.toThrow();
 
@@ -60,7 +64,9 @@ describe("playground storage", () => {
 
     it("returns null on parse error", () => {
       localStorage.setItem(STORAGE_KEY, "invalid json");
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       expect(loadSession()).toBeNull();
       consoleSpy.mockRestore();
     });
@@ -74,10 +80,14 @@ describe("playground storage", () => {
     });
 
     it("handles localStorage errors gracefully", () => {
-      const removeItem = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
-        throw new Error("Error");
-      });
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const removeItem = vi
+        .spyOn(Storage.prototype, "removeItem")
+        .mockImplementation(() => {
+          throw new Error("Error");
+        });
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       expect(() => clearSession()).not.toThrow();
 

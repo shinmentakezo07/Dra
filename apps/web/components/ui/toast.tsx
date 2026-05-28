@@ -25,7 +25,12 @@ const styles = {
   info: "bg-blue-500/10 border-blue-500/30 text-blue-400",
 };
 
-export function Toast({ message, type = "info", duration = 5000, onClose }: ToastProps) {
+export function Toast({
+  message,
+  type = "info",
+  duration = 5000,
+  onClose,
+}: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
   const Icon = icons[type];
 

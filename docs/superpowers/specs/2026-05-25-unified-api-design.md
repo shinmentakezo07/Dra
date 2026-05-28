@@ -56,25 +56,25 @@ Kept as a thin handler that sets a flag/header to force Anthropic format detecti
 
 ### Files to Create
 
-| File | Purpose |
-|------|---------|
-| `pkg/llm/format/detect.go` | Format auto-detection from raw JSON body |
-| `pkg/llm/format/detect_test.go` | Tests for format detection |
-| `internal/handler/unified_chat.go` | Unified handler replacing both separate handlers |
-| `internal/handler/unified_chat_test.go` | Tests for unified handler |
+| File                                    | Purpose                                          |
+| --------------------------------------- | ------------------------------------------------ |
+| `pkg/llm/format/detect.go`              | Format auto-detection from raw JSON body         |
+| `pkg/llm/format/detect_test.go`         | Tests for format detection                       |
+| `internal/handler/unified_chat.go`      | Unified handler replacing both separate handlers |
+| `internal/handler/unified_chat_test.go` | Tests for unified handler                        |
 
 ### Files to Modify
 
-| File | Change |
-|------|--------|
-| `pkg/llm/openai/formatter.go` | Add streaming tool call support in `FromInternalStreamChunk` |
-| `pkg/llm/anthropic/formatter.go` | Add streaming tool use events, map Metadata field |
-| `cmd/api/routes.go` | Wire unified handler to `/v1/chat/completions`, make `/v1/messages` an alias |
+| File                             | Change                                                                       |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| `pkg/llm/openai/formatter.go`    | Add streaming tool call support in `FromInternalStreamChunk`                 |
+| `pkg/llm/anthropic/formatter.go` | Add streaming tool use events, map Metadata field                            |
+| `cmd/api/routes.go`              | Wire unified handler to `/v1/chat/completions`, make `/v1/messages` an alias |
 
 ### Files to Delete
 
-| File | Reason |
-|------|--------|
+| File                                     | Reason                                                               |
+| ---------------------------------------- | -------------------------------------------------------------------- |
 | `pkg/llm/translator/` (entire directory) | Dead code at handler level, has bugs, duplicates existing converters |
 
 ### What Stays Unchanged

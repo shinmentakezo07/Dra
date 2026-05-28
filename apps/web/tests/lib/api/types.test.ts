@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { createResponse, createErrorResponse, parsePagination } from "@/lib/api/types";
+import {
+  createResponse,
+  createErrorResponse,
+  parsePagination,
+} from "@/lib/api/types";
 import type { ApiResponse } from "@/lib/api/types";
 
 describe("createResponse", () => {

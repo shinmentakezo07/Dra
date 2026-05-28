@@ -15,8 +15,11 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof RateLimitError) {
       return new Response(
-        JSON.stringify({ success: false, error: "Rate limit exceeded. Please slow down." }),
-        { status: 429, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Rate limit exceeded. Please slow down.",
+        }),
+        { status: 429, headers: { "Content-Type": "application/json" } },
       );
     }
     throw err;

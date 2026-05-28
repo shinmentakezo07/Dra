@@ -105,8 +105,8 @@ function EmptyState({ onAddModel }: { onAddModel: () => void }) {
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 }}
           className="text-sm text-gray-500 leading-relaxed mb-8"
         >
-          Select AI models to compare their responses side-by-side.
-          Test prompts across multiple providers simultaneously.
+          Select AI models to compare their responses side-by-side. Test prompts
+          across multiple providers simultaneously.
         </motion.p>
         <motion.button
           initial={{ opacity: 0, y: 10 }}
@@ -136,14 +136,11 @@ function UserMessageBubble({ message }: { message: Message }) {
     >
       <div className="relative max-w-[85%] sm:max-w-[75%] lg:max-w-[65%]">
         <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-500/15 to-blue-500/8 rounded-2xl blur-sm opacity-50" />
-        <div className="relative px-5 py-3.5 bg-gradient-to-br from-[#0d1117] to-[#0a0e14] border border-cyan-500/15 rounded-2xl rounded-tr-sm"
-        >
-          <p className="text-sm text-gray-100 leading-relaxed whitespace-pre-wrap"
-          >
+        <div className="relative px-5 py-3.5 bg-gradient-to-br from-[#0d1117] to-[#0a0e14] border border-cyan-500/15 rounded-2xl rounded-tr-sm">
+          <p className="text-sm text-gray-100 leading-relaxed whitespace-pre-wrap">
             {message.content}
           </p>
-          <span className="block text-[10px] text-gray-700 font-mono mt-2 text-right"
-          >
+          <span className="block text-[10px] text-gray-700 font-mono mt-2 text-right">
             {new Date(message.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -194,8 +191,7 @@ function ModelResponseCard({
           background: `linear-gradient(135deg, ${providerColor}20, ${providerColor}08)`,
         }}
       />
-      <div className="relative rounded-2xl overflow-hidden border border-white/[0.04] bg-[#060608]/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-      >
+      <div className="relative rounded-2xl overflow-hidden border border-white/[0.04] bg-[#060608]/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
         {/* Header */}
         <div
           className="relative flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04]"
@@ -205,8 +201,7 @@ function ModelResponseCard({
         >
           <div className="flex items-center gap-2.5">
             {model.logo && (
-              <div className="relative w-5 h-5 rounded-full overflow-hidden bg-white/[0.03] ring-1 ring-white/[0.06]"
-              >
+              <div className="relative w-5 h-5 rounded-full overflow-hidden bg-white/[0.03] ring-1 ring-white/[0.06]">
                 <Image
                   src={model.logo}
                   alt=""
@@ -355,8 +350,7 @@ function ChatSessionCard({
         }}
       />
 
-      <div className="relative rounded-2xl border border-white/[0.06] bg-[#08080a]/90 backdrop-blur-sm overflow-hidden"
-      >
+      <div className="relative rounded-2xl border border-white/[0.06] bg-[#08080a]/90 backdrop-blur-sm overflow-hidden">
         {/* Provider accent line */}
         <div
           className="absolute left-0 top-0 bottom-0 w-[2px]"
@@ -364,12 +358,9 @@ function ChatSessionCard({
         />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04]"
-        >
-          <div className="flex items-center gap-2.5"
-          >
-            <div className="relative w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center overflow-hidden"
-            >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04]">
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center overflow-hidden">
               {session.model.logo ? (
                 <Image
                   src={session.model.logo}
@@ -384,22 +375,18 @@ function ChatSessionCard({
               )}
             </div>
             <div>
-              <p className="text-xs font-semibold text-white"
-              >
+              <p className="text-xs font-semibold text-white">
                 {session.model.name}
               </p>
-              <p className={`text-[10px] font-mono ${colorClass}`}
-              >
+              <p className={`text-[10px] font-mono ${colorClass}`}>
                 {session.model.provider}
               </p>
             </div>
           </div>
 
           {session.isTyping ? (
-            <div className="flex items-center gap-2"
-            >
-              <span className="relative flex h-1.5 w-1.5"
-              >
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-1.5 w-1.5">
                 <span
                   className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
                   style={{ backgroundColor: color }}
@@ -409,14 +396,12 @@ function ChatSessionCard({
                   style={{ backgroundColor: color }}
                 />
               </span>
-              <span className="text-[10px] text-gray-500 font-mono"
-              >
+              <span className="text-[10px] text-gray-500 font-mono">
                 Generating
               </span>
             </div>
           ) : message ? (
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleCopy}
                 className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
@@ -428,12 +413,14 @@ function ChatSessionCard({
                   <Copy className="w-3.5 h-3.5" />
                 )}
               </button>
-              <button className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
+              <button
+                className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
                 title="Helpful"
               >
                 <ThumbsUp className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
+              <button
+                className="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
                 title="Not helpful"
               >
                 <ThumbsDown className="w-3.5 h-3.5" />
@@ -443,13 +430,10 @@ function ChatSessionCard({
         </div>
 
         {/* Content */}
-        <div className="px-4 py-4 min-h-[80px]"
-        >
+        <div className="px-4 py-4 min-h-[80px]">
           {session.isTyping && !message ? (
-            <div className="flex items-center gap-3 py-2"
-            >
-              <div className="flex gap-1"
-              >
+            <div className="flex items-center gap-3 py-2">
+              <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
@@ -464,14 +448,12 @@ function ChatSessionCard({
                   />
                 ))}
               </div>
-              <span className="text-xs text-gray-500 font-mono"
-              >
+              <span className="text-xs text-gray-500 font-mono">
                 Processing request...
               </span>
             </div>
           ) : message ? (
-            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap"
-            >
+            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
               {message.content}
             </p>
           ) : null}
@@ -513,28 +495,23 @@ export default function ChatInterface({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0"
-    >
+    <div className="flex-1 flex flex-col min-h-0">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 playground-scroll"
-      >
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 playground-scroll">
         {sharedMessages.length === 0 ? (
-          <div className="h-full flex items-center justify-center"
-          >
+          <div className="h-full flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center"
             >
-              <p className="text-sm text-gray-500 font-mono"
-              >
+              <p className="text-sm text-gray-500 font-mono">
                 Send a message to compare models
               </p>
             </motion.div>
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto space-y-8"
-          >
+          <div className="max-w-6xl mx-auto space-y-8">
             {/* For each user message, show the model response cards */}
             {sharedMessages
               .map((msg, idx) => ({ msg, idx }))
@@ -545,39 +522,41 @@ export default function ChatInterface({
                   sharedMessages.filter((m) => m.role === "user").length - 1;
 
                 return (
-                  <div key={idx} className="space-y-6"
-                  >
+                  <div key={idx} className="space-y-6">
                     <UserMessageBubble message={msg} />
                     <div
                       className={`grid gap-4 ${
                         sessions.length === 1
                           ? "grid-cols-1"
                           : sessions.length === 2
-                          ? "grid-cols-1 md:grid-cols-2"
-                          : sessions.length === 3
-                          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                          : "grid-cols-1 md:grid-cols-2"
+                            ? "grid-cols-1 md:grid-cols-2"
+                            : sessions.length === 3
+                              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                              : "grid-cols-1 md:grid-cols-2"
                       }`}
                     >
-                       {sessions.map((session) => {
-                         // Find the response for this user message turn
-                         const responseIndex = sharedMessages
-                           .slice(0, idx + 1)
-                           .filter((m) => m.role === "user").length;
-                         const response = session.messages[responseIndex - 1];
-                         const isCurrentlyStreaming = session.isTyping && !!streamingContent[session.id];
+                      {sessions.map((session) => {
+                        // Find the response for this user message turn
+                        const responseIndex = sharedMessages
+                          .slice(0, idx + 1)
+                          .filter((m) => m.role === "user").length;
+                        const response = session.messages[responseIndex - 1];
+                        const isCurrentlyStreaming =
+                          session.isTyping && !!streamingContent[session.id];
 
-                         return (
-                           <ModelResponseCard
-                             key={session.id}
-                             model={session.model}
-                             message={response}
-                             streamingContent={streamingContent[session.id] || ""}
-                             isStreaming={isCurrentlyStreaming}
-                             error={streamErrors[session.id]}
-                           />
-                         );
-                       })}
+                        return (
+                          <ModelResponseCard
+                            key={session.id}
+                            model={session.model}
+                            message={response}
+                            streamingContent={
+                              streamingContent[session.id] || ""
+                            }
+                            isStreaming={isCurrentlyStreaming}
+                            error={streamErrors[session.id]}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -594,8 +573,7 @@ export default function ChatInterface({
         <div className="max-w-4xl mx-auto p-4">
           <div className="relative group">
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-500/0 via-blue-500/0 to-violet-500/0 group-focus-within:from-cyan-500/20 group-focus-within:via-blue-500/20 group-focus-within:to-violet-500/20 transition-all duration-500 blur-sm" />
-            <div className="relative flex items-end gap-2 p-2 bg-[#0a0a0d]/90 border border-white/[0.06] group-focus-within:border-white/[0.12] rounded-2xl transition-colors"
-            >
+            <div className="relative flex items-end gap-2 p-2 bg-[#0a0a0d]/90 border border-white/[0.06] group-focus-within:border-white/[0.12] rounded-2xl transition-colors">
               <textarea
                 ref={inputRef}
                 value={inputMessage}
@@ -615,8 +593,12 @@ export default function ChatInterface({
                 type="button"
                 onClick={onSend}
                 disabled={!inputMessage.trim() || isLoading}
-                whileHover={{ scale: inputMessage.trim() && !isLoading ? 1.05 : 1 }}
-                whileTap={{ scale: inputMessage.trim() && !isLoading ? 0.95 : 1 }}
+                whileHover={{
+                  scale: inputMessage.trim() && !isLoading ? 1.05 : 1,
+                }}
+                whileTap={{
+                  scale: inputMessage.trim() && !isLoading ? 0.95 : 1,
+                }}
                 className="relative p-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white disabled:opacity-20 disabled:cursor-not-allowed disabled:from-gray-800 disabled:to-gray-800 transition-all overflow-hidden shrink-0"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-full group-focus-within:translate-x-full transition-transform duration-700" />
@@ -628,8 +610,7 @@ export default function ChatInterface({
               </motion.button>
             </div>
           </div>
-          <p className="text-[10px] text-gray-800 text-center mt-2 font-mono"
-          >
+          <p className="text-[10px] text-gray-800 text-center mt-2 font-mono">
             Responses may be inaccurate. Verify critical information.
           </p>
         </div>

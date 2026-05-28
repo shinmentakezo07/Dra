@@ -7,7 +7,7 @@ import type { OpenRouterModelData } from "@/types/model";
 import { getProviderTheme } from "@/lib/model-utils";
 
 interface QuickStartCardProps {
-  model: OpenRouterModelData
+  model: OpenRouterModelData;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -43,11 +43,19 @@ export function QuickStartCard({ model }: QuickStartCardProps) {
       className="mt-2"
     >
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+        <span
+          className="text-[10px] font-mono font-bold tracking-wider"
+          style={{ color: accent }}
+        >
           06
         </span>
-        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">Quick Start</h2>
-        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
+        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
+          Quick Start
+        </h2>
+        <span
+          className="flex-1 h-px"
+          style={{ backgroundColor: `${accent}12` }}
+        />
       </div>
 
       <div
@@ -57,7 +65,9 @@ export function QuickStartCard({ model }: QuickStartCardProps) {
         {/* Top highlight */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+          style={{
+            background: `linear-gradient(90deg, ${accent}30, transparent)`,
+          }}
         />
 
         {/* Terminal header */}
@@ -85,10 +95,18 @@ export function QuickStartCard({ model }: QuickStartCardProps) {
               // @ts-expect-error CSS custom property
               "--tw-ring-color": `${accent}40`,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${accent}12`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = `${accent}08`; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = `${accent}12`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = `${accent}08`;
+            }}
           >
-            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+            {copied ? (
+              <Check className="w-3 h-3" />
+            ) : (
+              <Copy className="w-3 h-3" />
+            )}
             {copied ? "Copied" : "Copy"}
           </button>
         </div>
@@ -101,7 +119,11 @@ export function QuickStartCard({ model }: QuickStartCardProps) {
         {/* Footer */}
         <div
           className="px-5 py-3.5 flex items-center justify-between gap-3"
-          style={{ backgroundColor: `${accent}06`, borderTopColor: `${accent}0a`, borderTopWidth: 1 }}
+          style={{
+            backgroundColor: `${accent}06`,
+            borderTopColor: `${accent}0a`,
+            borderTopWidth: 1,
+          }}
         >
           <div className="flex items-center gap-2 text-[10px] font-mono text-gray-600">
             <KeyRound className="w-3 h-3" style={{ color: `${accent}50` }} />
@@ -116,8 +138,12 @@ export function QuickStartCard({ model }: QuickStartCardProps) {
               // @ts-expect-error CSS custom property
               "--tw-ring-color": `${accent}60`,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(1.15)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.filter = "brightness(1)"; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.filter = "brightness(1.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.filter = "brightness(1)";
+            }}
           >
             Get API Key <ArrowRight className="w-3 h-3" />
           </a>

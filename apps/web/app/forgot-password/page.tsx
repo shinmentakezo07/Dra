@@ -15,7 +15,11 @@ function SubmitButton() {
       disabled={pending}
       className="w-full h-11 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
     >
-      {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Reset Link"}
+      {pending ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        "Send Reset Link"
+      )}
     </button>
   );
 }
@@ -33,30 +37,40 @@ export default function ForgotPasswordPage() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
       >
-        <Link href="/login" className="inline-flex items-center text-gray-400 hover:text-white mb-8 transition-colors text-sm font-mono group">
+        <Link
+          href="/login"
+          className="inline-flex items-center text-gray-400 hover:text-white mb-8 transition-colors text-sm font-mono group"
+        >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
           BACK_TO_LOGIN
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">Reset Password</h1>
-          <p className="text-gray-400">Enter your email to receive a password reset link.</p>
+          <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">
+            Reset Password
+          </h1>
+          <p className="text-gray-400">
+            Enter your email to receive a password reset link.
+          </p>
         </div>
 
         {state?.message && (
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3"
-            >
-                <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-emerald-400">{state.message}</p>
-            </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3"
+          >
+            <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-emerald-400">{state.message}</p>
+          </motion.div>
         )}
 
         <form action={dispatch} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-xs font-mono font-medium text-gray-400 uppercase">
+            <label
+              htmlFor="email"
+              className="text-xs font-mono font-medium text-gray-400 uppercase"
+            >
               Email Address
             </label>
             <div className="relative group">

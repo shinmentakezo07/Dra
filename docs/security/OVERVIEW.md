@@ -36,6 +36,7 @@ Return 401 Unauthorized
 API keys are stored in the database with HMAC-SHA256 hashing plus a configurable pepper. The lookup function receives the raw key from the header, hashes it with the pepper, and queries the database. Successful lookup populates both `User` and `APIKey` in the request context.
 
 **Supported scoping (per API key):**
+
 - Allowed model list (string match with prefix fallback)
 - Allowed IPs/CIDRs
 - Max tokens per request
@@ -49,6 +50,7 @@ API keys are stored in the database with HMAC-SHA256 hashing plus a configurable
 JWT tokens use **HS256** signing (HMAC-SHA256). Tokens include `sub` (user ID), `email`, `role`, `exp`, and `iat` claims. Default expiry is 7 days.
 
 On each authenticated request, the middleware:
+
 1. Parses the JWT (rejects non-HS256 algorithms)
 2. Validates expiry
 3. Extracts the `sub` claim as user ID
@@ -62,6 +64,7 @@ This means **role changes take effect immediately** — the token is merely an i
 ### Session Cookie Fallback
 
 If no `Authorization` header is present, the middleware checks these cookies in order:
+
 - `authjs.session-token`
 - `__Secure-authjs.session-token`
 - `next-auth.session-token`
@@ -91,20 +94,20 @@ Logging → CORS → BodyLimit → Auth → TokenBlacklist → RateLimit → Quo
 
 ### Role System
 
-| Role | Access |
-|------|--------|
-| `user` | Standard API access |
+| Role    | Access                        |
+| ------- | ----------------------------- |
+| `user`  | Standard API access           |
 | `admin` | All user access + admin panel |
 
 Roles are stored in the database and fetched on every authenticated request (never trusted from the JWT alone).
 
 ### Guard Middleware Functions
 
-| Function | Status | Behavior |
-|----------|--------|----------|
-| `RequireAuth` | 401 | Rejects if no user in context |
-| `RequireAdmin` | 403 | Rejects if user is not admin |
-| `RequirePermission(perm)` | 403 | Rejects if user lacks specific permission |
+| Function                  | Status | Behavior                                  |
+| ------------------------- | ------ | ----------------------------------------- |
+| `RequireAuth`             | 401    | Rejects if no user in context             |
+| `RequireAdmin`            | 403    | Rejects if user is not admin              |
+| `RequirePermission(perm)` | 403    | Rejects if user lacks specific permission |
 
 **Source:** `apps/backend/internal/middleware/auth.go` (lines 131-175)
 
@@ -116,23 +119,23 @@ On first admin login, if no admin user exists, the first user with an approved e
 
 Permissions are checked via `domain.User.HasPermission()`. The standard permissions include:
 
-| Permission | Description |
-|-----------|-------------|
-| `users:read` | View user list and details |
-| `users:write` | Create, update, delete users |
-| `keys:read` | View API keys |
-| `keys:write` | Create, revoke API keys |
-| `providers:read` | View provider configurations |
-| `providers:write` | Configure providers |
-| `models:manage` | Enable/disable models |
-| `audit:read` | View audit logs |
-| `audit:export` | Export audit data |
-| `security:manage` | Manage IP lists, security settings |
-| `billing:read` | View billing data |
-| `billing:write` | Manage billing/pricing |
-| `announcements:write` | Create announcements |
-| `promo:write` | Create promo codes |
-| `impersonate` | Impersonate users |
+| Permission            | Description                        |
+| --------------------- | ---------------------------------- |
+| `users:read`          | View user list and details         |
+| `users:write`         | Create, update, delete users       |
+| `keys:read`           | View API keys                      |
+| `keys:write`          | Create, revoke API keys            |
+| `providers:read`      | View provider configurations       |
+| `providers:write`     | Configure providers                |
+| `models:manage`       | Enable/disable models              |
+| `audit:read`          | View audit logs                    |
+| `audit:export`        | Export audit data                  |
+| `security:manage`     | Manage IP lists, security settings |
+| `billing:read`        | View billing data                  |
+| `billing:write`       | Manage billing/pricing             |
+| `announcements:write` | Create announcements               |
+| `promo:write`         | Create promo codes                 |
+| `impersonate`         | Impersonate users                  |
 
 ## Rate Limiting
 
@@ -158,11 +161,11 @@ The platform supports two rate limiter implementations that implement the same i
 
 ### Rate Limit Configuration
 
-| Endpoint | Default Window | Default Max |
-|----------|---------------|-------------|
-| General API | 1 minute | 60 requests |
-| Auth endpoints (login, signup) | 1 minute | 10 requests |
-| Admin endpoints | 1 minute | 120 requests |
+| Endpoint                       | Default Window | Default Max  |
+| ------------------------------ | -------------- | ------------ |
+| General API                    | 1 minute       | 60 requests  |
+| Auth endpoints (login, signup) | 1 minute       | 10 requests  |
+| Admin endpoints                | 1 minute       | 120 requests |
 
 ### Rate Limit Headers
 
@@ -171,6 +174,7 @@ When rate-limited, the API returns `429 Too Many Requests` with the body: `Rate 
 ### Key Strategy
 
 Rate limit keys are either:
+
 - **Authenticated requests**: User ID
 - **Unauthenticated requests**: Client IP (extracted from `X-Real-IP`, `X-Forwarded-For`, or `RemoteAddr`)
 
@@ -180,13 +184,13 @@ Rate limit keys are either:
 
 Each API key supports these quotas, checked at the `QuotaCheck` middleware layer:
 
-| Quota | Source | Behavior |
-|-------|--------|----------|
-| Daily request limit | `api_keys.daily_request_limit` | Hard limit per calendar day |
-| Monthly token limit | `api_keys.monthly_token_limit` | Hard limit per calendar month |
+| Quota                  | Source                            | Behavior                                 |
+| ---------------------- | --------------------------------- | ---------------------------------------- |
+| Daily request limit    | `api_keys.daily_request_limit`    | Hard limit per calendar day              |
+| Monthly token limit    | `api_keys.monthly_token_limit`    | Hard limit per calendar month            |
 | Max tokens per request | `api_keys.max_tokens_per_request` | Rejects if estimated tokens exceed limit |
-| Allowed models | `api_keys.allowed_models` | String array, supports prefix matching |
-| Allowed IPs | `api_keys.allowed_ips` | String array, supports CIDR notation |
+| Allowed models         | `api_keys.allowed_models`         | String array, supports prefix matching   |
+| Allowed IPs            | `api_keys.allowed_ips`            | String array, supports CIDR notation     |
 
 ### In-Memory Quota Tracker
 
@@ -222,19 +226,23 @@ Each API key supports these quotas, checked at the `QuotaCheck` middleware layer
 The guardrails package (`pkg/llm/guardrails/`) provides request and response validation for the LLM proxy.
 
 **Request Guardrails (CheckRequest):**
+
 - Maximum prompt length (default: 100,000 characters)
 - Blocked content pattern matching (regex-based)
 - Prompt injection detection (keyword-based risk scoring)
 
 **Response Guardrails (CheckResponse):**
+
 - PII detection in model outputs (SSN, credit cards, emails)
 
 **Default Blocked Patterns:**
+
 ```regex
 (?i)\b(attack|kill|murder|bomb|terrorist)\b
 ```
 
 **Default PII Detection:**
+
 ```regex
 \b\d{3}-\d{2}-\d{4}\b       # SSN
 \b(?:\d[ -]*?){13,16}\b     # Credit card numbers
@@ -242,6 +250,7 @@ The guardrails package (`pkg/llm/guardrails/`) provides request and response val
 ```
 
 **Default Prompt Injection Phrases:**
+
 ```
 ignore previous instructions
 ignore all prior instructions
@@ -269,12 +278,12 @@ Setting `X-Sandbox: true` on `/v1/chat/completions` bypasses all guardrails, quo
 
 When a user logs out, their JWT is hashed (SHA-256) and stored in the `token_blacklist` table. The `TokenBlacklist` middleware checks each request against this table (chained after the Auth middleware).
 
-| Operation | Behavior |
-|-----------|----------|
-| Blacklist | Stores SHA-256 hash + user ID + expiry |
-| Check | Hash lookup; rejects if found |
-| Cleanup | Deletes expired entries (called periodically) |
-| On error | **Fails open** — allows request if DB check fails |
+| Operation | Behavior                                          |
+| --------- | ------------------------------------------------- |
+| Blacklist | Stores SHA-256 hash + user ID + expiry            |
+| Check     | Hash lookup; rejects if found                     |
+| Cleanup   | Deletes expired entries (called periodically)     |
+| On error  | **Fails open** — allows request if DB check fails |
 
 Blacklisted tokens get: `401 Token has been revoked. Please sign in again.`
 
@@ -284,10 +293,10 @@ Blacklisted tokens get: `401 Token has been revoked. Please sign in again.`
 
 Passwords are hashed using **Argon2id** (memory-hard KDF) with bcrypt backward compatibility:
 
-| Algorithm | Parameters |
-|-----------|-----------|
-| **Argon2id** (primary) | Time=1, Memory=64MB, Threads=4, KeyLen=32 |
-| **Bcrypt** (legacy) | Compatible — detected by `$2a$`, `$2b$`, `$2y$` prefix |
+| Algorithm              | Parameters                                             |
+| ---------------------- | ------------------------------------------------------ |
+| **Argon2id** (primary) | Time=1, Memory=64MB, Threads=4, KeyLen=32              |
+| **Bcrypt** (legacy)    | Compatible — detected by `$2a$`, `$2b$`, `$2y$` prefix |
 
 Format: `$argon2id$v=19$m=65536,t=1,p=4$<salt>$<hash>`
 
@@ -303,13 +312,13 @@ Reset tokens are JWT-based with a 1-hour expiry. They contain the user ID and a 
 
 The `suspicious_activities` table tracks anomalous behavior:
 
-| Field | Description |
-|-------|-------------|
-| `category` | Type: `auth_failure`, `rate_limit`, `ip_mismatch`, `suspicious_prompt` |
-| `severity` | `low`, `medium`, `high`, `critical` |
-| `auto_blocked` | Whether the system auto-blocked the IP |
-| `reviewed` | Whether an admin reviewed this event |
-| `resolved` | Whether the event was dismissed or acted upon |
+| Field          | Description                                                            |
+| -------------- | ---------------------------------------------------------------------- |
+| `category`     | Type: `auth_failure`, `rate_limit`, `ip_mismatch`, `suspicious_prompt` |
+| `severity`     | `low`, `medium`, `high`, `critical`                                    |
+| `auto_blocked` | Whether the system auto-blocked the IP                                 |
+| `reviewed`     | Whether an admin reviewed this event                                   |
+| `resolved`     | Whether the event was dismissed or acted upon                          |
 
 The admin panel (`AdminListSuspicious`) supports filtering by category, severity, review status, and resolution status. Events are listed with pagination.
 
@@ -319,14 +328,14 @@ The admin panel (`AdminListSuspicious`) supports filtering by category, severity
 
 The `ip_lists` table manages named IP entries:
 
-| Field | Description |
-|-------|-------------|
-| `ip_or_cidr` | Single IP or CIDR notation |
-| `action` | `allow` or `block` |
-| `scope` | `global`, `user`, or `api_key` |
-| `scope_id` | Optional ID for scoped rules |
-| `reason` | Admin-provided reason |
-| `expires_at` | Optional expiry |
+| Field        | Description                    |
+| ------------ | ------------------------------ |
+| `ip_or_cidr` | Single IP or CIDR notation     |
+| `action`     | `allow` or `block`             |
+| `scope`      | `global`, `user`, or `api_key` |
+| `scope_id`   | Optional ID for scoped rules   |
+| `reason`     | Admin-provided reason          |
+| `expires_at` | Optional expiry                |
 
 IP lists are checked in the `QuotaCheck` middleware and during authentication. Blocked IPs receive a 403 before reaching any handler.
 
@@ -336,14 +345,14 @@ IP lists are checked in the `QuotaCheck` middleware and during authentication. B
 
 The `audit_logs` table is an append-only log of all admin actions:
 
-| Field | Description |
-|-------|-------------|
-| `actor_id` | Admin user who performed the action |
-| `action` | Verb describing the action (e.g., `user.delete`, `key.revoke`) |
-| `target_type` | Resource type affected |
-| `target_id` | Resource ID affected |
-| `details` | JSON payload with action-specific context |
-| `severity` | `info`, `warning`, `critical` |
+| Field         | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| `actor_id`    | Admin user who performed the action                            |
+| `action`      | Verb describing the action (e.g., `user.delete`, `key.revoke`) |
+| `target_type` | Resource type affected                                         |
+| `target_id`   | Resource ID affected                                           |
+| `details`     | JSON payload with action-specific context                      |
+| `severity`    | `info`, `warning`, `critical`                                  |
 
 The admin panel provides filtered, paginated access to audit logs with date range filtering.
 
@@ -369,14 +378,14 @@ All impersonation actions are logged with both the admin ID and target user ID.
 
 The Go API does not set security headers directly at the middleware level. Security headers are configured at the infrastructure/ingress layer (reverse proxy, load balancer). The standard headers to configure:
 
-| Header | Recommended Value |
-|--------|------------------|
+| Header                      | Recommended Value                     |
+| --------------------------- | ------------------------------------- |
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
-| `X-Content-Type-Options` | `nosniff` |
-| `X-Frame-Options` | `DENY` |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` |
-| `Permissions-Policy` | Minimal set per deployment |
-| `Content-Security-Policy` | Per-application policy |
+| `X-Content-Type-Options`    | `nosniff`                             |
+| `X-Frame-Options`           | `DENY`                                |
+| `Referrer-Policy`           | `strict-origin-when-cross-origin`     |
+| `Permissions-Policy`        | Minimal set per deployment            |
+| `Content-Security-Policy`   | Per-application policy                |
 
 For the web frontend, Next.js provides security headers through `next.config.ts`. See `apps/web/next.config.ts` for the current configuration.
 

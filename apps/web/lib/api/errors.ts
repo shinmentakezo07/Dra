@@ -2,7 +2,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number = 500,
-    public code?: string
+    public code?: string,
   ) {
     super(message);
     this.name = "ApiError";

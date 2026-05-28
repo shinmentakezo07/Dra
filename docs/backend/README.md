@@ -6,21 +6,21 @@ The backend lives in `apps/backend/` and is a **Go 1.25** service using **chi ro
 
 ## Tech Stack
 
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| Go | Runtime & Language | 1.25.0 |
-| Chi Router | HTTP Router & Middleware | v5.2.5 |
-| pgx | PostgreSQL Driver + Pool | v5.9.2 |
-| golang-jwt | Token Authentication | v5.3.1 |
-| Prometheus client_golang | Metrics Collection | v1.23 |
-| slog | Structured Logging | stdlib |
-| go-redis | Redis Client | v9 |
-| google/uuid | UUID Generation | v1.6 |
-| stripe-go | Payment Processing | v76 |
-| go-openai (sashabaranov) | Provider SDK | v1.41 |
-| openai-go (official) | Official OpenAI SDK | v3.35 |
-| anthropic-sdk-go | Official Anthropic SDK | v1.43 |
-| golang.org/x/crypto | argon2id + bcrypt Password Hashing | v0.51 |
+| Technology               | Purpose                            | Version |
+| ------------------------ | ---------------------------------- | ------- |
+| Go                       | Runtime & Language                 | 1.25.0  |
+| Chi Router               | HTTP Router & Middleware           | v5.2.5  |
+| pgx                      | PostgreSQL Driver + Pool           | v5.9.2  |
+| golang-jwt               | Token Authentication               | v5.3.1  |
+| Prometheus client_golang | Metrics Collection                 | v1.23   |
+| slog                     | Structured Logging                 | stdlib  |
+| go-redis                 | Redis Client                       | v9      |
+| google/uuid              | UUID Generation                    | v1.6    |
+| stripe-go                | Payment Processing                 | v76     |
+| go-openai (sashabaranov) | Provider SDK                       | v1.41   |
+| openai-go (official)     | Official OpenAI SDK                | v3.35   |
+| anthropic-sdk-go         | Official Anthropic SDK             | v1.43   |
+| golang.org/x/crypto      | argon2id + bcrypt Password Hashing | v0.51   |
 
 ---
 
@@ -85,7 +85,7 @@ if countCodeBlocks(text) > 0 { wordEstimate *= 1.2 }
 avg := (charEstimate + wordEstimate) / 2
 ```
 
-Cost = (inputTokens + outputTokens) * 2, minimum 100 credits.
+Cost = (inputTokens + outputTokens) \* 2, minimum 100 credits.
 
 ### SSE Format
 
@@ -120,12 +120,14 @@ OpenAI error format: `{"error":{"message":"...","type":"invalid_request_error|au
 ## Full Route Table
 
 ### Public
-| Method | Path | Handler |
-|--------|------|---------|
-| GET | /health | h.Health |
-| GET | /health/providers | h.ProviderHealth |
+
+| Method | Path              | Handler          |
+| ------ | ----------------- | ---------------- |
+| GET    | /health           | h.Health         |
+| GET    | /health/providers | h.ProviderHealth |
 
 ### Auth (10 req/min per-IP rate limit)
+
 | POST | /auth/signup | h.Signup |
 | POST | /auth/login | h.Login |
 | POST | /auth/oauth | h.OAuthLogin |
@@ -133,27 +135,29 @@ OpenAI error format: `{"error":{"message":"...","type":"invalid_request_error|au
 | POST | /auth/reset-password | h.ResetPassword |
 
 ### OpenAI-Compatible Proxy (auth + quota)
+
 | POST | /v1/chat/completions | h.OpenAIChatCompletions |
 | POST | /v1/messages | h.AnthropicMessages |
 | POST | /v1/embeddings | h.OpenAIEmbeddings |
 | GET | /v1/models | h.OpenAIListModels |
 
 ### Protected (auth + quota): 40+ routes
+
 | GET/PUT | /auth/me, /auth/profile, /auth/password | User management |
-| GET/POST/DELETE/POST | /api/keys/* | API key CRUD + revoke |
-| GET/POST | /api/credits/*, /api/credits/budget | Credit management |
+| GET/POST/DELETE/POST | /api/keys/_ | API key CRUD + revoke |
+| GET/POST | /api/credits/_, /api/credits/budget | Credit management |
 | GET | /api/transactions | Transaction history |
 | GET | /api/logs | Request logs |
 | GET | /api/analytics | Usage analytics |
 | GET | /api/models | Model list |
 | POST | /api/chat | Streaming chat proxy |
 | POST | /api/embeddings | Embedding generation |
-| GET/POST/DELETE | /api/conversations/* | Conversation CRUD |
-| GET/POST/DELETE | /api/prompts/* | Prompt CRUD + render |
-| GET/POST/PUT/DELETE | /api/webhooks/* | Webhook CRUD |
-| GET/POST/DELETE | /api/organizations/* | Org management + invites |
-| POST/GET | /api/batch/* | Batch job submission |
-| POST/GET | /api/files/* | File upload + list |
+| GET/POST/DELETE | /api/conversations/_ | Conversation CRUD |
+| GET/POST/DELETE | /api/prompts/_ | Prompt CRUD + render |
+| GET/POST/PUT/DELETE | /api/webhooks/_ | Webhook CRUD |
+| GET/POST/DELETE | /api/organizations/_ | Org management + invites |
+| POST/GET | /api/batch/_ | Batch job submission |
+| POST/GET | /api/files/_ | File upload + list |
 | POST | /api/validate | Structured output validation |
 | GET | /api/notifications/stream | SSE notification stream |
 | POST | /api/promos/redeem | Promo code redemption |
@@ -161,6 +165,7 @@ OpenAI error format: `{"error":{"message":"...","type":"invalid_request_error|au
 | POST | /api/invites/accept | Accept org invite |
 
 ### Admin (auth + admin role): 60+ endpoints
+
 Users: List, get detail, update status/role, delete, impersonate, bulk suspend, list keys, list usage
 Providers: List, create, get, update, toggle status, manage keys (add, delete, reorder)
 Models: List, create, toggle status, manage aliases
@@ -237,20 +242,20 @@ Security: `k.Key = ""` after every query — stored hash never returned to clien
 
 ## Services
 
-| Service | Key Methods | Dependencies |
-|---------|-------------|--------------|
-| UserService | Register (argon2id), Authenticate, OAuthLogin, ChangePassword, RequestPasswordReset, ResetPassword | UserRepo, token package |
-| APIKeyService | Create (dra_ prefix + 32 bytes hex), List, Delete, Revoke | APIKeyRepo (with pepper) |
-| CreditService | GetBalance, Purchase, CheckBalance, LogAndDeduct, SetBudget, ListTransactions | CreditsRepo, TxRepo, LogRepo, StripeService |
-| AnalyticsService | UserAnalytics (summary + model breakdown + daily usage), PlatformStats | LogRepo, UserRepo, CreditsRepo |
-| ProviderService | ListModels, Chat, ChatStream, DefaultModel, EstimateTokens | LLM Registry, Cache, Watcher |
-| WebhookService | CRUD + Dispatch with retry | WebhookRepo |
-| BatchService | SubmitBatch, GetBatchJob | BatchRepo |
-| OrganizationService | CRUD + Invite/Remove/Accept | OrgRepo, UserRepo |
-| AdminService | 10+ admin operation groups | 8 admin repos |
-| StripeService | CreateCheckoutSession, HandleWebhook | Stripe SDK |
-| SandboxService | Test mode (skip quota/cost/logging) | ProviderService |
-| ExperimentService | A/B provider experiments | LLM Registry |
+| Service             | Key Methods                                                                                        | Dependencies                                |
+| ------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| UserService         | Register (argon2id), Authenticate, OAuthLogin, ChangePassword, RequestPasswordReset, ResetPassword | UserRepo, token package                     |
+| APIKeyService       | Create (dra\_ prefix + 32 bytes hex), List, Delete, Revoke                                         | APIKeyRepo (with pepper)                    |
+| CreditService       | GetBalance, Purchase, CheckBalance, LogAndDeduct, SetBudget, ListTransactions                      | CreditsRepo, TxRepo, LogRepo, StripeService |
+| AnalyticsService    | UserAnalytics (summary + model breakdown + daily usage), PlatformStats                             | LogRepo, UserRepo, CreditsRepo              |
+| ProviderService     | ListModels, Chat, ChatStream, DefaultModel, EstimateTokens                                         | LLM Registry, Cache, Watcher                |
+| WebhookService      | CRUD + Dispatch with retry                                                                         | WebhookRepo                                 |
+| BatchService        | SubmitBatch, GetBatchJob                                                                           | BatchRepo                                   |
+| OrganizationService | CRUD + Invite/Remove/Accept                                                                        | OrgRepo, UserRepo                           |
+| AdminService        | 10+ admin operation groups                                                                         | 8 admin repos                               |
+| StripeService       | CreateCheckoutSession, HandleWebhook                                                               | Stripe SDK                                  |
+| SandboxService      | Test mode (skip quota/cost/logging)                                                                | ProviderService                             |
+| ExperimentService   | A/B provider experiments                                                                           | LLM Registry                                |
 
 ---
 

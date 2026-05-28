@@ -110,7 +110,8 @@ function matchPath(requestPath: string): string | null {
   ];
 
   for (const prefix of prefixes) {
-    if (path.startsWith(prefix)) return "/api/admin" + path.slice("/api/admin".length);
+    if (path.startsWith(prefix))
+      return "/api/admin" + path.slice("/api/admin".length);
   }
 
   return null;
@@ -120,7 +121,11 @@ export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
   const backendPath = matchPath(request.url);
-  if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
+  if (!backendPath)
+    return Response.json(
+      { success: false, error: "Admin endpoint not found" },
+      { status: 404 },
+    );
   return proxyToBackend(request, backendPath);
 }
 
@@ -128,7 +133,11 @@ export async function POST(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
   const backendPath = matchPath(request.url);
-  if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
+  if (!backendPath)
+    return Response.json(
+      { success: false, error: "Admin endpoint not found" },
+      { status: 404 },
+    );
   return proxyToBackend(request, backendPath);
 }
 
@@ -136,7 +145,11 @@ export async function PUT(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
   const backendPath = matchPath(request.url);
-  if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
+  if (!backendPath)
+    return Response.json(
+      { success: false, error: "Admin endpoint not found" },
+      { status: 404 },
+    );
   return proxyToBackend(request, backendPath);
 }
 
@@ -144,7 +157,11 @@ export async function DELETE(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
   const backendPath = matchPath(request.url);
-  if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
+  if (!backendPath)
+    return Response.json(
+      { success: false, error: "Admin endpoint not found" },
+      { status: 404 },
+    );
   return proxyToBackend(request, backendPath);
 }
 
@@ -152,6 +169,10 @@ export async function PATCH(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
   const backendPath = matchPath(request.url);
-  if (!backendPath) return Response.json({ success: false, error: "Admin endpoint not found" }, { status: 404 });
+  if (!backendPath)
+    return Response.json(
+      { success: false, error: "Admin endpoint not found" },
+      { status: 404 },
+    );
   return proxyToBackend(request, backendPath);
 }

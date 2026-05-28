@@ -65,7 +65,9 @@ describe("getErrorMessage", () => {
   });
 
   it("returns fallback for unknown error", () => {
-    expect(getErrorMessage("string error")).toBe("An unexpected error occurred");
+    expect(getErrorMessage("string error")).toBe(
+      "An unexpected error occurred",
+    );
     expect(getErrorMessage(null)).toBe("An unexpected error occurred");
     expect(getErrorMessage(42)).toBe("An unexpected error occurred");
   });

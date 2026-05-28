@@ -5,7 +5,8 @@ import { hash } from "bcryptjs";
 
 // Dynamic imports ensure dotenv loads before db module is evaluated
 const { db } = await import("./index");
-const { users, apiKeys, apiLogs, userCredits, creditTransactions } = await import("./schema");
+const { users, apiKeys, apiLogs, userCredits, creditTransactions } =
+  await import("./schema");
 
 async function seed() {
   console.log("🌱 Seeding database...\n");
@@ -226,7 +227,9 @@ async function seed() {
 
     console.log("✅ Database seeded successfully!");
     console.log("\n📊 Summary:");
-    console.log("   • Users: 3 (admin@example.com, john@example.com, jane@example.com)");
+    console.log(
+      "   • Users: 3 (admin@example.com, john@example.com, jane@example.com)",
+    );
     console.log("   • API Keys: 3");
     console.log("   • API Logs: " + createdLogs.length);
     console.log("   • Credit Transactions: 7");

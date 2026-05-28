@@ -70,7 +70,9 @@ describe("Frontend-Backend Wiring Verification", () => {
     ];
 
     for (const name of requiredExports) {
-      const exportPattern = new RegExp(`export (interface|class|function|type).*\\b${name}\\b|export \\{[^}]*\\b${name}\\b[^}]*\\}`);
+      const exportPattern = new RegExp(
+        `export (interface|class|function|type).*\\b${name}\\b|export \\{[^}]*\\b${name}\\b[^}]*\\}`,
+      );
       expect(content).toMatch(exportPattern);
     }
   });
@@ -87,8 +89,10 @@ describe("Frontend-Backend Wiring Verification", () => {
       if (relPath.includes("auth/")) continue;
 
       // Each route should either proxy to backend or use backend SDK
-      const proxies = content.includes("proxyToBackend") || content.includes("getSDK()");
-      const forwards = content.includes("fetch(") || content.includes("BACKEND_URL");
+      const proxies =
+        content.includes("proxyToBackend") || content.includes("getSDK()");
+      const forwards =
+        content.includes("fetch(") || content.includes("BACKEND_URL");
 
       if (!proxies && !forwards) {
         expect.fail(`API route ${relPath} does not appear to proxy to backend`);
@@ -118,9 +122,12 @@ describe("Frontend-Backend Wiring Verification", () => {
       if (relPath.includes("auth/")) continue;
       if (relPath.includes("chat/")) continue;
 
-      const hasAuthCheck = content.includes("requireAuth") || content.includes("requireAdmin");
+      const hasAuthCheck =
+        content.includes("requireAuth") || content.includes("requireAdmin");
       if (!hasAuthCheck) {
-        expect.fail(`API route ${relPath} missing auth check (requireAuth/requireAdmin)`);
+        expect.fail(
+          `API route ${relPath} missing auth check (requireAuth/requireAdmin)`,
+        );
       }
     }
   });
@@ -131,7 +138,11 @@ function walkTsxFiles(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".next") {
+    if (
+      entry.isDirectory() &&
+      entry.name !== "node_modules" &&
+      entry.name !== ".next"
+    ) {
       results.push(...walkTsxFiles(fullPath));
     } else if (entry.isFile() && entry.name.endsWith(".tsx")) {
       results.push(fullPath);

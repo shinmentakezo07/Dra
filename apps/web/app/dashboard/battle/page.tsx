@@ -41,7 +41,10 @@ const COST_PER_1K: Record<string, { input: number; output: number }> = {
 };
 
 function estimateCost(model: string, outputTokens: number): number {
-  const pricing = COST_PER_1K[model.toLowerCase()] ?? { input: 0.001, output: 0.003 };
+  const pricing = COST_PER_1K[model.toLowerCase()] ?? {
+    input: 0.001,
+    output: 0.003,
+  };
   return (outputTokens / 1000) * pricing.output;
 }
 
@@ -74,7 +77,7 @@ export default function ModelBattlePage() {
         ? prev.filter((m) => m !== modelId)
         : prev.length < 4
           ? [...prev, modelId]
-          : prev
+          : prev,
     );
   };
 
@@ -92,7 +95,7 @@ export default function ModelBattlePage() {
         tokens: 0,
         cost: 0,
         status: "streaming" as const,
-      }))
+      })),
     );
 
     const startTime = Date.now();
@@ -114,8 +117,8 @@ export default function ModelBattlePage() {
               prev.map((r) =>
                 r.model === model
                   ? { ...r, content, latency: elapsed, tokens: content.length }
-                  : r
-              )
+                  : r,
+              ),
             );
           }
 
@@ -124,9 +127,16 @@ export default function ModelBattlePage() {
           setResponses((prev) =>
             prev.map((r) =>
               r.model === model
-                ? { ...r, content, status: "done", latency: elapsed, tokens: content.length, cost }
-                : r
-            )
+                ? {
+                    ...r,
+                    content,
+                    status: "done",
+                    latency: elapsed,
+                    tokens: content.length,
+                    cost,
+                  }
+                : r,
+            ),
           );
         } catch (err) {
           setResponses((prev) =>
@@ -138,11 +148,11 @@ export default function ModelBattlePage() {
                     error: err instanceof Error ? err.message : "Stream failed",
                     latency: Date.now() - startTime,
                   }
-                : r
-            )
+                : r,
+            ),
           );
         }
-      })
+      }),
     );
 
     setIsRunning(false);
@@ -230,7 +240,9 @@ export default function ModelBattlePage() {
         />
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-gray-500">
-            {selectedModels.length < 2 ? "Select at least 2 models" : `${selectedModels.length} models ready`}
+            {selectedModels.length < 2
+              ? "Select at least 2 models"
+              : `${selectedModels.length} models ready`}
           </span>
           <div className="flex gap-2">
             {isRunning && (
@@ -271,12 +283,15 @@ export default function ModelBattlePage() {
         >
           <Trophy className="w-5 h-5 text-amber-400" />
           <p className="text-sm text-amber-300">
-            <span className="font-semibold">{winner[0]}</span> wins with {winner[1]} stars!
+            <span className="font-semibold">{winner[0]}</span> wins with{" "}
+            {winner[1]} stars!
           </p>
         </motion.div>
       )}
 
-      <div className={`grid gap-4 ${responses.length <= 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"}`}>
+      <div
+        className={`grid gap-4 ${responses.length <= 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"}`}
+      >
         <AnimatePresence>
           {responses.map((r) => (
             <motion.div
@@ -292,13 +307,19 @@ export default function ModelBattlePage() {
                     r.status === "done"
                       ? "bg-emerald-500/10 text-emerald-400"
                       : r.status === "error"
-                      ? "bg-red-500/10 text-red-400"
-                      : "bg-blue-500/10 text-blue-400"
+                        ? "bg-red-500/10 text-red-400"
+                        : "bg-blue-500/10 text-blue-400"
                   }`}
                 >
-                  {r.status === "streaming" && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
-                  {r.status === "done" && <CheckCircle className="w-2.5 h-2.5" />}
-                  {r.status === "error" && <AlertTriangle className="w-2.5 h-2.5" />}
+                  {r.status === "streaming" && (
+                    <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  )}
+                  {r.status === "done" && (
+                    <CheckCircle className="w-2.5 h-2.5" />
+                  )}
+                  {r.status === "error" && (
+                    <AlertTriangle className="w-2.5 h-2.5" />
+                  )}
                   {r.status}
                 </span>
               </div>
@@ -340,7 +361,14 @@ export default function ModelBattlePage() {
                           : "text-gray-600 hover:text-gray-400"
                       }`}
                     >
-                      <Star className="w-4 h-4" fill={(ratings[r.model] ?? 0) >= star ? "currentColor" : "none"} />
+                      <Star
+                        className="w-4 h-4"
+                        fill={
+                          (ratings[r.model] ?? 0) >= star
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
                     </button>
                   ))}
                 </div>

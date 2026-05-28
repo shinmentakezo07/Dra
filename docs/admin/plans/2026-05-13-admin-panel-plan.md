@@ -21,6 +21,7 @@
 Full SQL migration with 35+ tables. All UUID PKs use `gen_random_uuid()`. Time-series tables use `PARTITION BY RANGE (created_at)` with monthly partitions.
 
 **Providers & Keys:**
+
 ```sql
 CREATE TABLE providers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -58,6 +59,7 @@ CREATE TABLE provider_keys (
 ```
 
 **Models & Aliases:**
+
 ```sql
 CREATE TABLE model_registry (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -88,6 +90,7 @@ CREATE TABLE model_aliases (
 ```
 
 **Billing & Usage:**
+
 ```sql
 CREATE TABLE credit_adjustments (id UUID PK, user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, amount NUMERIC(12,4), balance_before NUMERIC(12,4), balance_after NUMERIC(12,4), reason TEXT, admin_id UUID NOT NULL REFERENCES users(id), created_at TIMESTAMPTZ);
 
@@ -99,6 +102,7 @@ CREATE TABLE rate_limit_tiers (id UUID PK, name TEXT UNIQUE, rpm INT, tpm INT, r
 ```
 
 **Settings & Audit:**
+
 ```sql
 CREATE TABLE system_settings (key TEXT PRIMARY KEY, value JSONB NOT NULL, type TEXT DEFAULT 'string', description TEXT, group_name TEXT DEFAULT 'general', is_encrypted BOOLEAN DEFAULT false, updated_by UUID REFERENCES users(id), updated_at TIMESTAMPTZ);
 
@@ -116,6 +120,7 @@ INSERT INTO admin_role_permissions VALUES (gen_random_uuid(), 'analyst', ARRAY['
 ```
 
 **Security:**
+
 ```sql
 CREATE TABLE ip_lists (id UUID PK, ip_or_cidr CIDR NOT NULL, action TEXT CHECK (action IN ('allow','block','challenge','rate_limit')), scope TEXT DEFAULT 'global', scope_id TEXT, reason TEXT, auto_blocked BOOLEAN DEFAULT false, expires_at TIMESTAMPTZ, created_at TIMESTAMPTZ);
 
@@ -127,6 +132,7 @@ CREATE TABLE admin_impersonations (id UUID PK, admin_id UUID REFERENCES users(id
 ```
 
 **Additional features:**
+
 ```sql
 CREATE TABLE announcements (id UUID PK, title TEXT, body TEXT, priority TEXT, target_type TEXT, target_ids UUID[], starts_at TIMESTAMPTZ, ends_at TIMESTAMPTZ, show_in_app BOOLEAN, send_email BOOLEAN, created_by UUID, created_at TIMESTAMPTZ);
 CREATE TABLE promo_codes (id UUID PK, code TEXT UNIQUE, type TEXT, value NUMERIC, max_uses INT, current_uses INT DEFAULT 0, min_purchase_cents INT, expires_at TIMESTAMPTZ, is_active BOOLEAN, created_by UUID);
@@ -150,6 +156,7 @@ CREATE TABLE cache_stats (id BIGSERIAL, provider_id UUID, model TEXT, hits BIGIN
 ```
 
 **User enhancements:**
+
 ```sql
 ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active';
 ALTER TABLE users ADD COLUMN rate_limit_tier_id UUID REFERENCES rate_limit_tiers(id);
@@ -898,7 +905,6 @@ func (r *AdminSettingsRepo) UpdateFeatureFlag(ctx context.Context, f *domain.Fea
 }
 ```
 
-
 ### Task 3.6: admin_audit_repo.go
 
 ```go
@@ -982,7 +988,6 @@ func (r *AdminAuditRepo) List(ctx context.Context, f AuditFilter) ([]domain.Audi
 	return logs, total, rows.Err()
 }
 ```
-
 
 ### Task 3.7: admin_security_repo.go
 
@@ -1197,7 +1202,6 @@ func (r *AdminSecurityRepo) EndImpersonation(ctx context.Context, id string) err
 	return nil
 }
 ```
-
 
 ### Task 3.8: admin_features_repo.go
 
@@ -1557,7 +1561,6 @@ func (r *AdminFeaturesRepo) ToggleSSO(ctx context.Context, id string, isActive b
 }
 ```
 
-
 - [ ] Write all 8 repository files (~1,350 lines total)
 - [ ] Go test: `go test -race -count=1 -run "TestAdmin" ./internal/repository/...`
 - [ ] Commit
@@ -1775,27 +1778,73 @@ All types matching Go DTOs: `UserStatus`, `ProviderStatus`, `KeyStrategy`, `Mode
 
 ```typescript
 export class AdminSDK {
-  private api = getSDK()
-  getDashboard(): Promise<DashboardStats> { return this.api.get('/api/admin/dashboard') }
-  listUsers(params?): Promise<PaginatedResponse<AdminUser>> { return this.api.get('/api/admin/users', { params }) }
-  getUser(id): Promise<AdminUser> { return this.api.get(`/api/admin/users/${id}`) }
-  updateUserStatus(id, status, reason?): Promise<void> { return this.api.put(`/api/admin/users/${id}/status`, {status, reason}) }
-  deleteUser(id): Promise<void> { return this.api.delete(`/api/admin/users/${id}`) }
-  searchUsers(email): Promise<AdminUser> { return this.api.get(`/api/admin/users/search?email=${encodeURIComponent(email)}`) }
-  impersonateUser(id, reason): Promise<ImpersonationSession> { return this.api.post(`/api/admin/users/${id}/impersonate`, {reason}) }
-  listProviders(): Promise<Provider[]> { return this.api.get('/api/admin/providers') }
-  createProvider(data): Promise<Provider> { return this.api.post('/api/admin/providers', data) }
-  listProviderKeys(pid): Promise<ProviderKey[]> { return this.api.get(`/api/admin/providers/${pid}/keys`) }
-  createProviderKey(pid, data): Promise<ProviderKey> { return this.api.post(`/api/admin/providers/${pid}/keys`, data) }
-  deleteProviderKey(pid, kid): Promise<void> { return this.api.delete(`/api/admin/providers/${pid}/keys/${kid}`) }
-  listModels(status?): Promise<ModelRegistry[]> { return this.api.get('/api/admin/models', { params: { status } }) }
-  listAliases(): Promise<ModelAlias[]> { return this.api.get('/api/admin/aliases') }
-  createAlias(data): Promise<ModelAlias> { return this.api.post('/api/admin/aliases', data) }
-  adjustCredits(userId, amount, reason): Promise<CreditAdjustment> { return this.api.post('/api/admin/billing/credits/adjust', {userId, amount, reason}) }
-  listSettings(group?): Promise<SystemSetting[]> { return this.api.get('/api/admin/settings', { params: { group } }) }
-  updateSetting(key, value): Promise<void> { return this.api.put(`/api/admin/settings/${key}`, {value}) }
-  listFeatureFlags(): Promise<FeatureFlag[]> { return this.api.get('/api/admin/feature-flags') }
-  toggleFeatureFlag(id, enabled): Promise<void> { return this.api.put(`/api/admin/feature-flags/${id}`, {enabled}) }
+  private api = getSDK();
+  getDashboard(): Promise<DashboardStats> {
+    return this.api.get("/api/admin/dashboard");
+  }
+  listUsers(params?): Promise<PaginatedResponse<AdminUser>> {
+    return this.api.get("/api/admin/users", { params });
+  }
+  getUser(id): Promise<AdminUser> {
+    return this.api.get(`/api/admin/users/${id}`);
+  }
+  updateUserStatus(id, status, reason?): Promise<void> {
+    return this.api.put(`/api/admin/users/${id}/status`, { status, reason });
+  }
+  deleteUser(id): Promise<void> {
+    return this.api.delete(`/api/admin/users/${id}`);
+  }
+  searchUsers(email): Promise<AdminUser> {
+    return this.api.get(
+      `/api/admin/users/search?email=${encodeURIComponent(email)}`,
+    );
+  }
+  impersonateUser(id, reason): Promise<ImpersonationSession> {
+    return this.api.post(`/api/admin/users/${id}/impersonate`, { reason });
+  }
+  listProviders(): Promise<Provider[]> {
+    return this.api.get("/api/admin/providers");
+  }
+  createProvider(data): Promise<Provider> {
+    return this.api.post("/api/admin/providers", data);
+  }
+  listProviderKeys(pid): Promise<ProviderKey[]> {
+    return this.api.get(`/api/admin/providers/${pid}/keys`);
+  }
+  createProviderKey(pid, data): Promise<ProviderKey> {
+    return this.api.post(`/api/admin/providers/${pid}/keys`, data);
+  }
+  deleteProviderKey(pid, kid): Promise<void> {
+    return this.api.delete(`/api/admin/providers/${pid}/keys/${kid}`);
+  }
+  listModels(status?): Promise<ModelRegistry[]> {
+    return this.api.get("/api/admin/models", { params: { status } });
+  }
+  listAliases(): Promise<ModelAlias[]> {
+    return this.api.get("/api/admin/aliases");
+  }
+  createAlias(data): Promise<ModelAlias> {
+    return this.api.post("/api/admin/aliases", data);
+  }
+  adjustCredits(userId, amount, reason): Promise<CreditAdjustment> {
+    return this.api.post("/api/admin/billing/credits/adjust", {
+      userId,
+      amount,
+      reason,
+    });
+  }
+  listSettings(group?): Promise<SystemSetting[]> {
+    return this.api.get("/api/admin/settings", { params: { group } });
+  }
+  updateSetting(key, value): Promise<void> {
+    return this.api.put(`/api/admin/settings/${key}`, { value });
+  }
+  listFeatureFlags(): Promise<FeatureFlag[]> {
+    return this.api.get("/api/admin/feature-flags");
+  }
+  toggleFeatureFlag(id, enabled): Promise<void> {
+    return this.api.put(`/api/admin/feature-flags/${id}`, { enabled });
+  }
   // ... repeat for all 80+ endpoints
 }
 ```
@@ -1818,16 +1867,16 @@ Server component: `auth()` → check role === "admin" → redirect or render Adm
 
 Client component. 8 nav sections with icons (lucide-react):
 
-| Section | Items |
-|---------|-------|
-| Overview | Dashboard |
+| Section    | Items                                                   |
+| ---------- | ------------------------------------------------------- |
+| Overview   | Dashboard                                               |
 | Management | Users, API Keys, Providers, Models, Aliases, Rate Tiers |
-| Financial | Billing, Cost Intelligence, Promo Codes |
-| Security | Security Dashboard, IP Lists, Audit Trail |
-| Monitoring | Logs, Errors, Traces, Webhooks |
-| Operations | Cache, Conversations, Files |
-| Content | Announcements, Changelog, Scheduled Reports |
-| Admin | Admins, Settings, Feature Flags, SSO, Groups |
+| Financial  | Billing, Cost Intelligence, Promo Codes                 |
+| Security   | Security Dashboard, IP Lists, Audit Trail               |
+| Monitoring | Logs, Errors, Traces, Webhooks                          |
+| Operations | Cache, Conversations, Files                             |
+| Content    | Announcements, Changelog, Scheduled Reports             |
+| Admin      | Admins, Settings, Feature Flags, SSO, Groups            |
 
 Active route highlighting via `usePathname()`. Collapsible on mobile.
 
@@ -1852,22 +1901,35 @@ Generic: `columns: ColumnDef[]`, `data: T[]`, `loading`, `error`, `sortable`, `s
 ### Task 10.1: Dashboard (`page.tsx`)
 
 ```tsx
-'use client'
-import { useQuery } from '@tanstack/react-query'
-import { AdminSDK, StatCard } from '@/components/admin'
-const sdk = new AdminSDK()
+"use client";
+import { useQuery } from "@tanstack/react-query";
+import { AdminSDK, StatCard } from "@/components/admin";
+const sdk = new AdminSDK();
 export default function AdminDashboard() {
-  const {data, isLoading} = useQuery({queryKey:['admin','dashboard'], queryFn:()=>sdk.getDashboard(), refetchInterval:60000})
-  if(isLoading) return <div className="animate-pulse grid grid-cols-4 gap-4 h-24" />
-  return (<div className="space-y-6">
-    <PageHeader title="Dashboard" description="Platform overview" />
-    <div className="grid grid-cols-4 gap-4">
-      <StatCard title="Total Users" value={data?.users.total ?? 0} />
-      <StatCard title="Active Today" value={data?.users.activeToday ?? 0} />
-      <StatCard title="Requests Today" value={data?.requests.totalToday?.toLocaleString() ?? 0} />
-      <StatCard title="Revenue Today" value={`$${((data?.revenue.todayCents ?? 0)/100).toFixed(2)}`} />
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "dashboard"],
+    queryFn: () => sdk.getDashboard(),
+    refetchInterval: 60000,
+  });
+  if (isLoading)
+    return <div className="animate-pulse grid grid-cols-4 gap-4 h-24" />;
+  return (
+    <div className="space-y-6">
+      <PageHeader title="Dashboard" description="Platform overview" />
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard title="Total Users" value={data?.users.total ?? 0} />
+        <StatCard title="Active Today" value={data?.users.activeToday ?? 0} />
+        <StatCard
+          title="Requests Today"
+          value={data?.requests.totalToday?.toLocaleString() ?? 0}
+        />
+        <StatCard
+          title="Revenue Today"
+          value={`$${((data?.revenue.todayCents ?? 0) / 100).toFixed(2)}`}
+        />
+      </div>
     </div>
-  </div>)
+  );
 }
 ```
 
@@ -1956,21 +2018,21 @@ Update `AGENTS.md`: add admin endpoint table (group by domain, show method/path/
 
 ## Summary: Complete File Inventory
 
-| Phase | Files | Est. Lines | Description |
-|-------|-------|-----------|-------------|
-| 1. Migration | `007_admin_schema.sql` | 880 | 35+ tables, indexes, partitions |
-| 2. Domain | `internal/domain/admin.go` | 550 | Types, enums, structs, filters |
-| 3. Repositories | 8 repo files | 1,800 | SQL data access with error wrapping |
-| 4. Services | 2 service files | 600 | Business logic + audit worker |
-| 5. Middleware | auth.go (mod) | 60 | RequirePermission |
-| 6. Handlers | 18 handler files | 2,500 | 100+ HTTP handlers |
-| 7. Routes | main.go (mod) | 200 | Route registration |
-| 8. Types/SDK | 2 TS files | 500 | TypeScript + AdminSDK |
-| 9. Components | 8 TSX files | 450 | Layout, table, badges |
-| 10. Core Pages | 8 TSX files | 800 | Dashboard, users, providers, models |
-| 11. Extended Pages | 12 TSX files | 700 | Billing, security, settings, logs |
-| 12. Tests/Docs | ~10 files | 600 | Backend + frontend + E2E |
-| **Total** | **~70 files** | **~9,500** | **Complete admin panel** |
+| Phase              | Files                      | Est. Lines | Description                         |
+| ------------------ | -------------------------- | ---------- | ----------------------------------- |
+| 1. Migration       | `007_admin_schema.sql`     | 880        | 35+ tables, indexes, partitions     |
+| 2. Domain          | `internal/domain/admin.go` | 550        | Types, enums, structs, filters      |
+| 3. Repositories    | 8 repo files               | 1,800      | SQL data access with error wrapping |
+| 4. Services        | 2 service files            | 600        | Business logic + audit worker       |
+| 5. Middleware      | auth.go (mod)              | 60         | RequirePermission                   |
+| 6. Handlers        | 18 handler files           | 2,500      | 100+ HTTP handlers                  |
+| 7. Routes          | main.go (mod)              | 200        | Route registration                  |
+| 8. Types/SDK       | 2 TS files                 | 500        | TypeScript + AdminSDK               |
+| 9. Components      | 8 TSX files                | 450        | Layout, table, badges               |
+| 10. Core Pages     | 8 TSX files                | 800        | Dashboard, users, providers, models |
+| 11. Extended Pages | 12 TSX files               | 700        | Billing, security, settings, logs   |
+| 12. Tests/Docs     | ~10 files                  | 600        | Backend + frontend + E2E            |
+| **Total**          | **~70 files**              | **~9,500** | **Complete admin panel**            |
 
 ### Verification
 
@@ -1979,4 +2041,3 @@ cd apps/backend && go build ./cmd/api && go test -race -cover ./...
 cd apps/web && npm run build && npm run test
 bash scripts/smoke-test.sh
 ```
-

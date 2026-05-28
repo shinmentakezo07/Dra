@@ -4,7 +4,10 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
 
 const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10MB
 
-export async function proxyToBackend(request: Request, path: string): Promise<Response> {
+export async function proxyToBackend(
+  request: Request,
+  path: string,
+): Promise<Response> {
   const url = new URL(path, BACKEND_URL);
 
   const headers = new Headers();
@@ -39,28 +42,39 @@ export async function proxyToBackend(request: Request, path: string): Promise<Re
   }
 
   // Validate Content-Type for POST/PUT/PATCH
-  if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
+  if (
+    request.method === "POST" ||
+    request.method === "PUT" ||
+    request.method === "PATCH"
+  ) {
     const ct = headers.get("content-type") || "";
-    if (!ct.startsWith("application/json") && !ct.startsWith("multipart/form-data")) {
+    if (
+      !ct.startsWith("application/json") &&
+      !ct.startsWith("multipart/form-data")
+    ) {
       return Response.json(
         { success: false, error: "Unsupported Content-Type" },
-        { status: 415 }
+        { status: 415 },
       );
     }
   }
 
   // Enforce body size limit
-  const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
+  const contentLength = parseInt(
+    request.headers.get("content-length") || "0",
+    10,
+  );
   if (contentLength > MAX_BODY_SIZE) {
     return Response.json(
       { success: false, error: "Request body too large" },
-      { status: 413 }
+      { status: 413 },
     );
   }
 
-  const body = request.method !== "GET" && request.method !== "HEAD"
-    ? await request.arrayBuffer()
-    : undefined;
+  const body =
+    request.method !== "GET" && request.method !== "HEAD"
+      ? await request.arrayBuffer()
+      : undefined;
 
   try {
     const response = await fetch(url.toString(), {
@@ -83,7 +97,7 @@ export async function proxyToBackend(request: Request, path: string): Promise<Re
     }
     return Response.json(
       { success: false, error: "Backend service unavailable" },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
-import type { Provider, ProviderKey, ProviderStatus, ModelRegistry } from "@/types/admin";
+import type {
+  Provider,
+  ProviderKey,
+  ProviderStatus,
+  ModelRegistry,
+} from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
 import {
   Plus,
@@ -26,7 +31,8 @@ import { cn } from "@/lib/utils";
 
 const statusStyle: Record<ProviderStatus, string> = {
   active: "text-emerald-400 bg-emerald-500/8 border border-emerald-500/15",
-  inactive: "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
+  inactive:
+    "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
   maintenance: "text-amber-400 bg-amber-500/8 border border-amber-500/15",
   deprecated: "text-red-400 bg-red-500/8 border border-red-500/15",
 };
@@ -122,7 +128,12 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
           <div className="flex gap-2">
             <select
               value={form.strategy}
-              onChange={(e) => setForm({ ...form, strategy: e.target.value as typeof form.strategy })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  strategy: e.target.value as typeof form.strategy,
+                })
+              }
               className="admin-input flex-1 text-[12px] py-[7px]"
             >
               <option value="round-robin">Round Robin</option>
@@ -135,7 +146,9 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
               type="number"
               placeholder="Weight"
               value={form.weight}
-              onChange={(e) => setForm({ ...form, weight: Number(e.target.value) })}
+              onChange={(e) =>
+                setForm({ ...form, weight: Number(e.target.value) })
+              }
               className="admin-input w-20 text-[12px] py-[7px]"
             />
           </div>
@@ -185,22 +198,39 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
             <tbody>
               {keys.map((key) => (
                 <tr key={key.id} className="border-b border-white/[0.015]">
-                  <td className="py-1.5 pr-2 font-medium text-[var(--admin-text)]">{key.label}</td>
-                  <td className="py-1.5 pr-2 font-mono text-[var(--admin-text-muted)]">{key.keyPrefix}...{key.keyLastFour}</td>
-                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{strategyLabel[key.strategy] || key.strategy}</td>
-                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{key.weight}</td>
-                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{key.usageCount.toLocaleString()}</td>
+                  <td className="py-1.5 pr-2 font-medium text-[var(--admin-text)]">
+                    {key.label}
+                  </td>
+                  <td className="py-1.5 pr-2 font-mono text-[var(--admin-text-muted)]">
+                    {key.keyPrefix}...{key.keyLastFour}
+                  </td>
+                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">
+                    {strategyLabel[key.strategy] || key.strategy}
+                  </td>
+                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">
+                    {key.weight}
+                  </td>
+                  <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">
+                    {key.usageCount.toLocaleString()}
+                  </td>
                   <td className="py-1.5 pr-2">
-                    <span className={cn(
-                      "admin-badge text-[9px]",
-                      key.isActive ? "text-emerald-400 bg-emerald-500/8 border border-emerald-500/15" : "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
-                    )}>
+                    <span
+                      className={cn(
+                        "admin-badge text-[9px]",
+                        key.isActive
+                          ? "text-emerald-400 bg-emerald-500/8 border border-emerald-500/15"
+                          : "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
+                      )}
+                    >
                       {key.isActive ? "active" : "disabled"}
                     </span>
                   </td>
                   <td className="py-1.5 text-right">
                     <button
-                      onClick={() => { if (confirm("Delete this key?")) deleteKey.mutate(key.id); }}
+                      onClick={() => {
+                        if (confirm("Delete this key?"))
+                          deleteKey.mutate(key.id);
+                      }}
                       className="text-red-400/50 hover:text-red-400 transition-colors"
                       aria-label="Delete key"
                     >
@@ -213,15 +243,25 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
           </table>
         </div>
       ) : (
-        <p className="text-[11px] text-[var(--admin-text-dim)] text-center py-2">No keys configured</p>
+        <p className="text-[11px] text-[var(--admin-text-dim)] text-center py-2">
+          No keys configured
+        </p>
       )}
     </div>
   );
 }
 
-function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId: string }) {
+function FetchModelsPanel({
+  baseUrl,
+  providerId,
+}: {
+  baseUrl: string;
+  providerId: string;
+}) {
   const [apiKey, setApiKey] = useState("");
-  const [models, setModels] = useState<{ id: string; object?: string; owned_by?: string }[]>([]);
+  const [models, setModels] = useState<
+    { id: string; object?: string; owned_by?: string }[]
+  >([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -294,7 +334,11 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
           disabled={fetching}
           className="admin-btn admin-btn-primary text-[11px] py-[6px] disabled:opacity-50"
         >
-          {fetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+          {fetching ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Search className="h-3 w-3" />
+          )}
           {fetching ? "Fetching..." : "Fetch Models"}
         </button>
       </div>
@@ -302,7 +346,11 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
       {error && (
         <div className="mb-3 p-2.5 rounded-[10px] bg-red-500/[0.04] border border-red-500/10 text-[11px] text-red-400 flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400/50 hover:text-red-400" aria-label="Dismiss error">
+          <button
+            onClick={() => setError(null)}
+            className="text-red-400/50 hover:text-red-400"
+            aria-label="Dismiss error"
+          >
             <X className="h-3 w-3" />
           </button>
         </div>
@@ -315,9 +363,18 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
               {selectedIds.size} of {models.length} selected
             </span>
             <div className="flex items-center gap-2">
-              <button onClick={toggleAll} className="text-[10px] text-indigo-400/70 hover:text-indigo-400 transition-colors font-medium flex items-center gap-1">
-                {selectedIds.size === models.length ? <CheckSquare className="h-3 w-3" /> : <Square className="h-3 w-3" />}
-                {selectedIds.size === models.length ? "Deselect All" : "Select All"}
+              <button
+                onClick={toggleAll}
+                className="text-[10px] text-indigo-400/70 hover:text-indigo-400 transition-colors font-medium flex items-center gap-1"
+              >
+                {selectedIds.size === models.length ? (
+                  <CheckSquare className="h-3 w-3" />
+                ) : (
+                  <Square className="h-3 w-3" />
+                )}
+                {selectedIds.size === models.length
+                  ? "Deselect All"
+                  : "Select All"}
               </button>
               {selectedIds.size > 0 && (
                 <button
@@ -325,7 +382,9 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
                   disabled={registerModels.isPending}
                   className="admin-btn admin-btn-primary text-[10px] py-[4px] px-2.5 disabled:opacity-50"
                 >
-                  {registerModels.isPending ? "Registering..." : `Register ${selectedIds.size}`}
+                  {registerModels.isPending
+                    ? "Registering..."
+                    : `Register ${selectedIds.size}`}
                 </button>
               )}
             </div>
@@ -335,13 +394,21 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
               <thead className="sticky top-0 bg-[var(--admin-surface-elevated)]">
                 <tr className="border-b border-[var(--admin-border)]">
                   <th className="w-8 py-1.5 pl-2"></th>
-                  <th className="text-left font-medium py-1.5 pr-2">Model ID</th>
-                  <th className="text-left font-medium py-1.5 pr-2">Owned By</th>
+                  <th className="text-left font-medium py-1.5 pr-2">
+                    Model ID
+                  </th>
+                  <th className="text-left font-medium py-1.5 pr-2">
+                    Owned By
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {models.map((m) => (
-                  <tr key={m.id} className="border-b border-white/[0.015] hover:bg-white/[0.015] cursor-pointer" onClick={() => toggleModel(m.id)}>
+                  <tr
+                    key={m.id}
+                    className="border-b border-white/[0.015] hover:bg-white/[0.015] cursor-pointer"
+                    onClick={() => toggleModel(m.id)}
+                  >
                     <td className="py-1.5 pl-2">
                       {selectedIds.has(m.id) ? (
                         <CheckSquare className="h-3.5 w-3.5 text-indigo-400" />
@@ -349,8 +416,12 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
                         <Square className="h-3.5 w-3.5 text-[var(--admin-text-dim)]" />
                       )}
                     </td>
-                    <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">{m.id}</td>
-                    <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{m.owned_by || "-"}</td>
+                    <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">
+                      {m.id}
+                    </td>
+                    <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">
+                      {m.owned_by || "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -365,7 +436,11 @@ function FetchModelsPanel({ baseUrl, providerId }: { baseUrl: string; providerId
   );
 }
 
-function ProviderCard({ provider, onToggleStatus, onDelete }: {
+function ProviderCard({
+  provider,
+  onToggleStatus,
+  onDelete,
+}: {
   provider: Provider;
   onToggleStatus: (id: string, status: ProviderStatus) => void;
   onDelete: (id: string, name: string) => void;
@@ -382,8 +457,7 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
   const queryClient = useQueryClient();
 
   const updateProvider = useMutation({
-    mutationFn: (data: Partial<Provider>) =>
-      getAdminSDK().updateProvider(data),
+    mutationFn: (data: Partial<Provider>) => getAdminSDK().updateProvider(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "providers"] });
       setEditing(false);
@@ -408,11 +482,17 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
             <Server className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="font-semibold text-[var(--admin-text)] text-[14px]">{provider.displayName}</h3>
-            <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">{provider.name}</p>
+            <h3 className="font-semibold text-[var(--admin-text)] text-[14px]">
+              {provider.displayName}
+            </h3>
+            <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
+              {provider.name}
+            </p>
           </div>
         </div>
-        <span className={cn("admin-badge capitalize", statusStyle[provider.status])}>
+        <span
+          className={cn("admin-badge capitalize", statusStyle[provider.status])}
+        >
           {provider.status}
         </span>
       </div>
@@ -421,41 +501,63 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
         <div className="space-y-2.5 mb-4 p-3.5 rounded-[12px] bg-white/[0.015] border border-[var(--admin-border)]">
           <input
             value={editForm.displayName}
-            onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+            onChange={(e) =>
+              setEditForm({ ...editForm, displayName: e.target.value })
+            }
             className="admin-input w-full text-[12px] py-[7px]"
             placeholder="Display Name"
           />
           <input
             value={editForm.baseUrl}
-            onChange={(e) => setEditForm({ ...editForm, baseUrl: e.target.value })}
+            onChange={(e) =>
+              setEditForm({ ...editForm, baseUrl: e.target.value })
+            }
             className="admin-input w-full text-[12px] py-[7px] font-mono"
             placeholder="Base URL"
           />
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">Priority</label>
+              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">
+                Priority
+              </label>
               <input
                 type="number"
                 value={editForm.priority}
-                onChange={(e) => setEditForm({ ...editForm, priority: Number(e.target.value) })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, priority: Number(e.target.value) })
+                }
                 className="admin-input w-full text-[12px] py-[7px]"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">Timeout (ms)</label>
+              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">
+                Timeout (ms)
+              </label>
               <input
                 type="number"
                 value={editForm.timeoutMs}
-                onChange={(e) => setEditForm({ ...editForm, timeoutMs: Number(e.target.value) })}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    timeoutMs: Number(e.target.value),
+                  })
+                }
                 className="admin-input w-full text-[12px] py-[7px]"
               />
             </div>
           </div>
           <div className="flex gap-2 pt-0.5">
-            <button onClick={handleSave} disabled={updateProvider.isPending} className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50">
+            <button
+              onClick={handleSave}
+              disabled={updateProvider.isPending}
+              className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50"
+            >
               {updateProvider.isPending ? "Saving..." : "Save"}
             </button>
-            <button onClick={() => setEditing(false)} className="admin-btn admin-btn-ghost text-[11px] py-[5px]">
+            <button
+              onClick={() => setEditing(false)}
+              className="admin-btn admin-btn-ghost text-[11px] py-[5px]"
+            >
               Cancel
             </button>
           </div>
@@ -464,11 +566,18 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
         <div className="grid grid-cols-2 gap-3 mb-4 text-[12px]">
           <div>
             <p className="admin-label mb-0.5">Type</p>
-            <p className="text-[var(--admin-text)] font-mono">{provider.providerType}</p>
+            <p className="text-[var(--admin-text)] font-mono">
+              {provider.providerType}
+            </p>
           </div>
           <div>
             <p className="admin-label mb-0.5">Base URL</p>
-            <p className="text-[var(--admin-text-muted)] truncate font-mono text-[11px]" title={provider.baseUrl}>{provider.baseUrl}</p>
+            <p
+              className="text-[var(--admin-text-muted)] truncate font-mono text-[11px]"
+              title={provider.baseUrl}
+            >
+              {provider.baseUrl}
+            </p>
           </div>
           <div>
             <p className="admin-label mb-0.5">Priority</p>
@@ -483,14 +592,20 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
 
       <div className="flex items-center gap-1.5 pt-3 border-t border-[var(--admin-border)]">
         <button
-          onClick={() => { setShowKeys(!showKeys); setShowModels(false); }}
+          onClick={() => {
+            setShowKeys(!showKeys);
+            setShowModels(false);
+          }}
           className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5"
         >
           <Activity className="h-3.5 w-3.5" />
           {showKeys ? "Hide Keys" : "Keys"}
         </button>
         <button
-          onClick={() => { setShowModels(!showModels); setShowKeys(false); }}
+          onClick={() => {
+            setShowModels(!showModels);
+            setShowKeys(false);
+          }}
           className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5"
         >
           <Search className="h-3.5 w-3.5" />
@@ -504,7 +619,12 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
           Edit
         </button>
         <button
-          onClick={() => onToggleStatus(provider.id, provider.status === "active" ? "inactive" : "active")}
+          onClick={() =>
+            onToggleStatus(
+              provider.id,
+              provider.status === "active" ? "inactive" : "active",
+            )
+          }
           className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5"
         >
           <ArrowUpDown className="h-3.5 w-3.5" />
@@ -519,18 +639,29 @@ function ProviderCard({ provider, onToggleStatus, onDelete }: {
       </div>
 
       {showKeys && <ProviderKeysPanel providerId={provider.id} />}
-      {showModels && <FetchModelsPanel baseUrl={provider.baseUrl} providerId={provider.id} />}
+      {showModels && (
+        <FetchModelsPanel baseUrl={provider.baseUrl} providerId={provider.id} />
+      )}
     </div>
   );
 }
 
 export default function AdminProvidersPage() {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
-  const { data: providers, isLoading, error, refetch, isRefetching } = useQuery<Provider[]>({
+  const {
+    data: providers,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useQuery<Provider[]>({
     queryKey: ["admin", "providers"],
     queryFn: () => getAdminSDK().listProviders(),
   });
@@ -569,8 +700,12 @@ export default function AdminProvidersPage() {
     timeoutMs: 30000,
   });
 
-  const [fetchedModels, setFetchedModels] = useState<{ id: string; object?: string; owned_by?: string }[]>([]);
-  const [selectedModelIds, setSelectedModelIds] = useState<Set<string>>(new Set());
+  const [fetchedModels, setFetchedModels] = useState<
+    { id: string; object?: string; owned_by?: string }[]
+  >([]);
+  const [selectedModelIds, setSelectedModelIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [fetchingModels, setFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
 
@@ -590,7 +725,9 @@ export default function AdminProvidersPage() {
         setFetchModelsError("No models found at this endpoint");
       }
     } catch (err) {
-      setFetchModelsError(err instanceof Error ? err.message : "Failed to fetch models");
+      setFetchModelsError(
+        err instanceof Error ? err.message : "Failed to fetch models",
+      );
     } finally {
       setFetchingModels(false);
     }
@@ -637,7 +774,15 @@ export default function AdminProvidersPage() {
   };
 
   const resetForm = () => {
-    setForm({ name: "", displayName: "", providerType: "openai", baseUrl: "", apiKey: "", priority: 0, timeoutMs: 30000 });
+    setForm({
+      name: "",
+      displayName: "",
+      providerType: "openai",
+      baseUrl: "",
+      apiKey: "",
+      priority: 0,
+      timeoutMs: 30000,
+    });
     setFetchedModels([]);
     setSelectedModelIds(new Set());
     setFetchModelsError(null);
@@ -658,14 +803,18 @@ export default function AdminProvidersPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load providers"}</p>
+        <p className="text-[13px] text-red-400/70">
+          {error instanceof Error ? error.message : "Failed to load providers"}
+        </p>
       </div>
     );
   }
 
   const itemsPerPage = 10;
   const totalPages = providers ? Math.ceil(providers.length / itemsPerPage) : 0;
-  const paginated = providers ? providers.slice((page - 1) * itemsPerPage, page * itemsPerPage) : [];
+  const paginated = providers
+    ? providers.slice((page - 1) * itemsPerPage, page * itemsPerPage)
+    : [];
 
   return (
     <AdminPageHeader
@@ -678,7 +827,9 @@ export default function AdminProvidersPage() {
             disabled={isRefetching}
             className="admin-btn admin-btn-ghost text-[12px] disabled:opacity-50"
           >
-            <RefreshCw className={cn("h-3.5 w-3.5", isRefetching && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-3.5 w-3.5", isRefetching && "animate-spin")}
+            />
           </button>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
@@ -692,11 +843,31 @@ export default function AdminProvidersPage() {
     >
       {showAddForm && (
         <div className="admin-card p-5 border-indigo-500/15 bg-indigo-500/[0.015]">
-          <h3 className="text-[13px] font-semibold text-[var(--admin-text)] mb-4">New Provider</h3>
+          <h3 className="text-[13px] font-semibold text-[var(--admin-text)] mb-4">
+            New Provider
+          </h3>
           <div className="grid grid-cols-2 gap-3">
-            <input placeholder="Provider name (slug)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="admin-input text-[12px] py-[7px]" />
-            <input placeholder="Display name" value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="admin-input text-[12px] py-[7px]" />
-            <select value={form.providerType} onChange={(e) => setForm({ ...form, providerType: e.target.value })} className="admin-input text-[12px] py-[7px]">
+            <input
+              placeholder="Provider name (slug)"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="admin-input text-[12px] py-[7px]"
+            />
+            <input
+              placeholder="Display name"
+              value={form.displayName}
+              onChange={(e) =>
+                setForm({ ...form, displayName: e.target.value })
+              }
+              className="admin-input text-[12px] py-[7px]"
+            />
+            <select
+              value={form.providerType}
+              onChange={(e) =>
+                setForm({ ...form, providerType: e.target.value })
+              }
+              className="admin-input text-[12px] py-[7px]"
+            >
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
               <option value="gemini">Google Gemini</option>
@@ -708,31 +879,68 @@ export default function AdminProvidersPage() {
               <option value="openrouter">OpenRouter</option>
               <option value="custom">Custom (OpenAI-compatible)</option>
             </select>
-            <input placeholder="Base URL (e.g. https://api.openai.com)" value={form.baseUrl} onChange={(e) => setForm({ ...form, baseUrl: e.target.value })} className="admin-input text-[12px] py-[7px] font-mono" />
-            <input type="password" placeholder="API Key (optional, can add later)" value={form.apiKey} onChange={(e) => setForm({ ...form, apiKey: e.target.value })} className="admin-input text-[12px] py-[7px] font-mono" />
+            <input
+              placeholder="Base URL (e.g. https://api.openai.com)"
+              value={form.baseUrl}
+              onChange={(e) => setForm({ ...form, baseUrl: e.target.value })}
+              className="admin-input text-[12px] py-[7px] font-mono"
+            />
+            <input
+              type="password"
+              placeholder="API Key (optional, can add later)"
+              value={form.apiKey}
+              onChange={(e) => setForm({ ...form, apiKey: e.target.value })}
+              className="admin-input text-[12px] py-[7px] font-mono"
+            />
             <button
               type="button"
               onClick={handleFetchModels}
               disabled={!form.baseUrl || fetchingModels}
               className="admin-btn admin-btn-primary text-[11px] py-[7px] disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
             >
-              {fetchingModels ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+              {fetchingModels ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Search className="h-3 w-3" />
+              )}
               {fetchingModels ? "Fetching..." : "Fetch Models"}
             </button>
             <div>
-              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">Priority</label>
-              <input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })} className="admin-input w-full text-[12px] py-[7px]" />
+              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">
+                Priority
+              </label>
+              <input
+                type="number"
+                value={form.priority}
+                onChange={(e) =>
+                  setForm({ ...form, priority: Number(e.target.value) })
+                }
+                className="admin-input w-full text-[12px] py-[7px]"
+              />
             </div>
             <div>
-              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">Timeout (ms)</label>
-              <input type="number" value={form.timeoutMs} onChange={(e) => setForm({ ...form, timeoutMs: Number(e.target.value) })} className="admin-input w-full text-[12px] py-[7px]" />
+              <label className="block text-[9px] text-[var(--admin-text-dim)] mb-1 uppercase tracking-wider font-semibold">
+                Timeout (ms)
+              </label>
+              <input
+                type="number"
+                value={form.timeoutMs}
+                onChange={(e) =>
+                  setForm({ ...form, timeoutMs: Number(e.target.value) })
+                }
+                className="admin-input w-full text-[12px] py-[7px]"
+              />
             </div>
           </div>
 
           {fetchModelsError && (
             <div className="mt-3 p-2.5 rounded-[10px] bg-red-500/[0.04] border border-red-500/10 text-[11px] text-red-400 flex items-center justify-between">
               <span>{fetchModelsError}</span>
-              <button onClick={() => setFetchModelsError(null)} className="text-red-400/50 hover:text-red-400" aria-label="Dismiss">
+              <button
+                onClick={() => setFetchModelsError(null)}
+                className="text-red-400/50 hover:text-red-400"
+                aria-label="Dismiss"
+              >
                 <X className="h-3 w-3" />
               </button>
             </div>
@@ -742,11 +950,21 @@ export default function AdminProvidersPage() {
             <div className="mt-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] text-[var(--admin-text-muted)] font-medium">
-                  {selectedModelIds.size} of {fetchedModels.length} models selected
+                  {selectedModelIds.size} of {fetchedModels.length} models
+                  selected
                 </span>
-                <button onClick={toggleAllModels} className="text-[10px] text-indigo-400/70 hover:text-indigo-400 transition-colors font-medium flex items-center gap-1">
-                  {selectedModelIds.size === fetchedModels.length ? <CheckSquare className="h-3 w-3" /> : <Square className="h-3 w-3" />}
-                  {selectedModelIds.size === fetchedModels.length ? "Deselect All" : "Select All"}
+                <button
+                  onClick={toggleAllModels}
+                  className="text-[10px] text-indigo-400/70 hover:text-indigo-400 transition-colors font-medium flex items-center gap-1"
+                >
+                  {selectedModelIds.size === fetchedModels.length ? (
+                    <CheckSquare className="h-3 w-3" />
+                  ) : (
+                    <Square className="h-3 w-3" />
+                  )}
+                  {selectedModelIds.size === fetchedModels.length
+                    ? "Deselect All"
+                    : "Select All"}
                 </button>
               </div>
               <div className="max-h-48 overflow-y-auto rounded-[12px] border border-[var(--admin-border)] admin-scroll">
@@ -754,13 +972,21 @@ export default function AdminProvidersPage() {
                   <thead className="sticky top-0 bg-[var(--admin-surface-elevated)]">
                     <tr className="border-b border-[var(--admin-border)]">
                       <th className="w-8 py-1.5 pl-2"></th>
-                      <th className="text-left font-medium py-1.5 pr-2">Model ID</th>
-                      <th className="text-left font-medium py-1.5 pr-2">Owned By</th>
+                      <th className="text-left font-medium py-1.5 pr-2">
+                        Model ID
+                      </th>
+                      <th className="text-left font-medium py-1.5 pr-2">
+                        Owned By
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {fetchedModels.map((m) => (
-                      <tr key={m.id} className="border-b border-white/[0.015] hover:bg-white/[0.015] cursor-pointer" onClick={() => toggleModel(m.id)}>
+                      <tr
+                        key={m.id}
+                        className="border-b border-white/[0.015] hover:bg-white/[0.015] cursor-pointer"
+                        onClick={() => toggleModel(m.id)}
+                      >
                         <td className="py-1.5 pl-2">
                           {selectedModelIds.has(m.id) ? (
                             <CheckSquare className="h-3.5 w-3.5 text-indigo-400" />
@@ -768,8 +994,12 @@ export default function AdminProvidersPage() {
                             <Square className="h-3.5 w-3.5 text-[var(--admin-text-dim)]" />
                           )}
                         </td>
-                        <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">{m.id}</td>
-                        <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">{m.owned_by || "-"}</td>
+                        <td className="py-1.5 pr-2 font-mono text-[var(--admin-text)]">
+                          {m.id}
+                        </td>
+                        <td className="py-1.5 pr-2 text-[var(--admin-text-muted)]">
+                          {m.owned_by || "-"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -780,29 +1010,56 @@ export default function AdminProvidersPage() {
 
           {createProvider.isError && (
             <div className="mt-3 p-2.5 rounded-[10px] bg-red-500/[0.04] border border-red-500/10 text-[11px] text-red-400">
-              {createProvider.error instanceof Error ? createProvider.error.message : "Failed to create provider"}
+              {createProvider.error instanceof Error
+                ? createProvider.error.message
+                : "Failed to create provider"}
             </div>
           )}
           <div className="flex gap-2 pt-3">
-            <button onClick={handleCreate} disabled={!form.name || !form.baseUrl || createProvider.isPending} className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50">
+            <button
+              onClick={handleCreate}
+              disabled={!form.name || !form.baseUrl || createProvider.isPending}
+              className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50"
+            >
               {createProvider.isPending ? "Creating..." : "Create Provider"}
             </button>
-            <button onClick={resetForm} className="admin-btn admin-btn-ghost text-[11px] py-[5px]">Cancel</button>
+            <button
+              onClick={resetForm}
+              className="admin-btn admin-btn-ghost text-[11px] py-[5px]"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
       {deleteConfirm && (
         <div className="admin-card p-5 border-red-500/15 bg-red-500/[0.015]">
-          <h3 className="text-[13px] font-semibold text-[var(--admin-text)] mb-2">Delete Provider</h3>
+          <h3 className="text-[13px] font-semibold text-[var(--admin-text)] mb-2">
+            Delete Provider
+          </h3>
           <p className="text-[12px] text-[var(--admin-text-muted)] mb-4">
-            Delete <span className="text-[var(--admin-text)] font-mono">{deleteConfirm.name}</span>? This removes all keys and unregisters it from the runtime. Cannot be undone.
+            Delete{" "}
+            <span className="text-[var(--admin-text)] font-mono">
+              {deleteConfirm.name}
+            </span>
+            ? This removes all keys and unregisters it from the runtime. Cannot
+            be undone.
           </p>
           <div className="flex gap-2">
-            <button onClick={() => deleteProvider.mutate(deleteConfirm.id)} disabled={deleteProvider.isPending} className="admin-btn admin-btn-danger text-[11px] py-[5px] disabled:opacity-50">
+            <button
+              onClick={() => deleteProvider.mutate(deleteConfirm.id)}
+              disabled={deleteProvider.isPending}
+              className="admin-btn admin-btn-danger text-[11px] py-[5px] disabled:opacity-50"
+            >
               {deleteProvider.isPending ? "Deleting..." : "Delete"}
             </button>
-            <button onClick={() => setDeleteConfirm(null)} className="admin-btn admin-btn-ghost text-[11px] py-[5px]">Cancel</button>
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="admin-btn admin-btn-ghost text-[11px] py-[5px]"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -820,7 +1077,10 @@ export default function AdminProvidersPage() {
           <div className="col-span-full flex flex-col items-center justify-center py-16 text-[var(--admin-text-dim)]">
             <Server className="h-10 w-10 mb-3 opacity-40" />
             <p className="text-[13px]">No providers configured</p>
-            <button onClick={() => setShowAddForm(true)} className="mt-2 text-[11px] text-indigo-400/60 hover:text-indigo-400 transition-colors font-medium">
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="mt-2 text-[11px] text-indigo-400/60 hover:text-indigo-400 transition-colors font-medium"
+            >
               Add your first provider
             </button>
           </div>
@@ -829,7 +1089,11 @@ export default function AdminProvidersPage() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-1.5 mt-6">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5 disabled:opacity-20">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5 disabled:opacity-20"
+          >
             <ChevronLeft className="h-3.5 w-3.5" /> Prev
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -838,13 +1102,19 @@ export default function AdminProvidersPage() {
               onClick={() => setPage(p)}
               className={cn(
                 "w-8 h-8 rounded-[8px] text-[11px] font-mono transition-all duration-200",
-                p === page ? "bg-indigo-500/[0.08] text-indigo-400 border border-indigo-500/15" : "text-[var(--admin-text-dim)] hover:bg-white/[0.02] hover:text-[var(--admin-text-muted)]",
+                p === page
+                  ? "bg-indigo-500/[0.08] text-indigo-400 border border-indigo-500/15"
+                  : "text-[var(--admin-text-dim)] hover:bg-white/[0.02] hover:text-[var(--admin-text-muted)]",
               )}
             >
               {p}
             </button>
           ))}
-          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5 disabled:opacity-20">
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="admin-btn admin-btn-ghost text-[11px] py-[5px] px-2.5 disabled:opacity-20"
+          >
             Next <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>

@@ -37,7 +37,9 @@ export default function Mermaid({ chart }: MermaidProps) {
           if (process.env.NODE_ENV === "development") {
             console.error("Mermaid rendering failed:", error);
           }
-          setSvg(`<div class="text-red-400 text-xs p-2 border border-red-500/20 rounded bg-red-500/10">Failed to render diagram</div>`);
+          setSvg(
+            `<div class="text-red-400 text-xs p-2 border border-red-500/20 rounded bg-red-500/10">Failed to render diagram</div>`,
+          );
         }
       }
     };

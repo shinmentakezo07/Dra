@@ -5,7 +5,11 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import AdminPageHeader from "../../AdminPageHeader";
 
 export default function AdminAdminsPage() {
-  const { data: admins, isLoading, error } = useQuery<{ userId: string; role: string }[]>({
+  const {
+    data: admins,
+    isLoading,
+    error,
+  } = useQuery<{ userId: string; role: string }[]>({
     queryKey: ["admin", "admins"],
     queryFn: () => getAdminSDK().listAdminUsers(),
   });
@@ -24,18 +28,29 @@ export default function AdminAdminsPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load admin users"}</p>
+        <p className="text-[13px] text-red-400/70">
+          {error instanceof Error
+            ? error.message
+            : "Failed to load admin users"}
+        </p>
       </div>
     );
   }
 
   return (
-    <AdminPageHeader title="Admin Users" subtitle="Manage administrator accounts">
+    <AdminPageHeader
+      title="Admin Users"
+      subtitle="Manage administrator accounts"
+    >
       {!admins || admins.length === 0 ? (
         <div className="admin-card flex items-center justify-center min-h-[300px]">
           <div className="text-center">
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">No admin users found</p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">No administrator accounts have been created yet</p>
+            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
+              No admin users found
+            </p>
+            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
+              No administrator accounts have been created yet
+            </p>
           </div>
         </div>
       ) : (
@@ -50,7 +65,9 @@ export default function AdminAdminsPage() {
             <tbody>
               {admins.map((admin) => (
                 <tr key={admin.userId}>
-                  <td className="font-mono text-[var(--admin-text)]">{admin.userId}</td>
+                  <td className="font-mono text-[var(--admin-text)]">
+                    {admin.userId}
+                  </td>
                   <td>
                     <span className="admin-badge bg-white/[0.03] text-[var(--admin-text-dim)] border border-white/[0.04]">
                       {admin.role}

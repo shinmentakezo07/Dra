@@ -7,100 +7,237 @@ import { Check, Copy, Terminal as TerminalIcon } from "lucide-react";
 
 export function highlightJson(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(\btrue\b|\bfalse\b|\bnull\b)|(\b\d+\.?\d*\b)|(\/\/.*)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(\btrue\b|\bfalse\b|\bnull\b)|(\b\d+\.?\d*\b)|(\/\/.*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
-    if (match[1]) { parts.push(<span key={key++} className="text-sky-300">{match[1]}</span>); parts.push(<span key={key++}>:</span>); }
-    else if (match[2]) { parts.push(<span key={key++} className="text-amber-200/90">{match[2]}</span>); }
-    else if (match[3]) { parts.push(<span key={key++} className="text-purple-300">{match[3]}</span>); }
-    else if (match[4]) { parts.push(<span key={key++} className="text-emerald-300">{match[4]}</span>); }
-    else if (match[5]) { parts.push(<span key={key++} className="text-white/20 italic">{match[5]}</span>); }
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
+    }
+    if (match[1]) {
+      parts.push(
+        <span key={key++} className="text-sky-300">
+          {match[1]}
+        </span>,
+      );
+      parts.push(<span key={key++}>:</span>);
+    } else if (match[2]) {
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[2]}
+        </span>,
+      );
+    } else if (match[3]) {
+      parts.push(
+        <span key={key++} className="text-purple-300">
+          {match[3]}
+        </span>,
+      );
+    } else if (match[4]) {
+      parts.push(
+        <span key={key++} className="text-emerald-300">
+          {match[4]}
+        </span>,
+      );
+    } else if (match[5]) {
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[5]}
+        </span>,
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
+  if (lastIndex < code.length) {
+    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
+  }
   return <>{parts}</>;
 }
 
 export function highlightBash(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go)(?=\s|$)|("(?:[^"\\]|\\.)*")|(-[a-zA-Z]|--[a-zA-Z-]+)|((?:https?:\/\/|localhost)\S*)/gm;
+  const regex =
+    /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go)(?=\s|$)|("(?:[^"\\]|\\.)*")|(-[a-zA-Z]|--[a-zA-Z-]+)|((?:https?:\/\/|localhost)\S*)/gm;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
-    if (match[2]) { parts.push(<span key={key++} className="text-green-300 font-semibold">{match[2]}</span>); }
-    else if (match[3]) { parts.push(<span key={key++} className="text-amber-200/90">{match[3]}</span>); }
-    else if (match[4]) { parts.push(<span key={key++} className="text-blue-300">{match[4]}</span>); }
-    else if (match[5]) { parts.push(<span key={key++} className="text-cyan-300 underline underline-offset-2 decoration-white/10">{match[5]}</span>); }
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
+    }
+    if (match[2]) {
+      parts.push(
+        <span key={key++} className="text-green-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
+    } else if (match[3]) {
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[3]}
+        </span>,
+      );
+    } else if (match[4]) {
+      parts.push(
+        <span key={key++} className="text-blue-300">
+          {match[4]}
+        </span>,
+      );
+    } else if (match[5]) {
+      parts.push(
+        <span
+          key={key++}
+          className="text-cyan-300 underline underline-offset-2 decoration-white/10"
+        >
+          {match[5]}
+        </span>,
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
+  if (lastIndex < code.length) {
+    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
+  }
   return <>{parts}</>;
 }
 
 export function highlightPython(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b(def|import|from|class|return|if|else|elif|for|while|print|try|except|as|with|in|not|and|or|True|False|None)\b)|(#.*)|(\b\d+\.?\d*\b)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b(def|import|from|class|return|if|else|elif|for|while|print|try|except|as|with|in|not|and|or|True|False|None)\b)|(#.*)|(\b\d+\.?\d*\b)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
-    if (match[1]) { parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>); }
-    else if (match[2]) { parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>); }
-    else if (match[4]) { parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>); }
-    else if (match[5]) { parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>); }
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
+    }
+    if (match[1]) {
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[1]}
+        </span>,
+      );
+    } else if (match[2]) {
+      parts.push(
+        <span key={key++} className="text-purple-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
+    } else if (match[4]) {
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[4]}
+        </span>,
+      );
+    } else if (match[5]) {
+      parts.push(
+        <span key={key++} className="text-emerald-300">
+          {match[5]}
+        </span>,
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
+  if (lastIndex < code.length) {
+    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
+  }
   return <>{parts}</>;
 }
 
 export function highlightGo(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*"|`[^`]*`)|(\b(func|package|import|return|if|else|for|range|var|type|struct|interface|map|chan|go|defer|select|case|switch|break|continue|nil|true|false|err|error|string|int|bool|float64|any)\b)|(\/\/.*)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*"|`[^`]*`)|(\b(func|package|import|return|if|else|for|range|var|type|struct|interface|map|chan|go|defer|select|case|switch|break|continue|nil|true|false|err|error|string|int|bool|float64|any)\b)|(\/\/.*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
-    if (match[1]) { parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>); }
-    else if (match[2]) { parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>); }
-    else if (match[4]) { parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>); }
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
+    }
+    if (match[1]) {
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[1]}
+        </span>,
+      );
+    } else if (match[2]) {
+      parts.push(
+        <span key={key++} className="text-purple-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
+    } else if (match[4]) {
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[4]}
+        </span>,
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
+  if (lastIndex < code.length) {
+    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
+  }
   return <>{parts}</>;
 }
 
 export function highlightJS(code: string): JSX.Element {
   const parts: JSX.Element[] = [];
-  const regex = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b(const|let|var|function|async|await|return|import|from|export|default|if|else|for|of|in|try|catch|throw|new|class|extends|this|typeof|instanceof|true|false|null|undefined|Promise|console|fetch)\b)|(\/\/.*)|(\b\d+\.?\d*\b)/g;
+  const regex =
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b(const|let|var|function|async|await|return|import|from|export|default|if|else|for|of|in|try|catch|throw|new|class|extends|this|typeof|instanceof|true|false|null|undefined|Promise|console|fetch)\b)|(\/\/.*)|(\b\d+\.?\d*\b)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = regex.exec(code)) !== null) {
-    if (match.index > lastIndex) { parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>); }
-    if (match[1]) { parts.push(<span key={key++} className="text-amber-200/90">{match[1]}</span>); }
-    else if (match[2]) { parts.push(<span key={key++} className="text-purple-300 font-semibold">{match[2]}</span>); }
-    else if (match[4]) { parts.push(<span key={key++} className="text-white/20 italic">{match[4]}</span>); }
-    else if (match[5]) { parts.push(<span key={key++} className="text-emerald-300">{match[5]}</span>); }
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{code.slice(lastIndex, match.index)}</span>);
+    }
+    if (match[1]) {
+      parts.push(
+        <span key={key++} className="text-amber-200/90">
+          {match[1]}
+        </span>,
+      );
+    } else if (match[2]) {
+      parts.push(
+        <span key={key++} className="text-purple-300 font-semibold">
+          {match[2]}
+        </span>,
+      );
+    } else if (match[4]) {
+      parts.push(
+        <span key={key++} className="text-white/20 italic">
+          {match[4]}
+        </span>,
+      );
+    } else if (match[5]) {
+      parts.push(
+        <span key={key++} className="text-emerald-300">
+          {match[5]}
+        </span>,
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < code.length) { parts.push(<span key={key++}>{code.slice(lastIndex)}</span>); }
+  if (lastIndex < code.length) {
+    parts.push(<span key={key++}>{code.slice(lastIndex)}</span>);
+  }
   return <>{parts}</>;
 }
 
-export function getHighlighted(code: string, lang: string): JSX.Element | string {
+export function getHighlighted(
+  code: string,
+  lang: string,
+): JSX.Element | string {
   if (lang === "json" || lang === "bash" || lang === "curl") {
     if (lang === "bash") return highlightBash(code);
     if (lang === "curl") return highlightBash(code);
@@ -139,7 +276,7 @@ export const CodeBlock = ({
 
   if (!code && !examples) return null;
 
-  const displayCode = examples ? examples[activeLang] : code ?? "";
+  const displayCode = examples ? examples[activeLang] : (code ?? "");
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayCode);
@@ -166,10 +303,14 @@ export const CodeBlock = ({
     return getHighlighted(displayCode, langKey);
   })();
 
-  const hasSingleLine = displayCode.split("\n").filter(Boolean).length <= 3 && displayCode.length < 80;
+  const hasSingleLine =
+    displayCode.split("\n").filter(Boolean).length <= 3 &&
+    displayCode.length < 80;
 
   return (
-    <div className={`relative rounded-xl overflow-hidden bg-[#0a0a0c] border border-white/[0.06] group ${hasSingleLine ? "not-prose" : ""}`}>
+    <div
+      className={`relative rounded-xl overflow-hidden bg-[#0a0a0c] border border-white/[0.06] group ${hasSingleLine ? "not-prose" : ""}`}
+    >
       {/* Header bar */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-gradient-to-r from-white/[0.02] to-transparent">
         <div className="flex items-center gap-1.5">
@@ -198,13 +339,17 @@ export const CodeBlock = ({
           ) : (
             <div className="flex items-center gap-2">
               <TerminalIcon className="w-3.5 h-3.5 text-white/25" />
-              <span className="text-[11px] font-mono text-white/25 uppercase tracking-wider">{language}</span>
+              <span className="text-[11px] font-mono text-white/25 uppercase tracking-wider">
+                {language}
+              </span>
             </div>
           )}
         </div>
         <div className="flex items-center gap-2">
           {title && (
-            <span className="text-[11px] text-white/20 font-mono hidden sm:block">{title}</span>
+            <span className="text-[11px] text-white/20 font-mono hidden sm:block">
+              {title}
+            </span>
           )}
           <button
             onClick={handleCopy}

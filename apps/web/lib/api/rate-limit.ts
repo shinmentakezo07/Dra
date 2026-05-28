@@ -29,9 +29,14 @@ function cleanup() {
 // Run cleanup every 5 minutes
 setInterval(cleanup, 5 * 60 * 1000);
 
-export function checkRateLimit(identifier: string, isAuthenticated: boolean): void {
+export function checkRateLimit(
+  identifier: string,
+  isAuthenticated: boolean,
+): void {
   const now = Date.now();
-  const maxRequests = isAuthenticated ? MAX_REQUESTS_PER_WINDOW : MAX_ANONYMOUS_REQUESTS;
+  const maxRequests = isAuthenticated
+    ? MAX_REQUESTS_PER_WINDOW
+    : MAX_ANONYMOUS_REQUESTS;
 
   const entry = store.get(identifier);
 
@@ -50,7 +55,9 @@ export function checkRateLimit(identifier: string, isAuthenticated: boolean): vo
   entry.count++;
 }
 
-export function getRateLimitInfo(identifier: string): { remaining: number; resetAt: number } | null {
+export function getRateLimitInfo(
+  identifier: string,
+): { remaining: number; resetAt: number } | null {
   const entry = store.get(identifier);
   if (!entry) return null;
   const maxRequests = MAX_REQUESTS_PER_WINDOW;

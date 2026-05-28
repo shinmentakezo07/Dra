@@ -3,10 +3,19 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Activity, Search, Zap, ChevronLeft, ChevronRight,
-  AlertCircle, CheckCircle2,
-  Filter, RefreshCw, Eye, ArrowUpRight,
-  Hash, Clock,
+  Activity,
+  Search,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  CheckCircle2,
+  Filter,
+  RefreshCw,
+  Eye,
+  ArrowUpRight,
+  Hash,
+  Clock,
 } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -19,12 +28,19 @@ import type { APILog } from "@/lib/api/sdk";
 
 const stagger = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.08 },
+  },
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+  },
 };
 
 function formatCost(cents: number): string {
@@ -32,16 +48,25 @@ function formatCost(cents: number): string {
 }
 
 function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return new Date(dateStr).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 function FeedSkeleton() {
   return (
     <div className="bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden">
       <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02] flex gap-6">
-        {["Timestamp", "Model", "Tokens", "Cost", "Latency", "Status"].map((h) => (
-          <div key={h} className="h-3 w-16 bg-white/5 rounded animate-pulse" />
-        ))}
+        {["Timestamp", "Model", "Tokens", "Cost", "Latency", "Status"].map(
+          (h) => (
+            <div
+              key={h}
+              className="h-3 w-16 bg-white/5 rounded animate-pulse"
+            />
+          ),
+        )}
       </div>
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="px-6 py-4 border-b border-white/5 flex gap-6">
@@ -49,7 +74,10 @@ function FeedSkeleton() {
             <div
               key={j}
               className="h-4 bg-white/5 rounded animate-pulse"
-              style={{ width: `${30 + Math.random() * 50}%`, animationDelay: `${i * 0.05 + j * 0.03}s` }}
+              style={{
+                width: `${30 + Math.random() * 50}%`,
+                animationDelay: `${i * 0.05 + j * 0.03}s`,
+              }}
             />
           ))}
         </div>
@@ -60,7 +88,9 @@ function FeedSkeleton() {
 
 export default function LogsClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "success" | "error">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "success" | "error">(
+    "all",
+  );
   const [page, setPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<APILog | null>(null);
   const limit = 20;
@@ -92,22 +122,33 @@ export default function LogsClient() {
         log.provider.toLowerCase().includes(q) ||
         log.id.toLowerCase().includes(q) ||
         log.status.toLowerCase().includes(q);
-      const matchesStatus = statusFilter === "all" || log.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || log.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [allLogs, searchQuery, statusFilter]);
 
   const totalPages = logsData?.totalPages ?? 1;
-  const displayLogs = searchQuery || statusFilter !== "all" ? filteredLogs : allLogs;
+  const displayLogs =
+    searchQuery || statusFilter !== "all" ? filteredLogs : allLogs;
 
   const successCount = allLogs.filter((l) => l.status === "success").length;
   const errorCount = allLogs.filter((l) => l.status === "error").length;
-  const avgLatency = allLogs.length > 0
-    ? Math.round(allLogs.reduce((sum, log) => sum + log.latency, 0) / allLogs.length)
-    : 0;
-  const totalTokens = allLogs.reduce((sum, log) => sum + log.inputTokens + log.outputTokens, 0);
+  const avgLatency =
+    allLogs.length > 0
+      ? Math.round(
+          allLogs.reduce((sum, log) => sum + log.latency, 0) / allLogs.length,
+        )
+      : 0;
+  const totalTokens = allLogs.reduce(
+    (sum, log) => sum + log.inputTokens + log.outputTokens,
+    0,
+  );
   const totalCost = allLogs.reduce((sum, log) => sum + log.cost, 0);
-  const successRate = allLogs.length > 0 ? ((successCount / allLogs.length) * 100).toFixed(1) : "—";
+  const successRate =
+    allLogs.length > 0
+      ? ((successCount / allLogs.length) * 100).toFixed(1)
+      : "—";
 
   const handleRowClick = useCallback((row: APILog) => setSelectedLog(row), []);
   const handleCloseDrawer = useCallback(() => setSelectedLog(null), []);
@@ -139,7 +180,6 @@ export default function LogsClient() {
     <div className="min-h-screen pt-6 pb-12 px-4 sm:px-6 lg:px-8 bg-[#050505]">
       <div className="max-w-7xl mx-auto">
         <motion.div variants={stagger} initial="hidden" animate="visible">
-
           {/* Header */}
           <motion.div variants={itemVariants} className="mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -148,11 +188,16 @@ export default function LogsClient() {
                   <Activity className="w-6 h-6" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white">Request Logs</h1>
+                  <h1 className="text-3xl font-bold text-white">
+                    Request Logs
+                  </h1>
                   <p className="text-gray-400 text-sm mt-0.5">
                     Monitor all API requests and responses
                     {logsData?.total != null && (
-                      <span className="text-gray-500"> · {logsData.total.toLocaleString()} total</span>
+                      <span className="text-gray-500">
+                        {" "}
+                        · {logsData.total.toLocaleString()} total
+                      </span>
                     )}
                   </p>
                 </div>
@@ -165,7 +210,9 @@ export default function LogsClient() {
                 disabled={isLoading}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all text-sm disabled:opacity-30"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                />
                 Refresh
               </motion.button>
             </div>
@@ -183,10 +230,16 @@ export default function LogsClient() {
               >
                 <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="text-sm font-semibold text-red-400 mb-1">Error loading logs</h3>
-                  <p className="text-xs text-red-300/80">{getErrorMessage(error)}</p>
+                  <h3 className="text-sm font-semibold text-red-400 mb-1">
+                    Error loading logs
+                  </h3>
+                  <p className="text-xs text-red-300/80">
+                    {getErrorMessage(error)}
+                  </p>
                   {sdk.lastRequestId() && (
-                    <p className="text-xs text-red-400/60 mt-1 font-mono">Request ID: {sdk.lastRequestId()}</p>
+                    <p className="text-xs text-red-400/60 mt-1 font-mono">
+                      Request ID: {sdk.lastRequestId()}
+                    </p>
                   )}
                 </div>
               </motion.div>
@@ -194,10 +247,16 @@ export default function LogsClient() {
           </AnimatePresence>
 
           {/* Metric Cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <motion.div
+            variants={itemVariants}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5">
+                <div
+                  key={i}
+                  className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5"
+                >
                   <div className="h-3 w-20 bg-white/5 rounded animate-pulse mb-3" />
                   <div className="h-7 w-24 bg-white/5 rounded animate-pulse mb-1" />
                   <div className="h-2.5 w-16 bg-white/5 rounded animate-pulse" />
@@ -224,7 +283,11 @@ export default function LogsClient() {
                 <MetricCard
                   title="Errors"
                   value={errorCount}
-                  change={allLogs.length > 0 ? `${((errorCount / allLogs.length) * 100).toFixed(0)}%` : undefined}
+                  change={
+                    allLogs.length > 0
+                      ? `${((errorCount / allLogs.length) * 100).toFixed(0)}%`
+                      : undefined
+                  }
                   changeType={errorCount > 0 ? "negative" : "neutral"}
                   icon={AlertCircle}
                   iconColor="text-red-400"
@@ -248,20 +311,28 @@ export default function LogsClient() {
                 <div className="flex items-center gap-2">
                   <Hash className="w-4 h-4 text-purple-400/60" />
                   <span className="text-sm text-gray-400">Tokens</span>
-                  <span className="text-sm font-mono text-white">{totalTokens.toLocaleString()}</span>
+                  <span className="text-sm font-mono text-white">
+                    {totalTokens.toLocaleString()}
+                  </span>
                 </div>
                 <div className="w-px h-5 bg-white/10 hidden sm:block" />
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-emerald-400/60" />
                   <span className="text-sm text-gray-400">Cost</span>
-                  <span className="text-sm font-mono text-emerald-400">{formatCost(totalCost)}</span>
+                  <span className="text-sm font-mono text-emerald-400">
+                    {formatCost(totalCost)}
+                  </span>
                 </div>
                 <div className="w-px h-5 bg-white/10 hidden sm:block" />
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-amber-400/60" />
                   <span className="text-sm text-gray-400">Showing</span>
-                  <span className="text-sm font-mono text-white">{displayLogs.length}</span>
-                  <span className="text-sm text-gray-500">of {logsData?.total ?? 0}</span>
+                  <span className="text-sm font-mono text-white">
+                    {displayLogs.length}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    of {logsData?.total ?? 0}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -278,7 +349,10 @@ export default function LogsClient() {
                     type="text"
                     placeholder="Search by model, provider, ID, or status…  /"
                     value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPage(1);
+                    }}
                     className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/8 transition-all text-sm"
                   />
                 </div>
@@ -292,7 +366,10 @@ export default function LogsClient() {
                         key={key}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => { setStatusFilter(key); setPage(1); }}
+                        onClick={() => {
+                          setStatusFilter(key);
+                          setPage(1);
+                        }}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
                           isActive
                             ? key === "success"
@@ -314,26 +391,51 @@ export default function LogsClient() {
           </motion.div>
 
           {/* Log Table + Model Breakdown */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <motion.div
+            variants={itemVariants}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"
+          >
             <div className="lg:col-span-2">
               <AnimatePresence mode="wait">
                 {isLoading ? (
-                  <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
                     <FeedSkeleton />
                   </motion.div>
                 ) : displayLogs.length > 0 ? (
-                  <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <motion.div
+                    key="table"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
                     <div className="bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden">
                       <div className="overflow-x-auto hero-scroll">
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-white/10 bg-white/[0.02]">
-                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">Timestamp</th>
-                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">Model</th>
-                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">Tokens</th>
-                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">Cost</th>
-                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">Latency</th>
-                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
+                                Timestamp
+                              </th>
+                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
+                                Model
+                              </th>
+                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
+                                Tokens
+                              </th>
+                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
+                                Cost
+                              </th>
+                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
+                                Latency
+                              </th>
+                              <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
+                                Status
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5">
@@ -344,7 +446,12 @@ export default function LogsClient() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.03, duration: 0.2 }}
                                 onClick={() => handleRowClick(log)}
-                                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRowClick(log); } }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    handleRowClick(log);
+                                  }
+                                }}
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`View details for ${log.model} request ${log.id}`}
@@ -358,31 +465,53 @@ export default function LogsClient() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div>
-                                    <div className="text-sm font-semibold text-white">{log.model}</div>
-                                    <div className="text-xs text-gray-500 mt-0.5 font-mono">{log.provider}</div>
+                                    <div className="text-sm font-semibold text-white">
+                                      {log.model}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-0.5 font-mono">
+                                      {log.provider}
+                                    </div>
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="text-sm font-mono">
-                                    <span className="text-green-400">{log.inputTokens.toLocaleString()}</span>
-                                    <span className="text-gray-600 mx-1">/</span>
-                                    <span className="text-cyan-400">{log.outputTokens.toLocaleString()}</span>
+                                    <span className="text-green-400">
+                                      {log.inputTokens.toLocaleString()}
+                                    </span>
+                                    <span className="text-gray-600 mx-1">
+                                      /
+                                    </span>
+                                    <span className="text-cyan-400">
+                                      {log.outputTokens.toLocaleString()}
+                                    </span>
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm font-mono text-emerald-400">{formatCost(log.cost)}</div>
+                                  <div className="text-sm font-mono text-emerald-400">
+                                    {formatCost(log.cost)}
+                                  </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className={`flex items-center gap-1.5 text-sm font-mono ${
-                                    log.latency < 500 ? "text-green-400" : log.latency < 1500 ? "text-yellow-400" : "text-red-400"
-                                  }`}>
+                                  <div
+                                    className={`flex items-center gap-1.5 text-sm font-mono ${
+                                      log.latency < 500
+                                        ? "text-green-400"
+                                        : log.latency < 1500
+                                          ? "text-yellow-400"
+                                          : "text-red-400"
+                                    }`}
+                                  >
                                     <Zap className="w-3.5 h-3.5 shrink-0" />
                                     {log.latency}ms
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <StatusBadge
-                                    status={log.status === "success" ? "success" : "error"}
+                                    status={
+                                      log.status === "success"
+                                        ? "success"
+                                        : "error"
+                                    }
                                     label={log.status}
                                     size="sm"
                                   />
@@ -408,14 +537,20 @@ export default function LogsClient() {
                   >
                     <motion.div
                       animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
                       className="inline-block mb-6"
                     >
                       <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
                         <Hash className="w-12 h-12 text-gray-600" />
                       </div>
                     </motion.div>
-                    <h3 className="text-lg font-semibold text-gray-300 mb-2">No logs found</h3>
+                    <h3 className="text-lg font-semibold text-gray-300 mb-2">
+                      No logs found
+                    </h3>
                     <p className="text-sm text-gray-500 max-w-sm mx-auto">
                       {searchQuery || statusFilter !== "all"
                         ? "Try adjusting your search or filter criteria"
@@ -425,7 +560,11 @@ export default function LogsClient() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => { setSearchQuery(""); setStatusFilter("all"); setPage(1); }}
+                        onClick={() => {
+                          setSearchQuery("");
+                          setStatusFilter("all");
+                          setPage(1);
+                        }}
                         className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all text-sm"
                       >
                         Clear filters
@@ -440,7 +579,9 @@ export default function LogsClient() {
             <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-6 h-fit">
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-4 h-4 text-gray-500" />
-                <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Top Models</span>
+                <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                  Top Models
+                </span>
               </div>
               {isLoading ? (
                 <div className="space-y-2">
@@ -465,9 +606,15 @@ export default function LogsClient() {
               className="flex items-center justify-between bg-[#0A0A0A] border border-white/10 rounded-xl px-6 py-4"
             >
               <div className="text-sm text-gray-400 font-mono">
-                Page <span className="text-white font-semibold">{logsData.page}</span> of{" "}
+                Page{" "}
+                <span className="text-white font-semibold">
+                  {logsData.page}
+                </span>{" "}
+                of{" "}
                 <span className="text-white font-semibold">{totalPages}</span>
-                <span className="text-gray-600 ml-2">· {displayLogs.length} results</span>
+                <span className="text-gray-600 ml-2">
+                  · {displayLogs.length} results
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <motion.button
@@ -483,7 +630,10 @@ export default function LogsClient() {
                 <div className="flex gap-1.5 items-center">
                   {generatePageNumbers().map((p, i) =>
                     p === "..." ? (
-                      <span key={`e-${i}`} className="text-gray-600 text-sm px-1">
+                      <span
+                        key={`e-${i}`}
+                        className="text-gray-600 text-sm px-1"
+                      >
                         ···
                       </span>
                     ) : (
@@ -500,7 +650,7 @@ export default function LogsClient() {
                       >
                         {p}
                       </motion.button>
-                    )
+                    ),
                   )}
                 </div>
 

@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Users, Plus, Trash2, Loader2, AlertCircle } from "lucide-react";
+import {
+  Building2,
+  Users,
+  Plus,
+  Trash2,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useOrganizations,
@@ -20,13 +27,19 @@ export default function OrganizationPage() {
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: organizations = [], isLoading: loadingOrgs } = useOrganizations();
+  const { data: organizations = [], isLoading: loadingOrgs } =
+    useOrganizations();
   const { mutate: createOrg, isPending: creatingOrg } = useCreateOrganization();
-  const { data: members = [], isLoading: loadingMembers } = useOrgMembers(selectedOrgId ?? "");
+  const { data: members = [], isLoading: loadingMembers } = useOrgMembers(
+    selectedOrgId ?? "",
+  );
   const { mutate: inviteMember, isPending: inviting } = useInviteMember();
   const { mutate: removeMember, isPending: removing } = useRemoveMember();
 
-  const selectedOrg = organizations.find((o) => o.id === selectedOrgId) ?? organizations[0] ?? null;
+  const selectedOrg =
+    organizations.find((o) => o.id === selectedOrgId) ??
+    organizations[0] ??
+    null;
 
   const handleCreateOrg = () => {
     if (!newOrgName.trim()) return;
@@ -39,7 +52,7 @@ export default function OrganizationPage() {
           setShowCreateOrg(false);
         },
         onError: (err) => setError(err.message),
-      }
+      },
     );
   };
 
@@ -50,13 +63,16 @@ export default function OrganizationPage() {
       {
         onSuccess: () => setNewEmail(""),
         onError: (err) => setError(err.message),
-      }
+      },
     );
   };
 
   const handleRemoveMember = (userId: string) => {
     if (!selectedOrg) return;
-    removeMember({ orgId: selectedOrg.id, userId }, { onError: (err) => setError(err.message) });
+    removeMember(
+      { orgId: selectedOrg.id, userId },
+      { onError: (err) => setError(err.message) },
+    );
   };
 
   return (
@@ -76,7 +92,10 @@ export default function OrganizationPage() {
           >
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300">
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-400 hover:text-red-300"
+            >
               ×
             </button>
           </motion.div>
@@ -147,7 +166,10 @@ export default function OrganizationPage() {
                     Create
                   </button>
                   <button
-                    onClick={() => { setShowCreateOrg(false); setNewOrgName(""); }}
+                    onClick={() => {
+                      setShowCreateOrg(false);
+                      setNewOrgName("");
+                    }}
                     className="px-4 py-2 text-gray-400 hover:text-white text-sm transition-colors"
                   >
                     Cancel
@@ -170,7 +192,9 @@ export default function OrganizationPage() {
                 {members.length}
               </span>
             </div>
-            <span className="text-xs text-gray-600 font-mono">{selectedOrg.name}</span>
+            <span className="text-xs text-gray-600 font-mono">
+              {selectedOrg.name}
+            </span>
           </div>
 
           {/* Add Member */}
@@ -216,7 +240,9 @@ export default function OrganizationPage() {
                   className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
                 >
                   <div>
-                    <p className="text-white text-sm font-medium">{member.name}</p>
+                    <p className="text-white text-sm font-medium">
+                      {member.name}
+                    </p>
                     <p className="text-gray-500 text-xs">{member.email}</p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -225,8 +251,8 @@ export default function OrganizationPage() {
                         member.role === "owner"
                           ? "bg-primary/20 text-primary"
                           : member.role === "admin"
-                          ? "bg-yellow-500/20 text-yellow-400"
-                          : "bg-gray-800 text-gray-400"
+                            ? "bg-yellow-500/20 text-yellow-400"
+                            : "bg-gray-800 text-gray-400"
                       }`}
                     >
                       {member.role}

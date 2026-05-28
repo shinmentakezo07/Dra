@@ -72,9 +72,8 @@ export default function ProviderHealthPage() {
   const healthyCount = health?.filter((p) => p.healthy).length ?? 0;
   const unhealthyCount = (health?.length ?? 0) - healthyCount;
 
-  const openCircuits = circuitBreakers?.filter(
-    (cb) => cb.state !== "closed"
-  ).length ?? 0;
+  const openCircuits =
+    circuitBreakers?.filter((cb) => cb.state !== "closed").length ?? 0;
 
   return (
     <div className="p-6 lg:p-10 space-y-6">
@@ -147,7 +146,9 @@ export default function ProviderHealthPage() {
 
       <div className="rounded-xl border border-white/5 bg-white/[0.02]">
         <div className="px-4 py-3 border-b border-white/5">
-          <h2 className="text-sm font-semibold text-white">Provider Health Status</h2>
+          <h2 className="text-sm font-semibold text-white">
+            Provider Health Status
+          </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -156,7 +157,9 @@ export default function ProviderHealthPage() {
                 <th className="text-left font-medium py-2.5 px-4">Provider</th>
                 <th className="text-left font-medium py-2.5 px-4">Status</th>
                 <th className="text-left font-medium py-2.5 px-4">Latency</th>
-                <th className="text-left font-medium py-2.5 px-4">Last Check</th>
+                <th className="text-left font-medium py-2.5 px-4">
+                  Last Check
+                </th>
                 <th className="text-left font-medium py-2.5 px-4">Circuit</th>
                 <th className="text-left font-medium py-2.5 px-4">Failures</th>
               </tr>
@@ -174,7 +177,7 @@ export default function ProviderHealthPage() {
                 {!healthLoading &&
                   health?.map((p) => {
                     const cb = circuitBreakers?.find(
-                      (c) => c.provider === p.provider
+                      (c) => c.provider === p.provider,
                     );
                     return (
                       <tr
@@ -206,8 +209,8 @@ export default function ProviderHealthPage() {
                               p.latency > 2000
                                 ? "text-red-400"
                                 : p.latency > 1000
-                                ? "text-amber-400"
-                                : "text-emerald-400"
+                                  ? "text-amber-400"
+                                  : "text-emerald-400"
                             }`}
                           >
                             {formatLatency(p.latency)}
@@ -285,9 +288,7 @@ export default function ProviderHealthPage() {
                 </div>
                 <span
                   className={`text-xs font-medium capitalize ${
-                    p.status === "healthy"
-                      ? "text-emerald-400"
-                      : "text-red-400"
+                    p.status === "healthy" ? "text-emerald-400" : "text-red-400"
                   }`}
                 >
                   {p.status}

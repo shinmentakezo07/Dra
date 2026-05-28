@@ -16,16 +16,29 @@ export default function PromptsPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
       <Section id="prompts" icon={FileText} title="Prompt Templates">
         <p>
-          Save and reuse prompt templates with variable interpolation. Templates use <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">{`{{variable}}`}</code> syntax for dynamic content. Create, list, update, and delete templates through dedicated endpoints.
+          Save and reuse prompt templates with variable interpolation. Templates
+          use{" "}
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">{`{{variable}}`}</code>{" "}
+          syntax for dynamic content. Create, list, update, and delete templates
+          through dedicated endpoints.
         </p>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-8">Creating a template</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-8">
+          Creating a template
+        </h3>
         <div className="space-y-2 mb-6">
-          <EndpointCard method="POST" path="/api/prompts" description="Create a prompt template with name, content, and variable placeholders.">
+          <EndpointCard
+            method="POST"
+            path="/api/prompts"
+            description="Create a prompt template with name, content, and variable placeholders."
+          >
             <CodeBlock
               examples={{
                 curl: `curl -X POST ${BASE_URL}/api/prompts \\
@@ -77,12 +90,21 @@ req.Header.Set("Content-Type", "application/json")`,
           </EndpointCard>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Rendering a template</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Rendering a template
+        </h3>
         <p className="text-sm text-white/40 mb-4">
-          Use the render endpoint to substitute variables and get the final prompt text. The template engine replaces <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">{`{{variable}}`}</code> placeholders with the provided values.
+          Use the render endpoint to substitute variables and get the final
+          prompt text. The template engine replaces{" "}
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">{`{{variable}}`}</code>{" "}
+          placeholders with the provided values.
         </p>
         <div className="space-y-2 mb-6">
-          <EndpointCard method="POST" path="/api/prompts/{name}/render" description="Render a template with variable values. Returns the interpolated prompt text ready for use in a chat request.">
+          <EndpointCard
+            method="POST"
+            path="/api/prompts/{name}/render"
+            description="Render a template with variable values. Returns the interpolated prompt text ready for use in a chat request."
+          >
             <CodeBlock
               examples={{
                 curl: `curl -X POST ${BASE_URL}/api/prompts/translate/render \\
@@ -142,16 +164,38 @@ req.Header.Set("Content-Type", "application/json")`,
           </EndpointCard>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Managing templates</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Managing templates
+        </h3>
         <div className="space-y-2">
-          <EndpointCard method="GET" path="/api/prompts" description="List all saved prompt templates for the current user. Returns name, content, variables, and timestamps." />
-          <EndpointCard method="GET" path="/api/prompts/{name}" description="Get a specific prompt template by name including its content and variable definitions." />
-          <EndpointCard method="PUT" path="/api/prompts/{id}" description="Update an existing prompt template's content or variables. Supports partial updates." />
-          <EndpointCard method="DELETE" path="/api/prompts/{name}" description="Delete a prompt template by name. This action is permanent." />
+          <EndpointCard
+            method="GET"
+            path="/api/prompts"
+            description="List all saved prompt templates for the current user. Returns name, content, variables, and timestamps."
+          />
+          <EndpointCard
+            method="GET"
+            path="/api/prompts/{name}"
+            description="Get a specific prompt template by name including its content and variable definitions."
+          />
+          <EndpointCard
+            method="PUT"
+            path="/api/prompts/{id}"
+            description="Update an existing prompt template's content or variables. Supports partial updates."
+          />
+          <EndpointCard
+            method="DELETE"
+            path="/api/prompts/{name}"
+            description="Delete a prompt template by name. This action is permanent."
+          />
         </div>
 
         <TipBox>
-          Templates use Go-style <code className="text-blue-400 font-mono text-xs">{`{{variable}}`}</code> syntax. Variable names must match exactly between the template content and the render request. When rendering, all variables defined in the template must be provided.
+          Templates use Go-style{" "}
+          <code className="text-blue-400 font-mono text-xs">{`{{variable}}`}</code>{" "}
+          syntax. Variable names must match exactly between the template content
+          and the render request. When rendering, all variables defined in the
+          template must be provided.
         </TipBox>
       </Section>
     </motion.div>

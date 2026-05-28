@@ -13,29 +13,49 @@ interface SearchModalProps {
 }
 
 const CATEGORIES: Record<string, string> = {
-  quickstart: "Getting Started", authentication: "Getting Started", "api-reference": "Getting Started",
-  chat: "Core Features", embeddings: "Core Features", conversations: "Core Features", prompts: "Core Features",
-  batch: "Platform", files: "Platform", webhooks: "Platform", "rate-limits": "Platform",
-  "error-handling": "Platform", organizations: "Platform",
-  models: "Reference", pricing: "Reference", dashboard: "Reference", security: "Reference", examples: "Reference",
+  quickstart: "Getting Started",
+  authentication: "Getting Started",
+  "api-reference": "Getting Started",
+  chat: "Core Features",
+  embeddings: "Core Features",
+  conversations: "Core Features",
+  prompts: "Core Features",
+  batch: "Platform",
+  files: "Platform",
+  webhooks: "Platform",
+  "rate-limits": "Platform",
+  "error-handling": "Platform",
+  organizations: "Platform",
+  models: "Reference",
+  pricing: "Reference",
+  dashboard: "Reference",
+  security: "Reference",
+  examples: "Reference",
 };
 
 const CAT_COLORS: Record<string, string> = {
   "Getting Started": "text-emerald-400",
   "Core Features": "text-blue-400",
-  "Platform": "text-amber-400",
-  "Reference": "text-violet-400",
+  Platform: "text-amber-400",
+  Reference: "text-violet-400",
 };
 
-export const SearchModal = ({ open, onClose, items, onNavigate }: SearchModalProps) => {
+export const SearchModal = ({
+  open,
+  onClose,
+  items,
+  onNavigate,
+}: SearchModalProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (!open) { setSearchQuery(""); }
+    if (!open) {
+      setSearchQuery("");
+    }
   }, [open]);
 
   const filteredNav = items.filter((item) =>
-    item.label.toLowerCase().includes(searchQuery.toLowerCase())
+    item.label.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -89,7 +109,9 @@ export const SearchModal = ({ open, onClose, items, onNavigate }: SearchModalPro
                       <FileText className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
                       <span className="flex-1 font-medium">{item.label}</span>
                       {cat && (
-                        <span className={`text-[9px] font-mono font-semibold uppercase tracking-wider ${catColor} opacity-40 group-hover:opacity-70 transition-opacity`}>
+                        <span
+                          className={`text-[9px] font-mono font-semibold uppercase tracking-wider ${catColor} opacity-40 group-hover:opacity-70 transition-opacity`}
+                        >
                           {cat}
                         </span>
                       )}

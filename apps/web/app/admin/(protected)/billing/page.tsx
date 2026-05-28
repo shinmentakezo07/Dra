@@ -35,7 +35,10 @@ export default function AdminBillingPage() {
   };
 
   return (
-    <AdminPageHeader title="Billing" subtitle="Revenue, transactions, and credit adjustments">
+    <AdminPageHeader
+      title="Billing"
+      subtitle="Revenue, transactions, and credit adjustments"
+    >
       <div className="space-y-5">
         {/* Revenue Summary */}
         <div className="admin-card p-6">
@@ -44,15 +47,22 @@ export default function AdminBillingPage() {
               <DollarSign className="h-[18px] w-[18px]" />
             </div>
             <div>
-              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">Revenue Summary</h2>
-              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">Track platform revenue and transaction metrics</p>
+              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
+                Revenue Summary
+              </h2>
+              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
+                Track platform revenue and transaction metrics
+              </p>
             </div>
           </div>
           <div className="rounded-[14px] border border-dashed border-[var(--admin-border)] bg-white/[0.008] p-10 text-center">
             <DollarSign className="mx-auto h-8 w-8 text-[var(--admin-text-dim)]" />
-            <p className="mt-3 text-[13px] font-medium text-[var(--admin-text-muted)]">Coming Soon</p>
+            <p className="mt-3 text-[13px] font-medium text-[var(--admin-text-muted)]">
+              Coming Soon
+            </p>
             <p className="mt-1 text-[11px] text-[var(--admin-text-dim)] max-w-md mx-auto leading-relaxed">
-              Revenue charts, transaction history, daily/monthly breakdowns, and exportable billing reports will appear here.
+              Revenue charts, transaction history, daily/monthly breakdowns, and
+              exportable billing reports will appear here.
             </p>
           </div>
         </div>
@@ -64,8 +74,12 @@ export default function AdminBillingPage() {
               <CreditCard className="h-[18px] w-[18px]" />
             </div>
             <div>
-              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">Manual Credit Adjustment</h2>
-              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">Add or remove credits from any user account</p>
+              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
+                Manual Credit Adjustment
+              </h2>
+              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
+                Add or remove credits from any user account
+              </p>
             </div>
           </div>
 
@@ -106,11 +120,15 @@ export default function AdminBillingPage() {
 
             <button
               type="submit"
-              disabled={adjustMutation.isPending || !userId || !amount || !reason.trim()}
+              disabled={
+                adjustMutation.isPending || !userId || !amount || !reason.trim()
+              }
               className="admin-btn admin-btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {adjustMutation.isPending ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing...</>
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing...
+                </>
               ) : (
                 "Apply Adjustment"
               )}
@@ -118,7 +136,9 @@ export default function AdminBillingPage() {
 
             {adjustMutation.isError && (
               <p className="text-[12px] text-red-400/70">
-                {adjustMutation.error instanceof Error ? adjustMutation.error.message : "Failed to apply adjustment"}
+                {adjustMutation.error instanceof Error
+                  ? adjustMutation.error.message
+                  : "Failed to apply adjustment"}
               </p>
             )}
           </form>
@@ -131,15 +151,20 @@ export default function AdminBillingPage() {
               <History className="h-[18px] w-[18px]" />
             </div>
             <div>
-              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">Recent Adjustments</h2>
-              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">Credit adjustments applied in this session</p>
+              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
+                Recent Adjustments
+              </h2>
+              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
+                Credit adjustments applied in this session
+              </p>
             </div>
           </div>
 
           {adjustments.length === 0 ? (
             <div className="rounded-[14px] border border-dashed border-[var(--admin-border)] bg-white/[0.008] p-8 text-center">
               <p className="text-[12px] text-[var(--admin-text-dim)]">
-                No adjustments recorded yet. Use the form above to apply credits.
+                No adjustments recorded yet. Use the form above to apply
+                credits.
               </p>
             </div>
           ) : (
@@ -160,10 +185,15 @@ export default function AdminBillingPage() {
                       <td className="font-mono text-[11px] text-[var(--admin-text-muted)]">
                         {adj.userId.slice(0, 12)}...
                       </td>
-                      <td className={`text-right font-medium tabular-nums ${adj.amount >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {adj.amount >= 0 ? "+" : ""}{adj.amount.toFixed(2)}
+                      <td
+                        className={`text-right font-medium tabular-nums ${adj.amount >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                      >
+                        {adj.amount >= 0 ? "+" : ""}
+                        {adj.amount.toFixed(2)}
                       </td>
-                      <td className="text-[var(--admin-text-muted)] max-w-[200px] truncate">{adj.reason}</td>
+                      <td className="text-[var(--admin-text-muted)] max-w-[200px] truncate">
+                        {adj.reason}
+                      </td>
                       <td className="text-right font-mono text-[11px] text-[var(--admin-text-muted)] tabular-nums">
                         {adj.balanceAfter.toFixed(2)}
                       </td>

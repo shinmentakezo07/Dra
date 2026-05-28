@@ -14,6 +14,7 @@
 <br/>
 
 <!-- PREMIUM BADGES - Tech Stack with hover effects -->
+
 <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=next.js&logoColor=white" /></a>
 <a href="https://react.dev/"><img src="https://img.shields.io/badge/React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black" /></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript%205.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" /></a>
@@ -65,13 +66,13 @@
 
 <div align="center">
 
-| Problem | Yapapa Fix |
-|:--------|:-----------|
-| Managing different SDKs for OpenAI, Anthropic, Gemini, Groq, and more | **One unified API** for every provider |
-| Vendor lock-in and expensive migration work | **OpenAI-compatible** drop-in layer |
-| Poor visibility into token spend and latency | **Built-in analytics, logs, and billing** |
-| Hard to compare model quality across providers | **Playground for side-by-side testing** |
-| Production auth, quotas, and rate limits take time to build | **Ready-made gateway infrastructure** |
+| Problem                                                               | Yapapa Fix                                |
+| :-------------------------------------------------------------------- | :---------------------------------------- |
+| Managing different SDKs for OpenAI, Anthropic, Gemini, Groq, and more | **One unified API** for every provider    |
+| Vendor lock-in and expensive migration work                           | **OpenAI-compatible** drop-in layer       |
+| Poor visibility into token spend and latency                          | **Built-in analytics, logs, and billing** |
+| Hard to compare model quality across providers                        | **Playground for side-by-side testing**   |
+| Production auth, quotas, and rate limits take time to build           | **Ready-made gateway infrastructure**     |
 
 </div>
 
@@ -80,7 +81,6 @@
 > Yapapa is an **OpenRouter-style universal LLM gateway** built with **Next.js 16 canary + Go 1.25**. It gives you a production-ready control plane for AI traffic: routing, billing, analytics, auth, quotas, webhooks, conversations, prompts, and multi-provider access.
 
 <br/>
-
 
 <!-- Animated separator -->
 <div align="center">
@@ -104,13 +104,13 @@
 ```typescript
 // Just swap the base URL - that's it!
 const client = new OpenAI({
-  baseURL: "https://yapa.up.railway.app/v1"
+  baseURL: "https://yapa.up.railway.app/v1",
 });
 ```
 
 ✅ OpenAI-compatible `/v1/chat/completions` proxy  
 ✅ Automatic failover & load balancing  
-✅ Per-model routing & caching  
+✅ Per-model routing & caching
 
 <br/>
 
@@ -204,6 +204,7 @@ curl https://yapa.up.railway.app/v1/chat/completions \
 <br/>
 
 <!-- QUICK START SECTION -->
+
 <a id="quick-start"></a>
 
 ## 🚀 Quick Start
@@ -274,12 +275,12 @@ npm run dev   # ← from root
 
 ### 🌐 Services After Launch
 
-| Service | URL | Description |
-|:--------|:----|:------------|
-| 🌐 **Web App** | [http://localhost:3000](http://localhost:3000) | Next.js 16 frontend with App Router |
-| ⚙️ **Backend API** | [http://localhost:8080](http://localhost:8080) | Go 1.25 chi router API server |
-| 📚 **API Docs** | [http://localhost:3000/docs](http://localhost:3000/docs) | Interactive OpenAPI documentation |
-| 🧪 **Playground** | [http://localhost:3000/playground](http://localhost:3000/playground) | Multi-model AI chat playground |
+| Service            | URL                                                                  | Description                         |
+| :----------------- | :------------------------------------------------------------------- | :---------------------------------- |
+| 🌐 **Web App**     | [http://localhost:3000](http://localhost:3000)                       | Next.js 16 frontend with App Router |
+| ⚙️ **Backend API** | [http://localhost:8080](http://localhost:8080)                       | Go 1.25 chi router API server       |
+| 📚 **API Docs**    | [http://localhost:3000/docs](http://localhost:3000/docs)             | Interactive OpenAPI documentation   |
+| 🧪 **Playground**  | [http://localhost:3000/playground](http://localhost:3000/playground) | Multi-model AI chat playground      |
 
 </div>
 
@@ -290,6 +291,7 @@ npm run dev   # ← from root
 <br/>
 
 <!-- ARCHITECTURE SECTION -->
+
 <a id="architecture"></a>
 
 ## 🏗️ Architecture
@@ -390,6 +392,7 @@ graph LR
 <br/>
 
 <!-- TECH STACK SECTION -->
+
 <a id="tech-stack"></a>
 
 ## 🛠️ Tech Stack
@@ -403,43 +406,43 @@ graph LR
 
 ### Frontend
 
-| Technology | Purpose | Version |
-|:-----------|:--------|:-------:|
-| <img src="https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js" /> | React Framework (App Router, RSC) | 16.3.0-canary |
-| <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&color=222" /> | UI Library | 19.2.5 |
-| <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&color=222" /> | Type Safety | 5.9.3 |
-| <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&color=222" /> | Utility-first Styling | v4.2.2 |
-| <img src="https://img.shields.io/badge/Framer-0055FF?style=flat-square&logo=framer&color=222" /> | Animations & Gestures | 12.38.0 |
-| <img src="https://img.shields.io/badge/GSAP-88CE02?style=flat-square&logo=greensock&color=222" /> | Advanced Scroll Animations | 3.15.0 |
-| <img src="https://img.shields.io/badge/Recharts-22b5bf?style=flat-square&color=222" /> | Data Visualization | 3.8.1 |
-| <img src="https://img.shields.io/badge/NextAuth-000000?style=flat-square&logo=auth0&color=222" /> | Authentication | 5.0.0-beta |
-| <img src="https://img.shields.io/badge/Drizzle_ORM-c5f74f?style=flat-square&color=222" /> | Database ORM + Migrations | 0.45.2 |
-| <img src="https://img.shields.io/badge/Zod-3068B7?style=flat-square&logo=zod&color=222" /> | Schema Validation | v4 |
-| <img src="https://img.shields.io/badge/AI_SDK-000000?style=flat-square&logo=vercel&color=222" /> | AI/LLM Integration | 6.0.x |
-| <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=flat-square&logo=reactquery&color=222" /> | Server State Management | 5.71.0 |
-| <img src="https://img.shields.io/badge/Lucide-000000?style=flat-square&logo=lucide&color=222" /> | Icon Library | 1.14.0 |
+| Technology                                                                                                   | Purpose                           |    Version    |
+| :----------------------------------------------------------------------------------------------------------- | :-------------------------------- | :-----------: |
+| <img src="https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js" />                     | React Framework (App Router, RSC) | 16.3.0-canary |
+| <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&color=222" />               | UI Library                        |    19.2.5     |
+| <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&color=222" />     | Type Safety                       |     5.9.3     |
+| <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&color=222" />  | Utility-first Styling             |    v4.2.2     |
+| <img src="https://img.shields.io/badge/Framer-0055FF?style=flat-square&logo=framer&color=222" />             | Animations & Gestures             |    12.38.0    |
+| <img src="https://img.shields.io/badge/GSAP-88CE02?style=flat-square&logo=greensock&color=222" />            | Advanced Scroll Animations        |    3.15.0     |
+| <img src="https://img.shields.io/badge/Recharts-22b5bf?style=flat-square&color=222" />                       | Data Visualization                |     3.8.1     |
+| <img src="https://img.shields.io/badge/NextAuth-000000?style=flat-square&logo=auth0&color=222" />            | Authentication                    |  5.0.0-beta   |
+| <img src="https://img.shields.io/badge/Drizzle_ORM-c5f74f?style=flat-square&color=222" />                    | Database ORM + Migrations         |    0.45.2     |
+| <img src="https://img.shields.io/badge/Zod-3068B7?style=flat-square&logo=zod&color=222" />                   | Schema Validation                 |      v4       |
+| <img src="https://img.shields.io/badge/AI_SDK-000000?style=flat-square&logo=vercel&color=222" />             | AI/LLM Integration                |     6.0.x     |
+| <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=flat-square&logo=reactquery&color=222" /> | Server State Management           |    5.71.0     |
+| <img src="https://img.shields.io/badge/Lucide-000000?style=flat-square&logo=lucide&color=222" />             | Icon Library                      |    1.14.0     |
 
 ### Backend
 
-| Technology | Purpose | Version |
-|:-----------|:--------|:-------:|
-| <img src="https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&color=222" /> | Runtime & Language | 1.25.0 |
-| <img src="https://img.shields.io/badge/Chi_Router-000000?style=flat-square&color=222" /> | HTTP Router & Middleware | v5.2.5 |
-| <img src="https://img.shields.io/badge/pgx-336791?style=flat-square&logo=postgresql&color=222" /> | PostgreSQL Driver + Pool | v5.9.2 |
-| <img src="https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&color=222" /> | Token Authentication | v5.3.1 |
-| <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=prometheus&color=222" /> | Metrics Collection | client_golang |
-| <img src="https://img.shields.io/badge/Slog-000000?style=flat-square&color=222" /> | Structured Logging | stdlib |
+| Technology                                                                                               | Purpose                  |    Version    |
+| :------------------------------------------------------------------------------------------------------- | :----------------------- | :-----------: |
+| <img src="https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&color=222" />                 | Runtime & Language       |    1.25.0     |
+| <img src="https://img.shields.io/badge/Chi_Router-000000?style=flat-square&color=222" />                 | HTTP Router & Middleware |    v5.2.5     |
+| <img src="https://img.shields.io/badge/pgx-336791?style=flat-square&logo=postgresql&color=222" />        | PostgreSQL Driver + Pool |    v5.9.2     |
+| <img src="https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&color=222" />     | Token Authentication     |    v5.3.1     |
+| <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=prometheus&color=222" /> | Metrics Collection       | client_golang |
+| <img src="https://img.shields.io/badge/Slog-000000?style=flat-square&color=222" />                       | Structured Logging       |    stdlib     |
 
 ### Infrastructure
 
-| Technology | Purpose |
-|:-----------|:--------|
-| <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&color=0f172a" /> | Primary Database |
-| <img src="https://img.shields.io/badge/Neon-00E599?style=flat-square&logo=neon&color=0f172a" /> | Serverless PostgreSQL |
-| <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&color=0f172a" /> | Optional caching + rate limiting |
-| <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&color=0f172a" /> | Containerization |
-| <img src="https://img.shields.io/badge/Turborepo-EF4444?style=flat-square&logo=turborepo&color=0f172a" /> | Monorepo Task Runner |
-| <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&color=0f172a" /> | Deployment Platform |
+| Technology                                                                                                  | Purpose                          |
+| :---------------------------------------------------------------------------------------------------------- | :------------------------------- |
+| <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&color=0f172a" /> | Primary Database                 |
+| <img src="https://img.shields.io/badge/Neon-00E599?style=flat-square&logo=neon&color=0f172a" />             | Serverless PostgreSQL            |
+| <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&color=0f172a" />           | Optional caching + rate limiting |
+| <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&color=0f172a" />         | Containerization                 |
+| <img src="https://img.shields.io/badge/Turborepo-EF4444?style=flat-square&logo=turborepo&color=0f172a" />   | Monorepo Task Runner             |
+| <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&color=0f172a" />       | Deployment Platform              |
 
 <br/>
 
@@ -448,6 +451,7 @@ graph LR
 <br/>
 
 <!-- PROJECT STRUCTURE SECTION -->
+
 ## 📁 Project Structure
 
 <div align="center">
@@ -546,6 +550,7 @@ shinway/
 <br/>
 
 <!-- API REFERENCE SECTION -->
+
 <a id="api-reference"></a>
 
 ## 📡 API Reference
@@ -559,150 +564,150 @@ shinway/
 
 ### 🔓 Public Endpoints
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/health` | Backend health check |
-| `GET` | `/health/providers` | LLM provider health summary |
-| `GET` | `/api/models` | List available AI models |
-| `GET` | `/v1/models` | OpenAI-compatible model list |
+| Method | Endpoint            | Description                  |
+| :----- | :------------------ | :--------------------------- |
+| `GET`  | `/health`           | Backend health check         |
+| `GET`  | `/health/providers` | LLM provider health summary  |
+| `GET`  | `/api/models`       | List available AI models     |
+| `GET`  | `/v1/models`        | OpenAI-compatible model list |
 
 ### 🔐 Authenticated Endpoints
 
 <details>
 <summary><b>🔑 Auth</b> — 7 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `POST` | `/api/auth/signup` | User registration |
-| `POST` | `/api/auth/login` | User login |
-| `POST` | `/api/auth/forgot-password` | Request password reset |
-| `POST` | `/api/auth/reset-password` | Reset password with token |
-| `GET` | `/api/auth/me` | Get current user profile |
-| `PUT` | `/api/auth/profile` | Update user profile |
-| `PUT` | `/api/auth/password` | Change password |
+| Method | Endpoint                    | Description               |
+| :----- | :-------------------------- | :------------------------ |
+| `POST` | `/api/auth/signup`          | User registration         |
+| `POST` | `/api/auth/login`           | User login                |
+| `POST` | `/api/auth/forgot-password` | Request password reset    |
+| `POST` | `/api/auth/reset-password`  | Reset password with token |
+| `GET`  | `/api/auth/me`              | Get current user profile  |
+| `PUT`  | `/api/auth/profile`         | Update user profile       |
+| `PUT`  | `/api/auth/password`        | Change password           |
 
 </details>
 
 <details>
 <summary><b>💬 Chat & AI</b> — 5 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `POST` | `/api/chat` | Stream AI completions (SSE) |
-| `POST` | `/api/embeddings` | Generate embeddings |
+| Method | Endpoint               | Description                       |
+| :----- | :--------------------- | :-------------------------------- |
+| `POST` | `/api/chat`            | Stream AI completions (SSE)       |
+| `POST` | `/api/embeddings`      | Generate embeddings               |
 | `POST` | `/v1/chat/completions` | OpenAI-compatible streaming proxy |
-| `POST` | `/v1/embeddings` | OpenAI-compatible embeddings |
-| `POST` | `/api/validate` | Validate structured output |
+| `POST` | `/v1/embeddings`       | OpenAI-compatible embeddings      |
+| `POST` | `/api/validate`        | Validate structured output        |
 
 </details>
 
 <details>
 <summary><b>🔑 API Keys</b> — 4 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/keys` | List API keys |
-| `POST` | `/api/keys` | Create new API key |
-| `DELETE` | `/api/keys/:id` | Delete API key |
-| `POST` | `/api/keys/:id/revoke` | Revoke API key |
+| Method   | Endpoint               | Description        |
+| :------- | :--------------------- | :----------------- |
+| `GET`    | `/api/keys`            | List API keys      |
+| `POST`   | `/api/keys`            | Create new API key |
+| `DELETE` | `/api/keys/:id`        | Delete API key     |
+| `POST`   | `/api/keys/:id/revoke` | Revoke API key     |
 
 </details>
 
 <details>
 <summary><b>💰 Credits & Billing</b> — 6 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/credits` | Get credit balance |
-| `POST` | `/api/credits/purchase` | Purchase credits |
-| `GET` | `/api/credits/budget` | Get budget settings |
-| `PUT` | `/api/credits/budget` | Set budget limits |
-| `GET` | `/api/transactions` | Transaction history |
-| `POST` | `/webhooks/stripe` | Stripe webhook (verified) |
+| Method | Endpoint                | Description               |
+| :----- | :---------------------- | :------------------------ |
+| `GET`  | `/api/credits`          | Get credit balance        |
+| `POST` | `/api/credits/purchase` | Purchase credits          |
+| `GET`  | `/api/credits/budget`   | Get budget settings       |
+| `PUT`  | `/api/credits/budget`   | Set budget limits         |
+| `GET`  | `/api/transactions`     | Transaction history       |
+| `POST` | `/webhooks/stripe`      | Stripe webhook (verified) |
 
 </details>
 
 <details>
 <summary><b>💬 Conversations</b> — 5 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/conversations` | List conversations |
-| `POST` | `/api/conversations` | Create conversation |
-| `GET` | `/api/conversations/:id` | Get conversation |
-| `DELETE` | `/api/conversations/:id` | Delete conversation |
-| `POST` | `/api/conversations/:id/messages` | Add message |
+| Method   | Endpoint                          | Description         |
+| :------- | :-------------------------------- | :------------------ |
+| `GET`    | `/api/conversations`              | List conversations  |
+| `POST`   | `/api/conversations`              | Create conversation |
+| `GET`    | `/api/conversations/:id`          | Get conversation    |
+| `DELETE` | `/api/conversations/:id`          | Delete conversation |
+| `POST`   | `/api/conversations/:id/messages` | Add message         |
 
 </details>
 
 <details>
 <summary><b>📋 Prompts</b> — 5 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/prompts` | List prompts |
-| `POST` | `/api/prompts` | Create prompt |
-| `GET` | `/api/prompts/:name` | Get prompt by name |
-| `POST` | `/api/prompts/:name/render` | Render prompt template |
-| `DELETE` | `/api/prompts/:name` | Delete prompt |
+| Method   | Endpoint                    | Description            |
+| :------- | :-------------------------- | :--------------------- |
+| `GET`    | `/api/prompts`              | List prompts           |
+| `POST`   | `/api/prompts`              | Create prompt          |
+| `GET`    | `/api/prompts/:name`        | Get prompt by name     |
+| `POST`   | `/api/prompts/:name/render` | Render prompt template |
+| `DELETE` | `/api/prompts/:name`        | Delete prompt          |
 
 </details>
 
 <details>
 <summary><b>📡 Webhooks</b> — 4 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/webhooks` | List webhooks |
-| `POST` | `/api/webhooks` | Create webhook |
-| `GET` | `/api/webhooks/:id` | Get webhook |
-| `PUT` | `/api/webhooks/:id` | Update webhook |
+| Method | Endpoint            | Description    |
+| :----- | :------------------ | :------------- |
+| `GET`  | `/api/webhooks`     | List webhooks  |
+| `POST` | `/api/webhooks`     | Create webhook |
+| `GET`  | `/api/webhooks/:id` | Get webhook    |
+| `PUT`  | `/api/webhooks/:id` | Update webhook |
 
 </details>
 
 <details>
 <summary><b>🏢 Organizations</b> — 7 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/organizations` | List organizations |
-| `POST` | `/api/organizations` | Create organization |
-| `GET` | `/api/organizations/:id` | Get organization |
-| `POST` | `/api/organizations/:id/invite` | Invite member |
-| `DELETE` | `/api/organizations/:id/members/:userId` | Remove member |
-| `GET` | `/api/organizations/:id/members` | List members |
-| `POST` | `/api/invites/accept` | Accept invitation |
+| Method   | Endpoint                                 | Description         |
+| :------- | :--------------------------------------- | :------------------ |
+| `GET`    | `/api/organizations`                     | List organizations  |
+| `POST`   | `/api/organizations`                     | Create organization |
+| `GET`    | `/api/organizations/:id`                 | Get organization    |
+| `POST`   | `/api/organizations/:id/invite`          | Invite member       |
+| `DELETE` | `/api/organizations/:id/members/:userId` | Remove member       |
+| `GET`    | `/api/organizations/:id/members`         | List members        |
+| `POST`   | `/api/invites/accept`                    | Accept invitation   |
 
 </details>
 
 <details>
 <summary><b>📊 Usage & Logs</b> — 2 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/logs` | Request logs (paginated) |
-| `GET` | `/api/analytics` | Usage analytics |
+| Method | Endpoint         | Description              |
+| :----- | :--------------- | :----------------------- |
+| `GET`  | `/api/logs`      | Request logs (paginated) |
+| `GET`  | `/api/analytics` | Usage analytics          |
 
 </details>
 
 <details>
 <summary><b>📦 Batch & Files</b> — 4 endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `POST` | `/api/batch` | Submit batch chat job |
-| `GET` | `/api/batch/:id` | Get batch job status |
-| `POST` | `/api/files/upload` | Upload file |
-| `GET` | `/api/files` | List files |
+| Method | Endpoint            | Description           |
+| :----- | :------------------ | :-------------------- |
+| `POST` | `/api/batch`        | Submit batch chat job |
+| `GET`  | `/api/batch/:id`    | Get batch job status  |
+| `POST` | `/api/files/upload` | Upload file           |
+| `GET`  | `/api/files`        | List files            |
 
 </details>
 
 <details>
 <summary><b>⚡ Real-Time</b> — 1 endpoint</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/notifications/stream` | SSE notification stream |
+| Method | Endpoint                    | Description             |
+| :----- | :-------------------------- | :---------------------- |
+| `GET`  | `/api/notifications/stream` | SSE notification stream |
 
 </details>
 
@@ -711,24 +716,24 @@ shinway/
 <details>
 <summary><b>Admin</b> — 30+ endpoints</summary>
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/admin/users` | List all users |
-| `DELETE` | `/api/admin/users/:id` | Delete user account |
-| `GET` | `/api/admin/stats` | Platform statistics |
-| `GET` | `/api/admin/circuit-breakers` | Circuit breaker status |
-| `GET` | `/api/admin/provider-health` | Provider health |
-| `GET` | `/api/admin/settings` | Admin settings |
-| `POST` | `/api/admin/models` | Create/update model |
-| `POST` | `/api/admin/providers` | Create/update provider |
-| `POST` | `/api/admin/keys` | Manage provider keys |
-| `GET` | `/api/admin/billing` | Billing overview |
-| `GET` | `/api/admin/security` | Security dashboard |
-| `POST` | `/api/admin/promo` | Create promo codes |
-| `GET` | `/api/admin/messages` | Admin messages |
-| `POST` | `/api/admin/announcements` | System announcements |
-| `GET` | `/api/admin/operations` | Operations dashboard |
-| `POST` | `/api/admin/exports` | Data export jobs |
+| Method   | Endpoint                      | Description            |
+| :------- | :---------------------------- | :--------------------- |
+| `GET`    | `/api/admin/users`            | List all users         |
+| `DELETE` | `/api/admin/users/:id`        | Delete user account    |
+| `GET`    | `/api/admin/stats`            | Platform statistics    |
+| `GET`    | `/api/admin/circuit-breakers` | Circuit breaker status |
+| `GET`    | `/api/admin/provider-health`  | Provider health        |
+| `GET`    | `/api/admin/settings`         | Admin settings         |
+| `POST`   | `/api/admin/models`           | Create/update model    |
+| `POST`   | `/api/admin/providers`        | Create/update provider |
+| `POST`   | `/api/admin/keys`             | Manage provider keys   |
+| `GET`    | `/api/admin/billing`          | Billing overview       |
+| `GET`    | `/api/admin/security`         | Security dashboard     |
+| `POST`   | `/api/admin/promo`            | Create promo codes     |
+| `GET`    | `/api/admin/messages`         | Admin messages         |
+| `POST`   | `/api/admin/announcements`    | System announcements   |
+| `GET`    | `/api/admin/operations`       | Operations dashboard   |
+| `POST`   | `/api/admin/exports`          | Data export jobs       |
 
 </details>
 
@@ -763,7 +768,7 @@ configureSDK({ baseUrl: "http://localhost:8080" });
 // Stream chat completions
 const stream = getSDK().chatStream({
   model: "claude-opus-4",
-  messages: [{ role: "user", content: "Explain quantum computing" }]
+  messages: [{ role: "user", content: "Explain quantum computing" }],
 });
 
 for await (const chunk of stream) {
@@ -818,6 +823,7 @@ curl http://localhost:8080/api/chat \
 <br/>
 
 <!-- DATABASE SCHEMA SECTION -->
+
 ## 🗄️ Database Schema
 
 <div align="center">
@@ -924,12 +930,12 @@ cache_stats (id, hits, misses, evictions, period_start)
 
 ### Schema Stats
 
-| Metric | Count |
-|:-------|------:|
-| Total tables | 70+ |
-| SQL migrations | 19 |
-| Performance indexes | 40+ |
-| Foreign key constraints | 50+ |
+| Metric                  | Count |
+| :---------------------- | ----: |
+| Total tables            |   70+ |
+| SQL migrations          |    19 |
+| Performance indexes     |   40+ |
+| Foreign key constraints |   50+ |
 
 <br/>
 
@@ -938,6 +944,7 @@ cache_stats (id, hits, misses, evictions, period_start)
 <br/>
 
 <!-- SCRIPTS SECTION -->
+
 ## 🧪 Available Scripts
 
 <div align="center">
@@ -1010,6 +1017,7 @@ bash scripts/smoke-test.sh  # Post-change wiring verification
 <br/>
 
 <!-- DEPLOYMENT SECTION -->
+
 <a id="deployment"></a>
 
 ## 🐳 Deployment
@@ -1032,11 +1040,11 @@ bash scripts/smoke-test.sh  # Post-change wiring verification
 docker-compose up -d
 ```
 
-| Service | Image | Port |
-|:--------|:------|:----:|
+| Service              | Image                | Port |
+| :------------------- | :------------------- | :--: |
 | 🐘 **PostgreSQL 16** | `postgres:16-alpine` | 5432 |
-| 🌐 **Frontend** | `owsiwa-web` | 3000 |
-| ⚙️ **Backend** | `owsiwa-api` | 8080 |
+| 🌐 **Frontend**      | `owsiwa-web`         | 3000 |
+| ⚙️ **Backend**       | `owsiwa-api`         | 8080 |
 
 </td>
 <td width="50%" valign="top">
@@ -1063,23 +1071,23 @@ https://yapa.up.railway.app/v1/chat/completions
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|:---------|:--------:|:------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `AUTH_SECRET` | ✅ | JWT signing secret |
-| `NEXTAUTH_SECRET` | ✅ | NextAuth session secret |
-| `NEXTAUTH_URL` | ✅ | Public base URL |
-| `BACKEND_URL` | ✅ | Go backend URL |
-| `OPENAI_API_KEY` | ❌ | OpenAI API key |
-| `NVIDIA_API_KEY` | ❌ | NVIDIA NIM API key |
-| `ANTHROPIC_API_KEY` | ❌ | Anthropic API key |
-| `GROQ_API_KEY` | ❌ | Groq API key |
-| `GEMINI_API_KEY` | ❌ | Google Gemini API key |
-| `RATE_LIMIT_RPM` | ❌ | Rate limit per minute |
-| `STRIPE_SECRET_KEY` | ❌ | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | ❌ | Stripe webhook secret |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | ❌ | SMTP email config |
-| `REDIS_URL` | ❌ | Redis connection URL |
+| Variable                                | Required | Description                  |
+| :-------------------------------------- | :------: | :--------------------------- |
+| `DATABASE_URL`                          |    ✅    | PostgreSQL connection string |
+| `AUTH_SECRET`                           |    ✅    | JWT signing secret           |
+| `NEXTAUTH_SECRET`                       |    ✅    | NextAuth session secret      |
+| `NEXTAUTH_URL`                          |    ✅    | Public base URL              |
+| `BACKEND_URL`                           |    ✅    | Go backend URL               |
+| `OPENAI_API_KEY`                        |    ❌    | OpenAI API key               |
+| `NVIDIA_API_KEY`                        |    ❌    | NVIDIA NIM API key           |
+| `ANTHROPIC_API_KEY`                     |    ❌    | Anthropic API key            |
+| `GROQ_API_KEY`                          |    ❌    | Groq API key                 |
+| `GEMINI_API_KEY`                        |    ❌    | Google Gemini API key        |
+| `RATE_LIMIT_RPM`                        |    ❌    | Rate limit per minute        |
+| `STRIPE_SECRET_KEY`                     |    ❌    | Stripe secret key            |
+| `STRIPE_WEBHOOK_SECRET`                 |    ❌    | Stripe webhook secret        |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` |    ❌    | SMTP email config            |
+| `REDIS_URL`                             |    ❌    | Redis connection URL         |
 
 <br/>
 
@@ -1088,6 +1096,7 @@ https://yapa.up.railway.app/v1/chat/completions
 <br/>
 
 <!-- BEST PRACTICES SECTION -->
+
 ## 🧠 Best Practices
 
 <div align="center">
@@ -1105,27 +1114,27 @@ https://yapa.up.railway.app/v1/chat/completions
 
 ### 🔄 Development Workflow
 
-| Practice | Rule |
-|:---------|:-----|
-| 🌿 **Branch naming** | `feature/*`, `fix/*`, `refactor/*`, `docs/*` |
-| 📝 **Commits** | Conventional: `feat:`, `fix:`, `refactor:`, `test:`, `docs:` |
-| ✅ **Pre-commit** | `make vet + test` (backend) · `lint + test` (frontend) |
-| 🚫 **TypeScript** | No `as any` or `@ts-ignore` — strict mode enforced |
-| 📊 **Dashboard** | No mock data — always use `getSDK()` for real data |
-| 🔄 **SDK sync** | Go SDK → TypeScript SDK parity for every endpoint |
+| Practice             | Rule                                                         |
+| :------------------- | :----------------------------------------------------------- |
+| 🌿 **Branch naming** | `feature/*`, `fix/*`, `refactor/*`, `docs/*`                 |
+| 📝 **Commits**       | Conventional: `feat:`, `fix:`, `refactor:`, `test:`, `docs:` |
+| ✅ **Pre-commit**    | `make vet + test` (backend) · `lint + test` (frontend)       |
+| 🚫 **TypeScript**    | No `as any` or `@ts-ignore` — strict mode enforced           |
+| 📊 **Dashboard**     | No mock data — always use `getSDK()` for real data           |
+| 🔄 **SDK sync**      | Go SDK → TypeScript SDK parity for every endpoint            |
 
 </td>
 <td width="50%" valign="top">
 
 ### 🏗️ Architecture Rules
 
-| Rule | Description |
-|:-----|:------------|
-| 📦 **Layer purity** | Handler → parse/call/write. Service → business logic. Repository → raw SQL |
-| 🔌 **Provider registration** | Use `pkg/llm/provider/` exclusively — `internal/provider/` was eliminated |
-| 🏖️ **Sandbox mode** | `X-Sandbox: true` header skips quota, cost, and logging |
-| 📜 **Migrations** | Hand-applied SQL only. Apply in order, one-time |
-| 🔒 **Auth** | `AUTH_SECRET` must be identical between frontend and backend |
+| Rule                         | Description                                                                |
+| :--------------------------- | :------------------------------------------------------------------------- |
+| 📦 **Layer purity**          | Handler → parse/call/write. Service → business logic. Repository → raw SQL |
+| 🔌 **Provider registration** | Use `pkg/llm/provider/` exclusively — `internal/provider/` was eliminated  |
+| 🏖️ **Sandbox mode**          | `X-Sandbox: true` header skips quota, cost, and logging                    |
+| 📜 **Migrations**            | Hand-applied SQL only. Apply in order, one-time                            |
+| 🔒 **Auth**                  | `AUTH_SECRET` must be identical between frontend and backend               |
 
 </td>
 </tr>
@@ -1138,6 +1147,7 @@ https://yapa.up.railway.app/v1/chat/completions
 <br/>
 
 <!-- ROADMAP SECTION -->
+
 <a id="roadmap"></a>
 
 ## 🗺️ Roadmap
@@ -1258,6 +1268,7 @@ https://yapa.up.railway.app/v1/chat/completions
 <br/>
 
 <!-- CONTRIBUTING SECTION -->
+
 ## 🤝 Contributing
 
 <div align="center">
@@ -1275,13 +1286,13 @@ We welcome contributions from the community! Yapapa is an open-source project an
 
 ### 🚀 Getting Started
 
-| Step | Action | Command |
-|:----:|:-------|:--------|
-| **1** | 🍴 **Fork** the repository | Click the Fork button |
-| **2** | 🌿 **Create** feature branch | `git checkout -b feature/amazing-feature` |
-| **3** | 💾 **Commit** changes | `git commit -m 'feat: add amazing feature'` |
-| **4** | 📤 **Push** to branch | `git push origin feature/amazing-feature` |
-| **5** | 🔀 **Open** a Pull Request | Visit GitHub → New PR |
+| Step  | Action                       | Command                                     |
+| :---: | :--------------------------- | :------------------------------------------ |
+| **1** | 🍴 **Fork** the repository   | Click the Fork button                       |
+| **2** | 🌿 **Create** feature branch | `git checkout -b feature/amazing-feature`   |
+| **3** | 💾 **Commit** changes        | `git commit -m 'feat: add amazing feature'` |
+| **4** | 📤 **Push** to branch        | `git push origin feature/amazing-feature`   |
+| **5** | 🔀 **Open** a Pull Request   | Visit GitHub → New PR                       |
 
 </div>
 
@@ -1289,12 +1300,12 @@ We welcome contributions from the community! Yapapa is an open-source project an
 
 <div align="center">
 
-| Area | Rule |
-|:-----|:-----|
-| 🎨 **Style** | Prettier + ESLint (frontend) · `gofmt` + `staticcheck` (backend) |
-| 🧪 **Tests** | Vitest (frontend) · `go test -race` (backend) |
-| 📦 **SDKs** | Update both Go + TypeScript SDKs for API changes |
-| ✅ **CI** | `npm run build` + `make test` must pass before PR |
+| Area         | Rule                                                               |
+| :----------- | :----------------------------------------------------------------- |
+| 🎨 **Style** | Prettier + ESLint (frontend) · `gofmt` + `staticcheck` (backend)   |
+| 🧪 **Tests** | Vitest (frontend) · `go test -race` (backend)                      |
+| 📦 **SDKs**  | Update both Go + TypeScript SDKs for API changes                   |
+| ✅ **CI**    | `npm run build` + `make test` must pass before PR                  |
 | 🚫 **Never** | Use `as any` or `@ts-ignore` — maintain strict TypeScript coverage |
 
 </div>
@@ -1314,6 +1325,7 @@ We welcome contributions from the community! Yapapa is an open-source project an
 <br/>
 
 <!-- LICENSE SECTION -->
+
 ## 📄 License
 
 <div align="center">
@@ -1338,6 +1350,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 <br/>
 
 **You are free to:**
+
 - ✅ Use this project for personal or commercial purposes
 - ✅ Modify and adapt the code to your needs
 - ✅ Distribute copies of the original or modified code

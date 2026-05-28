@@ -139,6 +139,7 @@ HTML mode does not use the Piston API -- it renders the code directly in a sandb
 | `onConfirm` | `(models: EnrichedModel[]) => void` | Selection confirmation |
 
 **Features:**
+
 - Search with text highlighting (matches name, ID, provider, description)
 - Provider sidebar with color-coded dots and model counts
 - Mobile provider pills (top 8 providers + overflow count)
@@ -182,6 +183,7 @@ HTML mode does not use the Piston API -- it renders the code directly in a sandb
 | `onMount` | `(term: Terminal) => void` | Callback when terminal is initialized |
 
 **Features:**
+
 - Dynamic import of `@xterm/xterm` and `@xterm/addon-fit` (code-split)
 - JetBrains Mono font
 - Bar cursor with blink
@@ -225,6 +227,7 @@ HTML mode does not use the Piston API -- it renders the code directly in a sandb
 | `language` | `string` | Language name |
 
 **Features:**
+
 - Copy code to clipboard
 - Generate share link (base64-encoded, demo implementation)
 - Copy share link to clipboard
@@ -242,6 +245,7 @@ HTML mode does not use the Piston API -- it renders the code directly in a sandb
 | `onSelectSnippet` | `(snippet) => void` | Insert snippet into editor |
 
 **Features:**
+
 - Search by name or description
 - Category filter pills (All, Basics, Advanced, etc.)
 - Grid of snippet cards with name, category badge, description
@@ -264,6 +268,7 @@ HTML mode does not use the Piston API -- it renders the code directly in a sandb
 | `linesOfCode` | `number` | `0` | Line count |
 
 **Display:**
+
 - Execution Time (clock icon, blue) -- formatted to 2 decimal places
 - Lines (activity icon, green) -- raw count
 - Status (zap icon, yellow) -- always "Ready"
@@ -320,7 +325,7 @@ User clicks Run (or Ctrl+Enter)
 PlaygroundMain mounts
   → loadSession() reads from localStorage key "playground_session"
   → If session exists: restores language and code
-  
+
 On every code change (debounced 3 seconds):
   → AutoSaver.schedule() sets a 3-second timeout
   → On timeout: saveSession() writes { language, code, timestamp } to localStorage
@@ -333,41 +338,41 @@ On every code change (debounced 3 seconds):
 
 ### Editor Themes
 
-| Theme | Monaco Name | Use Case |
-|-------|-------------|----------|
-| Dark | `vs-dark` | Default, matches app UI |
-| Light | `vs-light` | Bright environments |
-| High Contrast | `hc-black` | Accessibility |
+| Theme         | Monaco Name | Use Case                |
+| ------------- | ----------- | ----------------------- |
+| Dark          | `vs-dark`   | Default, matches app UI |
+| Light         | `vs-light`  | Bright environments     |
+| High Contrast | `hc-black`  | Accessibility           |
 
 ### Provider Color Mapping
 
 **Source:** `apps/web/components/playground/ProviderColors.ts`
 
-| Provider | Color | Hex | CSS Class |
-|----------|-------|-----|-----------|
-| OpenAI / GPT | Green | `#10A37F` | `text-emerald-400` |
-| Anthropic / Claude | Orange | `#D97757` | `text-orange-400` |
-| Google / Gemini | Blue | `#4285F4` | `text-blue-400` |
-| Meta / Llama | Dark Blue | `#0668E1` | `text-blue-500` |
-| Mistral AI | Red | `#F94E4E` | `text-red-400` |
-| DeepSeek | Indigo | `#4D6BFA` | `text-indigo-400` |
-| xAI / Grok | Sky Blue | `#1DA1F2` | `text-sky-400` |
-| Alibaba / Qwen | Orange | `#FF6A00` | `text-orange-500` |
-| Moonshot AI | Indigo | `#6366F1` | `text-indigo-400` |
-| Zhipu AI / GLM | Emerald | `#10B981` | `text-emerald-400` |
-| MiniMax | Violet | `#8B5CF6` | `text-violet-400` |
-| Unknown | Violet | `#7C3AED` | `text-violet-400` |
+| Provider           | Color     | Hex       | CSS Class          |
+| ------------------ | --------- | --------- | ------------------ |
+| OpenAI / GPT       | Green     | `#10A37F` | `text-emerald-400` |
+| Anthropic / Claude | Orange    | `#D97757` | `text-orange-400`  |
+| Google / Gemini    | Blue      | `#4285F4` | `text-blue-400`    |
+| Meta / Llama       | Dark Blue | `#0668E1` | `text-blue-500`    |
+| Mistral AI         | Red       | `#F94E4E` | `text-red-400`     |
+| DeepSeek           | Indigo    | `#4D6BFA` | `text-indigo-400`  |
+| xAI / Grok         | Sky Blue  | `#1DA1F2` | `text-sky-400`     |
+| Alibaba / Qwen     | Orange    | `#FF6A00` | `text-orange-500`  |
+| Moonshot AI        | Indigo    | `#6366F1` | `text-indigo-400`  |
+| Zhipu AI / GLM     | Emerald   | `#10B981` | `text-emerald-400` |
+| MiniMax            | Violet    | `#8B5CF6` | `text-violet-400`  |
+| Unknown            | Violet    | `#7C3AED` | `text-violet-400`  |
 
 `getProviderColor()` extracts the provider prefix from the model ID (before the first `/`) and looks it up in `providerColorMap`. Unknown providers default to violet.
 
 ## Layout Modes
 
-| Mode | Behavior | Ratio |
-|------|----------|-------|
-| `vertical` | Editor left, output right (default, responsive) | 3:5 editor to 4:5 output (non-HTML); 1:1 (HTML) |
-| `horizontal` | Editor top, output bottom | Same ratios |
-| `editor-focus` | Editor maximized, output minimized | 3:1 editor to output |
-| `terminal-focus` | Output maximized, editor minimized | 1:3 editor to output |
+| Mode             | Behavior                                        | Ratio                                           |
+| ---------------- | ----------------------------------------------- | ----------------------------------------------- |
+| `vertical`       | Editor left, output right (default, responsive) | 3:5 editor to 4:5 output (non-HTML); 1:1 (HTML) |
+| `horizontal`     | Editor top, output bottom                       | Same ratios                                     |
+| `editor-focus`   | Editor maximized, output minimized              | 3:1 editor to output                            |
+| `terminal-focus` | Output maximized, editor minimized              | 1:3 editor to output                            |
 
 On mobile (below `lg` breakpoint), all layouts collapse to a tab switcher (`mobileTab`: "editor" or "output") regardless of layout mode.
 
@@ -377,11 +382,11 @@ On mobile (below `lg` breakpoint), all layouts collapse to a tab switcher (`mobi
 
 After each code execution, `PlaygroundMain` records:
 
-| Metric | Source | Display |
-|--------|--------|---------|
-| Execution time | `Date.now() - startTime` | `${n}ms` (2 decimal places) |
-| Lines of code | `code.split('\n').length` | Integer count |
-| Previous runs | `executionHistory` array (last 10) | Dropdown: language + time in ms |
+| Metric         | Source                             | Display                         |
+| -------------- | ---------------------------------- | ------------------------------- |
+| Execution time | `Date.now() - startTime`           | `${n}ms` (2 decimal places)     |
+| Lines of code  | `code.split('\n').length`          | Integer count                   |
+| Previous runs  | `executionHistory` array (last 10) | Dropdown: language + time in ms |
 
 ### Metrics Calculation
 
@@ -393,20 +398,21 @@ After each code execution, `PlaygroundMain` records:
 
 ### Available Examples
 
-| Language | Snippets |
-|----------|----------|
+| Language   | Snippets                                             |
+| ---------- | ---------------------------------------------------- |
 | JavaScript | Hello World, Async/Await, Array Methods, ES6 Classes |
-| Python | Hello World, List Comprehension, Classes, Decorators |
-| TypeScript | Interfaces, Generics |
-| Go | Hello World, Goroutines |
-| Rust | Hello World, Ownership |
-| C++ | Vector + Sort (built into default code) |
-| C | Factorial (built into default code) |
-| Java | Array Sum (built into default code) |
+| Python     | Hello World, List Comprehension, Classes, Decorators |
+| TypeScript | Interfaces, Generics                                 |
+| Go         | Hello World, Goroutines                              |
+| Rust       | Hello World, Ownership                               |
+| C++        | Vector + Sort (built into default code)              |
+| C          | Factorial (built into default code)                  |
+| Java       | Array Sum (built into default code)                  |
 
 ### Snippet Generation
 
 Snippets are **static data** defined in `CodeSnippets.tsx`. They are not generated dynamically. Each snippet has:
+
 - A unique `id`
 - `name` and `description` for display
 - `language` for filtering
@@ -458,7 +464,7 @@ interface EnrichedModel {
   logo?: string | null;
   provider: string;
   context_length?: number;
-  pricing?: { prompt?: string; completion?: string; };
+  pricing?: { prompt?: string; completion?: string };
   description?: string;
 }
 ```

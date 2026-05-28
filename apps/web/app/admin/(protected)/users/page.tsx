@@ -5,8 +5,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import {
-  Search, Eye, UserX, UserCheck, Trash2,
-  ChevronLeft, ChevronRight, Users,
+  Search,
+  Eye,
+  UserX,
+  UserCheck,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -64,9 +70,15 @@ function DeleteConfirmDialog({
         <div className="w-11 h-11 rounded-[13px] bg-red-500/[0.08] border border-red-500/10 flex items-center justify-center mb-5">
           <Trash2 className="w-5 h-5 text-red-400/70" />
         </div>
-        <h3 className="text-[16px] font-semibold text-[var(--admin-text)] tracking-[-0.01em]">Delete User</h3>
+        <h3 className="text-[16px] font-semibold text-[var(--admin-text)] tracking-[-0.01em]">
+          Delete User
+        </h3>
         <p className="mt-2.5 text-[13px] text-[var(--admin-text-muted)] leading-relaxed">
-          Are you sure you want to delete <span className="font-medium text-[var(--admin-text)]">{userName}</span>? This action is permanent and cannot be undone.
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-[var(--admin-text)]">
+            {userName}
+          </span>
+          ? This action is permanent and cannot be undone.
         </p>
         <div className="mt-7 flex justify-end gap-2.5">
           <button
@@ -94,16 +106,20 @@ export default function AdminUsersPage() {
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [confirmDelete, setConfirmDelete] = useState<AdminUserDetail | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<AdminUserDetail | null>(
+    null,
+  );
 
   const debouncedQuery = useDebounce(searchInput, 400);
 
-  const {
-    data,
-    isLoading,
-    error,
-  } = useQuery<PaginatedResponse<AdminUserDetail>>({
-    queryKey: ["admin", "users", { query: debouncedQuery, status: statusFilter, page }],
+  const { data, isLoading, error } = useQuery<
+    PaginatedResponse<AdminUserDetail>
+  >({
+    queryKey: [
+      "admin",
+      "users",
+      { query: debouncedQuery, status: statusFilter, page },
+    ],
     queryFn: () =>
       getAdminSDK().listUsers({
         query: debouncedQuery || undefined,
@@ -151,8 +167,15 @@ export default function AdminUsersPage() {
   const total = data?.total ?? 0;
 
   return (
-    <AdminPageHeader title="Users" subtitle={total > 0 ? `${total} user${total !== 1 ? "s" : ""} registered` : "Manage platform users"} badge={total > 0 ? `${total}` : undefined}>
-
+    <AdminPageHeader
+      title="Users"
+      subtitle={
+        total > 0
+          ? `${total} user${total !== 1 ? "s" : ""} registered`
+          : "Manage platform users"
+      }
+      badge={total > 0 ? `${total}` : undefined}
+    >
       {/* Filters */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -201,7 +224,9 @@ export default function AdminUsersPage() {
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
             <Users className="mx-auto w-10 h-10 text-[var(--admin-text-dim)] mb-3" />
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">No users found</p>
+            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
+              No users found
+            </p>
             <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
               {debouncedQuery || statusFilter
                 ? "Try adjusting your search or filters"
@@ -218,10 +243,18 @@ export default function AdminUsersPage() {
           <table className="w-full">
             <thead>
               <tr>
-                {["Name", "Email", "Role", "Status", "Last Login", "Actions"].map((h) => (
-                  <th key={h} className={cn(
-                    h === "Actions" ? "text-right" : "text-left",
-                  )}>
+                {[
+                  "Name",
+                  "Email",
+                  "Role",
+                  "Status",
+                  "Last Login",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className={cn(h === "Actions" ? "text-right" : "text-left")}
+                  >
                     {h}
                   </th>
                 ))}
@@ -231,10 +264,14 @@ export default function AdminUsersPage() {
               {users.map((user) => (
                 <tr key={user.id}>
                   <td>
-                    <span className="font-medium text-[var(--admin-text)]">{user.name || "—"}</span>
+                    <span className="font-medium text-[var(--admin-text)]">
+                      {user.name || "—"}
+                    </span>
                   </td>
                   <td>
-                    <span className="font-mono text-[12px] text-[var(--admin-text-muted)]">{user.email}</span>
+                    <span className="font-mono text-[12px] text-[var(--admin-text-muted)]">
+                      {user.email}
+                    </span>
                   </td>
                   <td>
                     <span className="admin-badge bg-white/[0.03] text-[var(--admin-text-dim)] border border-white/[0.04]">
@@ -245,7 +282,8 @@ export default function AdminUsersPage() {
                     <span
                       className={cn(
                         "admin-badge",
-                        STATUS_STYLES[user.status] || "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
+                        STATUS_STYLES[user.status] ||
+                          "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
                       )}
                     >
                       {user.status}
@@ -254,10 +292,15 @@ export default function AdminUsersPage() {
                   <td>
                     <span className="font-mono text-[12px] text-[var(--admin-text-muted)]">
                       {user.lastLoginAt
-                        ? new Date(user.lastLoginAt).toLocaleDateString("en-US", {
-                            month: "short", day: "numeric",
-                            hour: "2-digit", minute: "2-digit",
-                          })
+                        ? new Date(user.lastLoginAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )
                         : "Never"}
                     </span>
                   </td>
@@ -274,10 +317,20 @@ export default function AdminUsersPage() {
                         onClick={() => handleToggleStatus(user)}
                         disabled={suspendMutation.isPending}
                         className="rounded-[8px] p-[7px] text-[var(--admin-text-dim)] hover:bg-white/[0.03] hover:text-amber-400/70 transition-all duration-200 disabled:opacity-30"
-                        title={user.status === "active" ? "Suspend" : "Activate"}
-                        aria-label={user.status === "active" ? "Suspend user" : "Activate user"}
+                        title={
+                          user.status === "active" ? "Suspend" : "Activate"
+                        }
+                        aria-label={
+                          user.status === "active"
+                            ? "Suspend user"
+                            : "Activate user"
+                        }
                       >
-                        {user.status === "active" ? <UserX className="h-[15px] w-[15px]" /> : <UserCheck className="h-[15px] w-[15px]" />}
+                        {user.status === "active" ? (
+                          <UserX className="h-[15px] w-[15px]" />
+                        ) : (
+                          <UserCheck className="h-[15px] w-[15px]" />
+                        )}
                       </button>
                       <button
                         onClick={() => setConfirmDelete(user)}

@@ -3,8 +3,17 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Copy, Check, Clock, Zap, Hash, User, KeyRound,
-  AlertCircle, ChevronDown, ChevronUp,
+  X,
+  Copy,
+  Check,
+  Clock,
+  Zap,
+  Hash,
+  User,
+  KeyRound,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { APILog } from "@/lib/api/sdk";
 
@@ -15,7 +24,11 @@ interface LogDetailDrawerProps {
 
 const drawerVariants = {
   hidden: { x: "100%", opacity: 0 },
-  visible: { x: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 300, damping: 30 } },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: { type: "spring" as const, stiffness: 300, damping: 30 },
+  },
   exit: { x: "100%", opacity: 0, transition: { duration: 0.2 } },
 };
 
@@ -94,10 +107,14 @@ function DetailRow({
     <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0 group hover:bg-white/[0.02] px-1 -mx-1 rounded-lg transition-colors">
       <div className="flex items-center gap-2.5">
         <Icon className="w-4 h-4 text-gray-500" />
-        <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">{label}</span>
+        <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+          {label}
+        </span>
       </div>
       <div className="flex items-center gap-2">
-        <span className={`text-sm text-white ${mono ? "font-mono" : ""}`}>{value}</span>
+        <span className={`text-sm text-white ${mono ? "font-mono" : ""}`}>
+          {value}
+        </span>
         {copyable && <CopyButton text={value} />}
       </div>
     </div>
@@ -140,8 +157,12 @@ export function LogDetailDrawer({ log, onClose }: LogDetailDrawerProps) {
           >
             <div className="sticky top-0 z-10 bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Log Details</h2>
-                <p className="text-xs text-gray-500 font-mono mt-0.5">Request metadata</p>
+                <h2 className="text-lg font-semibold text-white">
+                  Log Details
+                </h2>
+                <p className="text-xs text-gray-500 font-mono mt-0.5">
+                  Request metadata
+                </p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
@@ -174,13 +195,21 @@ export function LogDetailDrawer({ log, onClose }: LogDetailDrawerProps) {
                     </div>
                   )}
                   <div>
-                    <p className={`text-sm font-semibold ${
-                      log.status === "success" ? "text-green-400" : "text-red-400"
-                    }`}>
-                      {log.status === "success" ? "Request Succeeded" : "Request Failed"}
+                    <p
+                      className={`text-sm font-semibold ${
+                        log.status === "success"
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {log.status === "success"
+                        ? "Request Succeeded"
+                        : "Request Failed"}
                     </p>
                     {log.errorMessage && (
-                      <p className="text-xs text-red-300/70 mt-1 font-mono break-all">{log.errorMessage}</p>
+                      <p className="text-xs text-red-300/70 mt-1 font-mono break-all">
+                        {log.errorMessage}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -193,8 +222,19 @@ export function LogDetailDrawer({ log, onClose }: LogDetailDrawerProps) {
                   Model Information
                 </h3>
                 <div className="bg-white/[0.02] rounded-xl border border-white/5 p-1">
-                  <DetailRow icon={Hash} label="Model" value={log.model} mono copyable />
-                  <DetailRow icon={User} label="Provider" value={log.provider} mono />
+                  <DetailRow
+                    icon={Hash}
+                    label="Model"
+                    value={log.model}
+                    mono
+                    copyable
+                  />
+                  <DetailRow
+                    icon={User}
+                    label="Provider"
+                    value={log.provider}
+                    mono
+                  />
                 </div>
               </div>
 
@@ -205,12 +245,24 @@ export function LogDetailDrawer({ log, onClose }: LogDetailDrawerProps) {
                   Usage & Cost
                 </h3>
                 <div className="bg-white/[0.02] rounded-xl border border-white/5 p-1">
-                  <DetailRow icon={Zap} label="Input Tokens" value={log.inputTokens.toLocaleString()} mono />
-                  <DetailRow icon={Zap} label="Output Tokens" value={log.outputTokens.toLocaleString()} mono />
+                  <DetailRow
+                    icon={Zap}
+                    label="Input Tokens"
+                    value={log.inputTokens.toLocaleString()}
+                    mono
+                  />
+                  <DetailRow
+                    icon={Zap}
+                    label="Output Tokens"
+                    value={log.outputTokens.toLocaleString()}
+                    mono
+                  />
                   <DetailRow
                     icon={Zap}
                     label="Total Tokens"
-                    value={(log.inputTokens + log.outputTokens).toLocaleString()}
+                    value={(
+                      log.inputTokens + log.outputTokens
+                    ).toLocaleString()}
                     mono
                   />
                   <DetailRow
@@ -235,11 +287,29 @@ export function LogDetailDrawer({ log, onClose }: LogDetailDrawerProps) {
                   Identifiers
                 </h3>
                 <div className="bg-white/[0.02] rounded-xl border border-white/5 p-1">
-                  <DetailRow icon={Hash} label="Log ID" value={log.id} mono copyable />
+                  <DetailRow
+                    icon={Hash}
+                    label="Log ID"
+                    value={log.id}
+                    mono
+                    copyable
+                  />
                   {log.apiKeyId && (
-                    <DetailRow icon={KeyRound} label="API Key ID" value={log.apiKeyId} mono copyable />
+                    <DetailRow
+                      icon={KeyRound}
+                      label="API Key ID"
+                      value={log.apiKeyId}
+                      mono
+                      copyable
+                    />
                   )}
-                  <DetailRow icon={User} label="User ID" value={log.userId} mono copyable />
+                  <DetailRow
+                    icon={User}
+                    label="User ID"
+                    value={log.userId}
+                    mono
+                    copyable
+                  />
                 </div>
               </div>
 

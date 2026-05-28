@@ -26,7 +26,6 @@ import type {
   PlatformStats,
 } from "./sdk";
 
-
 // ============================================================================
 // API Keys
 // ============================================================================
@@ -110,8 +109,10 @@ export function useBudgetAlerts() {
 export function useCreateBudgetAlert() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { thresholdPercent: number; alertType?: string }) => getSDK().createBudgetAlert(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget-alerts"] }),
+    mutationFn: (data: { thresholdPercent: number; alertType?: string }) =>
+      getSDK().createBudgetAlert(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["budget-alerts"] }),
   });
 }
 
@@ -119,7 +120,8 @@ export function useDeleteBudgetAlert() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getSDK().deleteBudgetAlert(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget-alerts"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["budget-alerts"] }),
   });
 }
 
@@ -133,18 +135,26 @@ export function useBudgetCap() {
 export function useCreateBudgetCap() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { hardLimit: number; softLimit?: number; actionOnExceed?: string }) =>
-      getSDK().createBudgetCap(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget-cap"] }),
+    mutationFn: (data: {
+      hardLimit: number;
+      softLimit?: number;
+      actionOnExceed?: string;
+    }) => getSDK().createBudgetCap(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["budget-cap"] }),
   });
 }
 
 export function useUpdateBudgetCap() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { hardLimit: number; softLimit?: number; actionOnExceed?: string }) =>
-      getSDK().updateBudgetCap(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget-cap"] }),
+    mutationFn: (data: {
+      hardLimit: number;
+      softLimit?: number;
+      actionOnExceed?: string;
+    }) => getSDK().updateBudgetCap(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["budget-cap"] }),
   });
 }
 
@@ -152,7 +162,8 @@ export function useDeleteBudgetCap() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => getSDK().deleteBudgetCap(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget-cap"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["budget-cap"] }),
   });
 }
 
@@ -209,8 +220,10 @@ export function useConversations(page?: number, limit?: number) {
 export function useCreateConversation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { title: string; model: string }) => getSDK().createConversation(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+    mutationFn: (data: { title: string; model: string }) =>
+      getSDK().createConversation(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
   });
 }
 
@@ -226,17 +239,25 @@ export function useDeleteConversation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getSDK().deleteConversation(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
   });
 }
 
 export function useAddMessage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ conversationId, data }: { conversationId: string; data: { role: string; content: string } }) =>
-      getSDK().addMessage(conversationId, data),
+    mutationFn: ({
+      conversationId,
+      data,
+    }: {
+      conversationId: string;
+      data: { role: string; content: string };
+    }) => getSDK().addMessage(conversationId, data),
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["conversation", vars.conversationId] });
+      queryClient.invalidateQueries({
+        queryKey: ["conversation", vars.conversationId],
+      });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
   });
@@ -256,8 +277,12 @@ export function usePrompts() {
 export function useCreatePrompt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; content: string; description?: string; template?: boolean }) =>
-      getSDK().createPrompt(data),
+    mutationFn: (data: {
+      name: string;
+      content: string;
+      description?: string;
+      template?: boolean;
+    }) => getSDK().createPrompt(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["prompts"] }),
   });
 }
@@ -272,8 +297,13 @@ export function usePrompt(name: string) {
 
 export function useRenderPrompt() {
   return useMutation({
-    mutationFn: ({ name, variables }: { name: string; variables: Record<string, string> }) =>
-      getSDK().renderPrompt(name, variables),
+    mutationFn: ({
+      name,
+      variables,
+    }: {
+      name: string;
+      variables: Record<string, string>;
+    }) => getSDK().renderPrompt(name, variables),
   });
 }
 
@@ -299,7 +329,8 @@ export function useWebhooks() {
 export function useCreateWebhook() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; url: string; events: string[] }) => getSDK().createWebhook(data),
+    mutationFn: (data: { name: string; url: string; events: string[] }) =>
+      getSDK().createWebhook(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["webhooks"] }),
   });
 }
@@ -307,7 +338,8 @@ export function useCreateWebhook() {
 export function useUpdateWebhook() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Webhook> }) => getSDK().updateWebhook(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Webhook> }) =>
+      getSDK().updateWebhook(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["webhooks"] }),
   });
 }
@@ -335,7 +367,8 @@ export function useCreateOrganization() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { name: string }) => getSDK().createOrganization(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizations"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["organizations"] }),
   });
 }
 
@@ -350,10 +383,17 @@ export function useOrganization(id: string) {
 export function useInviteMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ orgId, data }: { orgId: string; data: { email: string; role?: string } }) =>
-      getSDK().inviteMember(orgId, data),
+    mutationFn: ({
+      orgId,
+      data,
+    }: {
+      orgId: string;
+      data: { email: string; role?: string };
+    }) => getSDK().inviteMember(orgId, data),
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["organization", vars.orgId, "members"] });
+      queryClient.invalidateQueries({
+        queryKey: ["organization", vars.orgId, "members"],
+      });
     },
   });
 }
@@ -361,9 +401,12 @@ export function useInviteMember() {
 export function useRemoveMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ orgId, userId }: { orgId: string; userId: string }) => getSDK().removeMember(orgId, userId),
+    mutationFn: ({ orgId, userId }: { orgId: string; userId: string }) =>
+      getSDK().removeMember(orgId, userId),
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["organization", vars.orgId, "members"] });
+      queryClient.invalidateQueries({
+        queryKey: ["organization", vars.orgId, "members"],
+      });
     },
   });
 }
@@ -389,9 +432,14 @@ export function useAcceptInvite() {
 export function useSubmitBatch() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { requests: Array<{ model: string; messages: { role: string; content: string }[] }> }) =>
-      getSDK().submitBatch(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["batch-jobs"] }),
+    mutationFn: (data: {
+      requests: Array<{
+        model: string;
+        messages: { role: string; content: string }[];
+      }>;
+    }) => getSDK().submitBatch(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["batch-jobs"] }),
   });
 }
 
@@ -424,7 +472,8 @@ export function useFiles() {
 export function useUploadFile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ file, name }: { file: File | Blob; name?: string }) => getSDK().uploadFile(file, name),
+    mutationFn: ({ file, name }: { file: File | Blob; name?: string }) =>
+      getSDK().uploadFile(file, name),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["files"] }),
   });
 }
@@ -435,7 +484,8 @@ export function useUploadFile() {
 
 export function useEmbed() {
   return useMutation({
-    mutationFn: (data: { model: string; input: string[] }) => getSDK().embed(data),
+    mutationFn: (data: { model: string; input: string[] }) =>
+      getSDK().embed(data),
   });
 }
 
@@ -458,7 +508,12 @@ export function useNotificationsStream(enabled: boolean = true) {
         }
       } catch (err) {
         // Log auth errors so they aren't silently swallowed
-        if (err instanceof Error && (err.message.includes("401") || err.message.includes("403") || err.message.includes("Unauthorized"))) {
+        if (
+          err instanceof Error &&
+          (err.message.includes("401") ||
+            err.message.includes("403") ||
+            err.message.includes("Unauthorized"))
+        ) {
           console.error("[useNotificationsStream] Auth error:", err.message);
         }
       } finally {
@@ -524,7 +579,8 @@ export function useAdminDeleteUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getSDK().adminDeleteUser(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 }
 
@@ -536,7 +592,8 @@ export function useRedeemPromoCode() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (code: string) => getSDK().redeemPromoCode(code),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["credits", "transactions"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["credits", "transactions"] }),
   });
 }
 
@@ -567,7 +624,8 @@ export function useCancelBatchJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getSDK().cancelBatchJob(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["batch-jobs"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["batch-jobs"] }),
   });
 }
 
@@ -578,8 +636,18 @@ export function useCancelBatchJob() {
 export function useUpdateKey() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name?: string; allowedModels?: string[]; allowedIPs?: string[]; maxTokensPerRequest?: number } }) =>
-      getSDK().updateKey(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        name?: string;
+        allowedModels?: string[];
+        allowedIPs?: string[];
+        maxTokensPerRequest?: number;
+      };
+    }) => getSDK().updateKey(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["keys"] }),
   });
 }
@@ -591,7 +659,8 @@ export function useUpdateKey() {
 export function useUpdateConversationTitle() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, title }: { id: string; title: string }) => getSDK().updateConversationTitle(id, title),
+    mutationFn: ({ id, title }: { id: string; title: string }) =>
+      getSDK().updateConversationTitle(id, title),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ["conversation", vars.id] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
@@ -678,8 +747,10 @@ export function useComparisons(page?: number, limit?: number) {
 export function useCreateComparison() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { modelA: string; modelB: string; prompt: string }) => getSDK().createComparison(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["comparisons"] }),
+    mutationFn: (data: { modelA: string; modelB: string; prompt: string }) =>
+      getSDK().createComparison(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["comparisons"] }),
   });
 }
 
@@ -695,7 +766,8 @@ export function useDeleteComparison() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getSDK().deleteComparison(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["comparisons"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["comparisons"] }),
   });
 }
 
@@ -726,8 +798,13 @@ export function useFineTuningJob(jobId: string) {
 export function useCreateFineTuningJob() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { baseModel: string; datasetId: string; hyperparams?: unknown }) => getSDK().createFineTuningJob(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fine-tuning-jobs"] }),
+    mutationFn: (data: {
+      baseModel: string;
+      datasetId: string;
+      hyperparams?: unknown;
+    }) => getSDK().createFineTuningJob(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["fine-tuning-jobs"] }),
   });
 }
 
@@ -741,8 +818,10 @@ export function useFineTuningDatasets() {
 export function useCreateFineTuningDataset() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { filename: string; format: string }) => getSDK().createFineTuningDataset(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fine-tuning-datasets"] }),
+    mutationFn: (data: { filename: string; format: string }) =>
+      getSDK().createFineTuningDataset(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["fine-tuning-datasets"] }),
   });
 }
 
@@ -750,7 +829,8 @@ export function useDeleteFineTuningDataset() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getSDK().deleteFineTuningDataset(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fine-tuning-datasets"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["fine-tuning-datasets"] }),
   });
 }
 
@@ -768,8 +848,14 @@ export function useExportJobs(page?: number, limit?: number) {
 export function useCreateExportJob() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { type: string; format: string; dateFrom?: string; dateTo?: string }) => getSDK().createExportJob(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["export-jobs"] }),
+    mutationFn: (data: {
+      type: string;
+      format: string;
+      dateFrom?: string;
+      dateTo?: string;
+    }) => getSDK().createExportJob(data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["export-jobs"] }),
   });
 }
 

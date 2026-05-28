@@ -1,13 +1,34 @@
 import { ApiResponse } from "./types";
 import type {
-  Provider, ProviderKey, ModelRegistry, ModelAlias,
-  CreditAdjustment, UsageRecord, UsageDaily, SystemSetting, FeatureFlag,
-  AuditLog, IPListEntry, IPAccessLog, SuspiciousActivity,
+  Provider,
+  ProviderKey,
+  ModelRegistry,
+  ModelAlias,
+  CreditAdjustment,
+  UsageRecord,
+  UsageDaily,
+  SystemSetting,
+  FeatureFlag,
+  AuditLog,
+  IPListEntry,
+  IPAccessLog,
+  SuspiciousActivity,
   ImpersonationSession,
-  Announcement, UserAnnouncement, PromoCode, PromoRedemption,
-  UserGroup, ScheduledReport, ChangelogEntry, SSOConfig,
-  ProviderPlugin, RateLimitTier, RBACPermission, RBACRole,
-  CostBreakdown, DashboardStats, MessageStats,
+  Announcement,
+  UserAnnouncement,
+  PromoCode,
+  PromoRedemption,
+  UserGroup,
+  ScheduledReport,
+  ChangelogEntry,
+  SSOConfig,
+  ProviderPlugin,
+  RateLimitTier,
+  RBACPermission,
+  RBACRole,
+  CostBreakdown,
+  DashboardStats,
+  MessageStats,
 } from "@/types/admin";
 import {
   ApiError,
@@ -451,7 +472,7 @@ class DraSDK {
 
   private async fetchWithTimeout(
     url: string,
-    init: RequestInit
+    init: RequestInit,
   ): Promise<Response> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), this.timeout);
@@ -486,7 +507,7 @@ class DraSDK {
     method: string,
     path: string,
     body?: unknown,
-    query?: Record<string, string | number | undefined>
+    query?: Record<string, string | number | undefined>,
   ): Promise<T> {
     let url = `${this.baseUrl}${path}`;
     if (query) {
@@ -527,10 +548,7 @@ class DraSDK {
         const json = (await res.json()) as ApiResponse<T>;
 
         if (!res.ok || !json.success) {
-          throw this.mapError(
-            res.status,
-            json.error || res.statusText
-          );
+          throw this.mapError(res.status, json.error || res.statusText);
         }
 
         return json.data as T;
@@ -552,9 +570,7 @@ class DraSDK {
           throw err;
         }
         if (attempt < this.retries) {
-          await new Promise((r) =>
-            setTimeout(r, Math.pow(2, attempt) * 500)
-          );
+          await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 500));
         }
       }
     }
@@ -563,7 +579,7 @@ class DraSDK {
 
   public async paginatedRequest<T>(
     path: string,
-    query: { page?: number; limit?: number } = {}
+    query: { page?: number; limit?: number } = {},
   ): Promise<PaginatedResult<T>> {
     let url = `${this.baseUrl}${path}`;
     const params = new URLSearchParams();
@@ -622,9 +638,7 @@ class DraSDK {
           throw new ApiError("Request timeout", 408);
         }
         if (attempt < this.retries) {
-          await new Promise((r) =>
-            setTimeout(r, Math.pow(2, attempt) * 500)
-          );
+          await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 500));
         }
       }
     }
@@ -633,10 +647,7 @@ class DraSDK {
 
   // Health
   health() {
-    return this.request<{ status: string; version: string }>(
-      "GET",
-      "/health"
-    );
+    return this.request<{ status: string; version: string }>("GET", "/health");
   }
 
   // Auth
@@ -653,21 +664,14 @@ class DraSDK {
   }
 
   updateProfile(data: { name: string; email: string }) {
-    return this.request<{ updated: boolean }>(
-      "PUT",
-      "/api/auth/profile",
-      data
-    );
+    return this.request<{ updated: boolean }>("PUT", "/api/auth/profile", data);
   }
 
-  changePassword(data: {
-    currentPassword: string;
-    newPassword: string;
-  }) {
+  changePassword(data: { currentPassword: string; newPassword: string }) {
     return this.request<{ updated: boolean }>(
       "PUT",
       "/api/auth/password",
-      data
+      data,
     );
   }
 
@@ -695,22 +699,30 @@ class DraSDK {
   deleteKey(id: string) {
     return this.request<{ deleted: boolean }>(
       "DELETE",
-      `/api/keys/${encodeURIComponent(id)}`
+      `/api/keys/${encodeURIComponent(id)}`,
     );
   }
 
   revokeKey(id: string) {
     return this.request<{ revoked: boolean }>(
       "POST",
-      `/api/keys/${encodeURIComponent(id)}/revoke`
+      `/api/keys/${encodeURIComponent(id)}/revoke`,
     );
   }
 
-  updateKey(id: string, data: { name?: string; allowedModels?: string[]; allowedIPs?: string[]; maxTokensPerRequest?: number }) {
+  updateKey(
+    id: string,
+    data: {
+      name?: string;
+      allowedModels?: string[];
+      allowedIPs?: string[];
+      maxTokensPerRequest?: number;
+    },
+  ) {
     return this.request<{ updated: boolean }>(
       "PUT",
       `/api/keys/${encodeURIComponent(id)}`,
-      data
+      data,
     );
   }
 
@@ -723,16 +735,16 @@ class DraSDK {
     return this.request<CreditTransaction>(
       "POST",
       "/api/credits/purchase",
-      data
+      data,
     );
   }
 
   // Transactions
   listTransactions(page?: number, limit?: number) {
-    return this.paginatedRequest<CreditTransaction>(
-      "/api/transactions",
-      { page, limit }
-    );
+    return this.paginatedRequest<CreditTransaction>("/api/transactions", {
+      page,
+      limit,
+    });
   }
 
   // Logs
@@ -822,7 +834,7 @@ class DraSDK {
   adminDeleteUser(id: string) {
     return this.request<{ deleted: boolean }>(
       "DELETE",
-      `/api/admin/users/${encodeURIComponent(id)}`
+      `/api/admin/users/${encodeURIComponent(id)}`,
     );
   }
 
@@ -837,11 +849,19 @@ class DraSDK {
   }
 
   forgotPassword(data: { email: string }) {
-    return this.request<{ sent: boolean }>("POST", "/api/auth/forgot-password", data);
+    return this.request<{ sent: boolean }>(
+      "POST",
+      "/api/auth/forgot-password",
+      data,
+    );
   }
 
   resetPassword(data: { token: string; newPassword: string }) {
-    return this.request<{ updated: boolean }>("POST", "/api/auth/reset-password", data);
+    return this.request<{ updated: boolean }>(
+      "POST",
+      "/api/auth/reset-password",
+      data,
+    );
   }
 
   // Budget
@@ -865,18 +885,29 @@ class DraSDK {
   }
 
   deleteBudgetAlert(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/budget/alerts/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/budget/alerts/${encodeURIComponent(id)}`,
+    );
   }
 
   getBudgetCap() {
     return this.request<BudgetCap>("GET", "/api/budget/cap");
   }
 
-  createBudgetCap(data: { hardLimit: number; softLimit?: number; actionOnExceed?: string }) {
+  createBudgetCap(data: {
+    hardLimit: number;
+    softLimit?: number;
+    actionOnExceed?: string;
+  }) {
     return this.request<BudgetCap>("POST", "/api/budget/cap", data);
   }
 
-  updateBudgetCap(data: { hardLimit: number; softLimit?: number; actionOnExceed?: string }) {
+  updateBudgetCap(data: {
+    hardLimit: number;
+    softLimit?: number;
+    actionOnExceed?: string;
+  }) {
     return this.request<BudgetCap>("PUT", "/api/budget/cap", data);
   }
 
@@ -887,7 +918,10 @@ class DraSDK {
   // Conversations
 
   listConversations(page?: number, limit?: number) {
-    return this.paginatedRequest<Conversation>("/api/conversations", { page, limit });
+    return this.paginatedRequest<Conversation>("/api/conversations", {
+      page,
+      limit,
+    });
   }
 
   createConversation(data: { title: string; model: string }) {
@@ -895,18 +929,24 @@ class DraSDK {
   }
 
   getConversation(id: string) {
-    return this.request<Conversation>("GET", `/api/conversations/${encodeURIComponent(id)}`);
+    return this.request<Conversation>(
+      "GET",
+      `/api/conversations/${encodeURIComponent(id)}`,
+    );
   }
 
   deleteConversation(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/conversations/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/conversations/${encodeURIComponent(id)}`,
+    );
   }
 
   addMessage(conversationId: string, data: { role: string; content: string }) {
     return this.request<ConversationMessage>(
       "POST",
       `/api/conversations/${encodeURIComponent(conversationId)}/messages`,
-      data
+      data,
     );
   }
 
@@ -914,7 +954,7 @@ class DraSDK {
     return this.request<{ updated: boolean }>(
       "PUT",
       `/api/conversations/${encodeURIComponent(id)}/title`,
-      { title }
+      { title },
     );
   }
 
@@ -924,24 +964,35 @@ class DraSDK {
     return this.request<Prompt[]>("GET", "/api/prompts");
   }
 
-  createPrompt(data: { name: string; content: string; description?: string; template?: boolean }) {
+  createPrompt(data: {
+    name: string;
+    content: string;
+    description?: string;
+    template?: boolean;
+  }) {
     return this.request<Prompt>("POST", "/api/prompts", data);
   }
 
   getPrompt(name: string) {
-    return this.request<Prompt>("GET", `/api/prompts/${encodeURIComponent(name)}`);
+    return this.request<Prompt>(
+      "GET",
+      `/api/prompts/${encodeURIComponent(name)}`,
+    );
   }
 
   renderPrompt(name: string, variables: Record<string, string>) {
     return this.request<{ rendered: string }>(
       "POST",
       `/api/prompts/${encodeURIComponent(name)}/render`,
-      { variables }
+      { variables },
     );
   }
 
   deletePrompt(name: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/prompts/${encodeURIComponent(name)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/prompts/${encodeURIComponent(name)}`,
+    );
   }
 
   // Webhooks
@@ -950,24 +1001,42 @@ class DraSDK {
     return this.request<Webhook[]>("GET", "/api/webhooks");
   }
 
-  createWebhook(data: { url: string; secret?: string; events: string[]; headers?: Record<string, string> }) {
+  createWebhook(data: {
+    url: string;
+    secret?: string;
+    events: string[];
+    headers?: Record<string, string>;
+  }) {
     return this.request<Webhook>("POST", "/api/webhooks", data);
   }
 
   getWebhook(id: string) {
-    return this.request<Webhook>("GET", `/api/webhooks/${encodeURIComponent(id)}`);
+    return this.request<Webhook>(
+      "GET",
+      `/api/webhooks/${encodeURIComponent(id)}`,
+    );
   }
 
   updateWebhook(id: string, data: Partial<Webhook>) {
-    return this.request<Webhook>("PUT", `/api/webhooks/${encodeURIComponent(id)}`, data);
+    return this.request<Webhook>(
+      "PUT",
+      `/api/webhooks/${encodeURIComponent(id)}`,
+      data,
+    );
   }
 
   deleteWebhook(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/webhooks/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/webhooks/${encodeURIComponent(id)}`,
+    );
   }
 
   listWebhookDeliveries(webhookId: string) {
-    return this.request<WebhookDelivery[]>("GET", `/api/webhooks/${encodeURIComponent(webhookId)}/deliveries`);
+    return this.request<WebhookDelivery[]>(
+      "GET",
+      `/api/webhooks/${encodeURIComponent(webhookId)}/deliveries`,
+    );
   }
 
   // Organizations
@@ -981,40 +1050,55 @@ class DraSDK {
   }
 
   getOrganization(id: string) {
-    return this.request<Organization>("GET", `/api/organizations/${encodeURIComponent(id)}`);
+    return this.request<Organization>(
+      "GET",
+      `/api/organizations/${encodeURIComponent(id)}`,
+    );
   }
 
   inviteMember(orgId: string, data: { email: string; role?: string }) {
     return this.request<{ invited: boolean }>(
       "POST",
       `/api/organizations/${encodeURIComponent(orgId)}/invite`,
-      data
+      data,
     );
   }
 
   removeMember(orgId: string, userId: string) {
     return this.request<{ removed: boolean }>(
       "DELETE",
-      `/api/organizations/${encodeURIComponent(orgId)}/members/${encodeURIComponent(userId)}`
+      `/api/organizations/${encodeURIComponent(orgId)}/members/${encodeURIComponent(userId)}`,
     );
   }
 
   listMembers(orgId: string) {
-    return this.request<OrgMember[]>("GET", `/api/organizations/${encodeURIComponent(orgId)}/members`);
+    return this.request<OrgMember[]>(
+      "GET",
+      `/api/organizations/${encodeURIComponent(orgId)}/members`,
+    );
   }
 
   acceptInvite(data: { token: string }) {
-    return this.request<{ accepted: boolean }>("POST", "/api/invites/accept", data);
+    return this.request<{ accepted: boolean }>(
+      "POST",
+      "/api/invites/accept",
+      data,
+    );
   }
 
   // Batch
 
-  submitBatch(data: { requests: Array<{ model: string; messages: ChatMessage[] }> }) {
+  submitBatch(data: {
+    requests: Array<{ model: string; messages: ChatMessage[] }>;
+  }) {
     return this.request<BatchJob>("POST", "/api/batch", data);
   }
 
   getBatchJob(id: string) {
-    return this.request<BatchJob>("GET", `/api/batch/${encodeURIComponent(id)}`);
+    return this.request<BatchJob>(
+      "GET",
+      `/api/batch/${encodeURIComponent(id)}`,
+    );
   }
 
   listBatchJobs() {
@@ -1022,12 +1106,18 @@ class DraSDK {
   }
 
   cancelBatchJob(id: string) {
-    return this.request<{ cancelled: boolean }>("DELETE", `/api/batch/${encodeURIComponent(id)}`);
+    return this.request<{ cancelled: boolean }>(
+      "DELETE",
+      `/api/batch/${encodeURIComponent(id)}`,
+    );
   }
 
   // Files
 
-  private async uploadFormData(path: string, formData: FormData): Promise<Response> {
+  private async uploadFormData(
+    path: string,
+    formData: FormData,
+  ): Promise<Response> {
     // Don't set Content-Type for FormData — the runtime (browser or Node.js 20+)
     // sets it automatically with the correct multipart boundary.
     const headers: Record<string, string> = {};
@@ -1038,7 +1128,10 @@ class DraSDK {
     // Detect if boundary is missing and set it manually.
     if (typeof FormData !== "undefined" && typeof Request !== "undefined") {
       try {
-        const test = new Request("http://localhost", { method: "POST", body: formData });
+        const test = new Request("http://localhost", {
+          method: "POST",
+          body: formData,
+        });
         const ct = test.headers.get("content-type");
         if (ct) {
           headers["content-type"] = ct;
@@ -1083,12 +1176,20 @@ class DraSDK {
   // Validate
 
   validate(data: { schema: unknown; data: unknown }) {
-    return this.request<{ valid: boolean; errors?: string[] }>("POST", "/api/validate", data);
+    return this.request<{ valid: boolean; errors?: string[] }>(
+      "POST",
+      "/api/validate",
+      data,
+    );
   }
 
   // Notifications
 
-  async *notificationsStream(): AsyncGenerator<NotificationEvent, void, unknown> {
+  async *notificationsStream(): AsyncGenerator<
+    NotificationEvent,
+    void,
+    unknown
+  > {
     const url = `${this.baseUrl}/api/notifications/stream`;
     const res = await this.fetchWithTimeout(url, {
       method: "GET",
@@ -1148,17 +1249,26 @@ class DraSDK {
   // Admin — Extended
 
   adminCircuitBreakers() {
-    return this.request<CircuitBreakerStatus[]>("GET", "/api/admin/circuit-breakers");
+    return this.request<CircuitBreakerStatus[]>(
+      "GET",
+      "/api/admin/circuit-breakers",
+    );
   }
 
   adminProviderHealth() {
-    return this.request<ProviderHealthStatus[]>("GET", "/api/admin/provider-health");
+    return this.request<ProviderHealthStatus[]>(
+      "GET",
+      "/api/admin/provider-health",
+    );
   }
 
   // Admin Messages
 
   adminListMessages(page?: number, limit?: number) {
-    return this.paginatedRequest<AdminMessage>("/api/admin/messages", { page, limit });
+    return this.paginatedRequest<AdminMessage>("/api/admin/messages", {
+      page,
+      limit,
+    });
   }
 
   adminCreateMessage(data: {
@@ -1173,26 +1283,42 @@ class DraSDK {
   }
 
   adminGetMessage(id: string) {
-    return this.request<AdminMessage>("GET", `/api/admin/messages/${encodeURIComponent(id)}`);
+    return this.request<AdminMessage>(
+      "GET",
+      `/api/admin/messages/${encodeURIComponent(id)}`,
+    );
   }
 
   adminGetMessageStats(id: string) {
-    return this.request<MessageStats>("GET", `/api/admin/messages/${encodeURIComponent(id)}/stats`);
+    return this.request<MessageStats>(
+      "GET",
+      `/api/admin/messages/${encodeURIComponent(id)}/stats`,
+    );
   }
 
-  adminUpdateMessage(id: string, data: Partial<{
-    title: string;
-    body: string;
-    priority: string;
-    targetType: string;
-    targetIds: string[];
-    expiresAt: string;
-  }>) {
-    return this.request<AdminMessage>("PUT", `/api/admin/messages/${encodeURIComponent(id)}`, data);
+  adminUpdateMessage(
+    id: string,
+    data: Partial<{
+      title: string;
+      body: string;
+      priority: string;
+      targetType: string;
+      targetIds: string[];
+      expiresAt: string;
+    }>,
+  ) {
+    return this.request<AdminMessage>(
+      "PUT",
+      `/api/admin/messages/${encodeURIComponent(id)}`,
+      data,
+    );
   }
 
   adminDeleteMessage(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/messages/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/admin/messages/${encodeURIComponent(id)}`,
+    );
   }
 
   // User Messages (Inbox)
@@ -1202,11 +1328,17 @@ class DraSDK {
   }
 
   getUserMessageUnreadCount() {
-    return this.request<{ unread: number }>("GET", "/api/messages/unread-count");
+    return this.request<{ unread: number }>(
+      "GET",
+      "/api/messages/unread-count",
+    );
   }
 
   markMessageRead(id: string) {
-    return this.request<{ marked: boolean }>("POST", `/api/messages/${encodeURIComponent(id)}/read`);
+    return this.request<{ marked: boolean }>(
+      "POST",
+      `/api/messages/${encodeURIComponent(id)}/read`,
+    );
   }
 
   markAllMessagesRead() {
@@ -1222,7 +1354,10 @@ class DraSDK {
   // Comparisons
 
   listComparisons(page?: number, limit?: number) {
-    return this.paginatedRequest<Comparison>("/api/comparisons", { page, limit });
+    return this.paginatedRequest<Comparison>("/api/comparisons", {
+      page,
+      limit,
+    });
   }
 
   createComparison(data: { modelA: string; modelB: string; prompt: string }) {
@@ -1230,37 +1365,63 @@ class DraSDK {
   }
 
   getComparison(id: string) {
-    return this.request<Comparison>("GET", `/api/comparisons/${encodeURIComponent(id)}`);
+    return this.request<Comparison>(
+      "GET",
+      `/api/comparisons/${encodeURIComponent(id)}`,
+    );
   }
 
   deleteComparison(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/comparisons/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/comparisons/${encodeURIComponent(id)}`,
+    );
   }
 
   // Fine-tuning
 
   listFineTuningJobs(page?: number, limit?: number) {
-    return this.paginatedRequest<FineTuningJob>("/api/fine-tuning/jobs", { page, limit });
+    return this.paginatedRequest<FineTuningJob>("/api/fine-tuning/jobs", {
+      page,
+      limit,
+    });
   }
 
   getFineTuningJob(jobId: string) {
-    return this.request<FineTuningJob>("GET", `/api/fine-tuning/jobs/${encodeURIComponent(jobId)}`);
+    return this.request<FineTuningJob>(
+      "GET",
+      `/api/fine-tuning/jobs/${encodeURIComponent(jobId)}`,
+    );
   }
 
-  createFineTuningJob(data: { baseModel: string; datasetId: string; hyperparams?: unknown }) {
+  createFineTuningJob(data: {
+    baseModel: string;
+    datasetId: string;
+    hyperparams?: unknown;
+  }) {
     return this.request<FineTuningJob>("POST", "/api/fine-tuning/jobs", data);
   }
 
   listFineTuningDatasets() {
-    return this.request<FineTuningDataset[]>("GET", "/api/fine-tuning/datasets");
+    return this.request<FineTuningDataset[]>(
+      "GET",
+      "/api/fine-tuning/datasets",
+    );
   }
 
   createFineTuningDataset(data: { filename: string; format: string }) {
-    return this.request<FineTuningDataset>("POST", "/api/fine-tuning/datasets", data);
+    return this.request<FineTuningDataset>(
+      "POST",
+      "/api/fine-tuning/datasets",
+      data,
+    );
   }
 
   deleteFineTuningDataset(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/fine-tuning/datasets/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/fine-tuning/datasets/${encodeURIComponent(id)}`,
+    );
   }
 
   // Exports
@@ -1269,26 +1430,41 @@ class DraSDK {
     return this.paginatedRequest<ExportJob>("/api/exports", { page, limit });
   }
 
-  createExportJob(data: { type: string; format: string; dateFrom?: string; dateTo?: string }) {
+  createExportJob(data: {
+    type: string;
+    format: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) {
     return this.request<ExportJob>("POST", "/api/exports", data);
   }
 
   getExportJob(id: string) {
-    return this.request<ExportJob>("GET", `/api/exports/${encodeURIComponent(id)}`);
+    return this.request<ExportJob>(
+      "GET",
+      `/api/exports/${encodeURIComponent(id)}`,
+    );
   }
 
   downloadExport(id: string): Promise<Response> {
-    return this.fetchWithTimeout(`${this.baseUrl}/api/exports/${encodeURIComponent(id)}/download`, {
-      method: "GET",
-      headers: this.headers(),
-      credentials: "include",
-    });
+    return this.fetchWithTimeout(
+      `${this.baseUrl}/api/exports/${encodeURIComponent(id)}/download`,
+      {
+        method: "GET",
+        headers: this.headers(),
+        credentials: "include",
+      },
+    );
   }
 
   // Promo Codes
 
   redeemPromoCode(code: string) {
-    return this.request<{ success: boolean; credits: number }>("POST", "/api/promos/redeem", { code });
+    return this.request<{ success: boolean; credits: number }>(
+      "POST",
+      "/api/promos/redeem",
+      { code },
+    );
   }
 
   // Admin — Extended
@@ -1298,35 +1474,63 @@ class DraSDK {
   }
 
   adminGetUser(id: string) {
-    return this.request<User>("GET", `/api/admin/users/${encodeURIComponent(id)}`);
+    return this.request<User>(
+      "GET",
+      `/api/admin/users/${encodeURIComponent(id)}`,
+    );
   }
 
   adminUpdateUserStatus(id: string, status: string) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(id)}/status`, { status });
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/users/${encodeURIComponent(id)}/status`,
+      { status },
+    );
   }
 
   adminUpdateUserRole(id: string, role: string) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(id)}/role`, { role });
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/users/${encodeURIComponent(id)}/role`,
+      { role },
+    );
   }
 
   adminStartImpersonation(id: string, data?: { reason?: string }) {
-    return this.request<ImpersonationSession>("POST", `/api/admin/users/${encodeURIComponent(id)}/impersonate`, data);
+    return this.request<ImpersonationSession>(
+      "POST",
+      `/api/admin/users/${encodeURIComponent(id)}/impersonate`,
+      data,
+    );
   }
 
   adminStopImpersonation(sessionId: string) {
-    return this.request<{ ended: boolean }>("POST", `/api/admin/impersonations/${encodeURIComponent(sessionId)}/stop`);
+    return this.request<{ ended: boolean }>(
+      "POST",
+      `/api/admin/impersonations/${encodeURIComponent(sessionId)}/stop`,
+    );
   }
 
   adminBulkSuspendUsers(userIds: string[], reason?: string) {
-    return this.request<{ suspended: number }>("POST", "/api/admin/users/bulk/suspend", { userIds, reason });
+    return this.request<{ suspended: number }>(
+      "POST",
+      "/api/admin/users/bulk/suspend",
+      { userIds, reason },
+    );
   }
 
   adminListUserKeys(userId: string) {
-    return this.request<APIKey[]>("GET", `/api/admin/users/${encodeURIComponent(userId)}/keys`);
+    return this.request<APIKey[]>(
+      "GET",
+      `/api/admin/users/${encodeURIComponent(userId)}/keys`,
+    );
   }
 
   adminListUserUsage(userId: string) {
-    return this.request<AnalyticsData>("GET", `/api/admin/users/${encodeURIComponent(userId)}/usage`);
+    return this.request<AnalyticsData>(
+      "GET",
+      `/api/admin/users/${encodeURIComponent(userId)}/usage`,
+    );
   }
 
   adminListProviders() {
@@ -1349,49 +1553,92 @@ class DraSDK {
       capabilities?: string[];
     }>;
   }) {
-    return this.request<{ id: string; name: string }>("POST", "/api/admin/providers", data);
+    return this.request<{ id: string; name: string }>(
+      "POST",
+      "/api/admin/providers",
+      data,
+    );
   }
 
   adminFetchModels(data: { baseUrl: string; apiKey?: string }) {
-    return this.request<{ models: Array<{ id: string; object?: string; owned_by?: string }>; total: number }>("POST", "/api/admin/providers/fetch-models", data);
+    return this.request<{
+      models: Array<{ id: string; object?: string; owned_by?: string }>;
+      total: number;
+    }>("POST", "/api/admin/providers/fetch-models", data);
   }
 
-  adminAddProviderKey(providerId: string, data: { label: string; key: string; strategy?: string; weight?: number }) {
-    return this.request<{ id: string }>("POST", `/api/admin/providers/${encodeURIComponent(providerId)}/keys`, data);
+  adminAddProviderKey(
+    providerId: string,
+    data: { label: string; key: string; strategy?: string; weight?: number },
+  ) {
+    return this.request<{ id: string }>(
+      "POST",
+      `/api/admin/providers/${encodeURIComponent(providerId)}/keys`,
+      data,
+    );
   }
 
   adminGetProvider(id: string) {
-    return this.request<Provider>("GET", `/api/admin/providers/${encodeURIComponent(id)}`);
+    return this.request<Provider>(
+      "GET",
+      `/api/admin/providers/${encodeURIComponent(id)}`,
+    );
   }
 
   adminUpdateProvider(id: string, data: Partial<Provider>) {
-    return this.request<{ status: string }>("PUT", `/api/admin/providers/${encodeURIComponent(id)}`, data);
+    return this.request<{ status: string }>(
+      "PUT",
+      `/api/admin/providers/${encodeURIComponent(id)}`,
+      data,
+    );
   }
 
   adminUpdateProviderStatus(id: string, status: string) {
-    return this.request<{ status: string }>("PUT", `/api/admin/providers/${encodeURIComponent(id)}/status`, { status });
+    return this.request<{ status: string }>(
+      "PUT",
+      `/api/admin/providers/${encodeURIComponent(id)}/status`,
+      { status },
+    );
   }
 
   adminListProviderKeys(providerId: string) {
-    return this.request<ProviderKey[]>("GET", `/api/admin/providers/${encodeURIComponent(providerId)}/keys`);
+    return this.request<ProviderKey[]>(
+      "GET",
+      `/api/admin/providers/${encodeURIComponent(providerId)}/keys`,
+    );
   }
 
   adminDeleteProviderKey(providerId: string, keyId: string) {
-    return this.request<{ status: string }>("DELETE", `/api/admin/providers/${encodeURIComponent(providerId)}/keys/${encodeURIComponent(keyId)}`);
+    return this.request<{ status: string }>(
+      "DELETE",
+      `/api/admin/providers/${encodeURIComponent(providerId)}/keys/${encodeURIComponent(keyId)}`,
+    );
   }
 
   adminReorderProviderKeys(providerId: string, keyIds: string[]) {
-    return this.request<{ status: string }>("PUT", `/api/admin/providers/${encodeURIComponent(providerId)}/keys/reorder`, { keyIds });
+    return this.request<{ status: string }>(
+      "PUT",
+      `/api/admin/providers/${encodeURIComponent(providerId)}/keys/reorder`,
+      { keyIds },
+    );
   }
 
   adminDeleteProvider(id: string) {
-    return this.request<{ status: string }>("DELETE", `/api/admin/providers/${encodeURIComponent(id)}`);
+    return this.request<{ status: string }>(
+      "DELETE",
+      `/api/admin/providers/${encodeURIComponent(id)}`,
+    );
   }
 
   // Admin — Models
 
   adminListModels(status?: string) {
-    return this.request<ModelRegistry[]>("GET", "/api/admin/models", undefined, status ? { status } : undefined);
+    return this.request<ModelRegistry[]>(
+      "GET",
+      "/api/admin/models",
+      undefined,
+      status ? { status } : undefined,
+    );
   }
 
   adminCreateModel(data: Partial<ModelRegistry>) {
@@ -1399,19 +1646,33 @@ class DraSDK {
   }
 
   adminGetModel(id: string) {
-    return this.request<ModelRegistry>("GET", `/api/admin/models/${encodeURIComponent(id)}`);
+    return this.request<ModelRegistry>(
+      "GET",
+      `/api/admin/models/${encodeURIComponent(id)}`,
+    );
   }
 
   adminUpdateModel(id: string, data: Partial<ModelRegistry>) {
-    return this.request<{ status: string }>("PUT", `/api/admin/models/${encodeURIComponent(id)}`, data);
+    return this.request<{ status: string }>(
+      "PUT",
+      `/api/admin/models/${encodeURIComponent(id)}`,
+      data,
+    );
   }
 
   adminUpdateModelStatus(id: string, status: string) {
-    return this.request<{ status: string }>("PUT", `/api/admin/models/${encodeURIComponent(id)}/status`, { status });
+    return this.request<{ status: string }>(
+      "PUT",
+      `/api/admin/models/${encodeURIComponent(id)}/status`,
+      { status },
+    );
   }
 
   adminDeleteModel(id: string) {
-    return this.request<{ status: string }>("DELETE", `/api/admin/models/${encodeURIComponent(id)}`);
+    return this.request<{ status: string }>(
+      "DELETE",
+      `/api/admin/models/${encodeURIComponent(id)}`,
+    );
   }
 
   // Admin — Aliases
@@ -1425,43 +1686,79 @@ class DraSDK {
   }
 
   adminUpdateAlias(id: string, data: Partial<ModelAlias>) {
-    return this.request<{ status: string }>("PUT", `/api/admin/aliases/${encodeURIComponent(id)}`, data);
+    return this.request<{ status: string }>(
+      "PUT",
+      `/api/admin/aliases/${encodeURIComponent(id)}`,
+      data,
+    );
   }
 
   adminDeleteAlias(id: string) {
-    return this.request<{ status: string }>("DELETE", `/api/admin/aliases/${encodeURIComponent(id)}`);
+    return this.request<{ status: string }>(
+      "DELETE",
+      `/api/admin/aliases/${encodeURIComponent(id)}`,
+    );
   }
 
   // Admin — Billing
 
   adminRevenueSummary(from?: string, to?: string) {
-    return this.request<unknown[]>("GET", "/api/admin/billing/summary", undefined, { from, to } as Record<string, string | number | undefined>);
+    return this.request<unknown[]>(
+      "GET",
+      "/api/admin/billing/summary",
+      undefined,
+      { from, to } as Record<string, string | number | undefined>,
+    );
   }
 
   adminListTransactions(params?: Record<string, string | number | undefined>) {
-    return this.paginatedRequest<UsageRecord>("/api/admin/billing/transactions", params as { page?: number; limit?: number });
+    return this.paginatedRequest<UsageRecord>(
+      "/api/admin/billing/transactions",
+      params as { page?: number; limit?: number },
+    );
   }
 
   adminAdjustCredits(userId: string, amount: number, reason: string) {
-    return this.request<CreditAdjustment>("POST", "/api/admin/billing/credits/adjust", { userId, amount, reason });
+    return this.request<CreditAdjustment>(
+      "POST",
+      "/api/admin/billing/credits/adjust",
+      { userId, amount, reason },
+    );
   }
 
   adminUsageDaily(params?: Record<string, string | number | undefined>) {
-    return this.request<UsageDaily[]>("GET", "/api/admin/billing/usage-daily", undefined, params);
+    return this.request<UsageDaily[]>(
+      "GET",
+      "/api/admin/billing/usage-daily",
+      undefined,
+      params,
+    );
   }
 
   adminListAdjustments(userId: string, page?: number, limit?: number) {
-    return this.paginatedRequest<CreditAdjustment>(`/api/admin/users/${encodeURIComponent(userId)}/adjustments`, { page, limit });
+    return this.paginatedRequest<CreditAdjustment>(
+      `/api/admin/users/${encodeURIComponent(userId)}/adjustments`,
+      { page, limit },
+    );
   }
 
   // Admin — Settings & Feature Flags
 
   adminListSettings(group?: string) {
-    return this.request<SystemSetting[]>("GET", "/api/admin/settings", undefined, group ? { group } : undefined);
+    return this.request<SystemSetting[]>(
+      "GET",
+      "/api/admin/settings",
+      undefined,
+      group ? { group } : undefined,
+    );
   }
 
   adminUpdateSetting(key: string, value: unknown) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/settings/${encodeURIComponent(key)}`, { value });
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/settings/${encodeURIComponent(key)}`,
+      { value },
+    );
   }
 
   adminListFeatureFlags() {
@@ -1473,21 +1770,37 @@ class DraSDK {
   }
 
   adminToggleFeatureFlag(id: string, enabled: boolean) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/feature-flags/${encodeURIComponent(id)}`, { enabled });
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/feature-flags/${encodeURIComponent(id)}`,
+      { enabled },
+    );
   }
 
   // Admin — Security
 
   adminListSuspicious(params?: Record<string, string | number | undefined>) {
-    return this.paginatedRequest<SuspiciousActivity>("/api/admin/security/suspicious", params as { page?: number; limit?: number });
+    return this.paginatedRequest<SuspiciousActivity>(
+      "/api/admin/security/suspicious",
+      params as { page?: number; limit?: number },
+    );
   }
 
   adminReviewSuspicious(id: number, action: string) {
-    return this.request<{ reviewed: boolean }>("PUT", `/api/admin/security/suspicious/${id}`, { action });
+    return this.request<{ reviewed: boolean }>(
+      "PUT",
+      `/api/admin/security/suspicious/${id}`,
+      { action },
+    );
   }
 
   adminListIPEntries(action?: string) {
-    return this.request<IPListEntry[]>("GET", "/api/admin/ip", undefined, action ? { action } : undefined);
+    return this.request<IPListEntry[]>(
+      "GET",
+      "/api/admin/ip",
+      undefined,
+      action ? { action } : undefined,
+    );
   }
 
   adminAddIPEntry(data: Partial<IPListEntry>) {
@@ -1495,17 +1808,26 @@ class DraSDK {
   }
 
   adminRemoveIPEntry(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/ip/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/admin/ip/${encodeURIComponent(id)}`,
+    );
   }
 
   adminListIPAccessLogs(params?: Record<string, string | number | undefined>) {
-    return this.paginatedRequest<IPAccessLog>("/api/admin/logs/ip-access", params as { page?: number; limit?: number });
+    return this.paginatedRequest<IPAccessLog>(
+      "/api/admin/logs/ip-access",
+      params as { page?: number; limit?: number },
+    );
   }
 
   // Admin — Audit & Announcements
 
   adminListAuditLogs(params?: Record<string, string | number | undefined>) {
-    return this.paginatedRequest<AuditLog>("/api/admin/audit", params as { page?: number; limit?: number });
+    return this.paginatedRequest<AuditLog>(
+      "/api/admin/audit",
+      params as { page?: number; limit?: number },
+    );
   }
 
   adminListAnnouncements() {
@@ -1531,11 +1853,18 @@ class DraSDK {
   }
 
   adminTogglePromoStatus(id: string, isActive: boolean) {
-    return this.request<{ isActive: boolean }>("PUT", `/api/admin/promos/${encodeURIComponent(id)}/toggle`, { isActive });
+    return this.request<{ isActive: boolean }>(
+      "PUT",
+      `/api/admin/promos/${encodeURIComponent(id)}/toggle`,
+      { isActive },
+    );
   }
 
   adminListPromoRedemptions(promoId: string) {
-    return this.request<PromoRedemption[]>("GET", `/api/admin/promos/${encodeURIComponent(promoId)}/redemptions`);
+    return this.request<PromoRedemption[]>(
+      "GET",
+      `/api/admin/promos/${encodeURIComponent(promoId)}/redemptions`,
+    );
   }
 
   // Admin — Groups, Reports, Changelog
@@ -1553,7 +1882,12 @@ class DraSDK {
   }
 
   adminListChangelog(drafts?: boolean) {
-    return this.request<ChangelogEntry[]>("GET", "/api/admin/changelog", undefined, drafts !== undefined ? { drafts: String(drafts) } : undefined);
+    return this.request<ChangelogEntry[]>(
+      "GET",
+      "/api/admin/changelog",
+      undefined,
+      drafts !== undefined ? { drafts: String(drafts) } : undefined,
+    );
   }
 
   adminCreateChangelog(data: Partial<ChangelogEntry>) {
@@ -1561,21 +1895,33 @@ class DraSDK {
   }
 
   adminPublishChangelog(id: string) {
-    return this.request<{ published: boolean }>("POST", `/api/admin/changelog/${encodeURIComponent(id)}/publish`);
+    return this.request<{ published: boolean }>(
+      "POST",
+      `/api/admin/changelog/${encodeURIComponent(id)}/publish`,
+    );
   }
 
   // Admin — Admin Users & SSO
 
   adminListAdminUsers() {
-    return this.request<{ userId: string; role: string }[]>("GET", "/api/admin/admins");
+    return this.request<{ userId: string; role: string }[]>(
+      "GET",
+      "/api/admin/admins",
+    );
   }
 
   adminCreateAdminUser(userId: string, role: string) {
-    return this.request<{ status: string }>("POST", "/api/admin/admins", { userId, role });
+    return this.request<{ status: string }>("POST", "/api/admin/admins", {
+      userId,
+      role,
+    });
   }
 
   adminRemoveAdmin(id: string) {
-    return this.request<{ removed: boolean }>("DELETE", `/api/admin/admins/${encodeURIComponent(id)}`);
+    return this.request<{ removed: boolean }>(
+      "DELETE",
+      `/api/admin/admins/${encodeURIComponent(id)}`,
+    );
   }
 
   adminListSSOConfigs() {
@@ -1609,7 +1955,10 @@ class DraSDK {
   }
 
   adminRetryWebhook(id: string) {
-    return this.request<{ status: string }>("POST", `/api/admin/webhooks/${encodeURIComponent(id)}/retry`);
+    return this.request<{ status: string }>(
+      "POST",
+      `/api/admin/webhooks/${encodeURIComponent(id)}/retry`,
+    );
   }
 
   // Admin — RBAC
@@ -1623,15 +1972,25 @@ class DraSDK {
   }
 
   adminGetRolePermissions(role: string) {
-    return this.request<string[]>("GET", `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions`);
+    return this.request<string[]>(
+      "GET",
+      `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions`,
+    );
   }
 
   adminAddRolePermission(role: string, permissionName: string) {
-    return this.request<{ added: boolean }>("POST", `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions`, { permissionName });
+    return this.request<{ added: boolean }>(
+      "POST",
+      `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions`,
+      { permissionName },
+    );
   }
 
   adminRemoveRolePermission(role: string, permission: string) {
-    return this.request<{ removed: boolean }>("DELETE", `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions/${encodeURIComponent(permission)}`);
+    return this.request<{ removed: boolean }>(
+      "DELETE",
+      `/api/admin/rbac/roles/${encodeURIComponent(role)}/permissions/${encodeURIComponent(permission)}`,
+    );
   }
 
   // Admin — Rate Limits
@@ -1640,12 +1999,28 @@ class DraSDK {
     return this.request<RateLimitTier[]>("GET", "/api/admin/rate-limits/tiers");
   }
 
-  adminUpdateTierLimits(tier: string, data: { rpm?: number; daily?: number; monthly?: number; maxTokens?: number }) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/rate-limits/tiers/${encodeURIComponent(tier)}`, data);
+  adminUpdateTierLimits(
+    tier: string,
+    data: {
+      rpm?: number;
+      daily?: number;
+      monthly?: number;
+      maxTokens?: number;
+    },
+  ) {
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/rate-limits/tiers/${encodeURIComponent(tier)}`,
+      data,
+    );
   }
 
   adminSetUserTier(userId: string, tier: string) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/users/${encodeURIComponent(userId)}/tier`, { tier });
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/users/${encodeURIComponent(userId)}/tier`,
+      { tier },
+    );
   }
 
   // Admin — Provider Plugins
@@ -1659,15 +2034,25 @@ class DraSDK {
   }
 
   adminGetPlugin(id: string) {
-    return this.request<ProviderPlugin>("GET", `/api/admin/plugins/${encodeURIComponent(id)}`);
+    return this.request<ProviderPlugin>(
+      "GET",
+      `/api/admin/plugins/${encodeURIComponent(id)}`,
+    );
   }
 
   adminTogglePlugin(id: string, active: boolean) {
-    return this.request<{ updated: boolean }>("PUT", `/api/admin/plugins/${encodeURIComponent(id)}/toggle`, { active });
+    return this.request<{ updated: boolean }>(
+      "PUT",
+      `/api/admin/plugins/${encodeURIComponent(id)}/toggle`,
+      { active },
+    );
   }
 
   adminDeletePlugin(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/admin/plugins/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/admin/plugins/${encodeURIComponent(id)}`,
+    );
   }
 
   // Admin — Dashboard Stats
@@ -1691,7 +2076,10 @@ class DraSDK {
   // Files — Delete
 
   deleteFile(id: string) {
-    return this.request<{ deleted: boolean }>("DELETE", `/api/files/${encodeURIComponent(id)}`);
+    return this.request<{ deleted: boolean }>(
+      "DELETE",
+      `/api/files/${encodeURIComponent(id)}`,
+    );
   }
 
   // Public Health
@@ -1716,15 +2104,41 @@ export { DraSDK };
 
 // Re-export admin types for convenience
 export type {
-  AdminRole, ProviderStatus, ProviderKeyStrategy, ModelStatus, UserStatus, AuditSeverity,
-  AdminUser, AdminUserDetail,
-  Provider, ProviderKey, ModelRegistry, ModelAlias,
-  CreditAdjustment, UsageRecord, UsageDaily,
-  SystemSetting, FeatureFlag,
-  AuditLog, IPListEntry, IPAccessLog, SuspiciousActivity,
+  AdminRole,
+  ProviderStatus,
+  ProviderKeyStrategy,
+  ModelStatus,
+  UserStatus,
+  AuditSeverity,
+  AdminUser,
+  AdminUserDetail,
+  Provider,
+  ProviderKey,
+  ModelRegistry,
+  ModelAlias,
+  CreditAdjustment,
+  UsageRecord,
+  UsageDaily,
+  SystemSetting,
+  FeatureFlag,
+  AuditLog,
+  IPListEntry,
+  IPAccessLog,
+  SuspiciousActivity,
   ImpersonationSession,
-  Announcement, UserAnnouncement, PromoCode, PromoRedemption,
-  UserGroup, ScheduledReport, ChangelogEntry, SSOConfig,
-  ProviderPlugin, RateLimitTier, RBACPermission, RBACRole,
-  MessageStats, CostBreakdown, DashboardStats,
+  Announcement,
+  UserAnnouncement,
+  PromoCode,
+  PromoRedemption,
+  UserGroup,
+  ScheduledReport,
+  ChangelogEntry,
+  SSOConfig,
+  ProviderPlugin,
+  RateLimitTier,
+  RBACPermission,
+  RBACRole,
+  MessageStats,
+  CostBreakdown,
+  DashboardStats,
 } from "@/types/admin";

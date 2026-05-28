@@ -39,7 +39,10 @@ export function ModelBreakdown({ logs, maxItems = 6 }: ModelBreakdownProps) {
         const pct = Math.round((count / maxCount) * 100);
         return (
           <div key={model} className="flex items-center gap-3 group">
-            <span className="text-xs text-gray-400 font-mono w-32 truncate text-right shrink-0" title={model}>
+            <span
+              className="text-xs text-gray-400 font-mono w-32 truncate text-right shrink-0"
+              title={model}
+            >
               {model}
             </span>
             <div className="flex-1 h-5 bg-white/[0.03] rounded-full overflow-hidden relative">

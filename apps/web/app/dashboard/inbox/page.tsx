@@ -3,12 +3,29 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSDK } from "@/lib/api/sdk";
-import { Mail, CheckCheck, Bell, AlertTriangle, Info, Shield, Megaphone, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Mail,
+  CheckCheck,
+  Bell,
+  AlertTriangle,
+  Info,
+  Shield,
+  Megaphone,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PRIORITY_CONFIG: Record<string, { icon: typeof Bell; color: string; bg: string }> = {
+const PRIORITY_CONFIG: Record<
+  string,
+  { icon: typeof Bell; color: string; bg: string }
+> = {
   critical: { icon: Shield, color: "text-red-400", bg: "border-red-500/20" },
-  warning: { icon: AlertTriangle, color: "text-yellow-400", bg: "border-yellow-500/20" },
+  warning: {
+    icon: AlertTriangle,
+    color: "text-yellow-400",
+    bg: "border-yellow-500/20",
+  },
   info: { icon: Info, color: "text-blue-400", bg: "border-blue-500/20" },
   low: { icon: Bell, color: "text-gray-400", bg: "border-white/10" },
   normal: { icon: Bell, color: "text-gray-400", bg: "border-white/10" },
@@ -38,7 +55,9 @@ export default function InboxPage() {
     mutationFn: (id: string) => getSDK().markMessageRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "messages", "unread"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user", "messages", "unread"],
+      });
     },
   });
 
@@ -46,7 +65,9 @@ export default function InboxPage() {
     mutationFn: () => getSDK().markAllMessagesRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["user", "messages", "unread"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user", "messages", "unread"],
+      });
     },
   });
 
@@ -94,48 +115,62 @@ export default function InboxPage() {
           >
             <Megaphone className="w-4 h-4 text-amber-400" />
             <span>Announcements ({activeAnnouncements.length})</span>
-            {announcementsExpanded ? <ChevronUp className="w-3.5 h-3.5 ml-auto" /> : <ChevronDown className="w-3.5 h-3.5 ml-auto" />}
+            {announcementsExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5 ml-auto" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 ml-auto" />
+            )}
           </button>
 
           <AnimatePresence>
-            {announcementsExpanded && activeAnnouncements.map((a) => {
-              const config = PRIORITY_CONFIG[a.priority] || PRIORITY_CONFIG.info;
+            {announcementsExpanded &&
+              activeAnnouncements.map((a) => {
+                const config =
+                  PRIORITY_CONFIG[a.priority] || PRIORITY_CONFIG.info;
 
-              return (
-                <motion.div
-                  key={a.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className={`bg-[#0A0A0A] border rounded-xl p-4 flex items-start gap-3 ${config.bg} hover:bg-white/[0.02] transition-colors`}
-                >
-                  <Megaphone className={`w-5 h-5 mt-0.5 flex-shrink-0 ${config.color}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-white font-medium text-sm truncate">{a.title}</p>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium capitalize ${config.color} ${config.bg}`}>
-                        {a.priority}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm mt-0.5 line-clamp-2">{a.body}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                      <span>
-                        {new Date(a.startDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                      {a.endDate && (
-                        <span className="text-yellow-500/60">
-                          Ends {new Date(a.endDate).toLocaleDateString()}
+                return (
+                  <motion.div
+                    key={a.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className={`bg-[#0A0A0A] border rounded-xl p-4 flex items-start gap-3 ${config.bg} hover:bg-white/[0.02] transition-colors`}
+                  >
+                    <Megaphone
+                      className={`w-5 h-5 mt-0.5 flex-shrink-0 ${config.color}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-white font-medium text-sm truncate">
+                          {a.title}
+                        </p>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium capitalize ${config.color} ${config.bg}`}
+                        >
+                          {a.priority}
                         </span>
-                      )}
+                      </div>
+                      <p className="text-gray-400 text-sm mt-0.5 line-clamp-2">
+                        {a.body}
+                      </p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                        <span>
+                          {new Date(a.startDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {a.endDate && (
+                          <span className="text-yellow-500/60">
+                            Ends {new Date(a.endDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
           </AnimatePresence>
         </div>
       )}
@@ -151,7 +186,8 @@ export default function InboxPage() {
 
         <AnimatePresence>
           {messages.map((msg) => {
-            const config = PRIORITY_CONFIG[msg.priority] || PRIORITY_CONFIG.info;
+            const config =
+              PRIORITY_CONFIG[msg.priority] || PRIORITY_CONFIG.info;
             const Icon = config.icon;
 
             return (
@@ -171,15 +207,21 @@ export default function InboxPage() {
                   }
                 }}
               >
-                <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${config.color}`} />
+                <Icon
+                  className={`w-5 h-5 mt-0.5 flex-shrink-0 ${config.color}`}
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-white font-medium text-sm truncate">{msg.title}</p>
+                    <p className="text-white font-medium text-sm truncate">
+                      {msg.title}
+                    </p>
                     {!msg.isRead && (
                       <span className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-gray-400 text-sm mt-0.5 line-clamp-2">{msg.body}</p>
+                  <p className="text-gray-400 text-sm mt-0.5 line-clamp-2">
+                    {msg.body}
+                  </p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                     <span>{msg.senderEmail}</span>
                     <span>
@@ -206,7 +248,9 @@ export default function InboxPage() {
           <div className="text-center py-16 text-gray-500">
             <Mail className="w-10 h-10 mx-auto mb-3 opacity-40" />
             <p className="text-sm">No messages</p>
-            <p className="text-xs mt-1 text-gray-600">Admin messages and announcements will appear here</p>
+            <p className="text-xs mt-1 text-gray-600">
+              Admin messages and announcements will appear here
+            </p>
           </div>
         )}
       </div>

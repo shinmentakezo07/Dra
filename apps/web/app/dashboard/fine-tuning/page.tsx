@@ -23,16 +23,26 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 function statusBadge(status: FineTuningJob["status"]) {
-  const config: Record<FineTuningJob["status"], { icon: typeof Clock; color: string }> = {
+  const config: Record<
+    FineTuningJob["status"],
+    { icon: typeof Clock; color: string }
+  > = {
     queued: { icon: Clock, color: "bg-gray-500/10 text-gray-400" },
     running: { icon: Loader2, color: "bg-blue-500/10 text-blue-400" },
-    completed: { icon: CheckCircle, color: "bg-emerald-500/10 text-emerald-400" },
+    completed: {
+      icon: CheckCircle,
+      color: "bg-emerald-500/10 text-emerald-400",
+    },
     failed: { icon: XCircle, color: "bg-red-500/10 text-red-400" },
   };
   const { icon: Icon, color } = config[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
-      <Icon className={`w-3 h-3 ${status === "running" ? "animate-spin" : ""}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${color}`}
+    >
+      <Icon
+        className={`w-3 h-3 ${status === "running" ? "animate-spin" : ""}`}
+      />
       {status}
     </span>
   );
@@ -55,7 +65,9 @@ export default function FineTuningPage() {
     queryFn: () => getSDK().listFineTuningJobs(1, 50),
     refetchInterval: (query) => {
       const jobs = query.state.data?.data ?? [];
-      return jobs.some((j) => j.status === "running" || j.status === "queued") ? 15000 : false;
+      return jobs.some((j) => j.status === "running" || j.status === "queued")
+        ? 15000
+        : false;
     },
   });
 
@@ -75,7 +87,10 @@ export default function FineTuningPage() {
     if (!selectedModel || !selectedFile) return;
     setIsUploading(true);
     try {
-      const uploaded = await getSDK().uploadFile(selectedFile, selectedFile.name);
+      const uploaded = await getSDK().uploadFile(
+        selectedFile,
+        selectedFile.name,
+      );
       await getSDK().createFineTuningJob?.({
         baseModel: selectedModel,
         datasetId: uploaded.id,
@@ -97,9 +112,12 @@ export default function FineTuningPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const finetunableModels = models?.filter(
-    (m) => m.provider.toLowerCase().includes("openai") || m.provider.toLowerCase().includes("anthropic")
-  ) ?? [];
+  const finetunableModels =
+    models?.filter(
+      (m) =>
+        m.provider.toLowerCase().includes("openai") ||
+        m.provider.toLowerCase().includes("anthropic"),
+    ) ?? [];
 
   return (
     <div className="p-6 lg:p-10 space-y-6">
@@ -109,7 +127,8 @@ export default function FineTuningPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">Fine-tuning</h1>
             <p className="text-sm text-gray-400">
-              Train custom models on your data — upload datasets, track jobs, deploy results
+              Train custom models on your data — upload datasets, track jobs,
+              deploy results
             </p>
           </div>
         </div>
@@ -131,13 +150,17 @@ export default function FineTuningPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Base Model</label>
+              <label className="block text-xs text-gray-400 mb-1.5">
+                Base Model
+              </label>
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
                 className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary/50 appearance-none"
               >
-                <option value="" className="bg-gray-900">Select a model</option>
+                <option value="" className="bg-gray-900">
+                  Select a model
+                </option>
                 {finetunableModels.map((m) => (
                   <option key={m.id} value={m.id} className="bg-gray-900">
                     {m.name}
@@ -147,7 +170,9 @@ export default function FineTuningPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Dataset (JSONL)</label>
+              <label className="block text-xs text-gray-400 mb-1.5">
+                Dataset (JSONL)
+              </label>
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
@@ -166,7 +191,9 @@ export default function FineTuningPage() {
                 {selectedFile ? (
                   <>
                     <FileJson className="w-6 h-6 text-primary mb-2" />
-                    <p className="text-sm text-white truncate max-w-full">{selectedFile.name}</p>
+                    <p className="text-sm text-white truncate max-w-full">
+                      {selectedFile.name}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {(selectedFile.size / 1024).toFixed(1)} KB
                     </p>
@@ -174,8 +201,12 @@ export default function FineTuningPage() {
                 ) : (
                   <>
                     <Upload className="w-6 h-6 text-gray-600 mb-2" />
-                    <p className="text-sm text-gray-400">Click to upload JSONL</p>
-                    <p className="text-xs text-gray-600 mt-1">Training data in OpenAI format</p>
+                    <p className="text-sm text-gray-400">
+                      Click to upload JSONL
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Training data in OpenAI format
+                    </p>
                   </>
                 )}
               </div>
@@ -211,7 +242,9 @@ export default function FineTuningPage() {
             <div className="text-center py-16 text-gray-500">
               <Wand2 className="w-8 h-8 mx-auto mb-3 opacity-40" />
               <p className="text-sm">No fine-tuning jobs yet</p>
-              <p className="text-xs text-gray-600 mt-1">Upload a dataset to get started</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Upload a dataset to get started
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -219,7 +252,9 @@ export default function FineTuningPage() {
                 <div key={job.id} className="px-4 py-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-white font-mono">{job.model}</span>
+                      <span className="text-sm font-medium text-white font-mono">
+                        {job.model}
+                      </span>
                       {statusBadge(job.status)}
                     </div>
                     <span className="text-xs text-gray-500">

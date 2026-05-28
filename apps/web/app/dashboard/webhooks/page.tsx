@@ -45,8 +45,17 @@ export default function WebhooksPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; url: string; events: string[]; secret?: string }) =>
-      getSDK().createWebhook({ name: data.name, url: data.url, events: data.events }),
+    mutationFn: (data: {
+      name: string;
+      url: string;
+      events: string[];
+      secret?: string;
+    }) =>
+      getSDK().createWebhook({
+        name: data.name,
+        url: data.url,
+        events: data.events,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["webhooks"] });
       setShowCreate(false);
@@ -128,13 +137,13 @@ export default function WebhooksPage() {
             key={wh.id}
             webhook={wh}
             isEditing={editingId === wh.id}
-            onToggleEdit={() => setEditingId(editingId === wh.id ? null : wh.id)}
+            onToggleEdit={() =>
+              setEditingId(editingId === wh.id ? null : wh.id)
+            }
             onToggleActive={() =>
               toggleMutation.mutate({ id: wh.id, active: !wh.active })
             }
-            onUpdate={(data) =>
-              updateMutation.mutate({ id: wh.id, data })
-            }
+            onUpdate={(data) => updateMutation.mutate({ id: wh.id, data })}
             onDelete={() => deleteMutation.mutate(wh.id)}
             isPending={
               updateMutation.isPending ||
@@ -166,7 +175,12 @@ function WebhookForm({
   isPending,
   initial,
 }: {
-  onSubmit: (data: { name: string; url: string; events: string[]; secret?: string }) => void;
+  onSubmit: (data: {
+    name: string;
+    url: string;
+    events: string[];
+    secret?: string;
+  }) => void;
   onCancel: () => void;
   isPending: boolean;
   initial?: { name?: string; url?: string; events?: string[]; secret?: string };
@@ -177,7 +191,7 @@ function WebhookForm({
 
   const toggleEvent = (event: string) => {
     setEvents((prev) =>
-      prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
+      prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event],
     );
   };
 
@@ -226,7 +240,9 @@ function WebhookForm({
 
       <div className="flex gap-2 pt-2">
         <button
-          onClick={() => onSubmit({ name: url, url, events, secret: secret || undefined })}
+          onClick={() =>
+            onSubmit({ name: url, url, events, secret: secret || undefined })
+          }
           disabled={!url || events.length === 0 || isPending}
           className="px-4 py-2 text-sm font-medium bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors disabled:opacity-50"
         >

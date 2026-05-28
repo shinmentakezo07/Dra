@@ -104,7 +104,9 @@ const mockSDK = {
 describe("AdminSDK", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(sdkModule.getSDK).mockReturnValue(mockSDK as unknown as ReturnType<typeof sdkModule.getSDK>);
+    vi.mocked(sdkModule.getSDK).mockReturnValue(
+      mockSDK as unknown as ReturnType<typeof sdkModule.getSDK>,
+    );
   });
 
   describe("getDashboard", () => {
@@ -120,14 +122,26 @@ describe("AdminSDK", () => {
 
   describe("listUsers", () => {
     it("delegates to adminListUsers with pagination", async () => {
-      mockSDK.adminListUsers.mockResolvedValueOnce({ data: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+      mockSDK.adminListUsers.mockResolvedValueOnce({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      });
       const sdk = new AdminSDK();
       const result = await sdk.listUsers({ page: 2, limit: 10 });
       expect(mockSDK.adminListUsers).toHaveBeenCalledWith(2, 10);
     });
 
     it("handles undefined params", async () => {
-      mockSDK.adminListUsers.mockResolvedValueOnce({ data: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+      mockSDK.adminListUsers.mockResolvedValueOnce({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      });
       const sdk = new AdminSDK();
       await sdk.listUsers();
       expect(mockSDK.adminListUsers).toHaveBeenCalledWith(undefined, undefined);
@@ -150,7 +164,10 @@ describe("AdminSDK", () => {
       mockSDK.adminUpdateUserStatus.mockResolvedValueOnce(undefined);
       const sdk = new AdminSDK();
       await sdk.updateUserStatus("1", "suspended", "abuse");
-      expect(mockSDK.adminUpdateUserStatus).toHaveBeenCalledWith("1", "suspended");
+      expect(mockSDK.adminUpdateUserStatus).toHaveBeenCalledWith(
+        "1",
+        "suspended",
+      );
     });
   });
 
@@ -170,7 +187,11 @@ describe("AdminSDK", () => {
       const sdk = new AdminSDK();
       const result = await sdk.adjustCredits("1", 100, "bonus");
       expect(result).toEqual(adjustment);
-      expect(mockSDK.adminAdjustCredits).toHaveBeenCalledWith("1", 100, "bonus");
+      expect(mockSDK.adminAdjustCredits).toHaveBeenCalledWith(
+        "1",
+        100,
+        "bonus",
+      );
     });
   });
 
@@ -234,7 +255,10 @@ describe("AdminSDK", () => {
       mockSDK.adminAddRolePermission.mockResolvedValueOnce(undefined);
       const sdk = new AdminSDK();
       await sdk.addRolePermission("admin", "users:write");
-      expect(mockSDK.adminAddRolePermission).toHaveBeenCalledWith("admin", "users:write");
+      expect(mockSDK.adminAddRolePermission).toHaveBeenCalledWith(
+        "admin",
+        "users:write",
+      );
     });
   });
 
@@ -256,7 +280,13 @@ describe("AdminSDK", () => {
 
   describe("Message methods", () => {
     it("listMessages delegates correctly", async () => {
-      mockSDK.adminListMessages.mockResolvedValueOnce({ data: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+      mockSDK.adminListMessages.mockResolvedValueOnce({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      });
       const sdk = new AdminSDK();
       await sdk.listMessages(1, 20);
       expect(mockSDK.adminListMessages).toHaveBeenCalledWith(1, 20);
@@ -265,9 +295,17 @@ describe("AdminSDK", () => {
     it("createMessage delegates correctly", async () => {
       mockSDK.adminCreateMessage.mockResolvedValueOnce({ id: "1" });
       const sdk = new AdminSDK();
-      const result = await sdk.createMessage({ title: "Hello", body: "World", targetType: "all" });
+      const result = await sdk.createMessage({
+        title: "Hello",
+        body: "World",
+        targetType: "all",
+      });
       expect(result).toEqual({ id: "1" });
-      expect(mockSDK.adminCreateMessage).toHaveBeenCalledWith({ title: "Hello", body: "World", targetType: "all" });
+      expect(mockSDK.adminCreateMessage).toHaveBeenCalledWith({
+        title: "Hello",
+        body: "World",
+        targetType: "all",
+      });
     });
   });
 });

@@ -11,27 +11,33 @@ interface SnippetsModalProps {
   onSelectSnippet: (snippet: CodeSnippet) => void;
 }
 
-export default function SnippetsModal({ isOpen, onClose, currentLanguage, onSelectSnippet }: SnippetsModalProps) {
+export default function SnippetsModal({
+  isOpen,
+  onClose,
+  currentLanguage,
+  onSelectSnippet,
+}: SnippetsModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   const categories = ["All", ...getAllCategories()];
 
   const filteredSnippets = useMemo(() => {
-    let snippets = codeSnippets.filter(s => s.language === currentLanguage);
-    
+    let snippets = codeSnippets.filter((s) => s.language === currentLanguage);
+
     if (selectedCategory !== "All") {
-      snippets = snippets.filter(s => s.category === selectedCategory);
+      snippets = snippets.filter((s) => s.category === selectedCategory);
     }
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       snippets = snippets.filter(
-        s => s.name.toLowerCase().includes(query) || 
-             s.description.toLowerCase().includes(query)
+        (s) =>
+          s.name.toLowerCase().includes(query) ||
+          s.description.toLowerCase().includes(query),
       );
     }
-    
+
     return snippets;
   }, [currentLanguage, selectedCategory, searchQuery]);
 
@@ -48,7 +54,9 @@ export default function SnippetsModal({ isOpen, onClose, currentLanguage, onSele
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Code Snippets</h2>
-              <p className="text-sm text-gray-400">Browse and insert ready-to-use code examples</p>
+              <p className="text-sm text-gray-400">
+                Browse and insert ready-to-use code examples
+              </p>
             </div>
           </div>
           <button
@@ -71,16 +79,16 @@ export default function SnippetsModal({ isOpen, onClose, currentLanguage, onSele
               className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-primary/50 text-white placeholder-gray-500"
             />
           </div>
-          
+
           <div className="flex gap-2 flex-wrap">
-            {categories.map(category => (
+            {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   selectedCategory === category
-                    ? 'bg-primary text-white'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    ? "bg-primary text-white"
+                    : "bg-white/5 text-gray-400 hover:bg-white/10"
                 }`}
               >
                 {category}
@@ -99,7 +107,7 @@ export default function SnippetsModal({ isOpen, onClose, currentLanguage, onSele
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredSnippets.map(snippet => (
+              {filteredSnippets.map((snippet) => (
                 <button
                   key={snippet.id}
                   onClick={() => {
@@ -116,7 +124,9 @@ export default function SnippetsModal({ isOpen, onClose, currentLanguage, onSele
                       {snippet.category}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-400 mb-3">{snippet.description}</p>
+                  <p className="text-sm text-gray-400 mb-3">
+                    {snippet.description}
+                  </p>
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <Sparkles className="w-3 h-3" />
                     <span>Click to insert</span>

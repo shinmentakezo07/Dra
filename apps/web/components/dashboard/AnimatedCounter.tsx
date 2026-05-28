@@ -8,8 +8,13 @@ interface AnimatedCounterProps {
   duration?: number;
 }
 
-export function AnimatedCounter({ target, duration = 800 }: AnimatedCounterProps) {
-  const [current, setCurrent] = useState(typeof target === "number" ? 0 : target);
+export function AnimatedCounter({
+  target,
+  duration = 800,
+}: AnimatedCounterProps) {
+  const [current, setCurrent] = useState(
+    typeof target === "number" ? 0 : target,
+  );
 
   useEffect(() => {
     if (typeof target !== "number") {

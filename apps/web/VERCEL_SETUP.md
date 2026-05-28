@@ -81,6 +81,7 @@ npx tsx db/seed-python.ts
 **Problem**: Tables don't exist or schema is outdated
 
 **Solution**:
+
 ```bash
 cd apps/web
 npx tsx scripts/migrate.ts
@@ -90,7 +91,8 @@ npx tsx scripts/migrate.ts
 
 **Problem**: Login/signup not working
 
-**Solution**: 
+**Solution**:
+
 1. Check NEXTAUTH_SECRET is set
 2. Check NEXTAUTH_URL matches your domain
 3. Clear browser cookies and try again
@@ -152,6 +154,7 @@ If you encounter issues:
 4. Check browser console for client-side errors
 
 For more help, see:
+
 - Vercel Docs: https://vercel.com/docs
 - Next.js Docs: https://nextjs.org/docs
 - Neon Docs: https://neon.tech/docs

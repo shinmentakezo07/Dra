@@ -1,6 +1,11 @@
 "use client";
 
-import { motion, useMotionValue, useMotionTemplate, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useMotionTemplate,
+  AnimatePresence,
+} from "framer-motion";
 import {
   Edit3,
   MessageSquare,
@@ -16,7 +21,12 @@ import Link from "next/link";
 import { z } from "zod";
 import openRouterModels from "../models/openrouter-models-2026.json";
 import { getProviderLogo } from "@/lib/provider-logos";
-import { HistoryChat, ChatSession, Message, EnrichedModel } from "@/components/playground/types";
+import {
+  HistoryChat,
+  ChatSession,
+  Message,
+  EnrichedModel,
+} from "@/components/playground/types";
 import ModelSelector from "@/components/playground/ModelSelector";
 import ChatInterface from "@/components/playground/ChatInterface";
 import { getProviderColor } from "@/components/playground/ProviderColors";
@@ -93,7 +103,9 @@ export default function PlaygroundPage() {
   const [chatHistory, setChatHistory] = useState<HistoryChat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [streamingContent, setStreamingContent] = useState<Record<string, string>>({});
+  const [streamingContent, setStreamingContent] = useState<
+    Record<string, string>
+  >({});
   const [streamErrors, setStreamErrors] = useState<Record<string, string>>({});
 
   const mouseX = useMotionValue(0);
@@ -110,7 +122,9 @@ export default function PlaygroundPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    configureSDK({ baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" });
+    configureSDK({
+      baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
+    });
     const savedHistory = localStorage.getItem(HISTORY_KEY);
     const savedActive = localStorage.getItem(ACTIVE_KEY);
     if (savedHistory) {
@@ -124,9 +138,7 @@ export default function PlaygroundPage() {
             setActiveChatId(savedActive);
             const chat = history.find((c) => c.id === savedActive)!;
             setSharedMessages(chat.sharedMessages);
-            setSessions(
-              chat.sessions.map((s) => ({ ...s, isTyping: false }))
-            );
+            setSessions(chat.sessions.map((s) => ({ ...s, isTyping: false })));
             setSelectedModels(chat.selectedModels);
           }
         }
@@ -151,7 +163,13 @@ export default function PlaygroundPage() {
   }, [isLoading]);
 
   useEffect(() => {
-    function handleMouseMove({ clientX, clientY }: { clientX: number; clientY: number }) {
+    function handleMouseMove({
+      clientX,
+      clientY,
+    }: {
+      clientX: number;
+      clientY: number;
+    }) {
       mouseX.set(clientX);
       mouseY.set(clientY);
     }
@@ -203,7 +221,7 @@ export default function PlaygroundPage() {
       setSessions(chat.sessions.map((s) => ({ ...s, isTyping: false })));
       setSelectedModels(chat.selectedModels);
     },
-    [activeChatId, sharedMessages, saveCurrentChat]
+    [activeChatId, sharedMessages, saveCurrentChat],
   );
 
   const handleDeleteChat = useCallback(
@@ -217,28 +235,25 @@ export default function PlaygroundPage() {
         setSelectedModels([]);
       }
     },
-    [activeChatId]
+    [activeChatId],
   );
 
-  const confirmModels = useCallback(
-    (models: EnrichedModel[]) => {
-      // Replace selected models and rebuild sessions
-      // Preserve session messages for models that were already selected
-      setSelectedModels(models);
-      setSessions((prevSessions) => {
-        const newSessions: ChatSession[] = models.map((model) => {
-          const existing = prevSessions.find((s) => s.id === model.id);
-          if (existing) {
-            return { ...existing, model };
-          }
-          return { id: model.id, model, messages: [], isTyping: false };
-        });
-        return newSessions;
+  const confirmModels = useCallback((models: EnrichedModel[]) => {
+    // Replace selected models and rebuild sessions
+    // Preserve session messages for models that were already selected
+    setSelectedModels(models);
+    setSessions((prevSessions) => {
+      const newSessions: ChatSession[] = models.map((model) => {
+        const existing = prevSessions.find((s) => s.id === model.id);
+        if (existing) {
+          return { ...existing, model };
+        }
+        return { id: model.id, model, messages: [], isTyping: false };
       });
-      setShowModelSelector(false);
-    },
-    []
-  );
+      return newSessions;
+    });
+    setShowModelSelector(false);
+  }, []);
 
   const removeModel = useCallback((modelId: string) => {
     setSelectedModels((prev) => prev.filter((m) => m.id !== modelId));
@@ -251,12 +266,17 @@ export default function PlaygroundPage() {
     }
     setSharedMessages([]);
     setSessions((prev) =>
-      prev.map((s) => ({ ...s, messages: [], isTyping: false }))
+      prev.map((s) => ({ ...s, messages: [], isTyping: false })),
     );
   }, [sharedMessages, saveCurrentChat]);
 
   const sendMessage = useCallback(async () => {
-    if (!inputMessage.trim() || selectedModels.length === 0 || isLoadingRef.current) return;
+    if (
+      !inputMessage.trim() ||
+      selectedModels.length === 0 ||
+      isLoadingRef.current
+    )
+      return;
 
     const userMessage: Message = {
       role: "user",
@@ -299,9 +319,13 @@ export default function PlaygroundPage() {
         setSessions((prev) =>
           prev.map((s) =>
             s.id === model.id
-              ? { ...s, messages: [...s.messages, assistantMessage], isTyping: false }
-              : s
-          )
+              ? {
+                  ...s,
+                  messages: [...s.messages, assistantMessage],
+                  isTyping: false,
+                }
+              : s,
+          ),
         );
         // Clear streaming content since it's now in the session
         setStreamingContent((prev) => {
@@ -310,12 +334,11 @@ export default function PlaygroundPage() {
           return next;
         });
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
         setStreamErrors((prev) => ({ ...prev, [model.id]: errorMessage }));
         setSessions((prev) =>
-          prev.map((s) =>
-            s.id === model.id ? { ...s, isTyping: false } : s
-          )
+          prev.map((s) => (s.id === model.id ? { ...s, isTyping: false } : s)),
         );
         setStreamingContent((prev) => {
           const next = { ...prev };
@@ -341,9 +364,17 @@ export default function PlaygroundPage() {
         {/* Grid with softer mask */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_0%,#000_40%,transparent_100%)]" />
         {/* Noise texture overlay */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          }}
+        />
         {/* Spotlight follow */}
-        <motion.div className="absolute inset-0 opacity-40" style={{ background: spotlightBackground }} />
+        <motion.div
+          className="absolute inset-0 opacity-40"
+          style={{ background: spotlightBackground }}
+        />
         {/* Deep radial fade */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,transparent_0%,#020202_100%)]" />
         {/* Floating orbs — refined */}
@@ -378,11 +409,21 @@ export default function PlaygroundPage() {
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.04]">
               <Link href="/" className="flex items-center gap-3 group">
                 <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/[0.06] group-hover:border-white/10 transition-colors">
-                  <Image src="/nervous-cat.jpg" alt="Yapapa" fill className="object-cover" unoptimized />
+                  <Image
+                    src="/nervous-cat.jpg"
+                    alt="Yapapa"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
                 </div>
                 <div>
-                  <span className="font-bold text-sm tracking-tight">Yapapa</span>
-                  <span className="text-[9px] text-gray-600 block font-mono">AI Playground</span>
+                  <span className="font-bold text-sm tracking-tight">
+                    Yapapa
+                  </span>
+                  <span className="text-[9px] text-gray-600 block font-mono">
+                    AI Playground
+                  </span>
                 </div>
               </Link>
               <button
@@ -424,13 +465,17 @@ export default function PlaygroundPage() {
                     >
                       <MessageSquare
                         className={`w-4 h-4 shrink-0 transition-colors ${
-                          isActive ? "text-white/80" : "text-gray-700 group-hover:text-gray-500"
+                          isActive
+                            ? "text-white/80"
+                            : "text-gray-700 group-hover:text-gray-500"
                         }`}
                       />
                       <div className="flex-1 min-w-0">
                         <div
                           className={`text-xs truncate ${
-                            isActive ? "text-white/90 font-medium" : "text-gray-500 group-hover:text-gray-400"
+                            isActive
+                              ? "text-white/90 font-medium"
+                              : "text-gray-500 group-hover:text-gray-400"
                           }`}
                         >
                           {chat.title}
@@ -451,7 +496,9 @@ export default function PlaygroundPage() {
                 {chatHistory.length === 0 && (
                   <div className="text-center py-12">
                     <MessageSquare className="w-8 h-8 mx-auto mb-3 text-gray-800" />
-                    <p className="text-xs text-gray-700 font-mono">No chats yet</p>
+                    <p className="text-xs text-gray-700 font-mono">
+                      No chats yet
+                    </p>
                   </div>
                 )}
               </div>
@@ -482,13 +529,21 @@ export default function PlaygroundPage() {
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
             <div className="flex items-center justify-between gap-4">
-              <div className={`flex items-center gap-4 ${!showSidebar ? "ml-14 md:ml-0" : ""}`}>
+              <div
+                className={`flex items-center gap-4 ${!showSidebar ? "ml-14 md:ml-0" : ""}`}
+              >
                 <div className="flex items-center gap-3">
                   <motion.div
                     whileHover={{ scale: 1.05, rotate: 1 }}
                     className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/[0.06] shadow-[0_0_24px_rgba(59,130,246,0.08)]"
                   >
-                    <Image src="/nervous-cat.jpg" alt="Yapapa" fill className="object-cover" unoptimized />
+                    <Image
+                      src="/nervous-cat.jpg"
+                      alt="Yapapa"
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
                     <div className="absolute inset-0 ring-1 ring-inset ring-white/[0.06] rounded-xl" />
                   </motion.div>
                   <div className="flex flex-col">
@@ -508,8 +563,8 @@ export default function PlaygroundPage() {
                 </div>
               </div>
 
-                {/* Right: Model Pills + Actions */}
-                <div className="flex items-center gap-2 sm:gap-3">
+              {/* Right: Model Pills + Actions */}
+              <div className="flex items-center gap-2 sm:gap-3">
                 {selectedModels.length > 0 && (
                   <div className="hidden sm:flex items-center gap-2 max-w-md overflow-hidden">
                     <AnimatePresence mode="popLayout">
@@ -520,7 +575,11 @@ export default function PlaygroundPage() {
                           initial={{ opacity: 0, scale: 0.85, y: -8 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.85, y: -8 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 25,
+                          }}
                           className="group flex items-center gap-2 pl-2 pr-1.5 py-1 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08] rounded-full transition-colors"
                           style={{
                             boxShadow: `0 0 16px ${getProviderColor(model.id)}08`,
@@ -528,7 +587,13 @@ export default function PlaygroundPage() {
                         >
                           {model.logo && (
                             <div className="relative w-4 h-4 rounded-full overflow-hidden bg-white/[0.03] shrink-0">
-                              <Image src={model.logo} alt="" fill className="object-cover" unoptimized />
+                              <Image
+                                src={model.logo}
+                                alt=""
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
                             </div>
                           )}
                           <span className="text-[11px] font-medium text-white/70 truncate max-w-[100px]">

@@ -73,7 +73,9 @@ export function BudgetSettings() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Daily Limit (credits)</label>
+            <label className="text-sm font-medium text-gray-400">
+              Daily Limit (credits)
+            </label>
             <input
               type="number"
               placeholder={budget?.dailyLimit?.toString() || "No limit"}
@@ -83,7 +85,9 @@ export function BudgetSettings() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Monthly Limit (credits)</label>
+            <label className="text-sm font-medium text-gray-400">
+              Monthly Limit (credits)
+            </label>
             <input
               type="number"
               placeholder={budget?.monthlyLimit?.toString() || "No limit"}
@@ -127,7 +131,9 @@ export function BudgetSettings() {
               onChange={(e) => setAlertThreshold(e.target.value)}
               className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#3b82f6]/50 transition-colors"
             />
-            <p className="text-xs text-gray-500 mt-1">Alert when spending reaches this % of budget</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Alert when spending reaches this % of budget
+            </p>
           </div>
           <button
             onClick={handleAddAlert}
@@ -155,9 +161,15 @@ export function BudgetSettings() {
                   className="flex items-center justify-between bg-black/30 border border-white/5 rounded-lg px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${alert.isActive ? "bg-green-400" : "bg-gray-500"}`} />
+                    <div
+                      className={`w-2 h-2 rounded-full ${alert.isActive ? "bg-green-400" : "bg-gray-500"}`}
+                    />
                     <span className="text-white text-sm">
-                      Notify at <span className="font-semibold">{alert.thresholdPercent}%</span> via {alert.alertType}
+                      Notify at{" "}
+                      <span className="font-semibold">
+                        {alert.thresholdPercent}%
+                      </span>{" "}
+                      via {alert.alertType}
                     </span>
                   </div>
                   <button
@@ -170,7 +182,9 @@ export function BudgetSettings() {
                 </motion.div>
               ))
             ) : (
-              <p className="text-gray-500 text-sm text-center py-4">No alerts configured yet.</p>
+              <p className="text-gray-500 text-sm text-center py-4">
+                No alerts configured yet.
+              </p>
             )}
           </AnimatePresence>
         </div>
@@ -190,7 +204,9 @@ export function BudgetSettings() {
 
         <div className="grid gap-4 md:grid-cols-2 mb-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Hard Limit (credits)</label>
+            <label className="text-sm font-medium text-gray-400">
+              Hard Limit (credits)
+            </label>
             <input
               type="number"
               placeholder={cap?.hardLimit?.toString() || "No cap"}
@@ -200,7 +216,9 @@ export function BudgetSettings() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-400">Action on Exceed</label>
+            <label className="text-sm font-medium text-gray-400">
+              Action on Exceed
+            </label>
             <select
               value={capAction}
               onChange={(e) => setCapAction(e.target.value)}
@@ -228,7 +246,11 @@ export function BudgetSettings() {
             disabled={createCap.isPending || updateCap.isPending}
             className="px-4 py-2 bg-[#3b82f6] text-black font-medium rounded-lg hover:bg-[#3b82f6]/90 transition-colors disabled:opacity-50"
           >
-            {createCap.isPending || updateCap.isPending ? "Saving..." : cap ? "Update Cap" : "Set Cap"}
+            {createCap.isPending || updateCap.isPending
+              ? "Saving..."
+              : cap
+                ? "Update Cap"
+                : "Set Cap"}
           </button>
         </div>
       </motion.section>

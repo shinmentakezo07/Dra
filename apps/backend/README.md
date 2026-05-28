@@ -28,30 +28,33 @@ internal/
 ## API Endpoints
 
 ### Public
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/models` | List available AI models |
+
+| Method | Endpoint      | Description              |
+| ------ | ------------- | ------------------------ |
+| GET    | `/health`     | Health check             |
+| GET    | `/api/models` | List available AI models |
 
 ### Authenticated (JWT session or x-api-key)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/keys` | List API keys |
-| POST | `/api/keys` | Create API key |
-| DELETE | `/api/keys?id={id}` | Delete API key |
-| GET | `/api/credits` | Get credit balance |
-| POST | `/api/credits/purchase` | Purchase credits |
-| GET | `/api/transactions` | List transactions |
-| GET | `/api/logs` | List API request logs |
-| GET | `/api/analytics` | User analytics |
-| POST | `/api/chat` | AI chat proxy (streams SSE) |
+
+| Method | Endpoint                | Description                 |
+| ------ | ----------------------- | --------------------------- |
+| GET    | `/api/keys`             | List API keys               |
+| POST   | `/api/keys`             | Create API key              |
+| DELETE | `/api/keys?id={id}`     | Delete API key              |
+| GET    | `/api/credits`          | Get credit balance          |
+| POST   | `/api/credits/purchase` | Purchase credits            |
+| GET    | `/api/transactions`     | List transactions           |
+| GET    | `/api/logs`             | List API request logs       |
+| GET    | `/api/analytics`        | User analytics              |
+| POST   | `/api/chat`             | AI chat proxy (streams SSE) |
 
 ### Admin
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/users` | List all users |
-| DELETE | `/api/admin/users?id={id}` | Delete user |
-| GET | `/api/admin/stats` | Platform stats |
+
+| Method | Endpoint                   | Description    |
+| ------ | -------------------------- | -------------- |
+| GET    | `/api/admin/users`         | List all users |
+| DELETE | `/api/admin/users?id={id}` | Delete user    |
+| GET    | `/api/admin/stats`         | Platform stats |
 
 ## Running Locally
 
@@ -85,6 +88,7 @@ docker run -p 8080:8080 --env-file .env dra-backend
 ## Auth Integration
 
 The backend validates NextAuth v5 session tokens:
+
 - Reads `authjs.session-token` cookie (or `__Secure-authjs.session-token` in production)
 - Falls back to `Authorization: Bearer <token>` header
 - Validates JWT with `AUTH_SECRET` (must match frontend)
@@ -93,6 +97,7 @@ The backend validates NextAuth v5 session tokens:
 ## Database
 
 Uses the same PostgreSQL schema as the Next.js frontend (Drizzle ORM). All tables:
+
 - `users`
 - `api_keys`
 - `api_logs`

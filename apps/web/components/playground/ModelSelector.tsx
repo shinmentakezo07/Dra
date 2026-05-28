@@ -46,12 +46,15 @@ function highlightMatch(text: string, query: string) {
   const parts = text.split(new RegExp(`(${q})`, "gi"));
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <mark key={i} className="bg-indigo-500/30 text-indigo-200 rounded-sm px-0.5">
+      <mark
+        key={i}
+        className="bg-indigo-500/30 text-indigo-200 rounded-sm px-0.5"
+      >
         {part}
       </mark>
     ) : (
       <span key={i}>{part}</span>
-    )
+    ),
   );
 }
 
@@ -86,7 +89,9 @@ function ProviderSidebar({
             <h2 className="text-[10px] font-bold text-white/80 tracking-[0.15em] uppercase leading-tight">
               Providers
             </h2>
-            <p className="text-[8px] text-gray-600 font-mono leading-tight">{modelCount} models</p>
+            <p className="text-[8px] text-gray-600 font-mono leading-tight">
+              {modelCount} models
+            </p>
           </div>
         </div>
       </div>
@@ -108,8 +113,12 @@ function ProviderSidebar({
             <LayoutGrid className="w-3.5 h-3.5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-semibold text-white/90 leading-tight">All Models</div>
-            <div className="text-[9px] text-gray-600 font-mono">{models.length} available</div>
+            <div className="text-[11px] font-semibold text-white/90 leading-tight">
+              All Models
+            </div>
+            <div className="text-[9px] text-gray-600 font-mono">
+              {models.length} available
+            </div>
           </div>
           {active === null && (
             <motion.div
@@ -124,7 +133,7 @@ function ProviderSidebar({
 
         {providers.map((provider) => {
           const count = models.filter(
-            (m) => m.provider.toLowerCase() === provider
+            (m) => m.provider.toLowerCase() === provider,
           ).length;
           const color = getProviderColor(`${provider}/model`);
           const isActive = active === provider;
@@ -152,7 +161,9 @@ function ProviderSidebar({
                 <motion.div
                   layoutId="providerBg"
                   className="absolute inset-0 rounded-lg"
-                  style={{ background: `linear-gradient(135deg, ${color}12, transparent)` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${color}12, transparent)`,
+                  }}
                   transition={{ type: "spring", stiffness: 400, damping: 28 }}
                 />
               )}
@@ -160,7 +171,9 @@ function ProviderSidebar({
               <div
                 className="relative w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300"
                 style={{
-                  backgroundColor: isActive ? `${color}20` : "rgba(255,255,255,0.03)",
+                  backgroundColor: isActive
+                    ? `${color}20`
+                    : "rgba(255,255,255,0.03)",
                   boxShadow: isActive ? `0 0 12px ${color}25` : "none",
                 }}
               >
@@ -249,7 +262,9 @@ function ModelCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`group relative w-full text-left rounded-2xl p-5 transition-all duration-500 ${
-        isAtLimit && !isSelected ? "cursor-not-allowed opacity-20" : "cursor-pointer"
+        isAtLimit && !isSelected
+          ? "cursor-not-allowed opacity-20"
+          : "cursor-pointer"
       }`}
     >
       {/* Surface glow */}
@@ -366,7 +381,9 @@ function ModelCard({
                 : "opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
             }`}
             style={{
-              backgroundColor: isSelected ? `${color}25` : "rgba(255,255,255,0.04)",
+              backgroundColor: isSelected
+                ? `${color}25`
+                : "rgba(255,255,255,0.04)",
               boxShadow: isSelected ? `0 0 12px ${color}15` : "none",
             }}
           >
@@ -379,7 +396,11 @@ function ModelCard({
                   exit={{ scale: 0, rotate: 45 }}
                   transition={{ type: "spring", stiffness: 500, damping: 18 }}
                 >
-                  <Check className="w-4 h-4" style={{ color }} strokeWidth={3} />
+                  <Check
+                    className="w-4 h-4"
+                    style={{ color }}
+                    strokeWidth={3}
+                  />
                 </motion.div>
               ) : (
                 <motion.div
@@ -472,7 +493,7 @@ export default function ModelSelector({
 
     if (activeFilter) {
       filtered = filtered.filter(
-        (m) => m.provider.toLowerCase() === activeFilter
+        (m) => m.provider.toLowerCase() === activeFilter,
       );
     }
 
@@ -491,7 +512,7 @@ export default function ModelSelector({
           m.name.toLowerCase().includes(q) ||
           m.id.toLowerCase().includes(q) ||
           m.provider.toLowerCase().includes(q) ||
-          (m.description || "").toLowerCase().includes(q)
+          (m.description || "").toLowerCase().includes(q),
       );
     }
 
@@ -652,7 +673,8 @@ export default function ModelSelector({
                     {/* Category filters */}
                     {categoryFilters.map((cat) => {
                       const Icon = cat.icon;
-                      const isActive = categoryFilter === cat.id && !activeFilter;
+                      const isActive =
+                        categoryFilter === cat.id && !activeFilter;
                       return (
                         <button
                           key={cat.label}
@@ -715,7 +737,9 @@ export default function ModelSelector({
                               className="w-1.5 h-1.5 rounded-full shrink-0"
                               style={{
                                 backgroundColor: color,
-                                boxShadow: isActive ? `0 0 6px ${color}` : "none",
+                                boxShadow: isActive
+                                  ? `0 0 6px ${color}`
+                                  : "none",
                               }}
                             />
                             <span className="capitalize">{p}</span>
@@ -731,7 +755,8 @@ export default function ModelSelector({
 
                     {/* Desktop: results count */}
                     <div className="hidden lg:flex items-center ml-auto text-[10px] text-gray-600 font-mono">
-                      {filteredModels.length} result{filteredModels.length !== 1 ? "s" : ""}
+                      {filteredModels.length} result
+                      {filteredModels.length !== 1 ? "s" : ""}
                     </div>
                   </div>
                 </div>
@@ -749,7 +774,9 @@ export default function ModelSelector({
                             <ModelCard
                               key={model.id}
                               model={model}
-                              isSelected={pending.some((m) => m.id === model.id)}
+                              isSelected={pending.some(
+                                (m) => m.id === model.id,
+                              )}
                               isAtLimit={
                                 pending.length >= MAX_MODELS &&
                                 !pending.some((m) => m.id === model.id)
@@ -766,7 +793,11 @@ export default function ModelSelector({
                         <motion.div
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20,
+                          }}
                         >
                           <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 bg-gradient-to-br from-indigo-500/8 to-blue-500/5 border border-indigo-500/10 ring-1 ring-indigo-500/5">
                             <BrainCircuit className="w-10 h-10 text-gray-600" />
@@ -878,7 +909,7 @@ export default function ModelSelector({
                                 <button
                                   onClick={() =>
                                     setPending((prev) =>
-                                      prev.filter((m) => m.id !== model.id)
+                                      prev.filter((m) => m.id !== model.id),
                                     )
                                   }
                                   className="p-0.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 text-gray-600 hover:text-white transition-all"
@@ -899,7 +930,8 @@ export default function ModelSelector({
                         >
                           <Plus className="w-3 h-3" />
                           <span className="text-[10px] font-mono">
-                            {MAX_MODELS - pending.length} slot{MAX_MODELS - pending.length !== 1 ? "s" : ""}
+                            {MAX_MODELS - pending.length} slot
+                            {MAX_MODELS - pending.length !== 1 ? "s" : ""}
                           </span>
                         </motion.div>
                       )}

@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/api/require-auth";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;

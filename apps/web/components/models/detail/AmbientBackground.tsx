@@ -6,7 +6,9 @@ interface AmbientBackgroundProps {
   accentColor?: string;
 }
 
-export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackgroundProps) {
+export function AmbientBackground({
+  accentColor = "#6366f1",
+}: AmbientBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -16,10 +18,19 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
     if (!ctx) return;
 
     // Respect reduced motion — show static glow only
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     let animId: number;
-    let particles: { x: number; y: number; vx: number; vy: number; r: number; alpha: number }[] = [];
+    let particles: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      r: number;
+      alpha: number;
+    }[] = [];
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -29,7 +40,9 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
     window.addEventListener("resize", resize);
 
     // Parse accent into RGB
-    let ar = 99, ag = 102, ab = 241;
+    let ar = 99,
+      ag = 102,
+      ab = 241;
     const hex = accentColor.replace("#", "");
     if (hex.length === 6) {
       ar = parseInt(hex.slice(0, 2), 16);
@@ -42,8 +55,12 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
 
       // Single centered glow
       const g = ctx.createRadialGradient(
-        canvas.width * 0.5, canvas.height * 0.35, 0,
-        canvas.width * 0.5, canvas.height * 0.35, Math.max(canvas.width, canvas.height) * 0.6
+        canvas.width * 0.5,
+        canvas.height * 0.35,
+        0,
+        canvas.width * 0.5,
+        canvas.height * 0.35,
+        Math.max(canvas.width, canvas.height) * 0.6,
       );
       g.addColorStop(0, `rgba(${ar},${ag},${ab},0.04)`);
       g.addColorStop(0.4, `rgba(${ar},${ag},${ab},0.02)`);
@@ -63,7 +80,10 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
     }
 
     // Animated mode — fewer particles on mobile
-    const count = Math.min(Math.floor((canvas.width * canvas.height) / 40000), 45);
+    const count = Math.min(
+      Math.floor((canvas.width * canvas.height) / 40000),
+      45,
+    );
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
@@ -78,8 +98,12 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
 
       // Glow orb — top right (asymmetric)
       const g1 = ctx.createRadialGradient(
-        canvas.width * 0.72, canvas.height * 0.18, 0,
-        canvas.width * 0.72, canvas.height * 0.18, 500
+        canvas.width * 0.72,
+        canvas.height * 0.18,
+        0,
+        canvas.width * 0.72,
+        canvas.height * 0.18,
+        500,
       );
       g1.addColorStop(0, `rgba(${ar},${ag},${ab},0.055)`);
       g1.addColorStop(0.5, `rgba(${ar},${ag},${ab},0.025)`);
@@ -89,8 +113,12 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
 
       // Glow orb — bottom left (cross-axis)
       const g2 = ctx.createRadialGradient(
-        canvas.width * 0.28, canvas.height * 0.82, 0,
-        canvas.width * 0.28, canvas.height * 0.82, 400
+        canvas.width * 0.28,
+        canvas.height * 0.82,
+        0,
+        canvas.width * 0.28,
+        canvas.height * 0.82,
+        400,
       );
       g2.addColorStop(0, `rgba(${ag},${ab},${ar},0.04)`);
       g2.addColorStop(0.5, `rgba(${ag},${ab},${ar},0.015)`);
@@ -124,10 +152,19 @@ export function AmbientBackground({ accentColor = "#6366f1" }: AmbientBackground
   }, [accentColor]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none bg-[#000000]" aria-hidden="true">
+    <div
+      className="fixed inset-0 z-0 pointer-events-none bg-[#000000]"
+      aria-hidden="true"
+    >
       <canvas ref={canvasRef} className="absolute inset-0" aria-hidden="true" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" aria-hidden="true" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#000_85%)]" aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-grid-pattern opacity-[0.02]"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#000_85%)]"
+        aria-hidden="true"
+      />
       <div
         className="absolute inset-0 opacity-[0.015]"
         style={{

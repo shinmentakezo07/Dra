@@ -9,10 +9,10 @@ interface PerformanceMetricsProps {
   linesOfCode?: number;
 }
 
-export default function PerformanceMetrics({ 
-  executionTime = 0, 
+export default function PerformanceMetrics({
+  executionTime = 0,
   memoryUsage = 0,
-  linesOfCode = 0 
+  linesOfCode = 0,
 }: PerformanceMetricsProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -54,9 +54,7 @@ export default function PerformanceMetrics({
         <Zap className="w-4 h-4 text-yellow-400" />
         <div>
           <div className="text-xs text-gray-500">Status</div>
-          <div className="text-sm font-bold text-green-400">
-            Ready
-          </div>
+          <div className="text-sm font-bold text-green-400">Ready</div>
         </div>
       </div>
     </div>

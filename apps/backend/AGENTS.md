@@ -15,16 +15,16 @@ cmd/api/main.go → internal/handler/ → internal/service/ → internal/reposit
 
 ## Build & test
 
-| Command | Purpose |
-|---------|---------|
-| `make build` | `go build -o api ./cmd/api` |
-| `make dev` | `go run ./cmd/api` |
-| `make test` | `go test -race -cover ./...` |
-| `make test-unit` | `go test -v -short ./...` |
-| `make test-integration` | needs `TEST_DATABASE_URL` |
-| `make vet` | `go vet ./...` |
-| `make lint` | `vet + staticcheck` |
-| `make fmt` | `gofmt + goimports` |
+| Command                 | Purpose                      |
+| ----------------------- | ---------------------------- |
+| `make build`            | `go build -o api ./cmd/api`  |
+| `make dev`              | `go run ./cmd/api`           |
+| `make test`             | `go test -race -cover ./...` |
+| `make test-unit`        | `go test -v -short ./...`    |
+| `make test-integration` | needs `TEST_DATABASE_URL`    |
+| `make vet`              | `go vet ./...`               |
+| `make lint`             | `vet + staticcheck`          |
+| `make fmt`              | `gofmt + goimports`          |
 
 Run from `apps/backend/` — Makefile handles Go binary path.
 
@@ -35,19 +35,19 @@ Run from `apps/backend/` — Makefile handles Go binary path.
 
 ## Key internal packages
 
-| Package | Purpose |
-|---------|---------|
-| `internal/config/` | Env-based config loader |
-| `internal/db/` | pgx connection pool setup |
-| `internal/domain/` | Domain models, typed errors |
-| `internal/handler/` | HTTP handlers (chi) |
-| `internal/middleware/` | Auth, rate limit, CORS, logging, tracing, metrics |
-| `internal/repository/` | Raw SQL data access layer |
-| `internal/service/` | Business logic (15+ services) |
-| `internal/redis/` | Optional Redis client |
-| `internal/pkg/logger/` | Structured logging (slog) |
-| `internal/pkg/response/` | Standardized HTTP response helpers |
-| `internal/pkg/token/` | JWT generation & validation |
+| Package                  | Purpose                                           |
+| ------------------------ | ------------------------------------------------- |
+| `internal/config/`       | Env-based config loader                           |
+| `internal/db/`           | pgx connection pool setup                         |
+| `internal/domain/`       | Domain models, typed errors                       |
+| `internal/handler/`      | HTTP handlers (chi)                               |
+| `internal/middleware/`   | Auth, rate limit, CORS, logging, tracing, metrics |
+| `internal/repository/`   | Raw SQL data access layer                         |
+| `internal/service/`      | Business logic (15+ services)                     |
+| `internal/redis/`        | Optional Redis client                             |
+| `internal/pkg/logger/`   | Structured logging (slog)                         |
+| `internal/pkg/response/` | Standardized HTTP response helpers                |
+| `internal/pkg/token/`    | JWT generation & validation                       |
 
 ## Auth methods (all supported)
 
@@ -63,12 +63,12 @@ The backend serves `POST /v1/messages` via `internal/handler/anthropic_messages.
 
 ## External packages
 
-| Package | Purpose |
-|---------|---------|
-| `pkg/llm/` | LLM SDK (provider registry, router, cache, pipeline, translator, tools, anthropic format) |
-| `pkg/sdk/` | Typed Go client — mirrors TypeScript SDK |
-| `pkg/email/` | SMTP email sender |
-| `pkg/webhook/` | Outbound webhook delivery with retry |
-| `pkg/trace/` | Distributed tracing |
-| `pkg/llmsdk/` | (legacy) LLM SDK wrapper |
-| `examples/llmtests/` | LLM test examples |
+| Package              | Purpose                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `pkg/llm/`           | LLM SDK (provider registry, router, cache, pipeline, translator, tools, anthropic format) |
+| `pkg/sdk/`           | Typed Go client — mirrors TypeScript SDK                                                  |
+| `pkg/email/`         | SMTP email sender                                                                         |
+| `pkg/webhook/`       | Outbound webhook delivery with retry                                                      |
+| `pkg/trace/`         | Distributed tracing                                                                       |
+| `pkg/llmsdk/`        | (legacy) LLM SDK wrapper                                                                  |
+| `examples/llmtests/` | LLM test examples                                                                         |

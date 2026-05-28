@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Key, Plus, Copy, Trash2, Eye, EyeOff, Check, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Key,
+  Plus,
+  Copy,
+  Trash2,
+  Eye,
+  EyeOff,
+  Check,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { useKeys, useCreateKey, useDeleteKey } from "@/lib/api/hooks";
 import { getErrorMessage } from "@/lib/api/errors";
 import { getSDK } from "@/lib/api/sdk";
@@ -64,7 +74,12 @@ export default function KeysClient() {
   };
 
   const handleDeleteKey = async (keyId: string) => {
-    if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to revoke this API key? This action cannot be undone.",
+      )
+    )
+      return;
     try {
       await deleteKey.mutateAsync(keyId);
     } catch (err) {
@@ -72,7 +87,13 @@ export default function KeysClient() {
     }
   };
 
-  const errorMessage = error ? getErrorMessage(error) : createKey.error ? getErrorMessage(createKey.error) : deleteKey.error ? getErrorMessage(deleteKey.error) : null;
+  const errorMessage = error
+    ? getErrorMessage(error)
+    : createKey.error
+      ? getErrorMessage(createKey.error)
+      : deleteKey.error
+        ? getErrorMessage(deleteKey.error)
+        : null;
 
   return (
     <div className="min-h-screen pt-6 pb-12 px-4 sm:px-6 lg:px-8 bg-[#050505]">
@@ -86,7 +107,9 @@ export default function KeysClient() {
               </div>
               <h1 className="text-3xl font-bold text-white">API Keys</h1>
             </div>
-            <p className="text-gray-400">Manage your API keys for authentication</p>
+            <p className="text-gray-400">
+              Manage your API keys for authentication
+            </p>
           </div>
 
           <button
@@ -106,7 +129,9 @@ export default function KeysClient() {
               <h3 className="text-sm font-medium text-red-400 mb-1">Error</h3>
               <p className="text-xs text-red-300/80">{errorMessage}</p>
               {sdk.lastRequestId() && (
-                <p className="text-xs text-red-400/60 mt-1 font-mono">Request ID: {sdk.lastRequestId()}</p>
+                <p className="text-xs text-red-400/60 mt-1 font-mono">
+                  Request ID: {sdk.lastRequestId()}
+                </p>
               )}
             </div>
           </div>
@@ -116,9 +141,12 @@ export default function KeysClient() {
         <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-medium text-yellow-400 mb-1">Keep your keys secure</h3>
+            <h3 className="text-sm font-medium text-yellow-400 mb-1">
+              Keep your keys secure
+            </h3>
             <p className="text-xs text-yellow-300/80">
-              Never share your API keys publicly or commit them to version control. Treat them like passwords.
+              Never share your API keys publicly or commit them to version
+              control. Treat them like passwords.
             </p>
           </div>
         </div>
@@ -142,13 +170,17 @@ export default function KeysClient() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
                   className={`bg-[#0A0A0A] border rounded-xl p-6 hover:border-white/20 transition-colors ${
-                    newlyCreatedKey === apiKey.id ? "border-primary/50" : "border-white/10"
+                    newlyCreatedKey === apiKey.id
+                      ? "border-primary/50"
+                      : "border-white/10"
                   }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-lg font-semibold text-white">{apiKey.name}</h3>
+                        <h3 className="text-lg font-semibold text-white">
+                          {apiKey.name}
+                        </h3>
                         <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-mono rounded border border-green-500/20">
                           ACTIVE
                         </span>
@@ -169,7 +201,9 @@ export default function KeysClient() {
                         <button
                           onClick={() => toggleKeyVisibility(apiKey.id)}
                           className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
-                          title={visibleKeys.has(apiKey.id) ? "Hide key" : "Show key"}
+                          title={
+                            visibleKeys.has(apiKey.id) ? "Hide key" : "Show key"
+                          }
                         >
                           {visibleKeys.has(apiKey.id) ? (
                             <EyeOff className="w-4 h-4" />
@@ -179,7 +213,9 @@ export default function KeysClient() {
                         </button>
 
                         <button
-                          onClick={() => copyToClipboard(apiKey.id, apiKey.key || "")}
+                          onClick={() =>
+                            copyToClipboard(apiKey.id, apiKey.key || "")
+                          }
                           className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
                           title="Copy to clipboard"
                           disabled={!apiKey.key}
@@ -193,9 +229,15 @@ export default function KeysClient() {
                       </div>
 
                       <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-                        <span>Created: {new Date(apiKey.createdAt).toLocaleDateString()}</span>
                         <span>
-                          Last used: {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleString() : "Never"}
+                          Created:{" "}
+                          {new Date(apiKey.createdAt).toLocaleDateString()}
+                        </span>
+                        <span>
+                          Last used:{" "}
+                          {apiKey.lastUsed
+                            ? new Date(apiKey.lastUsed).toLocaleString()
+                            : "Never"}
                         </span>
                       </div>
                     </div>
@@ -245,13 +287,18 @@ export default function KeysClient() {
               onClick={(e) => e.stopPropagation()}
               className="bg-[#0A0A0A] border border-white/20 rounded-2xl p-6 max-w-md w-full"
             >
-              <h2 className="text-2xl font-bold text-white mb-4">Create New API Key</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Create New API Key
+              </h2>
               <p className="text-gray-400 text-sm mb-6">
-                Give your API key a descriptive name to help you identify it later.
+                Give your API key a descriptive name to help you identify it
+                later.
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">Key Name</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Key Name
+                </label>
                 <input
                   type="text"
                   value={newKeyName}
@@ -275,7 +322,9 @@ export default function KeysClient() {
                   disabled={!newKeyName.trim() || createKey.isPending}
                   className="flex-1 px-4 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  {createKey.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {createKey.isPending && (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  )}
                   Create Key
                 </button>
               </div>

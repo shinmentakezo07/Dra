@@ -2,11 +2,15 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { OpenRouterModelData } from "@/types/model";
-import { formatContextLabel, getContextPercentage, getMaxOutputTokens } from "@/lib/model-utils";
+import {
+  formatContextLabel,
+  getContextPercentage,
+  getMaxOutputTokens,
+} from "@/lib/model-utils";
 import { getProviderTheme } from "@/lib/model-utils";
 
 interface PerformancePanelProps {
-  model: OpenRouterModelData
+  model: OpenRouterModelData;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -36,7 +40,9 @@ function MetricCard({
       transition={{ duration: 0.4, ease, delay }}
     >
       <div className="flex items-baseline justify-between mb-3">
-        <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-gray-500">{label}</span>
+        <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-gray-500">
+          {label}
+        </span>
         <div className="text-right">
           <span
             className="text-white font-mono text-xl font-bold tracking-tight"
@@ -44,11 +50,16 @@ function MetricCard({
           >
             {value}
           </span>
-          <span className="text-gray-600 font-mono text-[10px] ml-1">{sub}</span>
+          <span className="text-gray-600 font-mono text-[10px] ml-1">
+            {sub}
+          </span>
         </div>
       </div>
       {/* Progress track with dot indicator */}
-      <div className="relative h-1 rounded-full overflow-visible" style={{ backgroundColor: `${color}10` }}>
+      <div
+        className="relative h-1 rounded-full overflow-visible"
+        style={{ backgroundColor: `${color}10` }}
+      >
         <motion.div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{ backgroundColor: color }}
@@ -99,13 +110,19 @@ export function PerformancePanel({ model }: PerformancePanelProps) {
       id="performance"
     >
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+        <span
+          className="text-[10px] font-mono font-bold tracking-wider"
+          style={{ color: accent }}
+        >
           02
         </span>
         <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
           Performance
         </h2>
-        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
+        <span
+          className="flex-1 h-px"
+          style={{ backgroundColor: `${accent}12` }}
+        />
       </div>
 
       <div
@@ -115,7 +132,9 @@ export function PerformancePanel({ model }: PerformancePanelProps) {
         {/* Top highlight line */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+          style={{
+            background: `linear-gradient(90deg, ${accent}30, transparent)`,
+          }}
         />
         {/* Corner accent badge */}
         <div
@@ -153,7 +172,9 @@ export function PerformancePanel({ model }: PerformancePanelProps) {
             style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}
           >
             <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <span className="text-[11px] font-mono text-gray-400">Content moderation enabled</span>
+            <span className="text-[11px] font-mono text-gray-400">
+              Content moderation enabled
+            </span>
           </div>
         )}
       </div>
@@ -173,15 +194,22 @@ function hexToHSL(hex: string): { h: number; s: number; l: number } {
   const b = parseInt(hex.slice(5, 7), 16) / 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h = 0, s = 0;
+  let h = 0,
+    s = 0;
   const l = (max + min) / 2;
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-      case g: h = ((b - r) / d + 2) / 6; break;
-      case b: h = ((r - g) / d + 4) / 6; break;
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        break;
+      case g:
+        h = ((b - r) / d + 2) / 6;
+        break;
+      case b:
+        h = ((r - g) / d + 4) / 6;
+        break;
     }
   }
   return { h: h * 360, s, l };

@@ -20,6 +20,7 @@ Services: Frontend `:3000`, Backend `:8080`, Postgres `:5432`, Redis `:6379`.
 ## Common Commands
 
 ### Root
+
 ```bash
 npm run dev          # Start both apps via Turborepo
 npm run build        # Build all workspaces
@@ -31,6 +32,7 @@ npm run test:backend # Backend tests only
 ```
 
 ### Frontend (`apps/web`)
+
 ```bash
 npm run dev          # Next.js dev server on :3000
 npm run build        # Production build
@@ -44,6 +46,7 @@ npm run test -- --run tests/lib/api/sdk.test.ts  # Run one Vitest file
 ```
 
 ### Backend (`apps/backend`)
+
 ```bash
 make build             # go build -o api ./cmd/api
 make dev               # go run ./cmd/api
@@ -60,6 +63,7 @@ go test -race -cover -run TestName ./pkg/llm/tools/... # Run one Go test
 ```
 
 ### Full-stack scripts
+
 ```bash
 bash scripts/dev.sh          # Install deps, start Postgres, push schema, seed DB, start both apps
 bash scripts/dev.sh --check  # Dependency and environment check only
@@ -68,6 +72,7 @@ bash scripts/smoke-test.sh   # Wiring verification after significant changes
 ```
 
 ### Docker
+
 ```bash
 docker compose up -d postgres        # Start local Postgres only
 docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
@@ -76,6 +81,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 ## Architecture
 
 ### Monorepo structure
+
 - `apps/web`: Next.js 16 canary frontend — App Router, React 19, Tailwind CSS v4, NextAuth v5, Drizzle, React Query.
 - `apps/backend`: Go 1.25 API — chi, pgx, JWT/API-key auth, layered service/repository architecture.
 - `packages/`: Reserved for shared packages (currently empty).
@@ -87,6 +93,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - `UPDATE.md`: Historical record of completed refactors and feature wiring.
 
 ### Frontend architecture
+
 - **Next.js 16 canary is NOT your training data.** Read `node_modules/next/dist/docs/` before writing code. `"use cache"` replaces old `revalidate`/`dynamic` — implicit caching is gone. `fetch()` is no longer cached by default.
 - **App Router routes**: `app/dashboard/` (protected), `app/playground/`, `app/pricing/`, `app/models/`, `app/gateway/`, `app/admin/`, `app/login/`, `app/signup/`, `app/docs/`, `app/forgot-password/`. API routes in `app/api/*` proxy to Go backend through `lib/api/proxy.ts`.
 - **Auth**: NextAuth v5 in `auth.ts`/`auth.config.ts`. JWT HS256 secrets must match the backend. OAuth: GitHub + Google. Fallback: `AUTH_SECRET || NEXTAUTH_SECRET`.
@@ -100,6 +107,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - **Legacy SDK**: `pkg/llmsdk/` — avoid for new code.
 
 ### Backend architecture
+
 - **Layered**: `cmd/api/main.go` → `internal/handler/` → `internal/service/` → `internal/repository/` → `internal/domain/`. Handlers own HTTP only; services own business logic (never import `net/http`); repositories own raw SQL (all parameterized via pgx).
 - **Route registration**: `cmd/api/main.go` (server setup, metrics), `cmd/api/routes.go` (~410 lines, all route definitions with middleware), `cmd/api/services.go` (~370 lines, dependency injection via `initServices()`).
 - **Standard API responses** via `internal/pkg/response` — consistent envelope: `success`, `data`, `error`, optional `meta`.
@@ -111,6 +119,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - **Key internal packages**: `config/`, `db/` (pgx pool + auto-migrate/seed), `middleware/`, `pkg/logger/` (slog), `pkg/response/`, `pkg/token/` (JWT), `testutil/` (integration test harness with `NewTestServer()`).
 
 ### LLM gateway architecture
+
 - OpenAI-compatible proxy (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`) built on `pkg/llm/`.
 - 10-stage pipeline: **validator → router → cache → guardrails → moderation → translator → provider → telemetry → circuit breaker → watcher**. Orchestrated by `pkg/llm/pipeline/pipeline.go`.
 - 18+ subpackages under `pkg/llm/`: `provider/` (registry, key rotation, health, fallback, OpenAI SDK integration), `router/` (model→provider mapping, A/B, budget-aware), `cache/` (TTL + semantic dedup + Redis), `guardrails/`, `moderation/`, `translator/` (Anthropic ↔ OpenAI ↔ Generic), `tools/` (function calling, `websearch/`), `telemetry/`, `tokens/`, `embeddings/`, `batch/`, `circuitbreaker/`, `watcher/`, `openai/` (schema types), `validator/`, `pipeline/`, `anthropic/` (Anthropic format), `sdk.go` (facade).
@@ -119,6 +128,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - `X-Sandbox: true` on `/v1/chat/completions` disables quota, cost, and logging for testing.
 
 ### Important architecture quirks
+
 - `pkg/llm/provider/` is the canonical provider registry. Legacy `internal/provider/` was **eliminated** (2026-05-15 — see `UPDATE.md`).
 - **SDK parity matters.** Backend API changes need matching updates in Go SDK (`pkg/sdk/`, ~1860 lines) then TypeScript SDK (`lib/api/sdk.ts`, ~1700 lines), in that order. Both implement ~40 methods.
 - Webhook delivery: `pkg/webhook/` + `internal/service/webhook.go` + `internal/repository/webhook.go` (exponential backoff retry, DLQ, delivery logs).
@@ -145,6 +155,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - `internal/testutil.NewTestServer()` is the Go integration-test harness.
 
 ### Known testing gaps (from ops.md)
+
 - **Frontend**: No component tests, no SDK error-handling tests, no E2E tests, no accessibility tests.
 - **Backend**: No repository tests, no LLM provider failover/circuit-breaker tests. Handler tests exist but don't cover openai_proxy, billing, or admin handlers.
 - Integration tests require `TEST_DATABASE_URL` — see `apps/backend/.env.example`.
@@ -152,12 +163,14 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 ### Key test files
 
 **Frontend:**
+
 - `tests/wiring-verification.test.ts` — enforces no mock data in dashboard
 - `tests/lib/api/sdk.test.ts` — SDK unit tests
 - `tests/lib/api/errors.test.ts` — error handling tests
 - `tests/lib/api/hooks.test.ts` — React Query hook wiring verification
 
 **Backend:**
+
 - `internal/handler/handler_test.go` — auth, CRUD handler tests
 - `internal/handler/admin_providers_test.go` — AdminFetchModels handler tests
 - `internal/middleware/auth_test.go`, `quota_test.go` — middleware tests

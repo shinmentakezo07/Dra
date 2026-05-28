@@ -5,13 +5,17 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle, Copy, ChevronLeft, ExternalLink } from "lucide-react";
 import type { OpenRouterModelData, ProviderTheme } from "@/types/model";
-import { formatPricePerM, formatContextLabel, getMaxOutputTokens } from "@/lib/model-utils";
+import {
+  formatPricePerM,
+  formatContextLabel,
+  getMaxOutputTokens,
+} from "@/lib/model-utils";
 import { getProviderLogo } from "@/lib/provider-logos";
 
 interface ModelIdentityProps {
-  model: OpenRouterModelData
-  theme: ProviderTheme
-  onBack: () => void
+  model: OpenRouterModelData;
+  theme: ProviderTheme;
+  onBack: () => void;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -39,13 +43,21 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
   };
 
   const displayName = model.name.split(":")[0];
-  const nameVariant = model.name.includes(":") ? model.name.split(":").slice(1).join(":") : null;
-  const isFree = parseFloat(formatPricePerM(model, "prompt")) === 0 && parseFloat(formatPricePerM(model, "completion")) === 0;
+  const nameVariant = model.name.includes(":")
+    ? model.name.split(":").slice(1).join(":")
+    : null;
+  const isFree =
+    parseFloat(formatPricePerM(model, "prompt")) === 0 &&
+    parseFloat(formatPricePerM(model, "completion")) === 0;
   const inputPrice = parseFloat(formatPricePerM(model, "prompt"));
   const outputPrice = parseFloat(formatPricePerM(model, "completion"));
 
   const specs = [
-    { label: "Context", value: formatContextLabel(model.context_length), sub: "tokens" },
+    {
+      label: "Context",
+      value: formatContextLabel(model.context_length),
+      sub: "tokens",
+    },
     { label: "Max Output", value: getMaxOutputTokens(model), sub: "tokens" },
     { label: "Input", value: `$${inputPrice.toFixed(2)}`, sub: "/1M tokens" },
     { label: "Output", value: `$${outputPrice.toFixed(2)}`, sub: "/1M tokens" },
@@ -120,7 +132,11 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
 
           {/* Logo badge — with accent glow on hover */}
           <motion.div
-            initial={prefersReduced ? { opacity: 0 } : { opacity: 0, scale: 0.85, rotate: -3 }}
+            initial={
+              prefersReduced
+                ? { opacity: 0 }
+                : { opacity: 0, scale: 0.85, rotate: -3 }
+            }
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.6, ease, delay: 0.15 }}
             className="relative shrink-0 mt-1 group"
@@ -142,10 +158,19 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
             >
               {logo ? (
                 <div className="w-full h-full flex items-center justify-center p-3">
-                  <Image src={logo} alt={`${providerName} logo`} width={40} height={40} className="object-contain" unoptimized />
+                  <Image
+                    src={logo}
+                    alt={`${providerName} logo`}
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                    unoptimized
+                  />
                 </div>
               ) : (
-                <div className={`w-full h-full flex items-center justify-center ${theme.color}`}>
+                <div
+                  className={`w-full h-full flex items-center justify-center ${theme.color}`}
+                >
                   <Icon className="w-8 h-8 md:w-10 md:h-10" />
                 </div>
               )}
@@ -180,7 +205,10 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
           <button
             onClick={copyId}
             className="flex items-center gap-1.5 px-3 py-1.5 min-h-[32px] rounded-lg font-mono text-[11px] font-bold transition-all duration-200 cursor-pointer hover:brightness-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            style={{ backgroundColor: `${theme.accent}0d`, color: theme.accent }}
+            style={{
+              backgroundColor: `${theme.accent}0d`,
+              color: theme.accent,
+            }}
             aria-label={`Copy model ID: ${model.id}`}
           >
             <span className="truncate max-w-[200px]">{model.id}</span>
@@ -213,7 +241,9 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
           </span>
 
           {model.created_date && (
-            <span className="text-[10px] font-mono text-gray-600">{model.created_date}</span>
+            <span className="text-[10px] font-mono text-gray-600">
+              {model.created_date}
+            </span>
           )}
 
           <a
@@ -231,7 +261,10 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
         {/* Spec cards — bento-style stat grid */}
         <div
           className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-2xl overflow-hidden border"
-          style={{ borderColor: `${theme.accent}10`, backgroundColor: `${theme.accent}08` }}
+          style={{
+            borderColor: `${theme.accent}10`,
+            backgroundColor: `${theme.accent}08`,
+          }}
         >
           {specs.map((spec, i) => (
             <motion.div
@@ -262,7 +295,9 @@ export function ModelIdentity({ model, theme, onBack }: ModelIdentityProps) {
               >
                 {spec.value}
               </div>
-              <div className="text-gray-600 font-mono text-[9px] mt-1">{spec.sub}</div>
+              <div className="text-gray-600 font-mono text-[9px] mt-1">
+                {spec.sub}
+              </div>
             </motion.div>
           ))}
         </div>

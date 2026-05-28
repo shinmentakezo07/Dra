@@ -41,7 +41,11 @@ export default function AdminAnnouncementsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<AnnouncementForm>(emptyForm);
 
-  const { data: announcements, isLoading, error } = useQuery({
+  const {
+    data: announcements,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin", "announcements"],
     queryFn: () => getAdminSDK().listAnnouncements(),
   });
@@ -53,8 +57,15 @@ export default function AdminAnnouncementsPage() {
         body: data.body,
         priority: data.priority,
         targetType: data.targetType,
-        targetIds: data.targetIds ? data.targetIds.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
-        startsAt: data.startsAt ? new Date(data.startsAt).toISOString() : new Date().toISOString(),
+        targetIds: data.targetIds
+          ? data.targetIds
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined,
+        startsAt: data.startsAt
+          ? new Date(data.startsAt).toISOString()
+          : new Date().toISOString(),
         endsAt: data.endsAt ? new Date(data.endsAt).toISOString() : undefined,
         showInApp: data.showInApp,
         sendEmail: data.sendEmail,
@@ -80,7 +91,11 @@ export default function AdminAnnouncementsPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load announcements"}</p>
+        <p className="text-[13px] text-red-400/70">
+          {error instanceof Error
+            ? error.message
+            : "Failed to load announcements"}
+        </p>
       </div>
     );
   }
@@ -90,7 +105,10 @@ export default function AdminAnnouncementsPage() {
       title="Announcements"
       subtitle="Platform announcements and notices"
       action={
-        <button onClick={() => setShowForm(!showForm)} className="admin-btn admin-btn-primary text-[12px]">
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="admin-btn admin-btn-primary text-[12px]"
+        >
           <Plus className="w-3.5 h-3.5" />
           New Announcement
         </button>
@@ -101,11 +119,21 @@ export default function AdminAnnouncementsPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="admin-label block mb-1.5">Title</label>
-              <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="admin-input w-full" placeholder="Announcement title" />
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="admin-input w-full"
+                placeholder="Announcement title"
+              />
             </div>
             <div>
               <label className="admin-label block mb-1.5">Priority</label>
-              <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="admin-input w-full">
+              <select
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                className="admin-input w-full"
+              >
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
                 <option value="critical">Critical</option>
@@ -115,13 +143,25 @@ export default function AdminAnnouncementsPage() {
 
           <div>
             <label className="admin-label block mb-1.5">Body</label>
-            <textarea value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} rows={4} className="admin-input w-full resize-none" placeholder="Announcement content..." />
+            <textarea
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+              rows={4}
+              className="admin-input w-full resize-none"
+              placeholder="Announcement content..."
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="admin-label block mb-1.5">Target</label>
-              <select value={form.targetType} onChange={(e) => setForm({ ...form, targetType: e.target.value })} className="admin-input w-full">
+              <select
+                value={form.targetType}
+                onChange={(e) =>
+                  setForm({ ...form, targetType: e.target.value })
+                }
+                className="admin-input w-full"
+              >
                 <option value="all">All Users</option>
                 <option value="user">Specific User</option>
                 <option value="tier">By Tier</option>
@@ -131,36 +171,84 @@ export default function AdminAnnouncementsPage() {
             {form.targetType !== "all" && (
               <div>
                 <label className="admin-label block mb-1.5">
-                  {form.targetType === "user" ? "User IDs (comma-sep)" : form.targetType === "tier" ? "Tier Names" : "Group Names"}
+                  {form.targetType === "user"
+                    ? "User IDs (comma-sep)"
+                    : form.targetType === "tier"
+                      ? "Tier Names"
+                      : "Group Names"}
                 </label>
-                <input type="text" value={form.targetIds} onChange={(e) => setForm({ ...form, targetIds: e.target.value })} className="admin-input w-full" placeholder={form.targetType === "user" ? "uuid1, uuid2" : "free, pro"} />
+                <input
+                  type="text"
+                  value={form.targetIds}
+                  onChange={(e) =>
+                    setForm({ ...form, targetIds: e.target.value })
+                  }
+                  className="admin-input w-full"
+                  placeholder={
+                    form.targetType === "user" ? "uuid1, uuid2" : "free, pro"
+                  }
+                />
               </div>
             )}
             <div>
               <label className="admin-label block mb-1.5">Start Date</label>
-              <input type="datetime-local" value={form.startsAt} onChange={(e) => setForm({ ...form, startsAt: e.target.value })} className="admin-input w-full" />
+              <input
+                type="datetime-local"
+                value={form.startsAt}
+                onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                className="admin-input w-full"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="admin-label block mb-1.5">End Date (optional)</label>
-              <input type="datetime-local" value={form.endsAt} onChange={(e) => setForm({ ...form, endsAt: e.target.value })} className="admin-input w-full" />
+              <label className="admin-label block mb-1.5">
+                End Date (optional)
+              </label>
+              <input
+                type="datetime-local"
+                value={form.endsAt}
+                onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+                className="admin-input w-full"
+              />
             </div>
             <div className="flex items-end gap-4 pb-1">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.showInApp} onChange={(e) => setForm({ ...form, showInApp: e.target.checked })} className="rounded border-white/20 bg-white/5" />
+                <input
+                  type="checkbox"
+                  checked={form.showInApp}
+                  onChange={(e) =>
+                    setForm({ ...form, showInApp: e.target.checked })
+                  }
+                  className="rounded border-white/20 bg-white/5"
+                />
                 <span className="admin-label">Show in App</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.sendEmail} onChange={(e) => setForm({ ...form, sendEmail: e.target.checked })} className="rounded border-white/20 bg-white/5" />
+                <input
+                  type="checkbox"
+                  checked={form.sendEmail}
+                  onChange={(e) =>
+                    setForm({ ...form, sendEmail: e.target.checked })
+                  }
+                  className="rounded border-white/20 bg-white/5"
+                />
                 <span className="admin-label">Send Email</span>
               </label>
             </div>
           </div>
 
           <div className="flex justify-end gap-2.5 pt-1">
-            <button onClick={() => { setShowForm(false); setForm(emptyForm); }} className="admin-btn admin-btn-ghost text-[12px]">Cancel</button>
+            <button
+              onClick={() => {
+                setShowForm(false);
+                setForm(emptyForm);
+              }}
+              className="admin-btn admin-btn-ghost text-[12px]"
+            >
+              Cancel
+            </button>
             <button
               onClick={() => createMutation.mutate(form)}
               disabled={!form.title || !form.body || createMutation.isPending}
@@ -176,8 +264,12 @@ export default function AdminAnnouncementsPage() {
       {!announcements || announcements.length === 0 ? (
         <div className="admin-card flex items-center justify-center min-h-[300px]">
           <div className="text-center">
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">No announcements</p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">No platform announcements have been created yet</p>
+            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
+              No announcements
+            </p>
+            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
+              No platform announcements have been created yet
+            </p>
           </div>
         </div>
       ) : (
@@ -186,19 +278,38 @@ export default function AdminAnnouncementsPage() {
             <div key={announcement.id} className="admin-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-[var(--admin-text)] truncate text-[14px]">{announcement.title}</h3>
+                  <h3 className="font-semibold text-[var(--admin-text)] truncate text-[14px]">
+                    {announcement.title}
+                  </h3>
                 </div>
                 <div className="flex items-center gap-2 ml-3">
-                  <span className={`admin-badge capitalize ${PRIORITY_STYLES[announcement.priority] || "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]"}`}>
+                  <span
+                    className={`admin-badge capitalize ${PRIORITY_STYLES[announcement.priority] || "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]"}`}
+                  >
                     {announcement.priority}
                   </span>
                 </div>
               </div>
-              <p className="text-[12px] text-[var(--admin-text-muted)] line-clamp-2 mb-3 leading-relaxed">{announcement.body}</p>
+              <p className="text-[12px] text-[var(--admin-text-muted)] line-clamp-2 mb-3 leading-relaxed">
+                {announcement.body}
+              </p>
               <div className="flex items-center gap-4 text-[11px] text-[var(--admin-text-dim)]">
-                <span>{new Date(announcement.startsAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                <span>
+                  {new Date(announcement.startsAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
                 {announcement.endsAt && (
-                  <span>Ends {new Date(announcement.endsAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  <span>
+                    Ends{" "}
+                    {new Date(announcement.endsAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
                 )}
                 {announcement.showInApp && (
                   <span className="text-green-400/60">In-App</span>
@@ -206,7 +317,9 @@ export default function AdminAnnouncementsPage() {
                 {announcement.sendEmail && (
                   <span className="text-blue-400/60">Email</span>
                 )}
-                <span className="ml-auto font-mono">{announcement.createdBy}</span>
+                <span className="ml-auto font-mono">
+                  {announcement.createdBy}
+                </span>
               </div>
             </div>
           ))}

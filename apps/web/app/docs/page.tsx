@@ -3,9 +3,26 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
-  Zap, Key, Code2, MessageSquare, Database, Boxes, FileText,
-  Layers, UploadCloud, Shield, AlertTriangle, Cpu, TrendingUp,
-  BarChart3, Lock, Terminal, ArrowRight, Users, Webhook, Globe,
+  Zap,
+  Key,
+  Code2,
+  MessageSquare,
+  Database,
+  Boxes,
+  FileText,
+  Layers,
+  UploadCloud,
+  Shield,
+  AlertTriangle,
+  Cpu,
+  TrendingUp,
+  BarChart3,
+  Lock,
+  Terminal,
+  ArrowRight,
+  Users,
+  Webhook,
+  Globe,
 } from "lucide-react";
 import type { NavItem } from "@/components/docs/types";
 
@@ -25,14 +42,14 @@ const SECTION_STYLES = {
     gradient: "from-blue-400 to-cyan-600",
     dot: "bg-blue-500",
   },
-  "Platform": {
+  Platform: {
     border: "border-amber-500/[0.15] hover:border-amber-500/30",
     icon: "text-amber-400 bg-amber-500/[0.06] border-amber-500/15",
     glow: "from-amber-500/[0.04]",
     gradient: "from-amber-400 to-orange-600",
     dot: "bg-amber-500",
   },
-  "Reference": {
+  Reference: {
     border: "border-violet-500/[0.15] hover:border-violet-500/30",
     icon: "text-violet-400 bg-violet-500/[0.06] border-violet-500/15",
     glow: "from-violet-500/[0.04]",
@@ -47,28 +64,147 @@ interface DocSection extends NavItem {
 }
 
 const sections: DocSection[] = [
-  { id: "quickstart", label: "Quick Start", icon: Zap, desc: "Get up and running in under 5 minutes.", category: "Getting Started" },
-  { id: "authentication", label: "Authentication", icon: Key, desc: "API keys, JWT, and bearer token auth.", category: "Getting Started" },
-  { id: "api-reference", label: "API Reference", icon: Code2, desc: "Complete endpoint documentation.", category: "Getting Started" },
-  { id: "self-hosting", label: "Self-Hosting", icon: Globe, desc: "Configure base URL for your deployment.", category: "Getting Started" },
-  { id: "chat", label: "Chat & Streaming", icon: MessageSquare, desc: "SSE streaming and standard chat.", category: "Core Features" },
-  { id: "embeddings", label: "Embeddings", icon: Database, desc: "Generate text embeddings.", category: "Core Features" },
-  { id: "conversations", label: "Conversations", icon: Boxes, desc: "Multi-turn conversation management.", category: "Core Features" },
-  { id: "prompts", label: "Prompt Templates", icon: FileText, desc: "Reusable prompt templates.", category: "Core Features" },
-  { id: "batch", label: "Batch API", icon: Layers, desc: "Process multiple requests at once.", category: "Platform" },
-  { id: "files", label: "File Upload", icon: UploadCloud, desc: "Upload images for vision models.", category: "Platform" },
-  { id: "webhooks", label: "Webhooks", icon: Webhook, desc: "Event-driven outbound webhook delivery.", category: "Platform" },
-  { id: "rate-limits", label: "Rate Limits", icon: Shield, desc: "Usage limits and throttling.", category: "Platform" },
-  { id: "error-handling", label: "Error Handling", icon: AlertTriangle, desc: "Error codes and responses.", category: "Platform" },
-  { id: "organizations", label: "Organizations", icon: Users, desc: "Multi-user organization management.", category: "Platform" },
-  { id: "models", label: "Available Models", icon: Cpu, desc: "Supported providers and models.", category: "Reference" },
-  { id: "pricing", label: "Pricing & Credits", icon: TrendingUp, desc: "Credit system and costs.", category: "Reference" },
-  { id: "dashboard", label: "Dashboard", icon: BarChart3, desc: "Usage analytics and monitoring.", category: "Reference" },
-  { id: "security", label: "Security", icon: Lock, desc: "Encryption, hashing, and CORS.", category: "Reference" },
-  { id: "examples", label: "Code Examples", icon: Terminal, desc: "Full examples in Python, JS, Go.", category: "Reference" },
+  {
+    id: "quickstart",
+    label: "Quick Start",
+    icon: Zap,
+    desc: "Get up and running in under 5 minutes.",
+    category: "Getting Started",
+  },
+  {
+    id: "authentication",
+    label: "Authentication",
+    icon: Key,
+    desc: "API keys, JWT, and bearer token auth.",
+    category: "Getting Started",
+  },
+  {
+    id: "api-reference",
+    label: "API Reference",
+    icon: Code2,
+    desc: "Complete endpoint documentation.",
+    category: "Getting Started",
+  },
+  {
+    id: "self-hosting",
+    label: "Self-Hosting",
+    icon: Globe,
+    desc: "Configure base URL for your deployment.",
+    category: "Getting Started",
+  },
+  {
+    id: "chat",
+    label: "Chat & Streaming",
+    icon: MessageSquare,
+    desc: "SSE streaming and standard chat.",
+    category: "Core Features",
+  },
+  {
+    id: "embeddings",
+    label: "Embeddings",
+    icon: Database,
+    desc: "Generate text embeddings.",
+    category: "Core Features",
+  },
+  {
+    id: "conversations",
+    label: "Conversations",
+    icon: Boxes,
+    desc: "Multi-turn conversation management.",
+    category: "Core Features",
+  },
+  {
+    id: "prompts",
+    label: "Prompt Templates",
+    icon: FileText,
+    desc: "Reusable prompt templates.",
+    category: "Core Features",
+  },
+  {
+    id: "batch",
+    label: "Batch API",
+    icon: Layers,
+    desc: "Process multiple requests at once.",
+    category: "Platform",
+  },
+  {
+    id: "files",
+    label: "File Upload",
+    icon: UploadCloud,
+    desc: "Upload images for vision models.",
+    category: "Platform",
+  },
+  {
+    id: "webhooks",
+    label: "Webhooks",
+    icon: Webhook,
+    desc: "Event-driven outbound webhook delivery.",
+    category: "Platform",
+  },
+  {
+    id: "rate-limits",
+    label: "Rate Limits",
+    icon: Shield,
+    desc: "Usage limits and throttling.",
+    category: "Platform",
+  },
+  {
+    id: "error-handling",
+    label: "Error Handling",
+    icon: AlertTriangle,
+    desc: "Error codes and responses.",
+    category: "Platform",
+  },
+  {
+    id: "organizations",
+    label: "Organizations",
+    icon: Users,
+    desc: "Multi-user organization management.",
+    category: "Platform",
+  },
+  {
+    id: "models",
+    label: "Available Models",
+    icon: Cpu,
+    desc: "Supported providers and models.",
+    category: "Reference",
+  },
+  {
+    id: "pricing",
+    label: "Pricing & Credits",
+    icon: TrendingUp,
+    desc: "Credit system and costs.",
+    category: "Reference",
+  },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: BarChart3,
+    desc: "Usage analytics and monitoring.",
+    category: "Reference",
+  },
+  {
+    id: "security",
+    label: "Security",
+    icon: Lock,
+    desc: "Encryption, hashing, and CORS.",
+    category: "Reference",
+  },
+  {
+    id: "examples",
+    label: "Code Examples",
+    icon: Terminal,
+    desc: "Full examples in Python, JS, Go.",
+    category: "Reference",
+  },
 ];
 
-const categories = ["Getting Started", "Core Features", "Platform", "Reference"] as const;
+const categories = [
+  "Getting Started",
+  "Core Features",
+  "Platform",
+  "Reference",
+] as const;
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -77,26 +213,38 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+  },
 };
 
 export default function DocsIndexPage() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* ── Hero ── */}
       <div className="mb-16 sm:mb-24 pt-8 sm:pt-12">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[10px] font-mono text-white/25 uppercase tracking-[0.2em]">Documentation</span>
+          <span className="text-[10px] font-mono text-white/25 uppercase tracking-[0.2em]">
+            Documentation
+          </span>
         </div>
         <h1 className="text-[2.5rem] sm:text-[3.25rem] lg:text-[4rem] font-bold tracking-tight leading-[1.05] mb-6">
-          <span className="text-white">Build with</span><br />
+          <span className="text-white">Build with</span>
+          <br />
           <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-emerald-200 bg-clip-text text-transparent">
             Yapapa
           </span>
         </h1>
         <p className="text-base sm:text-lg text-white/40 max-w-xl leading-relaxed">
-          One unified API for 100+ AI models. OpenAI-compatible drop-in replacement with credit-based billing and real-time analytics.
+          One unified API for 100+ AI models. OpenAI-compatible drop-in
+          replacement with credit-based billing and real-time analytics.
         </p>
       </div>
 
@@ -108,14 +256,28 @@ export default function DocsIndexPage() {
         className="mb-20 sm:mb-28"
       >
         <div className="flex items-center gap-3 mb-6">
-          <span className="text-[9px] font-mono font-semibold text-emerald-400/70 uppercase tracking-[0.18em]">Quick Start</span>
+          <span className="text-[9px] font-mono font-semibold text-emerald-400/70 uppercase tracking-[0.18em]">
+            Quick Start
+          </span>
           <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/25 to-transparent" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { step: "01", title: "Sign up", desc: "Create an account in seconds" },
-            { step: "02", title: "Get a key", desc: "Generate your API credentials" },
-            { step: "03", title: "Make a request", desc: "Call any model instantly" },
+            {
+              step: "01",
+              title: "Sign up",
+              desc: "Create an account in seconds",
+            },
+            {
+              step: "02",
+              title: "Get a key",
+              desc: "Generate your API credentials",
+            },
+            {
+              step: "03",
+              title: "Make a request",
+              desc: "Call any model instantly",
+            },
           ].map((item) => (
             <Link
               key={item.step}
@@ -130,8 +292,12 @@ export default function DocsIndexPage() {
                   </span>
                   <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/20 to-transparent" />
                 </div>
-                <p className="text-sm font-semibold text-white/65 group-hover:text-white/85 transition-colors">{item.title}</p>
-                <p className="text-xs text-white/25 mt-0.5 group-hover:text-white/35 transition-colors">{item.desc}</p>
+                <p className="text-sm font-semibold text-white/65 group-hover:text-white/85 transition-colors">
+                  {item.title}
+                </p>
+                <p className="text-xs text-white/25 mt-0.5 group-hover:text-white/35 transition-colors">
+                  {item.desc}
+                </p>
               </div>
             </Link>
           ))}
@@ -148,18 +314,28 @@ export default function DocsIndexPage() {
             key={category}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + catIdx * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+              delay: 0.1 + catIdx * 0.07,
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             className="mb-12 sm:mb-16 last:mb-0"
           >
             {/* Category header */}
             <div className="group cursor-default mb-5">
               <div className="flex items-center gap-3">
-                <span className={`w-2 h-2 rounded-full ${style.dot} opacity-60`} />
-                <h3 className={`text-[10px] font-mono font-semibold uppercase tracking-[0.2em] ${style.icon.split(" ")[0]}`}>
+                <span
+                  className={`w-2 h-2 rounded-full ${style.dot} opacity-60`}
+                />
+                <h3
+                  className={`text-[10px] font-mono font-semibold uppercase tracking-[0.2em] ${style.icon.split(" ")[0]}`}
+                >
                   {category}
                 </h3>
                 <div className="h-px flex-1 bg-white/[0.04]" />
-                <span className="text-[10px] font-mono text-white/15">{catSections.length}</span>
+                <span className="text-[10px] font-mono text-white/15">
+                  {catSections.length}
+                </span>
               </div>
             </div>
 
@@ -176,7 +352,9 @@ export default function DocsIndexPage() {
                     href={`/docs/${section.id}`}
                     className={`group flex items-center gap-4 p-4 rounded-xl border border-white/[0.05] bg-white/[0.01] hover:border-white/[0.1] hover:bg-white/[0.02] hover:shadow-md hover:shadow-black/5 transition-all duration-200 cursor-pointer`}
                   >
-                    <div className={`w-10 h-10 rounded-xl ${style.icon.split(" ").slice(1).join(" ")} flex items-center justify-center flex-shrink-0 border transition-all duration-200 shadow-sm shadow-black/10`}>
+                    <div
+                      className={`w-10 h-10 rounded-xl ${style.icon.split(" ").slice(1).join(" ")} flex items-center justify-center flex-shrink-0 border transition-all duration-200 shadow-sm shadow-black/10`}
+                    >
                       <section.icon className="w-4.5 h-4.5" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -187,7 +365,9 @@ export default function DocsIndexPage() {
                         {section.desc}
                       </p>
                     </div>
-                    <ArrowRight className={`w-3 h-3 text-white/[0.08] group-hover:text-white/25 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0`} />
+                    <ArrowRight
+                      className={`w-3 h-3 text-white/[0.08] group-hover:text-white/25 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0`}
+                    />
                   </Link>
                 </motion.div>
               ))}

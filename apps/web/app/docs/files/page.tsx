@@ -16,19 +16,31 @@ export default function FilesPage() {
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
     >
       <Section id="files" icon={UploadCloud} title="File Upload" accent="amber">
         <p>
-          Upload images for vision and multimodal model support. Files are validated, typed, and returned as base64 data URIs that can be passed directly to chat endpoints.
+          Upload images for vision and multimodal model support. Files are
+          validated, typed, and returned as base64 data URIs that can be passed
+          directly to chat endpoints.
         </p>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-8">Uploading files</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-8">
+          Uploading files
+        </h3>
 
         <div className="p-5 rounded-xl border border-white/[0.06] bg-[#0A0A0A] mb-6 hover:border-white/[0.1] transition-colors">
-          <EndpointCard method="POST" path="/api/files/upload" description="Upload image files for vision/multimodal models.">
+          <EndpointCard
+            method="POST"
+            path="/api/files/upload"
+            description="Upload image files for vision/multimodal models."
+          >
             <p className="text-sm text-muted-foreground mb-4">
-              Multipart upload. Max file size: 10MB. Supported formats: PNG, JPEG, WebP, GIF.
+              Multipart upload. Max file size: 10MB. Supported formats: PNG,
+              JPEG, WebP, GIF.
             </p>
             <CodeBlock
               examples={{
@@ -81,7 +93,9 @@ req.Header.Set("Content-Type", w.FormDataContentType())`,
           </EndpointCard>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Response format</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Response format
+        </h3>
         <CodeBlock
           language="json"
           code={`{
@@ -98,13 +112,25 @@ req.Header.Set("Content-Type", w.FormDataContentType())`,
 }`}
         />
 
-        <h3 className="text-lg font-bold text-white mb-4 mt-10">Managing files</h3>
+        <h3 className="text-lg font-bold text-white mb-4 mt-10">
+          Managing files
+        </h3>
         <div className="space-y-2">
-          <EndpointCard method="GET" path="/api/files" description="List all uploaded files for the current user. Returns file metadata including type, size, and creation date." />
+          <EndpointCard
+            method="GET"
+            path="/api/files"
+            description="List all uploaded files for the current user. Returns file metadata including type, size, and creation date."
+          />
         </div>
 
         <TipBox>
-          Uploaded file data URIs can be used directly in chat messages for vision-capable models. Max 10MB per file, 5 files per upload. Supported MIME types: <code className="text-blue-400 font-mono text-xs">image/png</code>, <code className="text-blue-400 font-mono text-xs">image/jpeg</code>, <code className="text-blue-400 font-mono text-xs">image/webp</code>, <code className="text-blue-400 font-mono text-xs">image/gif</code>.
+          Uploaded file data URIs can be used directly in chat messages for
+          vision-capable models. Max 10MB per file, 5 files per upload.
+          Supported MIME types:{" "}
+          <code className="text-blue-400 font-mono text-xs">image/png</code>,{" "}
+          <code className="text-blue-400 font-mono text-xs">image/jpeg</code>,{" "}
+          <code className="text-blue-400 font-mono text-xs">image/webp</code>,{" "}
+          <code className="text-blue-400 font-mono text-xs">image/gif</code>.
         </TipBox>
       </Section>
     </motion.div>

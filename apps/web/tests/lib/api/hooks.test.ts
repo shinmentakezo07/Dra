@@ -89,7 +89,9 @@ describe("Hook-SDK wiring verification", () => {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (/const\s+mock/i.test(line) && !line.trim().startsWith("//")) {
-        expect.fail(`Found mock data in hooks.ts at line ${i + 1}: ${line.trim()}`);
+        expect.fail(
+          `Found mock data in hooks.ts at line ${i + 1}: ${line.trim()}`,
+        );
       }
     }
   });

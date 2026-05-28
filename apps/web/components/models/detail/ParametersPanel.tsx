@@ -6,14 +6,17 @@ import { getProviderTheme } from "@/lib/model-utils";
 import { SlidersHorizontal } from "lucide-react";
 
 const paramDescriptions: Record<string, string> = {
-  temperature: "Controls randomness. Lower = more deterministic, higher = more creative.",
-  top_p: "Nucleus sampling. Limits token selection to top cumulative probability.",
+  temperature:
+    "Controls randomness. Lower = more deterministic, higher = more creative.",
+  top_p:
+    "Nucleus sampling. Limits token selection to top cumulative probability.",
   top_k: "Limits token selection to the K most likely options.",
   max_tokens: "Maximum length of the generated response.",
   stop: "Sequences where the model will stop generating further tokens.",
   repetition_penalty: "Penalizes repeated tokens to reduce redundancy.",
   frequency_penalty: "Reduces repetition based on token frequency.",
-  presence_penalty: "Penalizes tokens that have already appeared in the output.",
+  presence_penalty:
+    "Penalizes tokens that have already appeared in the output.",
   seed: "Sets a random seed for reproducible outputs.",
   logit_bias: "Adjusts likelihood of specific tokens appearing.",
   min_p: "Minimum probability threshold for token selection.",
@@ -24,8 +27,8 @@ const paramDescriptions: Record<string, string> = {
 };
 
 interface ParametersPanelProps {
-  params: string[]
-  modelId?: string
+  params: string[];
+  modelId?: string;
 }
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -48,11 +51,19 @@ export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
       id="parameters"
     >
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+        <span
+          className="text-[10px] font-mono font-bold tracking-wider"
+          style={{ color: accent }}
+        >
           05
         </span>
-        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">Parameters</h2>
-        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
+        <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
+          Parameters
+        </h2>
+        <span
+          className="flex-1 h-px"
+          style={{ backgroundColor: `${accent}12` }}
+        />
       </div>
 
       <div
@@ -62,16 +73,27 @@ export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
         {/* Top highlight */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+          style={{
+            background: `linear-gradient(90deg, ${accent}30, transparent)`,
+          }}
         />
 
         {/* Count badge */}
         <div className="flex items-center gap-2 mb-4">
-          <SlidersHorizontal className="w-3 h-3" style={{ color: `${accent}50` }} />
-          <span className="text-[10px] font-mono text-gray-600">{params.length} supported</span>
+          <SlidersHorizontal
+            className="w-3 h-3"
+            style={{ color: `${accent}50` }}
+          />
+          <span className="text-[10px] font-mono text-gray-600">
+            {params.length} supported
+          </span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Supported parameters">
+        <div
+          className="flex flex-wrap gap-1.5"
+          role="group"
+          aria-label="Supported parameters"
+        >
           {params.map((param) => (
             <button
               key={param}
@@ -81,7 +103,8 @@ export function ParametersPanel({ params, modelId }: ParametersPanelProps) {
               onBlur={() => setHovered(null)}
               className="px-2.5 py-1.5 rounded-lg border font-mono text-[11px] font-medium transition-all duration-150 cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-black"
               style={{
-                backgroundColor: hovered === param ? `${accent}10` : `${accent}06`,
+                backgroundColor:
+                  hovered === param ? `${accent}10` : `${accent}06`,
                 borderColor: hovered === param ? `${accent}20` : `${accent}0a`,
                 color: hovered === param ? "#fff" : `${accent}aa`,
                 // @ts-expect-error CSS custom property

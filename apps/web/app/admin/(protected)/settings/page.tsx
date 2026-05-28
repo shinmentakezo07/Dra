@@ -18,7 +18,7 @@ function DocsBaseUrlCard({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(
-    setting ? String(setting.value ?? "") : ""
+    setting ? String(setting.value ?? "") : "",
   );
 
   const currentValue = setting ? String(setting.value ?? "") : "";
@@ -31,10 +31,15 @@ function DocsBaseUrlCard({
             <Globe className="w-4 h-4 text-indigo-400/70" />
           </div>
           <div>
-            <p className="text-[13px] font-medium text-[var(--admin-text)]">Docs Base URL</p>
+            <p className="text-[13px] font-medium text-[var(--admin-text)]">
+              Docs Base URL
+            </p>
             <p className="text-[11px] text-[var(--admin-text-dim)]">
               Not configured yet. Add a system setting with key{" "}
-              <code className="text-indigo-400/70 font-mono">docs_base_url</code>.
+              <code className="text-indigo-400/70 font-mono">
+                docs_base_url
+              </code>
+              .
             </p>
           </div>
         </div>
@@ -49,7 +54,9 @@ function DocsBaseUrlCard({
           <Globe className="w-4 h-4 text-indigo-400/70" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium text-[var(--admin-text)]">Docs Base URL</p>
+          <p className="text-[13px] font-medium text-[var(--admin-text)]">
+            Docs Base URL
+          </p>
           <p className="text-[11px] text-[var(--admin-text-dim)]">
             The base URL shown in all documentation code examples. Self-hosted
             users should set this to their actual API endpoint.
@@ -67,7 +74,10 @@ function DocsBaseUrlCard({
             className="admin-input flex-1 font-mono text-[12px]"
           />
           <button
-            onClick={() => { onSave(draft); setEditing(false); }}
+            onClick={() => {
+              onSave(draft);
+              setEditing(false);
+            }}
             disabled={isSaving || draft === currentValue}
             className="admin-btn admin-btn-primary text-[11px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -75,7 +85,10 @@ function DocsBaseUrlCard({
             {isSaving ? "Saving..." : "Save"}
           </button>
           <button
-            onClick={() => { setDraft(currentValue); setEditing(false); }}
+            onClick={() => {
+              setDraft(currentValue);
+              setEditing(false);
+            }}
             className="admin-btn admin-btn-ghost text-[11px]"
           >
             Cancel
@@ -87,7 +100,10 @@ function DocsBaseUrlCard({
             {currentValue || "Not set"}
           </code>
           <button
-            onClick={() => { setDraft(currentValue); setEditing(true); }}
+            onClick={() => {
+              setDraft(currentValue);
+              setEditing(true);
+            }}
             className="admin-btn admin-btn-ghost text-[11px]"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -97,7 +113,9 @@ function DocsBaseUrlCard({
       )}
 
       {setting.description && (
-        <p className="mt-3 text-[10px] text-[var(--admin-text-dim)]">{setting.description}</p>
+        <p className="mt-3 text-[10px] text-[var(--admin-text-dim)]">
+          {setting.description}
+        </p>
       )}
     </div>
   );
@@ -107,7 +125,10 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<"system" | "flags">("system");
 
   return (
-    <AdminPageHeader title="Settings" subtitle="System configuration and feature flags">
+    <AdminPageHeader
+      title="Settings"
+      subtitle="System configuration and feature flags"
+    >
       {/* Tabs */}
       <div className="flex items-center gap-1 rounded-[12px] border border-[var(--admin-border)] bg-white/[0.01] p-1 w-fit">
         <button
@@ -142,7 +163,11 @@ export default function AdminSettingsPage() {
 function SystemSettingsTab() {
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading, error } = useQuery<SystemSetting[]>({
+  const {
+    data: settings,
+    isLoading,
+    error,
+  } = useQuery<SystemSetting[]>({
     queryKey: ["admin", "settings"],
     queryFn: () => getAdminSDK().listSettings(),
   });
@@ -169,7 +194,11 @@ function SystemSettingsTab() {
   if (error || !settings) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load system settings"}</p>
+        <p className="text-[13px] text-red-400/70">
+          {error instanceof Error
+            ? error.message
+            : "Failed to load system settings"}
+        </p>
       </div>
     );
   }
@@ -189,7 +218,9 @@ function SystemSettingsTab() {
     <div className="space-y-6">
       <DocsBaseUrlCard
         setting={docsBaseUrlSetting ?? null}
-        onSave={(value) => updateMutation.mutate({ key: "docs_base_url", value })}
+        onSave={(value) =>
+          updateMutation.mutate({ key: "docs_base_url", value })
+        }
         isSaving={updateMutation.isPending}
       />
 
@@ -201,9 +232,13 @@ function SystemSettingsTab() {
               <div key={setting.key} className="admin-card p-4">
                 <div className="mb-2.5 flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-[13px] font-medium text-[var(--admin-text)] truncate">{setting.key}</p>
+                    <p className="text-[13px] font-medium text-[var(--admin-text)] truncate">
+                      {setting.key}
+                    </p>
                     {setting.description && (
-                      <p className="mt-0.5 text-[11px] text-[var(--admin-text-dim)] line-clamp-2">{setting.description}</p>
+                      <p className="mt-0.5 text-[11px] text-[var(--admin-text-dim)] line-clamp-2">
+                        {setting.description}
+                      </p>
                     )}
                   </div>
                   <span className="admin-badge bg-white/[0.03] text-[var(--admin-text-dim)] border border-white/[0.04] flex-shrink-0">
@@ -229,7 +264,11 @@ function SystemSettingsTab() {
 function FeatureFlagsTab() {
   const queryClient = useQueryClient();
 
-  const { data: flags, isLoading, error } = useQuery<FeatureFlag[]>({
+  const {
+    data: flags,
+    isLoading,
+    error,
+  } = useQuery<FeatureFlag[]>({
     queryKey: ["admin", "feature-flags"],
     queryFn: () => getAdminSDK().listFeatureFlags(),
   });
@@ -256,7 +295,11 @@ function FeatureFlagsTab() {
   if (error || !flags) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load feature flags"}</p>
+        <p className="text-[13px] text-red-400/70">
+          {error instanceof Error
+            ? error.message
+            : "Failed to load feature flags"}
+        </p>
       </div>
     );
   }
@@ -266,23 +309,36 @@ function FeatureFlagsTab() {
       {flags.length === 0 ? (
         <div className="admin-card border-dashed border-[var(--admin-border)] p-8 text-center">
           <Flag className="mx-auto h-7 w-7 text-[var(--admin-text-dim)]" />
-          <p className="mt-3 text-[13px] text-[var(--admin-text-dim)]">No feature flags configured.</p>
+          <p className="mt-3 text-[13px] text-[var(--admin-text-dim)]">
+            No feature flags configured.
+          </p>
         </div>
       ) : (
         flags.map((flag) => (
-          <div key={flag.id} className="admin-card p-4 flex items-center justify-between">
+          <div
+            key={flag.id}
+            className="admin-card p-4 flex items-center justify-between"
+          >
             <div className="min-w-0 flex-1 mr-4">
               <div className="flex items-center gap-2">
-                <p className="text-[13px] font-medium text-[var(--admin-text)]">{flag.name}</p>
-                <span className="admin-badge bg-white/[0.03] text-[var(--admin-text-dim)] border border-white/[0.04] font-mono">{flag.key}</span>
+                <p className="text-[13px] font-medium text-[var(--admin-text)]">
+                  {flag.name}
+                </p>
+                <span className="admin-badge bg-white/[0.03] text-[var(--admin-text-dim)] border border-white/[0.04] font-mono">
+                  {flag.key}
+                </span>
               </div>
               {flag.description && (
-                <p className="mt-0.5 text-[11px] text-[var(--admin-text-dim)] line-clamp-1">{flag.description}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--admin-text-dim)] line-clamp-1">
+                  {flag.description}
+                </p>
               )}
             </div>
 
             <button
-              onClick={() => toggleMutation.mutate({ id: flag.id, enabled: !flag.enabled })}
+              onClick={() =>
+                toggleMutation.mutate({ id: flag.id, enabled: !flag.enabled })
+              }
               disabled={toggleMutation.isPending}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                 flag.enabled ? "bg-indigo-500/30" : "bg-white/[0.06]"

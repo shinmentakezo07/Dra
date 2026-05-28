@@ -4,7 +4,7 @@ test.describe("Auth flow", () => {
   test("login page loads with email field", async ({ page }) => {
     await page.goto("/login");
     await expect(
-      page.locator('input[type="email"], input[name="email"]')
+      page.locator('input[type="email"], input[name="email"]'),
     ).toBeVisible({ timeout: 10000 });
   });
 

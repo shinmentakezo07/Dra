@@ -47,12 +47,16 @@ describe("getProviderTheme", () => {
 });
 
 describe("formatPricePerM", () => {
-  function makeModel(pricing: Record<string, string | null>): OpenRouterModelData {
+  function makeModel(
+    pricing: Record<string, string | null>,
+  ): OpenRouterModelData {
     return { pricing } as unknown as OpenRouterModelData;
   }
 
   it("converts per-token price to per-million", () => {
-    expect(formatPricePerM(makeModel({ prompt: "0.00001" }), "prompt")).toBe("10.00");
+    expect(formatPricePerM(makeModel({ prompt: "0.00001" }), "prompt")).toBe(
+      "10.00",
+    );
   });
 
   it("returns 0.00 for missing pricing", () => {
@@ -64,7 +68,9 @@ describe("formatPricePerM", () => {
   });
 
   it("handles completion field", () => {
-    expect(formatPricePerM(makeModel({ completion: "0.00003" }), "completion")).toBe("30.00");
+    expect(
+      formatPricePerM(makeModel({ completion: "0.00003" }), "completion"),
+    ).toBe("30.00");
   });
 });
 
@@ -102,7 +108,9 @@ describe("getContextPercentage", () => {
 
 describe("getMaxOutputTokens", () => {
   function makeModel(tokens: number | null): OpenRouterModelData {
-    return { top_provider: { max_completion_tokens: tokens } } as unknown as OpenRouterModelData;
+    return {
+      top_provider: { max_completion_tokens: tokens },
+    } as unknown as OpenRouterModelData;
   }
 
   it("formats max tokens as K", () => {

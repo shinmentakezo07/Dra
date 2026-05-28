@@ -12,5 +12,3 @@ export async function POST(request: Request) {
   if (authError) return authError;
   return proxyToBackend(request, "/api/keys");
 }
-
-

@@ -14,7 +14,9 @@ describe("API route proxy behavior", () => {
   });
 
   it("proxyToBackend generates x-request-id when missing", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     vi.stubGlobal("fetch", mockFetch);
 
     const { proxyToBackend } = await import("@/lib/api/proxy");
@@ -29,12 +31,14 @@ describe("API route proxy behavior", () => {
     const callArgs = mockFetch.mock.calls[0];
     const fetchedRequest = callArgs[1] as Request;
     expect(fetchedRequest.headers.get("x-request-id")).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
   });
 
   it("proxyToBackend forwards existing x-request-id", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     vi.stubGlobal("fetch", mockFetch);
 
     const { proxyToBackend } = await import("@/lib/api/proxy");
@@ -71,7 +75,9 @@ describe("API route proxy behavior", () => {
   });
 
   it("proxyToBackend allows application/json for POST", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     vi.stubGlobal("fetch", mockFetch);
 
     const { proxyToBackend } = await import("@/lib/api/proxy");
@@ -90,7 +96,9 @@ describe("API route proxy behavior", () => {
     const originalUrl = process.env.BACKEND_URL;
     process.env.BACKEND_URL = "http://custom-backend:9090";
 
-    const mockFetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     vi.stubGlobal("fetch", mockFetch);
 
     const { proxyToBackend } = await import("@/lib/api/proxy");

@@ -89,7 +89,9 @@ describe("Auth flow integration", () => {
 
     it("getErrorMessage returns default for unknown", async () => {
       const { getErrorMessage } = await import("@/lib/api/errors");
-      expect(getErrorMessage("string error")).toBe("An unexpected error occurred");
+      expect(getErrorMessage("string error")).toBe(
+        "An unexpected error occurred",
+      );
     });
 
     it("getErrorStatus returns status from ApiError", async () => {

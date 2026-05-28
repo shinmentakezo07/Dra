@@ -15,9 +15,18 @@ const sizeClasses = {
   xl: "w-12 h-12",
 };
 
-export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  size = "md",
+  className,
+  text,
+}: LoadingSpinnerProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-4", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-4",
+        className,
+      )}
+    >
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -43,7 +52,9 @@ export function PageLoader() {
           className="mt-8 space-y-2"
         >
           <p className="text-white font-bold text-lg">Loading...</p>
-          <p className="text-gray-500 text-sm font-mono">INITIALIZING_SYSTEMS</p>
+          <p className="text-gray-500 text-sm font-mono">
+            INITIALIZING_SYSTEMS
+          </p>
         </motion.div>
       </div>
     </div>

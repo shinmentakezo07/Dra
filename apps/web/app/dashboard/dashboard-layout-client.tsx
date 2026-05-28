@@ -11,8 +11,21 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Key, Activity, BarChart3, Menu, X, Home, Settings,
-  LogOut, Shield, Bell, Building2, CreditCard, Mail, ChevronRight,
+  LayoutDashboard,
+  Key,
+  Activity,
+  BarChart3,
+  Menu,
+  X,
+  Home,
+  Settings,
+  LogOut,
+  Shield,
+  Bell,
+  Building2,
+  CreditCard,
+  Mail,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,7 +72,11 @@ const GROUPS: NavGroupDef[] = [
       { href: "/dashboard/inbox", label: "Inbox", icon: Mail },
       { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
       { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
-      { href: "/dashboard/organization", label: "Organization", icon: Building2 },
+      {
+        href: "/dashboard/organization",
+        label: "Organization",
+        icon: Building2,
+      },
     ],
   },
 ];
@@ -139,9 +156,7 @@ function NavLink({
 
       <span
         className={`relative flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150 ${
-          isActive
-            ? "bg-white/[0.06]"
-            : "group-hover:bg-white/[0.03]"
+          isActive ? "bg-white/[0.06]" : "group-hover:bg-white/[0.03]"
         }`}
       >
         <Icon
@@ -252,7 +267,13 @@ function SidebarContent({
         ...GROUPS.slice(0, 1),
         {
           label: "Admin",
-          items: [{ href: "/dashboard/admin", label: "Admin", icon: Shield } as NavItem],
+          items: [
+            {
+              href: "/dashboard/admin",
+              label: "Admin",
+              icon: Shield,
+            } as NavItem,
+          ],
         },
         ...GROUPS.slice(1),
       ]

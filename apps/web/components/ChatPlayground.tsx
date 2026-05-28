@@ -65,7 +65,9 @@ function newId() {
 }
 
 function deriveTitle(messages: StoredMessage[]): string {
-  const firstUser = messages.find((m) => m?.role === "user" && typeof m?.content === "string");
+  const firstUser = messages.find(
+    (m) => m?.role === "user" && typeof m?.content === "string",
+  );
   const raw = (firstUser?.content || "New Chat").trim();
   if (!raw) return "New Chat";
   return raw.length > 36 ? `${raw.slice(0, 36)}…` : raw;
@@ -84,7 +86,7 @@ export default function ChatPlayground() {
 
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeSessionId) || null,
-    [sessions, activeSessionId]
+    [sessions, activeSessionId],
   );
 
   // UI
@@ -101,7 +103,10 @@ export default function ChatPlayground() {
 
   // ---- Sessions: load on mount
   useEffect(() => {
-    const loaded = safeJsonParse<ChatSession[]>(localStorage.getItem(STORAGE_KEY), []);
+    const loaded = safeJsonParse<ChatSession[]>(
+      localStorage.getItem(STORAGE_KEY),
+      [],
+    );
     const storedActive = localStorage.getItem(ACTIVE_SESSION_KEY);
 
     if (loaded.length === 0) {
@@ -123,7 +128,9 @@ export default function ChatPlayground() {
 
     setSessions(loaded);
 
-    const pick = loaded.some((s) => s.id === storedActive) ? storedActive : loaded[0].id;
+    const pick = loaded.some((s) => s.id === storedActive)
+      ? storedActive
+      : loaded[0].id;
     setActiveSessionId(pick);
 
     const initialMessages = loaded.find((s) => s.id === pick)?.messages ?? [];
@@ -171,7 +178,8 @@ export default function ChatPlayground() {
     const el = scrollRef.current;
     if (!el) return;
     const threshold = 120;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+    const atBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
     setIsAtBottom(atBottom);
     setShowJumpToBottom(!atBottom);
   }, []);
@@ -236,14 +244,18 @@ export default function ChatPlayground() {
   const handleDeleteChat = (id: string) => {
     setSessions((prev) => {
       const next = prev.filter((s) => s.id !== id);
-      const safeNext = next.length ? next : [{
-        id: newId(),
-        title: "New Chat",
-        createdAt: now(),
-        updatedAt: now(),
-        messages: [],
-        notes: "",
-      }];
+      const safeNext = next.length
+        ? next
+        : [
+            {
+              id: newId(),
+              title: "New Chat",
+              createdAt: now(),
+              updatedAt: now(),
+              messages: [],
+              notes: "",
+            },
+          ];
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(safeNext));
 
@@ -275,7 +287,8 @@ export default function ChatPlayground() {
     const prompts: Record<typeof action, string> = {
       review:
         "Review the following code for correctness, efficiency (Big O), and style. Be strict like a senior engineer:\n\n",
-      explain: "Explain this concept using a real-world analogy and a diagram:\n",
+      explain:
+        "Explain this concept using a real-world analogy and a diagram:\n",
       plan: "Create a structured learning path/curriculum for: ",
     };
 
@@ -332,7 +345,12 @@ export default function ChatPlayground() {
                             : "bg-black/40 border-white/10")
                         }
                       >
-                        <Bot className={"w-4 h-4 " + (isActive ? "text-white" : "text-gray-300")} />
+                        <Bot
+                          className={
+                            "w-4 h-4 " +
+                            (isActive ? "text-white" : "text-gray-300")
+                          }
+                        />
                       </div>
 
                       <div className="min-w-0 flex-1">
@@ -360,13 +378,21 @@ export default function ChatPlayground() {
               </div>
 
               <div className="p-4 border-t border-white/5 bg-black/20 space-y-3">
-                <div className="text-[10px] text-gray-500 font-mono uppercase">Neural Processing</div>
+                <div className="text-[10px] text-gray-500 font-mono uppercase">
+                  Neural Processing
+                </div>
                 <AIThinkingProcess
                   steps={[
                     { title: "Context Analysis", status: "completed" },
                     { title: "Knowledge Retrieval", status: "completed" },
-                    { title: "Structure Generation", status: isLoading ? "active" : "completed" },
-                    { title: "Response Formatting", status: isLoading ? "pending" : "completed" },
+                    {
+                      title: "Structure Generation",
+                      status: isLoading ? "active" : "completed",
+                    },
+                    {
+                      title: "Response Formatting",
+                      status: isLoading ? "pending" : "completed",
+                    },
                   ]}
                 />
               </div>
@@ -385,7 +411,11 @@ export default function ChatPlayground() {
               className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors hidden md:block"
               title={showSidebar ? "Hide sidebar" : "Show sidebar"}
             >
-              {showSidebar ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+              {showSidebar ? (
+                <PanelLeftClose className="w-4 h-4" />
+              ) : (
+                <PanelLeftOpen className="w-4 h-4" />
+              )}
             </button>
 
             <div className="flex items-center gap-3">
@@ -445,17 +475,32 @@ export default function ChatPlayground() {
                 <div className="mx-auto mb-6 w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
                   <Brain className="w-7 h-7 text-violet-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Chat ready</h3>
+                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
+                  Chat ready
+                </h3>
                 <p className="text-sm text-gray-400 mb-8 leading-relaxed">
-                  Start a new conversation or use a quick action to guide Shinmen.
+                  Start a new conversation or use a quick action to guide
+                  Shinmen.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {(
                     [
-                      { icon: Code2, label: "Code Review", action: "review" as const },
-                      { icon: Layout, label: "Curriculum", action: "plan" as const },
-                      { icon: Brain, label: "Deep Dive", action: "explain" as const },
+                      {
+                        icon: Code2,
+                        label: "Code Review",
+                        action: "review" as const,
+                      },
+                      {
+                        icon: Layout,
+                        label: "Curriculum",
+                        action: "plan" as const,
+                      },
+                      {
+                        icon: Brain,
+                        label: "Deep Dive",
+                        action: "explain" as const,
+                      },
                     ] as const
                   ).map((item) => (
                     <button
@@ -466,8 +511,12 @@ export default function ChatPlayground() {
                       <div className="mb-3 p-2 w-fit rounded-lg bg-black/40 border border-white/10 group-hover:border-violet-500/50 transition-colors">
                         <item.icon className="w-4 h-4 text-gray-300 group-hover:text-violet-300" />
                       </div>
-                      <div className="text-sm font-semibold text-gray-100">{item.label}</div>
-                      <div className="text-[10px] text-gray-500 mt-1">Tap to prefill prompt</div>
+                      <div className="text-sm font-semibold text-gray-100">
+                        {item.label}
+                      </div>
+                      <div className="text-[10px] text-gray-500 mt-1">
+                        Tap to prefill prompt
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -491,7 +540,9 @@ export default function ChatPlayground() {
                     </div>
                   )}
 
-                  <div className={`flex flex-col max-w-[85%] gap-2 ${m.role === "user" ? "items-end" : "items-start"}`}>
+                  <div
+                    className={`flex flex-col max-w-[85%] gap-2 ${m.role === "user" ? "items-end" : "items-start"}`}
+                  >
                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider ml-1">
                       {m.role === "user" ? "You" : "Shinmen"}
                     </span>
@@ -503,20 +554,31 @@ export default function ChatPlayground() {
                           : "bg-black/40 border border-white/5 text-gray-200 rounded-tl-none"
                       }`}
                     >
-                      {(m as { toolInvocations?: Array<{ toolCallId: string }> }).toolInvocations?.map((toolInvocation: any) => {
+                      {(
+                        m as { toolInvocations?: Array<{ toolCallId: string }> }
+                      ).toolInvocations?.map((toolInvocation: any) => {
                         const toolCallId = toolInvocation.toolCallId;
                         return null;
                       })}
 
                       {m.role === "user" ? (
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap font-sans">{m.content}</p>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                          {m.content}
+                        </p>
                       ) : (
                         <div className="prose prose-invert prose-sm max-w-none prose-headings:text-gray-200 prose-p:text-gray-300 prose-strong:text-white prose-pre:bg-[#050505] prose-pre:border prose-pre:border-white/10">
                           <ReactMarkdown
                             components={{
                               code(props) {
-                                const { children, className, ...rest } = props as { children: React.ReactNode; className?: string; [key: string]: unknown };
-                                const match = /language-(\w+)/.exec(className || "");
+                                const { children, className, ...rest } =
+                                  props as {
+                                    children: React.ReactNode;
+                                    className?: string;
+                                    [key: string]: unknown;
+                                  };
+                                const match = /language-(\w+)/.exec(
+                                  className || "",
+                                );
                                 const language = match ? match[1] : "";
 
                                 if (language === "mermaid") {
@@ -559,16 +621,31 @@ export default function ChatPlayground() {
           </AnimatePresence>
 
           {isLoading && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-4 justify-start">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-4 justify-start"
+            >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div className="bg-black/40 p-4 rounded-2xl rounded-tl-none border border-white/5 flex items-center gap-3">
-                <span className="text-xs text-gray-500 font-mono">Thinking...</span>
+                <span className="text-xs text-gray-500 font-mono">
+                  Thinking...
+                </span>
                 <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
-                  <div className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
-                  <div className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
+                  <div
+                    className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0s" }}
+                  />
+                  <div
+                    className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.15s" }}
+                  />
+                  <div
+                    className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.3s" }}
+                  />
                 </div>
               </div>
             </motion.div>
@@ -594,7 +671,10 @@ export default function ChatPlayground() {
 
         {/* Input */}
         <div className="p-4 bg-black/40 backdrop-blur-md border-t border-white/5">
-          <form onSubmit={handleSubmit} className="relative flex items-end gap-2 max-w-4xl mx-auto w-full">
+          <form
+            onSubmit={handleSubmit}
+            className="relative flex items-end gap-2 max-w-4xl mx-auto w-full"
+          >
             <div className="relative flex-1 group bg-white/5 rounded-2xl border border-white/10 focus-within:border-violet-500/50 focus-within:bg-black/60 transition-all overflow-hidden shadow-inner">
               <textarea
                 ref={textareaRef}
@@ -629,7 +709,11 @@ export default function ChatPlayground() {
               className="p-4 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-900/20 border border-violet-500/50 active:scale-95 h-[56px] w-[56px] flex items-center justify-center"
               title="Send"
             >
-              {isLoading ? <StopCircle className="w-5 h-5" /> : <Send className="w-5 h-5 ml-0.5" />}
+              {isLoading ? (
+                <StopCircle className="w-5 h-5" />
+              ) : (
+                <Send className="w-5 h-5 ml-0.5" />
+              )}
             </button>
           </form>
 

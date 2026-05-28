@@ -35,7 +35,9 @@ export default function AdminChangelogPage() {
   if (error) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[13px] text-red-400/70">{error instanceof Error ? error.message : "Failed to load changelog"}</p>
+        <p className="text-[13px] text-red-400/70">
+          {error instanceof Error ? error.message : "Failed to load changelog"}
+        </p>
       </div>
     );
   }
@@ -45,8 +47,12 @@ export default function AdminChangelogPage() {
       {entries.length === 0 ? (
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">No changelog entries</p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">Changelog entries will appear here once published</p>
+            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
+              No changelog entries
+            </p>
+            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
+              Changelog entries will appear here once published
+            </p>
           </div>
         </div>
       ) : (
@@ -56,23 +62,41 @@ export default function AdminChangelogPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="truncate text-[14px] font-semibold text-[var(--admin-text)]">{entry.title}</h3>
-                    <span className={cn("admin-badge capitalize", TYPE_STYLES[entry.type] || "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]")}>
+                    <h3 className="truncate text-[14px] font-semibold text-[var(--admin-text)]">
+                      {entry.title}
+                    </h3>
+                    <span
+                      className={cn(
+                        "admin-badge capitalize",
+                        TYPE_STYLES[entry.type] ||
+                          "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
+                      )}
+                    >
                       {entry.type}
                     </span>
                     {entry.isDraft && (
-                      <span className="admin-badge text-orange-400 bg-orange-500/8 border border-orange-500/15">Draft</span>
+                      <span className="admin-badge text-orange-400 bg-orange-500/8 border border-orange-500/15">
+                        Draft
+                      </span>
                     )}
                   </div>
                   {entry.body && (
-                    <p className="mt-1.5 line-clamp-2 text-[12px] text-[var(--admin-text-muted)] leading-relaxed">{entry.body}</p>
+                    <p className="mt-1.5 line-clamp-2 text-[12px] text-[var(--admin-text-muted)] leading-relaxed">
+                      {entry.body}
+                    </p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
-                  <span className="font-mono text-[11px] text-[var(--admin-text-dim)]">v{entry.version}</span>
+                  <span className="font-mono text-[11px] text-[var(--admin-text-dim)]">
+                    v{entry.version}
+                  </span>
                   {entry.publishedAt && (
                     <p className="mt-1 text-[11px] text-[var(--admin-text-dim)]">
-                      {new Date(entry.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {new Date(entry.publishedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </p>
                   )}
                 </div>

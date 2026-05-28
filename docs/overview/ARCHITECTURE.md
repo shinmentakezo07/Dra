@@ -59,20 +59,25 @@ func Parse(tokenStr, secret string) (*Claims, error)
 Three methods tried in order:
 
 ### 1. API Key Header
+
 ```
 x-api-key: <key>
 ```
+
 HMAC-SHA256 hash with AuthSecret as pepper -> lookup in api_keys table -> inject User + APIKey into context
 
 ### 2. Bearer Token
+
 ```
 Authorization: Bearer <jwt>
 ```
 
 ### 3. Session Cookie
+
 Checks in order: `authjs.session-token`, `__Secure-authjs.session-token`, `next-auth.session-token`, `__Secure-next-auth.session-token`
 
 ### JWT Validation
+
 1. Parse HS256, validate signing method
 2. Check `exp` claim (float64 -> unix timestamp)
 3. Extract `sub` claim (userID)
@@ -80,6 +85,7 @@ Checks in order: `authjs.session-token`, `__Secure-authjs.session-token`, `next-
 5. Inject `*domain.User` into context
 
 ### Context Helpers
+
 ```go
 func GetUser(r) *domain.User       // nil if not authenticated
 func GetAPIKey(r) *domain.APIKey   // nil if not using API key
@@ -130,14 +136,14 @@ func Paginated(w, data, total, page, limit)  // with meta
 type DB struct { Pool *pgxpool.Pool }
 ```
 
-| Config | Value |
-|--------|-------|
-| MaxConns | 20 |
-| MinConns | 2 |
-| MaxConnLifetime | 1 hour |
-| MaxConnIdleTime | 30 min |
-| HealthCheckPeriod | 5 min |
-| ConnectTimeout | 5s |
+| Config            | Value  |
+| ----------------- | ------ |
+| MaxConns          | 20     |
+| MinConns          | 2      |
+| MaxConnLifetime   | 1 hour |
+| MaxConnIdleTime   | 30 min |
+| HealthCheckPeriod | 5 min  |
+| ConnectTimeout    | 5s     |
 
 `Health(ctx)`: 2s timeout ping. `Close()`: graceful pool shutdown.
 
@@ -146,6 +152,7 @@ type DB struct { Pool *pgxpool.Pool }
 ## Rate Limiter (`internal/middleware/ratelimit.go`)
 
 ### In-Memory
+
 ```go
 type RateLimiter struct {
     store  map[string]*rateEntry   // key -> {count, resetAt}
@@ -153,9 +160,11 @@ type RateLimiter struct {
     max    int
 }
 ```
+
 Sliding window per key (RemoteAddr or UserID). Background cleanup every 5 min. Returns 429.
 
 ### Redis
+
 Same interface but uses `INCR` + `EXPIRE`. Activated when `REDIS_URL` is set.
 
 Auth endpoints get stricter 10 req/min limiter.
@@ -213,15 +222,15 @@ r.Use(quotaMW)                                    // quota tracking
 
 ### Route Groups
 
-| Group | Middleware | Routes |
-|-------|-----------|--------|
-| Public | None | /health, /health/providers |
-| Auth (strict RL) | 10 req/min per-IP | /auth/* (5 endpoints) |
-| OpenAI proxy | auth + quota | /v1/* (4 endpoints) |
-| Protected | auth + quota | 40+ API routes |
-| Stripe webhook | None (sig verified) | /webhooks/stripe |
-| Admin | auth + admin role | 60+ admin routes |
-| Metrics | CORS only | /metrics (separate :9090) |
+| Group            | Middleware          | Routes                     |
+| ---------------- | ------------------- | -------------------------- |
+| Public           | None                | /health, /health/providers |
+| Auth (strict RL) | 10 req/min per-IP   | /auth/\* (5 endpoints)     |
+| OpenAI proxy     | auth + quota        | /v1/\* (4 endpoints)       |
+| Protected        | auth + quota        | 40+ API routes             |
+| Stripe webhook   | None (sig verified) | /webhooks/stripe           |
+| Admin            | auth + admin role   | 60+ admin routes           |
+| Metrics          | CORS only           | /metrics (separate :9090)  |
 
 ### Graceful Shutdown
 
@@ -234,12 +243,12 @@ srv.Shutdown(ctx)  // configurable timeout, default 10s
 
 ## Provider Architecture (`pkg/llm/provider/`)
 
-| Type | SDK | Auth | Base URL |
-|------|-----|------|----------|
-| OpenAIProvider | sashabaranov/go-openai | Bearer token | https://api.openai.com/v1 |
-| AnthropicProvider | Direct HTTP | x-api-key header | https://api.anthropic.com/v1 |
-| GenericProvider | sashabaranov/go-openai | Bearer token | Per-instance config |
-| SandboxProvider | Mock (no API) | None | N/A |
+| Type              | SDK                    | Auth             | Base URL                     |
+| ----------------- | ---------------------- | ---------------- | ---------------------------- |
+| OpenAIProvider    | sashabaranov/go-openai | Bearer token     | https://api.openai.com/v1    |
+| AnthropicProvider | Direct HTTP            | x-api-key header | https://api.anthropic.com/v1 |
+| GenericProvider   | sashabaranov/go-openai | Bearer token     | Per-instance config          |
+| SandboxProvider   | Mock (no API)          | None             | N/A                          |
 
 **MultiKey rotation**: Round-robin across primary + secondary API keys.
 
@@ -263,14 +272,14 @@ Keys stored as HMAC-SHA256 hash. Dual lookup (hash first, raw fallback for legac
 
 ## Error Handling Patterns
 
-| Layer | Pattern |
-|-------|---------|
-| Handler | Decode -> call service -> check AppError -> write response |
-| Service | Returns `*domain.AppError`, wraps DB errors with context |
-| Repository | Raw pgx SQL, returns Go errors (pgx.ErrNoRows → nil, nil) |
-| Middleware | Chain with short-circuit on failure |
-| Async | `defer recover()` in goroutines |
-| HTTP | Consistent `{success, data, error, meta}` envelope |
+| Layer      | Pattern                                                    |
+| ---------- | ---------------------------------------------------------- |
+| Handler    | Decode -> call service -> check AppError -> write response |
+| Service    | Returns `*domain.AppError`, wraps DB errors with context   |
+| Repository | Raw pgx SQL, returns Go errors (pgx.ErrNoRows → nil, nil)  |
+| Middleware | Chain with short-circuit on failure                        |
+| Async      | `defer recover()` in goroutines                            |
+| HTTP       | Consistent `{success, data, error, meta}` envelope         |
 
 ---
 
@@ -295,6 +304,7 @@ type Role struct {
 ### SSO System
 
 SSO configuration (`internal/handler/rbac_handlers.go`) stores identity provider settings in `sso_configs` table:
+
 - Provider type, client ID, client secret
 - Issuer URL for OIDC discovery
 - Domain-restricted sign-in
@@ -342,6 +352,7 @@ type WebhookService struct {
 ### Export System
 
 Export jobs (`internal/service/export.go`, `internal/handler/export_handlers.go`) generate async data exports:
+
 - Export types: `logs`, `usage`, `audit`
 - Formats: `CSV`, `JSON`
 - Date range filtering
@@ -351,6 +362,7 @@ Export jobs (`internal/service/export.go`, `internal/handler/export_handlers.go`
 ### Provider Plugin System
 
 Provider plugins (`internal/service/provider_plugin.go`, `internal/handler/provider_plugin_handlers.go`) extend the provider registry with dynamically configured providers:
+
 - Plugin name, description, and base URL
 - Configurable headers and authentication
 - Enable/disable toggle

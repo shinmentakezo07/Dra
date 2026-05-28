@@ -29,9 +29,12 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="w-14 h-14 rounded-2xl bg-red-500/[0.08] border border-red-500/[0.15] flex items-center justify-center mb-5 shadow-lg shadow-red-500/[0.05]">
             <AlertTriangle className="w-6 h-6 text-red-400/80" />
           </div>
-          <h2 className="text-lg font-semibold text-white/80 mb-2">Something went wrong</h2>
+          <h2 className="text-lg font-semibold text-white/80 mb-2">
+            Something went wrong
+          </h2>
           <p className="text-sm text-white/35 max-w-md mb-6 leading-relaxed">
-            This page encountered an unexpected error. Try refreshing, or navigate to another page.
+            This page encountered an unexpected error. Try refreshing, or
+            navigate to another page.
           </p>
           <button
             onClick={() => window.location.reload()}

@@ -53,7 +53,9 @@ export function getProviderColorClass(modelId: string): string {
   return map[provider] || "text-violet-400";
 }
 
-export function getAllProviders(models: { id: string; provider: string }[]): string[] {
+export function getAllProviders(
+  models: { id: string; provider: string }[],
+): string[] {
   const set = new Set<string>();
   models.forEach((m) => {
     const p = m.provider.toLowerCase();

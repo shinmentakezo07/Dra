@@ -17,7 +17,7 @@ export const codeSnippets: CodeSnippet[] = [
     language: "javascript",
     code: `console.log("Hello, World!");`,
     description: "Basic Hello World program",
-    category: "Basics"
+    category: "Basics",
   },
   {
     id: "js-async",
@@ -31,7 +31,7 @@ export const codeSnippets: CodeSnippet[] = [
 
 fetchData();`,
     description: "Asynchronous programming with async/await",
-    category: "Advanced"
+    category: "Advanced",
   },
   {
     id: "js-array-methods",
@@ -51,7 +51,7 @@ console.log("Evens:", evens);
 const sum = numbers.reduce((acc, n) => acc + n, 0);
 console.log("Sum:", sum);`,
     description: "Common array manipulation methods",
-    category: "Data Structures"
+    category: "Data Structures",
   },
   {
     id: "js-classes",
@@ -71,7 +71,7 @@ console.log("Sum:", sum);`,
 const john = new Person("John", 30);
 john.greet();`,
     description: "Object-oriented programming with ES6 classes",
-    category: "OOP"
+    category: "OOP",
   },
   // Python
   {
@@ -80,7 +80,7 @@ john.greet();`,
     language: "python",
     code: `print("Hello, World!")`,
     description: "Basic Hello World program",
-    category: "Basics"
+    category: "Basics",
   },
   {
     id: "py-list-comp",
@@ -101,7 +101,7 @@ print("Evens:", evens)
 squares_dict = {n: n**2 for n in numbers}
 print("Dictionary:", squares_dict)`,
     description: "Powerful list comprehension techniques",
-    category: "Data Structures"
+    category: "Data Structures",
   },
   {
     id: "py-classes",
@@ -118,7 +118,7 @@ print("Dictionary:", squares_dict)`,
 john = Person("John", 30)
 john.greet()`,
     description: "Object-oriented programming in Python",
-    category: "OOP"
+    category: "OOP",
   },
   {
     id: "py-decorators",
@@ -142,7 +142,7 @@ def slow_function():
 
 slow_function()`,
     description: "Function decorators for code enhancement",
-    category: "Advanced"
+    category: "Advanced",
   },
   // TypeScript
   {
@@ -168,7 +168,7 @@ const user: User = {
 
 greetUser(user);`,
     description: "Working with TypeScript interfaces",
-    category: "Types"
+    category: "Types",
   },
   {
     id: "ts-generics",
@@ -191,7 +191,7 @@ function getFirstElement<T>(arr: T[]): T | undefined {
 console.log(getFirstElement([1, 2, 3]));
 console.log(getFirstElement(["a", "b", "c"]));`,
     description: "Type-safe generics in TypeScript",
-    category: "Advanced"
+    category: "Advanced",
   },
   // Go
   {
@@ -206,7 +206,7 @@ func main() {
     fmt.Println("Hello, World!")
 }`,
     description: "Basic Go program",
-    category: "Basics"
+    category: "Basics",
   },
   {
     id: "go-goroutines",
@@ -232,7 +232,7 @@ func main() {
     time.Sleep(2 * time.Second)
 }`,
     description: "Concurrent programming with goroutines",
-    category: "Concurrency"
+    category: "Concurrency",
   },
   // Rust
   {
@@ -243,7 +243,7 @@ func main() {
     println!("Hello, World!");
 }`,
     description: "Basic Rust program",
-    category: "Basics"
+    category: "Basics",
   },
   {
     id: "rust-ownership",
@@ -260,18 +260,18 @@ func main() {
     println!("x: {}, y: {}", x, y);
 }`,
     description: "Understanding Rust's ownership system",
-    category: "Memory Management"
-  }
+    category: "Memory Management",
+  },
 ];
 
 export function getSnippetsByLanguage(language: string): CodeSnippet[] {
-  return codeSnippets.filter(s => s.language === language);
+  return codeSnippets.filter((s) => s.language === language);
 }
 
 export function getSnippetsByCategory(category: string): CodeSnippet[] {
-  return codeSnippets.filter(s => s.category === category);
+  return codeSnippets.filter((s) => s.category === category);
 }
 
 export function getAllCategories(): string[] {
-  return Array.from(new Set(codeSnippets.map(s => s.category)));
+  return Array.from(new Set(codeSnippets.map((s) => s.category)));
 }

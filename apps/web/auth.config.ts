@@ -8,11 +8,14 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isAdmin = auth?.user?.role === "admin" || auth?.user?.role === "superadmin";
+      const isAdmin =
+        auth?.user?.role === "admin" || auth?.user?.role === "superadmin";
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
       const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isOnAuth = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/signup");
-      
+      const isOnAuth =
+        nextUrl.pathname.startsWith("/login") ||
+        nextUrl.pathname.startsWith("/signup");
+
       if (isOnDashboard) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
@@ -22,12 +25,12 @@ export const authConfig = {
         if (isLoggedIn && isAdmin) return true;
         return false; // Redirect non-admin or unauthenticated users to admin login
       }
-      
+
       // Redirect logged-in users away from auth pages
       if (isOnAuth && isLoggedIn) {
         return Response.redirect(new URL("/dashboard", nextUrl));
       }
-      
+
       return true;
     },
     async signIn({ user, account }) {

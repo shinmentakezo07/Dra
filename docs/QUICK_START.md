@@ -5,12 +5,14 @@
 Your dashboard at `http://localhost:3000/dashboard` now features an OpenRouter-inspired interface with:
 
 ### 1. **Logs Page** - Track Every API Request
+
 - Real-time request monitoring
 - Search and filter capabilities
 - Detailed metrics: tokens, cost, latency, status
 - Color-coded success/error indicators
 
 ### 2. **API Keys Management** - Self-Service Key Creation
+
 - Create unlimited API keys with custom names
 - Show/hide key values for security
 - One-click copy to clipboard
@@ -18,6 +20,7 @@ Your dashboard at `http://localhost:3000/dashboard` now features an OpenRouter-i
 - Revoke keys instantly
 
 ### 3. **Analytics Dashboard** - Usage Insights
+
 - Time range selection (7d/30d/90d)
 - Daily usage trends with visual charts
 - Model usage breakdown with percentages
@@ -25,6 +28,7 @@ Your dashboard at `http://localhost:3000/dashboard` now features an OpenRouter-i
 - Success rate monitoring
 
 ### 4. **Overview Page** - At-a-Glance Metrics
+
 - Total requests and spending
 - Credits remaining (pay-as-you-go)
 - Average latency tracking
@@ -65,6 +69,7 @@ creditTransactions {
 ### To Connect Real Data:
 
 1. **Run Database Migrations**
+
    ```bash
    npm run db:push
    ```
@@ -90,6 +95,7 @@ creditTransactions {
 ## Current Status
 
 ✅ **Working:**
+
 - All UI components and layouts
 - Navigation and routing
 - Search and filter functionality
@@ -98,6 +104,7 @@ creditTransactions {
 - Build and TypeScript compilation
 
 ⏳ **Needs Backend Integration:**
+
 - Database queries for real data
 - API endpoints for CRUD operations
 - Authentication checks
@@ -107,11 +114,13 @@ creditTransactions {
 ## Testing Locally
 
 1. Start the dev server:
+
    ```bash
    npm run dev
    ```
 
 2. Visit the dashboard:
+
    ```
    http://localhost:3000/dashboard
    ```
@@ -127,6 +136,7 @@ creditTransactions {
 ## Design Philosophy
 
 Following OpenRouter's approach:
+
 - **Transparency**: Show exact costs per request
 - **Self-Service**: Users manage their own keys
 - **Developer-Focused**: Technical details front and center

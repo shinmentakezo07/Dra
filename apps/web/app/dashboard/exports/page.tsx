@@ -38,10 +38,30 @@ interface ExportJob {
   dateTo?: string;
 }
 
-const EXPORT_TYPES: { key: ExportType; label: string; icon: typeof FileText; desc: string }[] = [
-  { key: "logs", label: "Request Logs", icon: FileText, desc: "API request history with model, tokens, cost" },
-  { key: "usage", label: "Usage Analytics", icon: Table, desc: "Aggregated usage stats by model, user, period" },
-  { key: "audit", label: "Audit Trail", icon: FileSpreadsheet, desc: "User actions, key changes, org events" },
+const EXPORT_TYPES: {
+  key: ExportType;
+  label: string;
+  icon: typeof FileText;
+  desc: string;
+}[] = [
+  {
+    key: "logs",
+    label: "Request Logs",
+    icon: FileText,
+    desc: "API request history with model, tokens, cost",
+  },
+  {
+    key: "usage",
+    label: "Usage Analytics",
+    icon: Table,
+    desc: "Aggregated usage stats by model, user, period",
+  },
+  {
+    key: "audit",
+    label: "Audit Trail",
+    icon: FileSpreadsheet,
+    desc: "User actions, key changes, org events",
+  },
 ];
 
 const EXPORT_FORMATS: { key: ExportFormat; label: string }[] = [
@@ -77,7 +97,9 @@ function statusLabel(status: ExportStatus) {
     failed: "bg-red-500/10 text-red-400",
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${colors[status]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${colors[status]}`}
+    >
       {statusIcon(status)}
       {status}
     </span>
@@ -146,7 +168,8 @@ export default function ExportJobsPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">Export Jobs</h1>
             <p className="text-sm text-gray-400">
-              Export logs, usage data, and audit trails — {totalRecords.toLocaleString()} records available
+              Export logs, usage data, and audit trails —{" "}
+              {totalRecords.toLocaleString()} records available
             </p>
           </div>
         </div>
@@ -167,11 +190,15 @@ export default function ExportJobsPage() {
             exit={{ opacity: 0, height: 0 }}
             className="rounded-xl border border-white/5 bg-white/[0.02] p-6 overflow-hidden"
           >
-            <h2 className="text-sm font-semibold text-white mb-4">Configure Export</h2>
+            <h2 className="text-sm font-semibold text-white mb-4">
+              Configure Export
+            </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">Export Type</label>
+                <label className="block text-xs text-gray-400 mb-1.5">
+                  Export Type
+                </label>
                 <div className="space-y-1.5">
                   {EXPORT_TYPES.map(({ key, label, icon: Icon, desc }) => (
                     <button
@@ -183,9 +210,15 @@ export default function ExportJobsPage() {
                           : "bg-white/5 border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${exportType === key ? "text-primary" : "text-gray-500"}`} />
+                      <Icon
+                        className={`w-4 h-4 ${exportType === key ? "text-primary" : "text-gray-500"}`}
+                      />
                       <div>
-                        <div className={`text-sm ${exportType === key ? "text-white" : "text-gray-400"}`}>{label}</div>
+                        <div
+                          className={`text-sm ${exportType === key ? "text-white" : "text-gray-400"}`}
+                        >
+                          {label}
+                        </div>
                         <div className="text-[10px] text-gray-600">{desc}</div>
                       </div>
                     </button>
@@ -194,7 +227,9 @@ export default function ExportJobsPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">Format</label>
+                <label className="block text-xs text-gray-400 mb-1.5">
+                  Format
+                </label>
                 <div className="flex gap-2">
                   {EXPORT_FORMATS.map(({ key, label }) => (
                     <button
@@ -211,7 +246,9 @@ export default function ExportJobsPage() {
                   ))}
                 </div>
 
-                <label className="block text-xs text-gray-400 mb-1.5 mt-4">Date Range</label>
+                <label className="block text-xs text-gray-400 mb-1.5 mt-4">
+                  Date Range
+                </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {DATE_RANGES.map(({ key, label }) => (
                     <button
@@ -231,7 +268,9 @@ export default function ExportJobsPage() {
                 {dateRange === "custom" && (
                   <div className="flex gap-2 mt-3">
                     <div className="flex-1">
-                      <label className="block text-[10px] text-gray-500 mb-1">From</label>
+                      <label className="block text-[10px] text-gray-500 mb-1">
+                        From
+                      </label>
                       <input
                         type="date"
                         value={customFrom}
@@ -240,7 +279,9 @@ export default function ExportJobsPage() {
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-[10px] text-gray-500 mb-1">To</label>
+                      <label className="block text-[10px] text-gray-500 mb-1">
+                        To
+                      </label>
                       <input
                         type="date"
                         value={customTo}
@@ -289,7 +330,9 @@ export default function ExportJobsPage() {
           <div className="text-center py-16 text-gray-500">
             <Download className="w-8 h-8 mx-auto mb-3 opacity-40" />
             <p className="text-sm">No export jobs yet</p>
-            <p className="text-xs text-gray-600 mt-1">Create your first export to get started</p>
+            <p className="text-xs text-gray-600 mt-1">
+              Create your first export to get started
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-white/5">
@@ -297,13 +340,18 @@ export default function ExportJobsPage() {
               <div key={job.id} className="px-4 py-3 flex items-center gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white capitalize">{job.type}</span>
-                    <span className="text-xs text-gray-500 uppercase px-1.5 py-0.5 rounded bg-white/5">{job.format}</span>
+                    <span className="text-sm font-medium text-white capitalize">
+                      {job.type}
+                    </span>
+                    <span className="text-xs text-gray-500 uppercase px-1.5 py-0.5 rounded bg-white/5">
+                      {job.format}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {new Date(job.createdAt).toLocaleDateString()} {new Date(job.createdAt).toLocaleTimeString()}
+                      {new Date(job.createdAt).toLocaleDateString()}{" "}
+                      {new Date(job.createdAt).toLocaleTimeString()}
                     </span>
                     {job.recordCount != null && (
                       <span>{job.recordCount.toLocaleString()} records</span>

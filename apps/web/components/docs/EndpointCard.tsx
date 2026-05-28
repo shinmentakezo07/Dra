@@ -8,8 +8,10 @@ const METHOD_COLORS: Record<string, string> = {
   GET: "bg-emerald-500/[0.1] text-emerald-400 border-emerald-500/[0.2] shadow-emerald-500/[0.05]",
   POST: "bg-blue-500/[0.1] text-blue-400 border-blue-500/[0.2] shadow-blue-500/[0.05]",
   PUT: "bg-amber-500/[0.1] text-amber-400 border-amber-500/[0.2] shadow-amber-500/[0.05]",
-  PATCH: "bg-orange-500/[0.1] text-orange-400 border-orange-500/[0.2] shadow-orange-500/[0.05]",
-  DELETE: "bg-red-500/[0.1] text-red-400 border-red-500/[0.2] shadow-red-500/[0.05]",
+  PATCH:
+    "bg-orange-500/[0.1] text-orange-400 border-orange-500/[0.2] shadow-orange-500/[0.05]",
+  DELETE:
+    "bg-red-500/[0.1] text-red-400 border-red-500/[0.2] shadow-red-500/[0.05]",
 };
 
 export const MethodBadge = ({ method }: { method: string }) => (
@@ -50,7 +52,9 @@ export const EndpointCard = ({
         <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors flex-shrink min-w-0 truncate">
           {path}
         </code>
-        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/15 truncate pl-4">{description}</span>
+        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/15 truncate pl-4">
+          {description}
+        </span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {auth && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.05] text-[9px] font-medium text-white/20">

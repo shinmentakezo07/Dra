@@ -3,20 +3,26 @@ import { requireAuth } from "@/lib/api/require-auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAuth(request);
   if (authError) return authError;
   const { id } = await params;
-  return proxyToBackend(request, `/api/conversations/${encodeURIComponent(id)}`);
+  return proxyToBackend(
+    request,
+    `/api/conversations/${encodeURIComponent(id)}`,
+  );
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAuth(request);
   if (authError) return authError;
   const { id } = await params;
-  return proxyToBackend(request, `/api/conversations/${encodeURIComponent(id)}`);
+  return proxyToBackend(
+    request,
+    `/api/conversations/${encodeURIComponent(id)}`,
+  );
 }

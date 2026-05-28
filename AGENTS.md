@@ -1,19 +1,19 @@
 # Repository Guidelines
 
-Universal LLM Gateway (OpenRouter-style platform). **Next.js 16 canary + Go 1.25** monorepo. App-specific guidance: `apps/backend/AGENTS.md`, `apps/web/AGENTS.md`. Full API reference: `CLAUDE.md`. Known issues and debt: `ops.md`.
+Universal LLM Gateway (Yapapa / DRA Platform) — an OpenRouter-style proxy for OpenAI, Anthropic, Gemini, Groq, NVIDIA NIM, and more. **Next.js 16 canary + Go 1.25** monorepo. App-specific guidance: `apps/web/AGENTS.md`, `apps/backend/AGENTS.md`. Full API reference: `CLAUDE.md`. Known issues and debt: `ops.md`.
 
 ## Project Structure & Module Organization
 
-| Directory | Role |
-|-----------|------|
-| `apps/web/` | Next.js 16 frontend — App Router, Tailwind v4, React 19, Drizzle ORM |
-| `apps/backend/` | Go 1.25 API — chi router, pgx v5, JWT auth, LLM pipeline |
-| `apps/backend/pkg/llm/` | LLM gateway: 18 subpackages (provider registry, routing, translation, caching, guardrails, circuit breaker, telemetry) |
-| `apps/backend/pkg/sdk/` | Typed Go client mirroring the TypeScript SDK |
-| `apps/backend/pkg/llmsdk/` | Legacy LLM SDK wrapper — avoid for new code |
-| `scripts/` | `dev.sh` (full-stack launcher), `smoke-test.sh` (wiring verification) |
-| `docs/` | Implementation guides |
-| `apps/backend/migrations/` | Raw SQL migrations, numbered sequentially (`001_base_schema.sql`–`019_docs_base_url.sql`) |
+| Directory                  | Role                                                                                                                   |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/`                | Next.js 16 frontend — App Router, Tailwind v4, React 19, Drizzle ORM                                                   |
+| `apps/backend/`            | Go 1.25 API — chi router, pgx v5, JWT auth, LLM pipeline                                                               |
+| `apps/backend/pkg/llm/`    | LLM gateway: 18 subpackages (provider registry, routing, translation, caching, guardrails, circuit breaker, telemetry) |
+| `apps/backend/pkg/sdk/`    | Typed Go client mirroring the TypeScript SDK                                                                           |
+| `apps/backend/pkg/llmsdk/` | Legacy LLM SDK wrapper — avoid for new code                                                                            |
+| `scripts/`                 | `dev.sh` (full-stack launcher), `smoke-test.sh` (wiring verification)                                                  |
+| `docs/`                    | Implementation guides                                                                                                  |
+| `apps/backend/migrations/` | Raw SQL migrations, numbered sequentially (`001_base_schema.sql`–`019_docs_base_url.sql`)                              |
 
 Frontend tests: `apps/web/tests/` (Vitest + jsdom). Backend tests: co-located `*_test.go` files + `apps/backend/tests/integration/`.
 
@@ -50,7 +50,7 @@ go test -race -cover -run TestName ./pkg/llm/tools/...  # Single test
 - **TypeScript**: No `as any` or `@ts-ignore`. Path alias `@/` maps to `apps/web/` root. Use `cva` + `tailwind-merge` for variants. Tailwind CSS v4 — CSS-first config (`@tailwindcss/postcss`), NOT `tailwind.config.ts`. Zod v4 — not v3 patterns.
 - **Go**: Module path `dra-platform/backend`. Layered architecture: handler → service → repository → domain. Handlers own HTTP only; services own business logic (never import `net/http`). Run `go vet ./...` and `make fmt` before committing.
 - **SDK parity**: Backend API changes require matching updates in Go SDK (`pkg/sdk/`) then TypeScript SDK (`lib/api/sdk.ts`), in that order.
-- **Next.js 16 canary**: Breaking changes from v14/15. `fetch()` no longer cached by default. `revalidate` export gone → use `"use cache"` + `cacheLife()`. Read `node_modules/next/dist/docs/` before writing code.
+- **Next.js 16 canary**: Breaking changes from v14/15. `fetch()` no longer cached by default. `revalidate` export gone — use `"use cache"` + `cacheLife()`. Read `node_modules/next/dist/docs/` before writing code.
 
 ## Testing Guidelines
 

@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 /* ── Section variants by accent type ── */
 const ACCENTS = {
   default: {
-    iconBg: "bg-gradient-to-br from-blue-500/[0.12] to-blue-600/[0.04] border-blue-500/[0.15]",
+    iconBg:
+      "bg-gradient-to-br from-blue-500/[0.12] to-blue-600/[0.04] border-blue-500/[0.15]",
     iconColor: "text-blue-400/80",
     bar: "from-blue-500/40",
     heading: "text-white",
@@ -13,7 +14,8 @@ const ACCENTS = {
     dot: "bg-blue-500",
   },
   emerald: {
-    iconBg: "bg-gradient-to-br from-emerald-500/[0.12] to-emerald-600/[0.04] border-emerald-500/[0.15]",
+    iconBg:
+      "bg-gradient-to-br from-emerald-500/[0.12] to-emerald-600/[0.04] border-emerald-500/[0.15]",
     iconColor: "text-emerald-400/80",
     bar: "from-emerald-500/40",
     heading: "text-white",
@@ -21,7 +23,8 @@ const ACCENTS = {
     dot: "bg-emerald-500",
   },
   amber: {
-    iconBg: "bg-gradient-to-br from-amber-500/[0.12] to-amber-600/[0.04] border-amber-500/[0.15]",
+    iconBg:
+      "bg-gradient-to-br from-amber-500/[0.12] to-amber-600/[0.04] border-amber-500/[0.15]",
     iconColor: "text-amber-400/80",
     bar: "from-amber-500/40",
     heading: "text-white",
@@ -29,7 +32,8 @@ const ACCENTS = {
     dot: "bg-amber-500",
   },
   violet: {
-    iconBg: "bg-gradient-to-br from-violet-500/[0.12] to-violet-600/[0.04] border-violet-500/[0.15]",
+    iconBg:
+      "bg-gradient-to-br from-violet-500/[0.12] to-violet-600/[0.04] border-violet-500/[0.15]",
     iconColor: "text-violet-400/80",
     bar: "from-violet-500/40",
     heading: "text-white",
@@ -70,15 +74,21 @@ export const Section = ({
       {/* Section heading block */}
       <div className="mb-2">
         <div className="flex items-center gap-4 mb-3">
-          <div className={`w-11 h-11 rounded-2xl ${a.iconBg} flex items-center justify-center flex-shrink-0 border shadow-lg shadow-black/20`}>
+          <div
+            className={`w-11 h-11 rounded-2xl ${a.iconBg} flex items-center justify-center flex-shrink-0 border shadow-lg shadow-black/20`}
+          >
             <Icon className={`w-5 h-5 ${a.iconColor}`} />
           </div>
-          <h2 className={`text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-bold tracking-tight leading-tight bg-gradient-to-r ${a.headingGradient} bg-clip-text text-transparent`}>
+          <h2
+            className={`text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-bold tracking-tight leading-tight bg-gradient-to-r ${a.headingGradient} bg-clip-text text-transparent`}
+          >
             {title}
           </h2>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`h-[2px] w-24 bg-gradient-to-r ${a.bar} to-transparent rounded-full`} />
+          <div
+            className={`h-[2px] w-24 bg-gradient-to-r ${a.bar} to-transparent rounded-full`}
+          />
           <div className="h-px flex-1 bg-gradient-to-r from-white/[0.04] to-transparent" />
         </div>
       </div>

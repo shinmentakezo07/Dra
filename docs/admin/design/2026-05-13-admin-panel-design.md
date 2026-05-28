@@ -26,6 +26,7 @@ Frontend (Next.js /app/admin/)  <--JWT auth-->  Backend (Go /api/admin/*)
 ```
 
 ### Authentication Flow
+
 1. User visits `/admin/*`
 2. `AdminLayout` checks NextAuth session for `role === "admin"`
 3. If not admin -> redirect to home (or 403 page)
@@ -34,6 +35,7 @@ Frontend (Next.js /app/admin/)  <--JWT auth-->  Backend (Go /api/admin/*)
 6. Optional: permission-checking middleware for fine-grained RBAC
 
 ## Tech Stack
+
 - **Frontend:** Next.js 16 (App Router), Tailwind CSS v4, Recharts, Framer Motion
 - **Backend:** Go 1.25, chi router, pgx v5
 - **Database:** PostgreSQL with partitioning for large tables
@@ -642,248 +644,248 @@ All endpoints are under the `/api/admin/` prefix and protected by `RequireAdmin`
 
 ### Dashboard
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/dashboard` | `analytics.read` | Aggregated platform stats (users, requests, revenue, active providers, system health) |
-| GET | `/api/admin/dashboard/realtime` | `analytics.read` | Real-time metrics (active users, requests/min, error rate, avg latency) |
+| Method | Path                            | Permission       | Description                                                                           |
+| ------ | ------------------------------- | ---------------- | ------------------------------------------------------------------------------------- |
+| GET    | `/api/admin/dashboard`          | `analytics.read` | Aggregated platform stats (users, requests, revenue, active providers, system health) |
+| GET    | `/api/admin/dashboard/realtime` | `analytics.read` | Real-time metrics (active users, requests/min, error rate, avg latency)               |
 
 ### Users
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/users` | `users.read` | List users with search, filter, pagination |
-| GET | `/api/admin/users/{id}` | `users.read` | Get user profile + credits + stats |
-| PUT | `/api/admin/users/{id}` | `users.write` | Update user (name, email, status, role, rate limit tier) |
-| DELETE | `/api/admin/users/{id}` | `users.write` | Soft-delete user |
-| POST | `/api/admin/users/{id}/suspend` | `users.write` | Suspend user with reason |
-| POST | `/api/admin/users/{id}/unsuspend` | `users.write` | Reactivate suspended user |
-| PUT | `/api/admin/users/{id}/role` | `users.write` | Change user role |
-| PUT | `/api/admin/users/{id}/rate-limit` | `users.write` | Override rate limit tier |
-| POST | `/api/admin/users/{id}/impersonate` | `users.write` | Generate impersonation token |
-| GET | `/api/admin/users/{id}/activity` | `users.read` | User activity timeline |
-| GET | `/api/admin/users/{id}/keys` | `users.read` | List all keys for user |
-| GET | `/api/admin/users/{id}/usage` | `users.read` | Usage breakdown per model |
-| GET | `/api/admin/users/export` | `users.read` | Export users CSV |
+| Method | Path                                | Permission    | Description                                              |
+| ------ | ----------------------------------- | ------------- | -------------------------------------------------------- |
+| GET    | `/api/admin/users`                  | `users.read`  | List users with search, filter, pagination               |
+| GET    | `/api/admin/users/{id}`             | `users.read`  | Get user profile + credits + stats                       |
+| PUT    | `/api/admin/users/{id}`             | `users.write` | Update user (name, email, status, role, rate limit tier) |
+| DELETE | `/api/admin/users/{id}`             | `users.write` | Soft-delete user                                         |
+| POST   | `/api/admin/users/{id}/suspend`     | `users.write` | Suspend user with reason                                 |
+| POST   | `/api/admin/users/{id}/unsuspend`   | `users.write` | Reactivate suspended user                                |
+| PUT    | `/api/admin/users/{id}/role`        | `users.write` | Change user role                                         |
+| PUT    | `/api/admin/users/{id}/rate-limit`  | `users.write` | Override rate limit tier                                 |
+| POST   | `/api/admin/users/{id}/impersonate` | `users.write` | Generate impersonation token                             |
+| GET    | `/api/admin/users/{id}/activity`    | `users.read`  | User activity timeline                                   |
+| GET    | `/api/admin/users/{id}/keys`        | `users.read`  | List all keys for user                                   |
+| GET    | `/api/admin/users/{id}/usage`       | `users.read`  | Usage breakdown per model                                |
+| GET    | `/api/admin/users/export`           | `users.read`  | Export users CSV                                         |
 
 ### API Keys Oversight
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/keys` | `users.read` | List all keys globally with user context |
-| GET | `/api/admin/keys/{id}` | `users.read` | Key details |
-| DELETE | `/api/admin/keys/{id}` | `users.write` | Force-delete any key |
-| POST | `/api/admin/keys/{id}/revoke` | `users.write` | Force-revoke any key |
-| PUT | `/api/admin/keys/{id}/rate-limit` | `users.write` | Override key rate limit tier |
-| GET | `/api/admin/keys/expiring` | `users.read` | Keys expiring within N days |
+| Method | Path                              | Permission    | Description                              |
+| ------ | --------------------------------- | ------------- | ---------------------------------------- |
+| GET    | `/api/admin/keys`                 | `users.read`  | List all keys globally with user context |
+| GET    | `/api/admin/keys/{id}`            | `users.read`  | Key details                              |
+| DELETE | `/api/admin/keys/{id}`            | `users.write` | Force-delete any key                     |
+| POST   | `/api/admin/keys/{id}/revoke`     | `users.write` | Force-revoke any key                     |
+| PUT    | `/api/admin/keys/{id}/rate-limit` | `users.write` | Override key rate limit tier             |
+| GET    | `/api/admin/keys/expiring`        | `users.read`  | Keys expiring within N days              |
 
 ### Providers
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/providers` | `providers.read` | List all providers |
-| POST | `/api/admin/providers` | `providers.write` | Create provider |
-| GET | `/api/admin/providers/{id}` | `providers.read` | Get provider details |
-| PUT | `/api/admin/providers/{id}` | `providers.write` | Update provider config |
-| DELETE | `/api/admin/providers/{id}` | `providers.write` | Disable provider |
-| POST | `/api/admin/providers/{id}/test` | `providers.write` | Run health check now |
-| GET | `/api/admin/providers/{id}/keys` | `providers.read` | List provider keys |
-| POST | `/api/admin/providers/{id}/keys` | `providers.write` | Add provider key |
-| PUT | `/api/admin/providers/{id}/keys/{keyId}` | `providers.write` | Update key status/label |
-| POST | `/api/admin/providers/{id}/keys/{keyId}/rotate` | `providers.write` | Rotate key |
-| DELETE | `/api/admin/providers/{id}/keys/{keyId}` | `providers.write` | Remove key |
-| GET | `/api/admin/providers/{id}/health` | `providers.read` | Health check history |
-| POST | `/api/admin/providers/reorder` | `providers.write` | Reorder provider priority |
-| GET | `/api/admin/providers/maintenance` | `providers.read` | List maintenance windows |
-| POST | `/api/admin/providers/maintenance` | `providers.write` | Schedule maintenance |
+| Method | Path                                            | Permission        | Description               |
+| ------ | ----------------------------------------------- | ----------------- | ------------------------- |
+| GET    | `/api/admin/providers`                          | `providers.read`  | List all providers        |
+| POST   | `/api/admin/providers`                          | `providers.write` | Create provider           |
+| GET    | `/api/admin/providers/{id}`                     | `providers.read`  | Get provider details      |
+| PUT    | `/api/admin/providers/{id}`                     | `providers.write` | Update provider config    |
+| DELETE | `/api/admin/providers/{id}`                     | `providers.write` | Disable provider          |
+| POST   | `/api/admin/providers/{id}/test`                | `providers.write` | Run health check now      |
+| GET    | `/api/admin/providers/{id}/keys`                | `providers.read`  | List provider keys        |
+| POST   | `/api/admin/providers/{id}/keys`                | `providers.write` | Add provider key          |
+| PUT    | `/api/admin/providers/{id}/keys/{keyId}`        | `providers.write` | Update key status/label   |
+| POST   | `/api/admin/providers/{id}/keys/{keyId}/rotate` | `providers.write` | Rotate key                |
+| DELETE | `/api/admin/providers/{id}/keys/{keyId}`        | `providers.write` | Remove key                |
+| GET    | `/api/admin/providers/{id}/health`              | `providers.read`  | Health check history      |
+| POST   | `/api/admin/providers/reorder`                  | `providers.write` | Reorder provider priority |
+| GET    | `/api/admin/providers/maintenance`              | `providers.read`  | List maintenance windows  |
+| POST   | `/api/admin/providers/maintenance`              | `providers.write` | Schedule maintenance      |
 
 ### Models
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/models` | `models.read` | List model registry |
-| POST | `/api/admin/models` | `models.write` | Register new model |
-| GET | `/api/admin/models/{modelId}` | `models.read` | Get model details |
-| PUT | `/api/admin/models/{modelId}` | `models.write` | Update model pricing/metadata |
-| POST | `/api/admin/models/{modelId}/deprecate` | `models.write` | Deprecate model |
-| POST | `/api/admin/models/{modelId}/sunset` | `models.write` | Sunset model |
-| POST | `/api/admin/models/{modelId}/reactivate` | `models.write` | Reactivate deprecated model |
-| POST | `/api/admin/models/bulk-import` | `models.write` | Import models from provider capabilities |
-| GET | `/api/admin/models/aliases` | `models.read` | List aliases |
-| POST | `/api/admin/models/aliases` | `models.write` | Create alias |
-| PUT | `/api/admin/models/aliases/{id}` | `models.write` | Update alias |
-| DELETE | `/api/admin/models/aliases/{id}` | `models.write` | Delete alias |
-| GET | `/api/admin/models/routing-rules` | `models.read` | List routing rules |
-| POST | `/api/admin/models/routing-rules` | `models.write` | Create routing rule |
-| PUT | `/api/admin/models/routing-rules/{id}` | `models.write` | Update routing rule |
-| DELETE | `/api/admin/models/routing-rules/{id}` | `models.write` | Delete routing rule |
+| Method | Path                                     | Permission     | Description                              |
+| ------ | ---------------------------------------- | -------------- | ---------------------------------------- |
+| GET    | `/api/admin/models`                      | `models.read`  | List model registry                      |
+| POST   | `/api/admin/models`                      | `models.write` | Register new model                       |
+| GET    | `/api/admin/models/{modelId}`            | `models.read`  | Get model details                        |
+| PUT    | `/api/admin/models/{modelId}`            | `models.write` | Update model pricing/metadata            |
+| POST   | `/api/admin/models/{modelId}/deprecate`  | `models.write` | Deprecate model                          |
+| POST   | `/api/admin/models/{modelId}/sunset`     | `models.write` | Sunset model                             |
+| POST   | `/api/admin/models/{modelId}/reactivate` | `models.write` | Reactivate deprecated model              |
+| POST   | `/api/admin/models/bulk-import`          | `models.write` | Import models from provider capabilities |
+| GET    | `/api/admin/models/aliases`              | `models.read`  | List aliases                             |
+| POST   | `/api/admin/models/aliases`              | `models.write` | Create alias                             |
+| PUT    | `/api/admin/models/aliases/{id}`         | `models.write` | Update alias                             |
+| DELETE | `/api/admin/models/aliases/{id}`         | `models.write` | Delete alias                             |
+| GET    | `/api/admin/models/routing-rules`        | `models.read`  | List routing rules                       |
+| POST   | `/api/admin/models/routing-rules`        | `models.write` | Create routing rule                      |
+| PUT    | `/api/admin/models/routing-rules/{id}`   | `models.write` | Update routing rule                      |
+| DELETE | `/api/admin/models/routing-rules/{id}`   | `models.write` | Delete routing rule                      |
 
 ### Billing
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/billing/summary` | `billing.read` | Revenue summary (daily/weekly/monthly) |
-| GET | `/api/admin/billing/revenue` | `billing.read` | Revenue with time grouping |
-| GET | `/api/admin/billing/transactions` | `billing.read` | All credit transactions (paginated) |
-| POST | `/api/admin/billing/adjust` | `billing.write` | Manual credit adjustment |
-| GET | `/api/admin/billing/adjustments` | `billing.read` | Adjustment history |
-| GET | `/api/admin/billing/top-spenders` | `billing.read` | Top spenders by period |
-| GET | `/api/admin/billing/dashboard` | `billing.read` | MRR, ARPU, churn metrics |
+| Method | Path                              | Permission      | Description                            |
+| ------ | --------------------------------- | --------------- | -------------------------------------- |
+| GET    | `/api/admin/billing/summary`      | `billing.read`  | Revenue summary (daily/weekly/monthly) |
+| GET    | `/api/admin/billing/revenue`      | `billing.read`  | Revenue with time grouping             |
+| GET    | `/api/admin/billing/transactions` | `billing.read`  | All credit transactions (paginated)    |
+| POST   | `/api/admin/billing/adjust`       | `billing.write` | Manual credit adjustment               |
+| GET    | `/api/admin/billing/adjustments`  | `billing.read`  | Adjustment history                     |
+| GET    | `/api/admin/billing/top-spenders` | `billing.read`  | Top spenders by period                 |
+| GET    | `/api/admin/billing/dashboard`    | `billing.read`  | MRR, ARPU, churn metrics               |
 
 ### Settings
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/settings` | `settings.read` | List system settings (secrets masked) |
-| GET | `/api/admin/settings/{category}` | `settings.read` | Get settings by category |
-| PUT | `/api/admin/settings` | `settings.write` | Update setting value |
-| GET | `/api/admin/settings/features` | `settings.read` | List feature flags |
-| POST | `/api/admin/settings/features` | `settings.write` | Create feature flag |
-| PUT | `/api/admin/settings/features/{id}` | `settings.write` | Toggle/update feature flag |
-| DELETE | `/api/admin/settings/features/{id}` | `settings.write` | Remove feature flag |
+| Method | Path                                | Permission       | Description                           |
+| ------ | ----------------------------------- | ---------------- | ------------------------------------- |
+| GET    | `/api/admin/settings`               | `settings.read`  | List system settings (secrets masked) |
+| GET    | `/api/admin/settings/{category}`    | `settings.read`  | Get settings by category              |
+| PUT    | `/api/admin/settings`               | `settings.write` | Update setting value                  |
+| GET    | `/api/admin/settings/features`      | `settings.read`  | List feature flags                    |
+| POST   | `/api/admin/settings/features`      | `settings.write` | Create feature flag                   |
+| PUT    | `/api/admin/settings/features/{id}` | `settings.write` | Toggle/update feature flag            |
+| DELETE | `/api/admin/settings/features/{id}` | `settings.write` | Remove feature flag                   |
 
 ### Logs
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/logs` | `logs.read` | Request logs with filters (model, status, user, provider, date range) |
-| GET | `/api/admin/logs/{id}` | `logs.read` | Get log detail with request/response |
-| GET | `/api/admin/logs/errors` | `logs.read` | Error logs with aggregation |
-| GET | `/api/admin/logs/ip-access` | `logs.read` | IP access logs |
-| GET | `/api/admin/logs/suspicious` | `logs.read` | Suspicious activity flagged by rules |
+| Method | Path                         | Permission  | Description                                                           |
+| ------ | ---------------------------- | ----------- | --------------------------------------------------------------------- |
+| GET    | `/api/admin/logs`            | `logs.read` | Request logs with filters (model, status, user, provider, date range) |
+| GET    | `/api/admin/logs/{id}`       | `logs.read` | Get log detail with request/response                                  |
+| GET    | `/api/admin/logs/errors`     | `logs.read` | Error logs with aggregation                                           |
+| GET    | `/api/admin/logs/ip-access`  | `logs.read` | IP access logs                                                        |
+| GET    | `/api/admin/logs/suspicious` | `logs.read` | Suspicious activity flagged by rules                                  |
 
 ### Analytics
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/analytics/overview` | `analytics.read` | Aggregated platform analytics |
-| GET | `/api/admin/analytics/users` | `analytics.read` | Per-user analytics |
-| GET | `/api/admin/analytics/models` | `analytics.read` | Per-model usage breakdown |
-| GET | `/api/admin/analytics/providers` | `analytics.read` | Per-provider usage and cost |
-| GET | `/api/admin/analytics/errors` | `analytics.read` | Error rate breakdown |
-| GET | `/api/admin/analytics/trends` | `analytics.read` | Time-series trends |
+| Method | Path                             | Permission       | Description                   |
+| ------ | -------------------------------- | ---------------- | ----------------------------- |
+| GET    | `/api/admin/analytics/overview`  | `analytics.read` | Aggregated platform analytics |
+| GET    | `/api/admin/analytics/users`     | `analytics.read` | Per-user analytics            |
+| GET    | `/api/admin/analytics/models`    | `analytics.read` | Per-model usage breakdown     |
+| GET    | `/api/admin/analytics/providers` | `analytics.read` | Per-provider usage and cost   |
+| GET    | `/api/admin/analytics/errors`    | `analytics.read` | Error rate breakdown          |
+| GET    | `/api/admin/analytics/trends`    | `analytics.read` | Time-series trends            |
 
 ### Audit Trail
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/audit` | `audit.read` | List audit log entries |
-| GET | `/api/admin/audit/export` | `audit.read` | Export audit log as CSV/JSON |
-| GET | `/api/admin/audit/stats` | `audit.read` | Audit statistics by action type |
+| Method | Path                      | Permission   | Description                     |
+| ------ | ------------------------- | ------------ | ------------------------------- |
+| GET    | `/api/admin/audit`        | `audit.read` | List audit log entries          |
+| GET    | `/api/admin/audit/export` | `audit.read` | Export audit log as CSV/JSON    |
+| GET    | `/api/admin/audit/stats`  | `audit.read` | Audit statistics by action type |
 
 ### Admin Management
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/admins` | `settings.read` | List admin users |
-| POST | `/api/admin/admins` | `settings.write` | Grant admin role to user |
-| PUT | `/api/admin/admins/{id}` | `settings.write` | Modify admin role/permissions |
-| DELETE | `/api/admin/admins/{id}` | `settings.write` | Remove admin access |
-| GET | `/api/admin/admins/roles` | `settings.read` | List role definitions |
-| PUT | `/api/admin/admins/roles/{role}` | `settings.write` | Update role permissions |
+| Method | Path                             | Permission       | Description                   |
+| ------ | -------------------------------- | ---------------- | ----------------------------- |
+| GET    | `/api/admin/admins`              | `settings.read`  | List admin users              |
+| POST   | `/api/admin/admins`              | `settings.write` | Grant admin role to user      |
+| PUT    | `/api/admin/admins/{id}`         | `settings.write` | Modify admin role/permissions |
+| DELETE | `/api/admin/admins/{id}`         | `settings.write` | Remove admin access           |
+| GET    | `/api/admin/admins/roles`        | `settings.read`  | List role definitions         |
+| PUT    | `/api/admin/admins/roles/{role}` | `settings.write` | Update role permissions       |
 
 ### Security
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/security/suspicious` | `audit.read` | Suspicious activity dashboard |
-| POST | `/api/admin/security/impersonate` | `settings.write` | Start impersonation session |
-| DELETE | `/api/admin/security/impersonate` | `settings.write` | End impersonation |
-| GET | `/api/admin/security/dashboard` | `analytics.read` | Security metrics dashboard |
-| GET | `/api/admin/security/ip-lists` | `settings.read` | List IP allow/block lists |
-| POST | `/api/admin/security/ip-lists` | `settings.write` | Create IP list |
-| PUT | `/api/admin/security/ip-lists/{id}` | `settings.write` | Update IP list |
-| DELETE | `/api/admin/security/ip-lists/{id}` | `settings.write` | Delete IP list |
+| Method | Path                                | Permission       | Description                   |
+| ------ | ----------------------------------- | ---------------- | ----------------------------- |
+| GET    | `/api/admin/security/suspicious`    | `audit.read`     | Suspicious activity dashboard |
+| POST   | `/api/admin/security/impersonate`   | `settings.write` | Start impersonation session   |
+| DELETE | `/api/admin/security/impersonate`   | `settings.write` | End impersonation             |
+| GET    | `/api/admin/security/dashboard`     | `analytics.read` | Security metrics dashboard    |
+| GET    | `/api/admin/security/ip-lists`      | `settings.read`  | List IP allow/block lists     |
+| POST   | `/api/admin/security/ip-lists`      | `settings.write` | Create IP list                |
+| PUT    | `/api/admin/security/ip-lists/{id}` | `settings.write` | Update IP list                |
+| DELETE | `/api/admin/security/ip-lists/{id}` | `settings.write` | Delete IP list                |
 
 ### Cost Intelligence
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/cost/optimizations` | `analytics.read` | Cost optimization suggestions |
-| GET | `/api/admin/cost/forecast` | `analytics.read` | Cost projection for next N days |
-| GET | `/api/admin/cost/breakdown` | `analytics.read` | Cost breakdown by user/model/provider |
-| GET | `/api/admin/cost/ab-tests` | `analytics.read` | A/B test result summaries |
-| POST | `/api/admin/cost/ab-tests` | `settings.write` | Create A/B test |
-| GET | `/api/admin/cost/benchmarks` | `analytics.read` | Provider benchmark comparisons |
+| Method | Path                            | Permission       | Description                           |
+| ------ | ------------------------------- | ---------------- | ------------------------------------- |
+| GET    | `/api/admin/cost/optimizations` | `analytics.read` | Cost optimization suggestions         |
+| GET    | `/api/admin/cost/forecast`      | `analytics.read` | Cost projection for next N days       |
+| GET    | `/api/admin/cost/breakdown`     | `analytics.read` | Cost breakdown by user/model/provider |
+| GET    | `/api/admin/cost/ab-tests`      | `analytics.read` | A/B test result summaries             |
+| POST   | `/api/admin/cost/ab-tests`      | `settings.write` | Create A/B test                       |
+| GET    | `/api/admin/cost/benchmarks`    | `analytics.read` | Provider benchmark comparisons        |
 
 ### Operations
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| POST | `/api/admin/operations/cache/flush` | `settings.write` | Flush LLM response cache |
-| GET | `/api/admin/operations/webhook-logs` | `logs.read` | Webhook delivery logs |
-| POST | `/api/admin/operations/webhook-logs/{id}/retry` | `settings.write` | Retry webhook delivery |
-| GET | `/api/admin/operations/traces` | `logs.read` | Request traces (OpenTelemetry) |
-| GET | `/api/admin/operations/conversations` | `logs.read` | Browse conversations |
-| GET | `/api/admin/operations/files` | `logs.read` | Uploaded files overview |
+| Method | Path                                            | Permission       | Description                    |
+| ------ | ----------------------------------------------- | ---------------- | ------------------------------ |
+| POST   | `/api/admin/operations/cache/flush`             | `settings.write` | Flush LLM response cache       |
+| GET    | `/api/admin/operations/webhook-logs`            | `logs.read`      | Webhook delivery logs          |
+| POST   | `/api/admin/operations/webhook-logs/{id}/retry` | `settings.write` | Retry webhook delivery         |
+| GET    | `/api/admin/operations/traces`                  | `logs.read`      | Request traces (OpenTelemetry) |
+| GET    | `/api/admin/operations/conversations`           | `logs.read`      | Browse conversations           |
+| GET    | `/api/admin/operations/files`                   | `logs.read`      | Uploaded files overview        |
 
 ### Bulk Operations
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| POST | `/api/admin/bulk/suspend` | `users.write` | Bulk suspend users |
-| POST | `/api/admin/bulk/activate` | `users.write` | Bulk activate users |
-| POST | `/api/admin/bulk/assign-tier` | `users.write` | Bulk assign rate limit tier |
-| POST | `/api/admin/bulk/import-csv` | `users.write` | Bulk import users via CSV |
-| GET | `/api/admin/bulk/jobs/{id}` | `users.read` | Check bulk job status |
+| Method | Path                          | Permission    | Description                 |
+| ------ | ----------------------------- | ------------- | --------------------------- |
+| POST   | `/api/admin/bulk/suspend`     | `users.write` | Bulk suspend users          |
+| POST   | `/api/admin/bulk/activate`    | `users.write` | Bulk activate users         |
+| POST   | `/api/admin/bulk/assign-tier` | `users.write` | Bulk assign rate limit tier |
+| POST   | `/api/admin/bulk/import-csv`  | `users.write` | Bulk import users via CSV   |
+| GET    | `/api/admin/bulk/jobs/{id}`   | `users.read`  | Check bulk job status       |
 
 ### Organizations Oversight
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/organizations` | `users.read` | List all organizations |
-| GET | `/api/admin/organizations/{id}` | `users.read` | Organization details |
-| PUT | `/api/admin/organizations/{id}` | `users.write` | Update organization plan/status |
-| GET | `/api/admin/organizations/{id}/members` | `users.read` | Organization members |
-| POST | `/api/admin/organizations/{id}/members` | `users.write` | Add member to org |
+| Method | Path                                    | Permission    | Description                     |
+| ------ | --------------------------------------- | ------------- | ------------------------------- |
+| GET    | `/api/admin/organizations`              | `users.read`  | List all organizations          |
+| GET    | `/api/admin/organizations/{id}`         | `users.read`  | Organization details            |
+| PUT    | `/api/admin/organizations/{id}`         | `users.write` | Update organization plan/status |
+| GET    | `/api/admin/organizations/{id}/members` | `users.read`  | Organization members            |
+| POST   | `/api/admin/organizations/{id}/members` | `users.write` | Add member to org               |
 
 ### Announcements
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/announcements` | `settings.read` | List announcements |
-| POST | `/api/admin/announcements` | `settings.write` | Create announcement |
-| PUT | `/api/admin/announcements/{id}` | `settings.write` | Update announcement |
-| DELETE | `/api/admin/announcements/{id}` | `settings.write` | Delete announcement |
-| POST | `/api/admin/announcements/{id}/publish` | `settings.write` | Publish announcement |
+| Method | Path                                    | Permission       | Description          |
+| ------ | --------------------------------------- | ---------------- | -------------------- |
+| GET    | `/api/admin/announcements`              | `settings.read`  | List announcements   |
+| POST   | `/api/admin/announcements`              | `settings.write` | Create announcement  |
+| PUT    | `/api/admin/announcements/{id}`         | `settings.write` | Update announcement  |
+| DELETE | `/api/admin/announcements/{id}`         | `settings.write` | Delete announcement  |
+| POST   | `/api/admin/announcements/{id}/publish` | `settings.write` | Publish announcement |
 
 ### Promo Codes
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/promo-codes` | `billing.read` | List promo codes |
-| POST | `/api/admin/promo-codes` | `billing.write` | Create promo code |
-| PUT | `/api/admin/promo-codes/{id}` | `billing.write` | Update promo code |
-| DELETE | `/api/admin/promo-codes/{id}` | `billing.write` | Delete promo code |
-| GET | `/api/admin/promo-codes/{id}/redemptions` | `billing.read` | Redemption history |
+| Method | Path                                      | Permission      | Description        |
+| ------ | ----------------------------------------- | --------------- | ------------------ |
+| GET    | `/api/admin/promo-codes`                  | `billing.read`  | List promo codes   |
+| POST   | `/api/admin/promo-codes`                  | `billing.write` | Create promo code  |
+| PUT    | `/api/admin/promo-codes/{id}`             | `billing.write` | Update promo code  |
+| DELETE | `/api/admin/promo-codes/{id}`             | `billing.write` | Delete promo code  |
+| GET    | `/api/admin/promo-codes/{id}/redemptions` | `billing.read`  | Redemption history |
 
 ### SSO Management
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/sso/providers` | `settings.read` | List SSO providers |
-| POST | `/api/admin/sso/providers` | `settings.write` | Configure SSO provider |
-| PUT | `/api/admin/sso/providers/{id}` | `settings.write` | Update SSO config |
-| DELETE | `/api/admin/sso/providers/{id}` | `settings.write` | Remove SSO provider |
+| Method | Path                            | Permission       | Description            |
+| ------ | ------------------------------- | ---------------- | ---------------------- |
+| GET    | `/api/admin/sso/providers`      | `settings.read`  | List SSO providers     |
+| POST   | `/api/admin/sso/providers`      | `settings.write` | Configure SSO provider |
+| PUT    | `/api/admin/sso/providers/{id}` | `settings.write` | Update SSO config      |
+| DELETE | `/api/admin/sso/providers/{id}` | `settings.write` | Remove SSO provider    |
 
 ### Scheduled Reports
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/reports` | `settings.read` | List scheduled reports |
-| POST | `/api/admin/reports` | `settings.write` | Create scheduled report |
-| PUT | `/api/admin/reports/{id}` | `settings.write` | Update report schedule |
-| DELETE | `/api/admin/reports/{id}` | `settings.write` | Delete report |
-| POST | `/api/admin/reports/{id}/send-now` | `settings.write` | Trigger manual send |
+| Method | Path                               | Permission       | Description             |
+| ------ | ---------------------------------- | ---------------- | ----------------------- |
+| GET    | `/api/admin/reports`               | `settings.read`  | List scheduled reports  |
+| POST   | `/api/admin/reports`               | `settings.write` | Create scheduled report |
+| PUT    | `/api/admin/reports/{id}`          | `settings.write` | Update report schedule  |
+| DELETE | `/api/admin/reports/{id}`          | `settings.write` | Delete report           |
+| POST   | `/api/admin/reports/{id}/send-now` | `settings.write` | Trigger manual send     |
 
 ### API Changelog
 
-| Method | Path | Permission | Description |
-|--------|------|------------|-------------|
-| GET | `/api/admin/changelog` | `settings.read` | List changelog entries |
-| POST | `/api/admin/changelog` | `settings.write` | Create changelog entry |
-| PUT | `/api/admin/changelog/{id}` | `settings.write` | Update changelog |
-| DELETE | `/api/admin/changelog/{id}` | `settings.write` | Delete changelog |
-| POST | `/api/admin/changelog/{id}/publish` | `settings.write` | Publish changelog entry |
+| Method | Path                                | Permission       | Description             |
+| ------ | ----------------------------------- | ---------------- | ----------------------- |
+| GET    | `/api/admin/changelog`              | `settings.read`  | List changelog entries  |
+| POST   | `/api/admin/changelog`              | `settings.write` | Create changelog entry  |
+| PUT    | `/api/admin/changelog/{id}`         | `settings.write` | Update changelog        |
+| DELETE | `/api/admin/changelog/{id}`         | `settings.write` | Delete changelog        |
+| POST   | `/api/admin/changelog/{id}/publish` | `settings.write` | Publish changelog entry |
 
 ---
 
@@ -1123,22 +1125,22 @@ AdminLayout (app/admin/layout.tsx)
 
 Located in `components/admin/` for reuse across admin pages:
 
-| File | Purpose |
-|------|---------|
-| `DataTable.tsx` | Generic paginated, sortable, filterable table with column config |
-| `StatCard.tsx` | Metric display card with icon, label, value, trend indicator |
-| `SearchBar.tsx` | Debounced search input with submit hotkey |
-| `FilterBar.tsx` | Horizontal filter pill bar compatible with URL state |
-| `ConfirmDialog.tsx` | Reusable confirmation modal |
-| `EmptyState.tsx` | Empty state placeholder with illustration and CTA |
-| `ErrorBoundary.tsx` | Client error boundary with retry |
-| `PageHeader.tsx` | Page title + breadcrumb + action buttons |
-| `Tabs.tsx` | Tab navigation with URL-synced active state |
-| `SidePanel.tsx` | Slideover panel for detail views |
-| `DateRangePicker.tsx` | Date range selector |
-| `ExportMenu.tsx` | CSV/JSON export dropdown |
-| `ActivityFeed.tsx` | Timeline-style activity feed component |
-| `StatusBadge.tsx` | Colored status indicator (success, warning, error, info) |
+| File                  | Purpose                                                          |
+| --------------------- | ---------------------------------------------------------------- |
+| `DataTable.tsx`       | Generic paginated, sortable, filterable table with column config |
+| `StatCard.tsx`        | Metric display card with icon, label, value, trend indicator     |
+| `SearchBar.tsx`       | Debounced search input with submit hotkey                        |
+| `FilterBar.tsx`       | Horizontal filter pill bar compatible with URL state             |
+| `ConfirmDialog.tsx`   | Reusable confirmation modal                                      |
+| `EmptyState.tsx`      | Empty state placeholder with illustration and CTA                |
+| `ErrorBoundary.tsx`   | Client error boundary with retry                                 |
+| `PageHeader.tsx`      | Page title + breadcrumb + action buttons                         |
+| `Tabs.tsx`            | Tab navigation with URL-synced active state                      |
+| `SidePanel.tsx`       | Slideover panel for detail views                                 |
+| `DateRangePicker.tsx` | Date range selector                                              |
+| `ExportMenu.tsx`      | CSV/JSON export dropdown                                         |
+| `ActivityFeed.tsx`    | Timeline-style activity feed component                           |
+| `StatusBadge.tsx`     | Colored status indicator (success, warning, error, info)         |
 
 ### AdminSDK
 
@@ -1380,59 +1382,72 @@ type Change struct {
 The implementation is ordered by dependency, with each phase producing testable output before the next begins.
 
 ### Phase 1: Database
+
 1. Write complete migration SQL with all 20+ tables, enhanced columns, indexes, partitions, and seed data
 2. Write migration rollback SQL
 3. Test migration locally against Postgres
 
 ### Phase 2: Domain Models
+
 4. Define Go structs for all admin-specific domain models
 5. Define request/response DTOs
 6. Define admin-specific error types
 
 ### Phase 3: Repository Layer
+
 7. Implement all admin repository files (one per domain area)
 8. Write unit tests for each repository method
 
 ### Phase 4: Service Layer
+
 9. Implement admin service files
 10. Wire audit service into every write operation
 11. Write service unit tests with mocked repositories
 
 ### Phase 5: Handler Layer
+
 12. Implement admin HTTP handlers
 13. Wire response helpers
 14. Write handler integration tests
 
 ### Phase 6: Middleware
+
 15. Implement permission-checking middleware
 16. Wire into router group in main.go
 
 ### Phase 7: Main Wiring
+
 17. Register all admin routes in main.go
 18. Register permission mapping for each route
 
 ### Phase 8: Frontend Types
+
 19. Define TypeScript interfaces matching Go response DTOs
 
 ### Phase 9: AdminSDK
+
 20. Implement AdminSDK class wrapping all admin endpoints
 
 ### Phase 10: Hooks
+
 21. Implement React Query hooks for each admin domain
 22. Include query key factories and mutation invalidations
 
 ### Phase 11: Shared Components
+
 23. Implement DataTable with sort, filter, pagination, column customization
 24. Implement StatCard, SearchBar, FilterBar, ConfirmDialog, EmptyState
 25. Implement PageHeader, SidePanel, DateRangePicker, ExportMenu
 26. Implement ActivityFeed, StatusBadge, ErrorBoundary
 
 ### Phase 12: Layout
+
 27. Implement AdminLayout with server-side role check
 28. Implement AdminSidebar with all navigation sections
 29. Implement AdminBreadcrumb
 
 ### Phase 13: Page Components
+
 30. Implement dashboard overview page and components
 31. Implement users list, detail, and action pages
 32. Implement providers management pages
@@ -1445,11 +1460,13 @@ The implementation is ordered by dependency, with each phase producing testable 
 39. Implement announcements, promo codes, SSO, reports, changelog pages
 
 ### Phase 14: Testing
+
 40. Backend: full test coverage for admin repository, service, and handler layers
 41. Frontend: Vitest tests for AdminSDK, hooks, and utility functions
 42. Integration: end-to-end admin flow tests
 
 ### Phase 15: Documentation
+
 43. Update AGENTS.md with admin endpoint reference
 44. Add admin setup instructions to README
 45. Document permission model for admin user roles
@@ -1471,12 +1488,17 @@ Admins can log in as any user for debugging/support:
 7. `POST /api/admin/impersonations/{id}/stop` ends the session
 
 **Audit trail entries:**
+
 ```json
 {
   "action": "impersonation.action",
   "actor_id": "admin-uuid",
   "target_id": "user-uuid",
-  "changes": { "impersonation_id": "uuid", "endpoint": "/api/chat", "method": "POST" }
+  "changes": {
+    "impersonation_id": "uuid",
+    "endpoint": "/api/chat",
+    "method": "POST"
+  }
 }
 ```
 
@@ -1484,25 +1506,27 @@ Admins can log in as any user for debugging/support:
 
 Background worker (runs every 5 min) detects patterns:
 
-| Pattern | Detection Logic | Severity |
-|---------|----------------|----------|
-| Geo Anomaly | Same key from 3+ countries in 60 min | high |
-| Impossible Travel | Requests from >1000km apart within 30 min | high |
-| Brute Force | 10+ failed auth attempts in 1 min | medium |
-| Unusual Volume | 10x normal request count in 1 hour | medium |
-| API Key Leak | Key used from unexpected datacenter IP | critical |
+| Pattern           | Detection Logic                           | Severity |
+| ----------------- | ----------------------------------------- | -------- |
+| Geo Anomaly       | Same key from 3+ countries in 60 min      | high     |
+| Impossible Travel | Requests from >1000km apart within 30 min | high     |
+| Brute Force       | 10+ failed auth attempts in 1 min         | medium   |
+| Unusual Volume    | 10x normal request count in 1 hour        | medium   |
+| API Key Leak      | Key used from unexpected datacenter IP    | critical |
 
 Admin view: `/admin/security/suspicious` — queue with severity badges, review/block/dismiss actions.
 
 ### 8.3 IP Management
 
 IP lists with CIDR support, per-scope (global/user/key/provider):
+
 - `POST /api/admin/ip` — Add IP with action (allow/block/challenge/rate_limit)
 - Auto-blocking: repeat offenders get auto-added to block list
 - GeoIP enrichment: country, city, ISP, proxy/VPN/Tor detection
 - Risk scoring: 0.00–1.00 based on IP reputation
 
 ### 8.4 GDPR/Compliance
+
 - `POST /api/admin/users/{id}/export-data` — Gather all user data (profile, keys, usage, billing, logs)
 - Returns download link to JSON export
 - `DELETE /api/admin/users/{id}` — Soft delete (anonymize email, clear PII, preserve referential integrity)
@@ -1512,9 +1536,11 @@ IP lists with CIDR support, per-scope (global/user/key/provider):
 ## 9. Provider Key Strategy
 
 ### 9.1 Round-Robin (Existing)
+
 `MultiKeyProvider` at `pkg/llm/provider/multikey.go` uses weighted round-robin across keys.
 
 ### 9.2 Fill-First (New)
+
 Strategy: key1 (active) → exhaust quota → key2 (active) → exhaust → key3
 
 ```go
@@ -1540,12 +1566,15 @@ func (f *FillFirstProvider) advanceToNext() {
 Admin UI shows progress bars per key: `Key 1: ████████░░ 80%`
 
 ### 9.3 Weighted (Existing)
+
 `WeightedRoundRobinBalancer` at `pkg/llm/provider/balancer.go`.
 
 ### 9.4 Latency-Optimized (New)
+
 Track `avg_latency_ms` per key (EMA). Select key with lowest latency. Re-evaluate every 5 min.
 
 ### 9.5 Quota-Aware (New)
+
 Track `monthly_token_quota` and `total_tokens` per key. Select key with highest remaining quota %.
 
 ---
@@ -1553,22 +1582,26 @@ Track `monthly_token_quota` and `total_tokens` per key. Select key with highest 
 ## 10. Cost Intelligence
 
 ### 10.1 Cost Optimization Engine
+
 Scheduled worker analyzes usage and generates suggestions:
 
-| Type | Example | Avg Savings |
-|------|---------|-------------|
-| Model Downgrade | "User X spent $50 on GPT-4o, 80% of requests work with GPT-4o-mini" | ~75% |
-| Provider Switch | "Provider B offers same model at 60% lower cost" | ~40% |
-| Cache Enable | "40% of requests repeated — enabling cache saves $X/month" | ~30% |
-| Batch Eligible | "10K+ requests/day — batch API is 50% cheaper" | ~50% |
+| Type            | Example                                                             | Avg Savings |
+| --------------- | ------------------------------------------------------------------- | ----------- |
+| Model Downgrade | "User X spent $50 on GPT-4o, 80% of requests work with GPT-4o-mini" | ~75%        |
+| Provider Switch | "Provider B offers same model at 60% lower cost"                    | ~40%        |
+| Cache Enable    | "40% of requests repeated — enabling cache saves $X/month"          | ~30%        |
+| Batch Eligible  | "10K+ requests/day — batch API is 50% cheaper"                      | ~50%        |
 
 ### 10.2 Usage Forecasting
+
 Linear regression on `usage_daily` aggregates. Predicts next month's cost with 80% CI.
 
 ### 10.3 A/B Testing
+
 Route X% traffic to provider A, Y% to B. Compare latency/cost/error rate. Auto-declare winner.
 
 ### 10.4 Model Benchmarking
+
 UI at `/admin/benchmarks`: enter prompt, select models, compare latency/cost/output side-by-side.
 
 ---
@@ -1576,20 +1609,26 @@ UI at `/admin/benchmarks`: enter prompt, select models, compare latency/cost/out
 ## 11. Operations & Debugging
 
 ### 11.1 Request Trace Tool
+
 Search by request ID → waterfall visualization:
+
 ```
-Client IP → Auth (JWT) → Rate Limit → Model Resolve → 
+Client IP → Auth (JWT) → Rate Limit → Model Resolve →
 Provider Route → Key Select → API Call → Billing
 ```
+
 Each hop shows duration_ms and result.
 
 ### 11.2 Cache Management
+
 View hit rates per provider/model. Selective clear. Stats: entry count, size, 7-day trend.
 
 ### 11.3 Webhook Inspector
+
 Delivery history with payload viewer. Retry failed. Test endpoint.
 
 ### 11.4 Conversation Inspector
+
 Read-only view of any user's conversations. Audit-logged.
 
 ---
@@ -1597,28 +1636,35 @@ Read-only view of any user's conversations. Audit-logged.
 ## 12. Additional Features
 
 ### 12.1 Announcement System
+
 - In-app banners + optional email blast
 - Priority levels: info/warning/critical
 - Targeting: all users, tier, specific users, orgs
 - Schedule publish + auto-expire
 
 ### 12.2 Promo Codes
+
 Three types: percentage discount, fixed credits, free trial. Track redemptions, usage limits, expiration.
 
 ### 12.3 SSO Management
+
 Configure SAML/OIDC/Google Workspace/Azure AD/Okta. Domain auto-provisioning with default role + tier.
 
 ### 12.4 User Groups
+
 Groups with policy controls (independent of orgs):
+
 ```
 Group "Internal Beta" → rpm=500, tpm=500000
 Group "Partners" → model_access = ["gpt-4", "claude-3"]
 ```
 
 ### 12.5 Scheduled Reports
+
 Daily/weekly/monthly CSV/JSON/PDF. Auto-emailed. Sections: user_summary, cost_breakdown, provider_health, error_rates.
 
 ### 12.6 API Changelog
+
 Draft → review → publish workflow. Types: new/change/deprecation/fix/breaking. Public at `/changelog`.
 
 ---
@@ -1626,20 +1672,24 @@ Draft → review → publish workflow. Types: new/change/deprecation/fix/breakin
 ## 13. Performance & Scalability
 
 ### 13.1 Partition Strategy
-| Table | Partition Key | Retention |
-|-------|---------------|-----------|
-| usage_records | monthly | 90 days raw |
-| audit_logs | monthly | 1 year |
-| ip_access_logs | monthly | 30 days |
-| provider_key_usage_logs | monthly | 90 days |
+
+| Table                   | Partition Key | Retention   |
+| ----------------------- | ------------- | ----------- |
+| usage_records           | monthly       | 90 days raw |
+| audit_logs              | monthly       | 1 year      |
+| ip_access_logs          | monthly       | 30 days     |
+| provider_key_usage_logs | monthly       | 90 days     |
 
 ### 13.2 Daily Aggregates
+
 `usage_daily` pre-computes counts, tokens, cost, latency percentiles. Dashboard queries < 50ms.
 
 ### 13.3 Caching Strategy
+
 Dashboard stats: 60s TTL. Provider health: 30s. Models/settings/tiers: 5 min.
 
 ### 13.4 Data Retention
+
 Raw logs: 90 days. Aggregates: 2 years. Audit: 1 year. Auto-cleanup via pg_cron.
 
 ---
@@ -1668,12 +1718,14 @@ AdminLayout
 ## 15. Error Handling Strategy
 
 ### Backend
+
 - Standard `response.Body{Success, Error}` envelope
 - `RequireAdmin` → 401 (no auth) / 403 (not admin)
 - `RequirePermission` → 403 (insufficient permissions)
 - All errors logged with request_id, actor_id, action via slog
 
 ### Frontend
+
 - `AdminSDK` throws typed errors: AdminAuthError, AdminPermissionError, AdminValidationError
 - React Query onError → toast notifications
 - Error boundaries per page group
@@ -1683,13 +1735,13 @@ AdminLayout
 
 ## 16. Testing Strategy
 
-| Layer | Type | Approach |
-|-------|------|----------|
-| Repository | Unit + Integration | Real PG test container |
-| Service | Unit | Mock repositories |
-| Handler | Integration | testutil.NewTestServer() |
-| AdminSDK | Unit | Mock fetch |
-| Pages | E2E | Playwright as admin |
+| Layer      | Type               | Approach                 |
+| ---------- | ------------------ | ------------------------ |
+| Repository | Unit + Integration | Real PG test container   |
+| Service    | Unit               | Mock repositories        |
+| Handler    | Integration        | testutil.NewTestServer() |
+| AdminSDK   | Unit               | Mock fetch               |
+| Pages      | E2E                | Playwright as admin      |
 
 **Coverage target:** 80%+ on all new admin code. Critical paths: impersonation, permission checks, credit adjustments.
 

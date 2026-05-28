@@ -6,5 +6,3 @@ export async function GET(request: Request) {
   if (authError) return authError;
   return proxyToBackend(request, "/api/admin/users");
 }
-
-

@@ -42,7 +42,9 @@ describe("buttonVariants", () => {
 describe("Button component", () => {
   it("renders as button element", () => {
     render(<Button>Click me</Button>);
-    expect(screen.getByRole("button", { name: "Click me" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Click me" }),
+    ).toBeInTheDocument();
   });
 
   it("applies variant classes", () => {

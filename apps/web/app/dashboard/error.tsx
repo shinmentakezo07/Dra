@@ -16,7 +16,9 @@ export default function DashboardError({
   return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center space-y-4">
-        <h2 className="text-xl font-semibold text-white">Something went wrong</h2>
+        <h2 className="text-xl font-semibold text-white">
+          Something went wrong
+        </h2>
         <p className="text-gray-400 text-sm max-w-md">
           An error occurred while loading the dashboard. Please try again.
         </p>

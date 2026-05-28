@@ -42,7 +42,9 @@ describe("DataTable", () => {
 
   it("calls onRowClick when row is clicked", () => {
     const handleClick = vi.fn();
-    render(<DataTable columns={columns} data={data} onRowClick={handleClick} />);
+    render(
+      <DataTable columns={columns} data={data} onRowClick={handleClick} />,
+    );
     const row = screen.getByText("Alice").closest("tr");
     row?.click();
     expect(handleClick).toHaveBeenCalledWith(data[0]);
@@ -71,7 +73,9 @@ describe("DataTable", () => {
       {
         header: "Name",
         accessor: "name",
-        render: (value: unknown) => <span data-testid="custom">{`User: ${value}`}</span>,
+        render: (value: unknown) => (
+          <span data-testid="custom">{`User: ${value}`}</span>
+        ),
       },
     ];
     render(<DataTable columns={customColumns} data={data} />);

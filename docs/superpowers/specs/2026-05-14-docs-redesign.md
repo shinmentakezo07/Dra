@@ -1,7 +1,7 @@
 # Docs Page Visual Redesign
 
 **Date:** 2026-05-14  
-**Status:** Design Spec  
+**Status:** Design Spec
 
 ## Overview
 
@@ -21,20 +21,20 @@ Redesign the `/docs` page to match the project's dark cyber/tech visual identity
 
 ### Colors
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| Page base | `#050505` | Main background |
-| Surface | `#0A0A0A` | Cards, sidebar, panels |
-| Surface glass | `#0A0A0A / 80%` + `backdrop-blur-md` | Glass panels |
-| Primary accent | `#3b82f6` (blue-500) | Active states, icons, buttons |
-| Secondary accent | `#8b5cf6` (violet-500) | Gradient blends, decorative |
-| Border subtle | `white/[0.05]` | Default card borders |
-| Border medium | `white/[0.06]` | Sidebar, panels |
-| Border hover | `white/[0.1]` | Hover states |
-| Text primary | white | Headings |
-| Text secondary | `white/40` or `white/60` | Body text |
-| Text muted | `white/20` or `white/30` | Labels, metadata |
-| Glow blue | `rgba(59,130,246,0.3)` | Active indicator glow |
+| Token            | Value                                | Usage                         |
+| ---------------- | ------------------------------------ | ----------------------------- |
+| Page base        | `#050505`                            | Main background               |
+| Surface          | `#0A0A0A`                            | Cards, sidebar, panels        |
+| Surface glass    | `#0A0A0A / 80%` + `backdrop-blur-md` | Glass panels                  |
+| Primary accent   | `#3b82f6` (blue-500)                 | Active states, icons, buttons |
+| Secondary accent | `#8b5cf6` (violet-500)               | Gradient blends, decorative   |
+| Border subtle    | `white/[0.05]`                       | Default card borders          |
+| Border medium    | `white/[0.06]`                       | Sidebar, panels               |
+| Border hover     | `white/[0.1]`                        | Hover states                  |
+| Text primary     | white                                | Headings                      |
+| Text secondary   | `white/40` or `white/60`             | Body text                     |
+| Text muted       | `white/20` or `white/30`             | Labels, metadata              |
+| Glow blue        | `rgba(59,130,246,0.3)`               | Active indicator glow         |
 
 ### Typography
 
@@ -104,6 +104,7 @@ Sections organized into 4 visible categories:
 **Category "Reference":** Available Models, Pricing & Credits, Dashboard, Security, Code Examples
 
 **Featured hero cards:**
+
 ```
 className="sm:col-span-2 rounded-[28px] p-[1px] bg-gradient-to-r from-blue-500/20 via-purple-500/10 to-blue-500/20 group"
   └─ inner: "bg-[#0A0A0A] rounded-[27px] p-6 md:p-8"
@@ -114,6 +115,7 @@ className="sm:col-span-2 rounded-[28px] p-[1px] bg-gradient-to-r from-blue-500/2
 ```
 
 **Standard cards:**
+
 ```
 className="rounded-2xl bg-[#0A0A0A] border border-white/[0.06] p-5
          hover:border-blue-500/[0.2] hover:bg-white/[0.02]
@@ -126,6 +128,7 @@ className="rounded-2xl bg-[#0A0A0A] border border-white/[0.06] p-5
 ```
 
 **Category headers:**
+
 ```
 flex items-center gap-4 mb-6
   ├─ text-xs uppercase tracking-widest font-mono text-white/20
@@ -133,6 +136,7 @@ flex items-center gap-4 mb-6
 ```
 
 **Stats bar** (bottom of index page):
+
 ```
 rounded-2xl border border-white/5 bg-[#0A0A0A]/50 p-4 mt-16
 text-xs font-mono text-white/30 text-center
@@ -148,6 +152,7 @@ Desktop sidebar gets proper glass surface treatment:
 **Position:** `sticky top-24 max-h-[calc(100vh-10rem)] overflow-y-auto`
 
 **Inline filter:**
+
 ```
 rounded-xl bg-white/[0.04] border border-white/[0.06] px-4 py-2
 text-sm text-white/40 placeholder:text-white/20
@@ -155,6 +160,7 @@ font-mono
 ```
 
 **Content:**
+
 - Category group labels: `text-[10px] uppercase tracking-widest text-white/20 font-mono px-3 pt-5 pb-1`
 - Items: `flex items-center gap-3 px-3 py-[7px] rounded-lg text-sm text-white/30 hover:text-white/60 hover:bg-white/[0.02] transition-all`
 - Active item: `text-blue-400 font-medium bg-blue-500/[0.04]` with left gradient glow indicator line + `shadow-[0_0_10px_rgba(59,130,246,0.3)]`
@@ -166,12 +172,14 @@ font-mono
 ### 5. Content Page Elements
 
 **Section headers (`Section.tsx`):**
+
 - Icon container: `w-12 h-12 rounded-xl bg-blue-500/[0.08] ring-1 ring-blue-500/[0.15]` (larger)
 - Title: `text-3xl md:text-4xl font-bold tracking-tight`
 - Decorative full-width gradient line after header: `h-px bg-gradient-to-r from-blue-500/20 via-purple-500/10 to-transparent`
 - Section spacing: `mb-16` (up from `mb-8`)
 
 **Alert boxes (`TipBox.tsx`):**
+
 - 3 variants:
   - **Tip** (blue): `bg-blue-500/[0.04] border-blue-500/[0.1] text-blue-400/80` — Lightbulb icon
   - **Warning** (amber): `bg-amber-500/[0.04] border-amber-500/[0.1] text-amber-400/80` — AlertTriangle icon
@@ -181,46 +189,49 @@ font-mono
 ### 6. Motion & Animation
 
 **Index page entrance:**
+
 - Staggered card reveal: `staggerChildren: 0.03`, each card `{ opacity: 0, y: 12 }` → `{ opacity: 1, y: 0 }` at `duration: 0.4, ease: [0.16, 1, 0.3, 1]`
 - Category groups: `whileInView` trigger, base delay offset so groups enter sequentially
 - Hero search zone: `initial={{ opacity: 0, y: -8 }}`, no stagger
 
 **Sidebar:**
+
 - Active indicator: keep `layoutId="activeIndicator"` with spring `{ type: "spring", stiffness: 300, damping: 30 }`
 - Mobile drawer: keep spring animation
 
 **Hover effects:**
+
 - Featured cards: `hover:scale-[1.01]` with gradient border glow
 - Standard cards: `hover:border-blue-500/[0.2]` with subtle glow
 - Side items: `hover:bg-white/[0.02] hover:text-white/60`
 
 ## Responsive Behavior
 
-| Breakpoint | Layout |
-|-----------|--------|
-| < 640px (mobile) | Single column, sidebar drawer, stacked hero, 1-col cards |
-| 640-1023px (tablet) | 2-column card grid, hidden sidebar, FAB menu |
-| 1024px+ (desktop) | w-64 sidebar + flex content, 3-col cards, featured 2-col |
+| Breakpoint          | Layout                                                   |
+| ------------------- | -------------------------------------------------------- |
+| < 640px (mobile)    | Single column, sidebar drawer, stacked hero, 1-col cards |
+| 640-1023px (tablet) | 2-column card grid, hidden sidebar, FAB menu             |
+| 1024px+ (desktop)   | w-64 sidebar + flex content, 3-col cards, featured 2-col |
 
 ## Files to Modify
 
-| File | Changes Required |
-|------|-----------------|
-| `apps/web/app/docs/layout.tsx` | Background system, sidebar glass surface, header hero area |
-| `apps/web/app/docs/page.tsx` | Restructure: hero search, quick-start, categorized groups, featured cards |
-| `apps/web/components/docs/Section.tsx` | Larger icon/title, decorative gradient line, increased spacing |
-| `apps/web/components/docs/TipBox.tsx` | Add variant prop: tip (default), warning, critical |
-| `apps/web/components/docs/types.ts` | Add `TipVariant` type, `SectionGroup` type |
+| File                                   | Changes Required                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `apps/web/app/docs/layout.tsx`         | Background system, sidebar glass surface, header hero area                |
+| `apps/web/app/docs/page.tsx`           | Restructure: hero search, quick-start, categorized groups, featured cards |
+| `apps/web/components/docs/Section.tsx` | Larger icon/title, decorative gradient line, increased spacing            |
+| `apps/web/components/docs/TipBox.tsx`  | Add variant prop: tip (default), warning, critical                        |
+| `apps/web/components/docs/types.ts`    | Add `TipVariant` type, `SectionGroup` type                                |
 
 ## Files to Keep As-Is
 
-| File | Reason |
-|------|--------|
-| `apps/web/components/docs/CodeBlock.tsx` | Already matches project aesthetic — glass surface, lang tabs, line numbers, copy button |
-| `apps/web/components/docs/ScrollProgress.tsx` | Works fine |
-| `apps/web/components/docs/SearchModal.tsx` | Works fine, already has glass backdrop |
-| `apps/web/components/docs/EndpointCard.tsx` | Not used in current docs rendering tree |
-| All sub-pages (`chat/page.tsx`, etc.) | Content only, no structural changes needed |
+| File                                          | Reason                                                                                  |
+| --------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `apps/web/components/docs/CodeBlock.tsx`      | Already matches project aesthetic — glass surface, lang tabs, line numbers, copy button |
+| `apps/web/components/docs/ScrollProgress.tsx` | Works fine                                                                              |
+| `apps/web/components/docs/SearchModal.tsx`    | Works fine, already has glass backdrop                                                  |
+| `apps/web/components/docs/EndpointCard.tsx`   | Not used in current docs rendering tree                                                 |
+| All sub-pages (`chat/page.tsx`, etc.)         | Content only, no structural changes needed                                              |
 
 ## Implementation Order
 

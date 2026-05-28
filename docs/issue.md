@@ -6,12 +6,12 @@
 
 ## 1. Vitest 429 RateLimitError Test Fails
 
-| Attribute | Value |
-|-----------|-------|
-| **File** | `apps/web/tests/lib/api/sdk.test.ts` line 279 |
-| **Test** | `maps 429 to RateLimitError` |
+| Attribute      | Value                                                                                                                                                                                                                                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **File**       | `apps/web/tests/lib/api/sdk.test.ts` line 279                                                                                                                                                                                                                                                                  |
+| **Test**       | `maps 429 to RateLimitError`                                                                                                                                                                                                                                                                                   |
 | **Root cause** | The SDK retries on 429 (line 369: `if (err.status < 500 && err.status !== 429)`). The test only sets up one mock response. On retry, `mockFetch()` returns `undefined` → `TypeError: Cannot read properties of undefined (reading 'headers')` → the error thrown is a `TypeError` instead of `RateLimitError`. |
-| **Fix** | Either: (a) add a second `mockFetch.mockResolvedValueOnce(...)` for the retry, (b) configure the SDK with `retries: 0` in the test, or (c) make `mockFetch` return a default response when called without a preset. |
+| **Fix**        | Either: (a) add a second `mockFetch.mockResolvedValueOnce(...)` for the retry, (b) configure the SDK with `retries: 0` in the test, or (c) make `mockFetch` return a default response when called without a preset.                                                                                            |
 
 ```typescript
 // Current broken test
@@ -34,11 +34,11 @@ it("maps 429 to RateLimitError", async () => {
 
 ## 2. Go SDK Test Coverage Below 80%
 
-| Attribute | Value |
-|-----------|-------|
-| **File** | `apps/backend/pkg/sdk/client_test.go` |
-| **Coverage** | 51.1% |
-| **Threshold** | 80% (per CLAUDE.md rules) |
+| Attribute     | Value                                 |
+| ------------- | ------------------------------------- |
+| **File**      | `apps/backend/pkg/sdk/client_test.go` |
+| **Coverage**  | 51.1%                                 |
+| **Threshold** | 80% (per CLAUDE.md rules)             |
 
 The SDK package has 43 test functions covering all new methods, but coverage is 51.1% overall. Untested paths include:
 
@@ -53,10 +53,10 @@ The SDK package has 43 test functions covering all new methods, but coverage is 
 
 ## 3. SDK Request ID Not Populated
 
-| Attribute | Value |
-|-----------|-------|
+| Attribute | Value                                                             |
+| --------- | ----------------------------------------------------------------- |
 | **Files** | `apps/backend/pkg/sdk/utils.go`, `apps/backend/pkg/sdk/client.go` |
-| **Type** | Architectural gap |
+| **Type**  | Architectural gap                                                 |
 
 The `RequestID` field was added to the `envelope` struct in `utils.go`, and `X-Request-ID` is returned by the backend on every response, but:
 
@@ -68,10 +68,10 @@ The `RequestID` field was added to the `envelope` struct in `utils.go`, and `X-R
 
 ## 4. Rate Limit Headers Not Exposed
 
-| Attribute | Value |
-|-----------|-------|
-| **File** | `apps/backend/pkg/sdk/types.go` (RateLimitInfo exists but unused) |
-| **Type** | Architectural gap |
+| Attribute | Value                                                             |
+| --------- | ----------------------------------------------------------------- |
+| **File**  | `apps/backend/pkg/sdk/types.go` (RateLimitInfo exists but unused) |
+| **Type**  | Architectural gap                                                 |
 
 The `RateLimitInfo` struct exists in `types.go` but:
 
@@ -83,10 +83,10 @@ The `RateLimitInfo` struct exists in `types.go` but:
 
 ## 5. Monorepo Dependency Hoisting — No Root-Level Binaries
 
-| Attribute | Value |
-|-----------|-------|
+| Attribute | Value                            |
+| --------- | -------------------------------- |
 | **Files** | Turborepo config, `package.json` |
-| **Type** | Environment/DevEx |
+| **Type**  | Environment/DevEx                |
 
 Key binaries (`vitest`, `tsc`, `prettier`) are not available at the root `node_modules/.bin/` level. They exist only within `apps/web/node_modules/.bin/`. This means:
 
@@ -101,10 +101,10 @@ Key binaries (`vitest`, `tsc`, `prettier`) are not available at the root `node_m
 
 ## 6. No SDK Integration Tests
 
-| Attribute | Value |
-|-----------|-------|
-| **File** | Not applicable |
-| **Type** | Test coverage gap |
+| Attribute | Value             |
+| --------- | ----------------- |
+| **File**  | Not applicable    |
+| **Type**  | Test coverage gap |
 
 The Go SDK tests use `httptest.NewServer` (unit-level). The TypeScript SDK tests mock `global.fetch` (unit-level). Neither SDK has integration tests that:
 
@@ -118,10 +118,10 @@ The backend's smoke test (`scripts/smoke-test.sh`) covers basic endpoint wiring 
 
 ## 7. Go SDK `UploadFile` Return Path Duplicates JSON Decoding
 
-| Attribute | Value |
-|-----------|-------|
-| **File** | `apps/backend/pkg/sdk/client.go` — `UploadFile` method |
-| **Type** | Minor code quality |
+| Attribute | Value                                                  |
+| --------- | ------------------------------------------------------ |
+| **File**  | `apps/backend/pkg/sdk/client.go` — `UploadFile` method |
+| **Type**  | Minor code quality                                     |
 
 The `UploadFile` method calls `doUpload` (which returns an `*http.Response` and already inspected the response body on error), then calls `decodeJSON` on the same response body. The body stream may have been partially consumed. Current tests pass because `httptest` servers buffer the full response, but this pattern is fragile and could silently return empty data in production.
 
@@ -129,10 +129,10 @@ The `UploadFile` method calls `doUpload` (which returns an `*http.Response` and 
 
 ## 8. TypeScript SDK `uploadFile` Uses `FormData` with No `content-type` Header
 
-| Attribute | Value |
-|-----------|-------|
-| **File** | `apps/web/lib/api/sdk.ts` — `uploadFormData` method |
-| **Type** | Minor |
+| Attribute | Value                                               |
+| --------- | --------------------------------------------------- |
+| **File**  | `apps/web/lib/api/sdk.ts` — `uploadFormData` method |
+| **Type**  | Minor                                               |
 
 The `uploadFormData` helper intentionally omits `Content-Type` (letting the browser set it with the boundary), which is correct for browser environments. However:
 

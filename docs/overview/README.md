@@ -39,30 +39,30 @@ shinway/
 
 ## Key Features
 
-| Feature | Description |
-|---------|-------------|
-| Unified AI Gateway | One endpoint for 100+ models across NVIDIA, OpenAI, Anthropic, Groq, Gemini, Yapa, Shinway |
-| OpenAI-Compatible API | Drop-in `/v1/chat/completions`, `/v1/embeddings`, `/v1/models` proxy |
-| Anthropic-Compatible API | `/v1/messages` endpoint with format translation |
-| Credit-Based Billing | Micro-cent pricing with Stripe integration, budget caps, transaction history |
-| Real-Time Analytics | Dashboard with Recharts visualization, model breakdowns, time-range filtering |
-| API Key Management | Full lifecycle (create, list, revoke, delete) with HMAC-hashed storage |
-| Neural Playground | Multi-model streaming chat with markdown, syntax highlighting, model comparison |
-| Prompt Management | CRUD with Go template rendering and variable substitution |
-| Webhook System | Event-driven outbound delivery with retry, DLQ, and delivery tracking |
-| Organizations | Team workspaces with member invitations, roles, and shared billing |
-| Conversations | Persistent chat history with message-level storage |
-| Batch Processing | Async batch job submission with progress tracking |
-| File Uploads | Multipart file attachment support |
-| SSE Notifications | Real-time server-sent events for streaming updates, alerts |
-| Admin Panel | Full user, provider, model, billing, security, SSO, audit management |
-| LLM Routing | 5 strategies: cost, latency, reliability, capability, random |
-| Circuit Breaker | Automatic provider fault isolation with half-open recovery |
-| Caching | 4 cache types: TTL, semantic (cosine similarity), dedup, Redis |
-| Guardrails | Content filtering, PII detection, prompt injection prevention |
-| Multi-Key Rotation | Round-robin across primary + secondary API keys per provider |
-| Prometheus Metrics | Exposed on separate port for monitoring infrastructure |
-| RBAC | Role-based access control with fine-grained permissions |
+| Feature                  | Description                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| Unified AI Gateway       | One endpoint for 100+ models across NVIDIA, OpenAI, Anthropic, Groq, Gemini, Yapa, Shinway |
+| OpenAI-Compatible API    | Drop-in `/v1/chat/completions`, `/v1/embeddings`, `/v1/models` proxy                       |
+| Anthropic-Compatible API | `/v1/messages` endpoint with format translation                                            |
+| Credit-Based Billing     | Micro-cent pricing with Stripe integration, budget caps, transaction history               |
+| Real-Time Analytics      | Dashboard with Recharts visualization, model breakdowns, time-range filtering              |
+| API Key Management       | Full lifecycle (create, list, revoke, delete) with HMAC-hashed storage                     |
+| Neural Playground        | Multi-model streaming chat with markdown, syntax highlighting, model comparison            |
+| Prompt Management        | CRUD with Go template rendering and variable substitution                                  |
+| Webhook System           | Event-driven outbound delivery with retry, DLQ, and delivery tracking                      |
+| Organizations            | Team workspaces with member invitations, roles, and shared billing                         |
+| Conversations            | Persistent chat history with message-level storage                                         |
+| Batch Processing         | Async batch job submission with progress tracking                                          |
+| File Uploads             | Multipart file attachment support                                                          |
+| SSE Notifications        | Real-time server-sent events for streaming updates, alerts                                 |
+| Admin Panel              | Full user, provider, model, billing, security, SSO, audit management                       |
+| LLM Routing              | 5 strategies: cost, latency, reliability, capability, random                               |
+| Circuit Breaker          | Automatic provider fault isolation with half-open recovery                                 |
+| Caching                  | 4 cache types: TTL, semantic (cosine similarity), dedup, Redis                             |
+| Guardrails               | Content filtering, PII detection, prompt injection prevention                              |
+| Multi-Key Rotation       | Round-robin across primary + secondary API keys per provider                               |
+| Prometheus Metrics       | Exposed on separate port for monitoring infrastructure                                     |
+| RBAC                     | Role-based access control with fine-grained permissions                                    |
 
 ---
 
@@ -70,53 +70,53 @@ shinway/
 
 ### Frontend
 
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| Next.js | React Framework (App Router, RSC) | 16.3.0-canary |
-| React | UI Library | 19.2.5 |
-| TypeScript | Type Safety | 5.9.3 |
-| Tailwind CSS | Utility-first Styling | v4.2.2 |
-| Framer Motion | Animations & Gestures | 12.38.0 |
-| GSAP | Advanced Scroll Animations | 3.15.0 |
-| Recharts | Data Visualization | 3.8.1 |
-| NextAuth | Authentication | 5.0.0-beta |
-| Drizzle ORM | Database ORM + Migrations | 0.45.2 |
-| Zod | Schema Validation | v4 |
-| AI SDK | AI/LLM Integration | 6.0.x |
-| TanStack Query | Server State Management | 5.71.0 |
-| React Hook Form | Form Management | 7.74.0 |
-| Lucide React | Icon Library | 1.14.0 |
-| Monaco Editor | Code Editing | 4.7.0 |
-| Mermaid | Diagram Rendering | 11.14.0 |
-| Xterm | Terminal Emulator | 5.5.0 |
+| Technology      | Purpose                           | Version       |
+| --------------- | --------------------------------- | ------------- |
+| Next.js         | React Framework (App Router, RSC) | 16.3.0-canary |
+| React           | UI Library                        | 19.2.5        |
+| TypeScript      | Type Safety                       | 5.9.3         |
+| Tailwind CSS    | Utility-first Styling             | v4.2.2        |
+| Framer Motion   | Animations & Gestures             | 12.38.0       |
+| GSAP            | Advanced Scroll Animations        | 3.15.0        |
+| Recharts        | Data Visualization                | 3.8.1         |
+| NextAuth        | Authentication                    | 5.0.0-beta    |
+| Drizzle ORM     | Database ORM + Migrations         | 0.45.2        |
+| Zod             | Schema Validation                 | v4            |
+| AI SDK          | AI/LLM Integration                | 6.0.x         |
+| TanStack Query  | Server State Management           | 5.71.0        |
+| React Hook Form | Form Management                   | 7.74.0        |
+| Lucide React    | Icon Library                      | 1.14.0        |
+| Monaco Editor   | Code Editing                      | 4.7.0         |
+| Mermaid         | Diagram Rendering                 | 11.14.0       |
+| Xterm           | Terminal Emulator                 | 5.5.0         |
 
 ### Backend
 
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| Go | Runtime & Language | 1.25.0 |
-| Chi Router | HTTP Router & Middleware | v5.2.5 |
-| pgx | PostgreSQL Driver + Pool | v5.9.2 |
-| golang-jwt | Token Authentication | v5.3.1 |
-| Prometheus | Metrics Collection | client_golang |
-| slog | Structured Logging | stdlib |
-| go-redis | Redis Client | v9 |
-| google/uuid | UUID Generation | v1.6 |
-| stripe-go | Payment Processing | v76 |
-| go-openai (sashabaranov) | Provider SDK | v1.41 |
-| openai-go (official) | Official OpenAI SDK | v3.35 |
-| anthropic-sdk-go | Official Anthropic SDK | v1.43 |
+| Technology               | Purpose                  | Version       |
+| ------------------------ | ------------------------ | ------------- |
+| Go                       | Runtime & Language       | 1.25.0        |
+| Chi Router               | HTTP Router & Middleware | v5.2.5        |
+| pgx                      | PostgreSQL Driver + Pool | v5.9.2        |
+| golang-jwt               | Token Authentication     | v5.3.1        |
+| Prometheus               | Metrics Collection       | client_golang |
+| slog                     | Structured Logging       | stdlib        |
+| go-redis                 | Redis Client             | v9            |
+| google/uuid              | UUID Generation          | v1.6          |
+| stripe-go                | Payment Processing       | v76           |
+| go-openai (sashabaranov) | Provider SDK             | v1.41         |
+| openai-go (official)     | Official OpenAI SDK      | v3.35         |
+| anthropic-sdk-go         | Official Anthropic SDK   | v1.43         |
 
 ### Infrastructure
 
-| Technology | Purpose |
-|------------|---------|
-| PostgreSQL 16 | Primary Database |
-| Neon | Serverless PostgreSQL (cloud) |
-| Redis | Optional caching + rate limiting + distributed state |
-| Docker | Containerization & local dev |
-| Turborepo | Monorepo Task Runner |
-| Railway | Deployment Platform (production) |
+| Technology    | Purpose                                              |
+| ------------- | ---------------------------------------------------- |
+| PostgreSQL 16 | Primary Database                                     |
+| Neon          | Serverless PostgreSQL (cloud)                        |
+| Redis         | Optional caching + rate limiting + distributed state |
+| Docker        | Containerization & local dev                         |
+| Turborepo     | Monorepo Task Runner                                 |
+| Railway       | Deployment Platform (production)                     |
 
 ---
 
@@ -194,6 +194,7 @@ Chat Request → Validator → Router → Cache → Guardrails → Moderation
 ## Page Inventory
 
 ### Public Pages (10 routes)
+
 - `/` — Landing page with hero, features, CTA
 - `/playground` — Multi-model chat playground
 - `/gateway` — AI Gateway overview dashboard
@@ -204,6 +205,7 @@ Chat Request → Validator → Router → Cache → Guardrails → Moderation
 - `/login`, `/signup`, `/forgot-password` — Auth pages
 
 ### Dashboard Pages (15 routes)
+
 - `/dashboard` — Overview with metrics, charts, activity feed
 - `/dashboard/analytics` — Usage analytics with 5 chart types
 - `/dashboard/keys` — API key management (create, list, revoke)
@@ -221,6 +223,7 @@ Chat Request → Validator → Router → Cache → Guardrails → Moderation
 - `/dashboard/exports` — Data export jobs (logs, usage, audit)
 
 ### Admin Pages (18+ routes)
+
 - `/admin/login` — Admin authentication
 - `/admin/dashboard` — Admin overview with stats
 - `/admin/users` — User management (search, suspend, delete)
@@ -245,14 +248,14 @@ Chat Request → Validator → Router → Cache → Guardrails → Moderation
 
 ## Environment Variables (Required)
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes (postgres/neon) |
-| `AUTH_SECRET` | JWT signing secret (must match frontend & backend) | Yes |
-| `NEXTAUTH_SECRET` | NextAuth session secret | Yes |
-| `NEXTAUTH_URL` | Public base URL | Yes |
-| `BACKEND_URL` | Go backend URL | Yes |
-| At least one AI provider key | NVIDIA, OpenAI, Anthropic, Groq, or Gemini | Recommended |
+| Variable                     | Description                                        | Required            |
+| ---------------------------- | -------------------------------------------------- | ------------------- |
+| `DATABASE_URL`               | PostgreSQL connection string                       | Yes (postgres/neon) |
+| `AUTH_SECRET`                | JWT signing secret (must match frontend & backend) | Yes                 |
+| `NEXTAUTH_SECRET`            | NextAuth session secret                            | Yes                 |
+| `NEXTAUTH_URL`               | Public base URL                                    | Yes                 |
+| `BACKEND_URL`                | Go backend URL                                     | Yes                 |
+| At least one AI provider key | NVIDIA, OpenAI, Anthropic, Groq, or Gemini         | Recommended         |
 
 See `docs/backend/CONFIG.md` for the complete environment variable reference.
 
@@ -260,11 +263,11 @@ See `docs/backend/CONFIG.md` for the complete environment variable reference.
 
 ## Version History
 
-| Date | Change |
-|------|--------|
+| Date       | Change                                                 |
+| ---------- | ------------------------------------------------------ |
 | 2026-05-17 | API key HMAC hashing, caching layer, admin tests added |
 | 2026-05-16 | Admin panel implementation (22+ pages, 100+ endpoints) |
-| 2026-05-15 | Legacy provider consolidation, SDK verification |
-| 2026-05-14 | Docs redesign, model detail page redesign |
-| 2026-05-13 | Dashboard redesign, docs restructure |
-| 2026-05-12 | Admin panel plan, docs superpower plans |
+| 2026-05-15 | Legacy provider consolidation, SDK verification        |
+| 2026-05-14 | Docs redesign, model detail page redesign              |
+| 2026-05-13 | Dashboard redesign, docs restructure                   |
+| 2026-05-12 | Admin panel plan, docs superpower plans                |

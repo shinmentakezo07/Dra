@@ -11,7 +11,10 @@ interface ArchitecturePanelProps {
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const modalityStyles: Record<string, { bg: string; border: string; text: string; dot: string; icon: string }> = {
+const modalityStyles: Record<
+  string,
+  { bg: string; border: string; text: string; dot: string; icon: string }
+> = {
   text: {
     bg: "bg-sky-500/[0.06]",
     border: "border-sky-500/12",
@@ -88,13 +91,19 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
       id="architecture"
     >
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: accent }}>
+        <span
+          className="text-[10px] font-mono font-bold tracking-wider"
+          style={{ color: accent }}
+        >
           03
         </span>
         <h2 className="text-[10px] font-mono tracking-[0.25em] uppercase text-gray-500">
           Architecture
         </h2>
-        <span className="flex-1 h-px" style={{ backgroundColor: `${accent}12` }} />
+        <span
+          className="flex-1 h-px"
+          style={{ backgroundColor: `${accent}12` }}
+        />
       </div>
 
       <div
@@ -104,7 +113,9 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
         {/* Top highlight */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: `linear-gradient(90deg, ${accent}30, transparent)` }}
+          style={{
+            background: `linear-gradient(90deg, ${accent}30, transparent)`,
+          }}
         />
 
         {/* Modality pipeline */}
@@ -112,7 +123,9 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 mb-6">
             {hasInput && (
               <div className="flex flex-col gap-2">
-                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Input</span>
+                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">
+                  Input
+                </span>
                 <div className="flex flex-wrap gap-1.5">
                   {arch.input_modalities.map((mod: string, i: number) => (
                     <ModalityPill key={`in-${mod}`} mod={mod} index={i} />
@@ -124,16 +137,31 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
             {hasInput && hasOutput && (
               <div className="hidden sm:flex items-center pt-4">
                 <div className="flex items-center gap-1">
-                  <div className="w-8 h-px" style={{ background: `linear-gradient(90deg, ${accent}20, ${accent}40)` }} />
-                  <ArrowRight className="w-3.5 h-3.5" style={{ color: `${accent}50` }} />
-                  <div className="w-8 h-px" style={{ background: `linear-gradient(90deg, ${accent}40, ${accent}20)` }} />
+                  <div
+                    className="w-8 h-px"
+                    style={{
+                      background: `linear-gradient(90deg, ${accent}20, ${accent}40)`,
+                    }}
+                  />
+                  <ArrowRight
+                    className="w-3.5 h-3.5"
+                    style={{ color: `${accent}50` }}
+                  />
+                  <div
+                    className="w-8 h-px"
+                    style={{
+                      background: `linear-gradient(90deg, ${accent}40, ${accent}20)`,
+                    }}
+                  />
                 </div>
               </div>
             )}
 
             {hasOutput && (
               <div className="flex flex-col gap-2">
-                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">Output</span>
+                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.15em]">
+                  Output
+                </span>
                 <div className="flex flex-wrap gap-1.5">
                   {arch.output_modalities.map((mod: string, i: number) => (
                     <ModalityPill key={`out-${mod}`} mod={mod} index={i} />
@@ -146,17 +174,28 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
 
         {/* Tokenizer + Instruct */}
         {(hasTokenizer || hasInstruct) && (
-          <div className="grid grid-cols-2 gap-5 pt-5" style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}>
+          <div
+            className="grid grid-cols-2 gap-5 pt-5"
+            style={{ borderTopColor: `${accent}08`, borderTopWidth: 1 }}
+          >
             {hasTokenizer && (
               <div>
-                <div className="text-[8px] font-mono text-gray-500 uppercase tracking-[0.12em] mb-2">Tokenizer</div>
-                <span className="font-mono text-[14px] text-gray-300 font-medium">{arch.tokenizer}</span>
+                <div className="text-[8px] font-mono text-gray-500 uppercase tracking-[0.12em] mb-2">
+                  Tokenizer
+                </div>
+                <span className="font-mono text-[14px] text-gray-300 font-medium">
+                  {arch.tokenizer}
+                </span>
               </div>
             )}
             {hasInstruct && (
               <div>
-                <div className="text-[8px] font-mono text-gray-500 uppercase tracking-[0.12em] mb-2">Instruct type</div>
-                <span className="font-mono text-[14px] text-gray-300 font-medium">{arch.instruct_type}</span>
+                <div className="text-[8px] font-mono text-gray-500 uppercase tracking-[0.12em] mb-2">
+                  Instruct type
+                </div>
+                <span className="font-mono text-[14px] text-gray-300 font-medium">
+                  {arch.instruct_type}
+                </span>
               </div>
             )}
           </div>
@@ -164,7 +203,9 @@ export function ArchitecturePanel({ model }: ArchitecturePanelProps) {
 
         {!hasTokenizer && !hasInstruct && !hasInput && !hasOutput && (
           <div className="text-center py-6">
-            <span className="text-gray-600 font-mono text-xs">No architecture details available</span>
+            <span className="text-gray-600 font-mono text-xs">
+              No architecture details available
+            </span>
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@
 ## Available Routes
 
 ### Main Dashboard
+
 - **URL**: `http://localhost:3000/dashboard`
 - **Description**: Overview page with stats, recent activity, and quick actions
 - **Features**:
@@ -12,6 +13,7 @@
   - Quick action cards
 
 ### Logs
+
 - **URL**: `http://localhost:3000/dashboard/logs`
 - **Description**: Real-time API request logs
 - **Features**:
@@ -21,6 +23,7 @@
   - Timestamp tracking
 
 ### API Keys
+
 - **URL**: `http://localhost:3000/dashboard/keys`
 - **Description**: API key management
 - **Features**:
@@ -31,6 +34,7 @@
   - Track last usage
 
 ### Analytics
+
 - **URL**: `http://localhost:3000/dashboard/analytics`
 - **Description**: Usage analytics and insights
 - **Features**:
@@ -40,12 +44,14 @@
   - Cost tracking
 
 ### Other Existing Routes
+
 - **Chat**: `http://localhost:3000/dashboard/chat` (AI assistant)
 - **Settings**: `http://localhost:3000/dashboard/settings` (User settings)
 
 ## Navigation
 
 All dashboard pages share a common navigation bar with:
+
 - Overview
 - Logs
 - API Keys

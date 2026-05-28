@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { creditPackages, featuredModels, calculatorModels, calculatorPresets, pricingFAQ } from "@/lib/pricing-data";
+import {
+  creditPackages,
+  featuredModels,
+  calculatorModels,
+  calculatorPresets,
+  pricingFAQ,
+} from "@/lib/pricing-data";
 
 describe("creditPackages", () => {
   it("has exactly 3 packages", () => {

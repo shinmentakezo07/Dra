@@ -220,13 +220,13 @@ func NewOpenAIProvider(opts ...Option) *OpenAIProvider
 
 **Static Models** (5):
 
-| ID | Name | Input/1k | Output/1k | Context | Capabilities |
-|----|------|----------|-----------|---------|-------------|
-| openai/gpt-4o | GPT-4o | $0.0025 | $0.01 | 128K | text, vision, code, tools |
-| openai/gpt-4o-mini | GPT-4o Mini | $0.00015 | $0.0006 | 128K | text, vision, tools |
-| openai/gpt-4.1 | GPT-4.1 | $0.002 | $0.008 | 256K | text, code, reasoning, vision, tools |
-| openai/o3-mini | o3 Mini | $0.0011 | $0.0044 | 200K | text, reasoning, code, tools |
-| openai/o1 | o1 | $0.015 | $0.06 | 200K | text, reasoning, tools |
+| ID                 | Name        | Input/1k | Output/1k | Context | Capabilities                         |
+| ------------------ | ----------- | -------- | --------- | ------- | ------------------------------------ |
+| openai/gpt-4o      | GPT-4o      | $0.0025  | $0.01     | 128K    | text, vision, code, tools            |
+| openai/gpt-4o-mini | GPT-4o Mini | $0.00015 | $0.0006   | 128K    | text, vision, tools                  |
+| openai/gpt-4.1     | GPT-4.1     | $0.002   | $0.008    | 256K    | text, code, reasoning, vision, tools |
+| openai/o3-mini     | o3 Mini     | $0.0011  | $0.0044   | 200K    | text, reasoning, code, tools         |
+| openai/o1          | o1          | $0.015   | $0.06     | 200K    | text, reasoning, tools               |
 
 ### AnthropicProvider
 
@@ -246,11 +246,11 @@ func NewAnthropicProvider(opts ...Option) *AnthropicProvider
 
 **Static Models** (3):
 
-| ID | Name | Input/1k | Output/1k | Context |
-|----|------|----------|-----------|---------|
-| anthropic/claude-sonnet-4-20250514 | Claude Sonnet 4 | $0.003 | $0.015 | 200K |
-| anthropic/claude-opus-4-20250514 | Claude Opus 4 | $0.015 | $0.075 | 200K |
-| anthropic/claude-3-5-haiku-20241022 | Claude 3.5 Haiku | $0.0008 | $0.004 | 200K |
+| ID                                  | Name             | Input/1k | Output/1k | Context |
+| ----------------------------------- | ---------------- | -------- | --------- | ------- |
+| anthropic/claude-sonnet-4-20250514  | Claude Sonnet 4  | $0.003   | $0.015    | 200K    |
+| anthropic/claude-opus-4-20250514    | Claude Opus 4    | $0.015   | $0.075    | 200K    |
+| anthropic/claude-3-5-haiku-20241022 | Claude 3.5 Haiku | $0.0008  | $0.004    | 200K    |
 
 ### GenericProvider
 
@@ -261,11 +261,11 @@ func NewGenericProvider(name, baseURL string, opts ...Option) *GenericProvider
 
 For any OpenAI-compatible API. Configurable base URLs:
 
-| Provider | Base URL |
-|----------|----------|
-| NVIDIA NIM | `https://integrate.api.nvidia.com/v1` |
-| Groq | `https://api.groq.com/openai/v1` |
-| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` |
+| Provider   | Base URL                                                  |
+| ---------- | --------------------------------------------------------- |
+| NVIDIA NIM | `https://integrate.api.nvidia.com/v1`                     |
+| Groq       | `https://api.groq.com/openai/v1`                          |
+| Gemini     | `https://generativelanguage.googleapis.com/v1beta/openai` |
 
 **Groq models** (3): llama-3.3-70b-versatile, mixtral-8x7b-32768, gemma2-9b-it
 
@@ -297,6 +297,7 @@ Model ID format: `"provider/model-name"` (e.g., `"openai/gpt-4o"`). ParseModelID
 ```go
 func ReadSSE(r io.Reader, yield func(string) bool)
 ```
+
 Reads 4KB buffer chunks, splits on `\n`, calls yield() per line. Returns false from yield to stop.
 
 ---
@@ -320,6 +321,7 @@ type Config struct {
 ```
 
 **State Machine**:
+
 ```
 Closed --(5 failures)--> Open --(30s timeout)--> HalfOpen --(2 successes)--> Closed
                                                       |
@@ -386,11 +388,11 @@ Cache key = `prefix:model:msgHash16[:systemHash16]:toolHash16:t{T}:m{M}:p{P}`
 
 ### Additional Caches
 
-| Cache | File | Description |
-|-------|------|-------------|
-| DedupCache | `dedup.go` | Deduplicates identical concurrent requests |
-| SemanticCache | `semantic.go` | In-memory with cosine-similarity matching (threshold 0.92) |
-| GoRedisCache | `redis.go`, `redis_goredis.go` | Redis backend via go-redis v9 |
+| Cache         | File                           | Description                                                |
+| ------------- | ------------------------------ | ---------------------------------------------------------- |
+| DedupCache    | `dedup.go`                     | Deduplicates identical concurrent requests                 |
+| SemanticCache | `semantic.go`                  | In-memory with cosine-similarity matching (threshold 0.92) |
+| GoRedisCache  | `redis.go`, `redis_goredis.go` | Redis backend via go-redis v9                              |
 
 ---
 
@@ -472,6 +474,7 @@ type Guard struct {
 **Default blocked patterns**: `(?i)\b(attack|kill|murder|bomb|terrorist)\b`
 
 **Default PII patterns**:
+
 - SSN: `\b\d{3}-\d{2}-\d{4}\b`
 - Credit card: `\b(?:\d[ -]*?){13,16}\b`
 - Email: `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`
@@ -479,6 +482,7 @@ type Guard struct {
 **Prompt injection phrases** (11): "ignore previous instructions", "ignore all prior instructions", "disregard previous", "you are now", "new instructions:", "system override", "DAN mode", "jailbreak", "ignore the above", "do not follow"
 
 **CheckResult**:
+
 ```go
 type CheckResult struct {
     Allowed       bool
@@ -521,56 +525,55 @@ func EstimateTokens(text string) int {
 
 ### Other Helpers
 
-| Function | Description |
-|----------|-------------|
-| `EstimateMessageTokens(messages)` | Per-message tokens + 4 overhead + 2 conversation |
-| `EstimateRequestTokens(req)` | Messages + system prompt |
-| `TruncateMessages(messages, maxTokens)` | Keep system + most recent messages |
-| `ParseModelID("provider/model")` | Split on first "/" |
-| `ClampTemperature(t)` | Clamp to [0, 2] |
-| `ClampTopP(p)` | Clamp to [0, 1] |
-| `Cost(inTokens, outTokens, inPrice, outPrice)` | USD cost calculation |
-| `DeepCopyRequest(req)` | Full deep copy with nil-safe pointers |
-| `SanitizeContent(s)` | Remove null bytes + control characters |
-| `IsVisionModel(model)` | Check if model supports vision |
-| `IsThinkingModel(model)` | Check if model supports thinking |
-| `IsToolModel(model)` | Check if model supports tools |
-| `DefaultMaxTokens(model)` | Per-model default (opus/sonnet: 8192, o1/o3: 32768) |
+| Function                                       | Description                                         |
+| ---------------------------------------------- | --------------------------------------------------- |
+| `EstimateMessageTokens(messages)`              | Per-message tokens + 4 overhead + 2 conversation    |
+| `EstimateRequestTokens(req)`                   | Messages + system prompt                            |
+| `TruncateMessages(messages, maxTokens)`        | Keep system + most recent messages                  |
+| `ParseModelID("provider/model")`               | Split on first "/"                                  |
+| `ClampTemperature(t)`                          | Clamp to [0, 2]                                     |
+| `ClampTopP(p)`                                 | Clamp to [0, 1]                                     |
+| `Cost(inTokens, outTokens, inPrice, outPrice)` | USD cost calculation                                |
+| `DeepCopyRequest(req)`                         | Full deep copy with nil-safe pointers               |
+| `SanitizeContent(s)`                           | Remove null bytes + control characters              |
+| `IsVisionModel(model)`                         | Check if model supports vision                      |
+| `IsThinkingModel(model)`                       | Check if model supports thinking                    |
+| `IsToolModel(model)`                           | Check if model supports tools                       |
+| `DefaultMaxTokens(model)`                      | Per-model default (opus/sonnet: 8192, o1/o3: 32768) |
 
 ---
 
 ## Pipeline Stages (Ordered)
 
-| # | Stage | Package | What It Does |
-|---|-------|---------|-------------|
-| 1 | Validator | `pkg/llm/validator/` | Schema validation |
-| 2 | Router | `pkg/llm/router/` | Model-to-provider mapping |
-| 3 | Cache | `pkg/llm/cache/` | TTL + semantic dedup check |
-| 4 | Guardrails | `pkg/llm/guardrails/` | Input/output safety |
-| 5 | Moderation | `pkg/llm/moderation/` | Content flagging |
-| 6 | Translator | `pkg/llm/translator/` | Format conversion |
-| 7 | Provider | `pkg/llm/provider/` | API call with key rotation |
-| 8 | Telemetry | `pkg/llm/telemetry/` | Spans + logging |
-| 9 | CircuitBreaker | `pkg/llm/circuitbreaker/` | Fault isolation |
-| 10 | Watcher | `pkg/llm/watcher/` | Error observation |
+| #   | Stage          | Package                   | What It Does               |
+| --- | -------------- | ------------------------- | -------------------------- |
+| 1   | Validator      | `pkg/llm/validator/`      | Schema validation          |
+| 2   | Router         | `pkg/llm/router/`         | Model-to-provider mapping  |
+| 3   | Cache          | `pkg/llm/cache/`          | TTL + semantic dedup check |
+| 4   | Guardrails     | `pkg/llm/guardrails/`     | Input/output safety        |
+| 5   | Moderation     | `pkg/llm/moderation/`     | Content flagging           |
+| 6   | Translator     | `pkg/llm/translator/`     | Format conversion          |
+| 7   | Provider       | `pkg/llm/provider/`       | API call with key rotation |
+| 8   | Telemetry      | `pkg/llm/telemetry/`      | Spans + logging            |
+| 9   | CircuitBreaker | `pkg/llm/circuitbreaker/` | Fault isolation            |
+| 10  | Watcher        | `pkg/llm/watcher/`        | Error observation          |
 
 ---
 
 ## Additional Subpackages
 
-| Package | Files | Description |
-|---------|-------|-------------|
-| `translator/` | translator.go, anthropic_to_openai.go, openai_to_anthropic.go | Bidirectional format conversion |
-| `translator/handler/` | handler.go, batch.go, direction.go, errors.go, middleware.go | Directional translation |
-| `moderation/` | moderation.go | Content moderation filtering |
-| `tokens/` | tokens.go | Token counting and limits |
-| `context/` | compressor.go | Context window compression |
-| `embeddings/` | openai.go, types.go, utils.go, errors.go | Embedding generation |
-| `batch/` | batch.go | Batch request processing |
-| `openai/` | schema.go, formatter.go, stream_formatter.go | OpenAI request/response building |
-| `anthropic/` | schema.go, formatter.go | Anthropic request/response building |
-| `tools/` | builtin.go, executor.go, loop.go, registry.go, result.go, stream.go, websearch/ | Tool calling |
-| `translate/` | validate.go, errors.go | Translation validation |
-| `telemetry/` | logger.go, span.go | OpenTelemetry spans |
-| `watcher/` | watcher.go | Error observation |
-
+| Package               | Files                                                                           | Description                         |
+| --------------------- | ------------------------------------------------------------------------------- | ----------------------------------- |
+| `translator/`         | translator.go, anthropic_to_openai.go, openai_to_anthropic.go                   | Bidirectional format conversion     |
+| `translator/handler/` | handler.go, batch.go, direction.go, errors.go, middleware.go                    | Directional translation             |
+| `moderation/`         | moderation.go                                                                   | Content moderation filtering        |
+| `tokens/`             | tokens.go                                                                       | Token counting and limits           |
+| `context/`            | compressor.go                                                                   | Context window compression          |
+| `embeddings/`         | openai.go, types.go, utils.go, errors.go                                        | Embedding generation                |
+| `batch/`              | batch.go                                                                        | Batch request processing            |
+| `openai/`             | schema.go, formatter.go, stream_formatter.go                                    | OpenAI request/response building    |
+| `anthropic/`          | schema.go, formatter.go                                                         | Anthropic request/response building |
+| `tools/`              | builtin.go, executor.go, loop.go, registry.go, result.go, stream.go, websearch/ | Tool calling                        |
+| `translate/`          | validate.go, errors.go                                                          | Translation validation              |
+| `telemetry/`          | logger.go, span.go                                                              | OpenTelemetry spans                 |
+| `watcher/`            | watcher.go                                                                      | Error observation                   |
