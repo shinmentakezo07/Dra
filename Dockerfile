@@ -44,8 +44,6 @@ RUN npm run build -- --filter=web
 # Stage 3: Production runtime
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache supervisor
-
 WORKDIR /app
 
 # Copy Go backend binary
@@ -56,8 +54,9 @@ COPY --from=frontend-builder /app/apps/web/.next/standalone ./frontend/
 COPY --from=frontend-builder /app/apps/web/.next/static ./frontend/apps/web/.next/static
 COPY --from=frontend-builder /app/apps/web/public ./frontend/apps/web/public
 
-# Copy supervisord config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
 ENV BACKEND_URL=http://localhost:8080
 ENV ALLOWED_ORIGINS=*
@@ -65,4 +64,4 @@ ENV ENV=production
 
 EXPOSE 3000
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/app/start.sh"]
