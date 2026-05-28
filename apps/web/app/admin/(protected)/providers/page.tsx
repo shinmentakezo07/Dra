@@ -62,7 +62,7 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
   };
 
   const createKey = useMutation({
-    mutationFn: (data: Partial<ProviderKey>) =>
+    mutationFn: (data: { label: string; key: string; strategy?: string; weight?: number }) =>
       getAdminSDK().createProviderKey(providerId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "providers"] });
@@ -160,7 +160,7 @@ function ProviderKeysPanel({ providerId }: { providerId: string }) {
                   strategy: form.strategy as ProviderKey["strategy"],
                   weight: form.weight,
                   key: form.key,
-                } as Partial<ProviderKey>);
+                });
               }}
               disabled={!form.label || !form.key || createKey.isPending}
               className="admin-btn admin-btn-primary text-[11px] py-[5px] disabled:opacity-50"
