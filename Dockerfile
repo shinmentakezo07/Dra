@@ -14,11 +14,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server ./cmd/api
 # Stage 2: Build Next.js frontend
 FROM node:20-alpine AS frontend-builder
 
+# Build-time secrets: use dummy values during build; real secrets set at runtime.
+# Railway injects runtime env vars which override these ENV defaults.
 ARG AUTH_SECRET
 ARG NEXTAUTH_SECRET
-ARG BACKEND_URL
-ENV AUTH_SECRET=${AUTH_SECRET}
-ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV AUTH_SECRET=${AUTH_SECRET:-build-placeholder}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-build-placeholder}
 ENV BACKEND_URL=${BACKEND_URL:-http://localhost:8080}
 
 WORKDIR /app
