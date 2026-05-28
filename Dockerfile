@@ -14,6 +14,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server ./cmd/api
 # Stage 2: Build Next.js frontend
 FROM node:20-alpine AS frontend-builder
 
+ARG AUTH_SECRET
+ARG NEXTAUTH_SECRET
+ARG BACKEND_URL
+ENV AUTH_SECRET=${AUTH_SECRET}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV BACKEND_URL=${BACKEND_URL:-http://localhost:8080}
+
 WORKDIR /app
 
 # Copy root workspace files
