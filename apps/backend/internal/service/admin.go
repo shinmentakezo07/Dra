@@ -115,9 +115,86 @@ func (s *AdminService) LoadProvidersFromDB(ctx context.Context, reg *llmprovider
 		if p.Status != domain.ProviderStatusActive || p.BaseURL == "" {
 			continue
 		}
+		if p.ProviderType == "builtin" {
+			continue // already registered at startup via initProviderRegistry
+		}
 		s.registerProviderRuntime(&p)
 	}
 	logger.Info("admin_providers_loaded", "count", len(providers))
+}
+
+// EnsureBuiltinProviders creates DB entries for known LLM-registered providers
+// that don't yet have a row in the providers table. This allows admins to
+// manage models for built-in providers via the admin UI.
+func (s *AdminService) EnsureBuiltinProviders(ctx context.Context) {
+	if s.llmRegistry == nil {
+		return
+	}
+	for _, name := range s.llmRegistry.Providers() {
+		existing, err := s.providerRepo.GetByName(ctx, name)
+		if err != nil {
+			logger.Warn("ensure_builtin_provider_lookup_failed", "provider", name, "error", err.Error())
+			continue
+		}
+		if existing != nil {
+			continue
+		}
+		displayName := name
+		if len(displayName) > 0 {
+			displayName = string(displayName[0]-32) + displayName[1:]
+		}
+		p := &domain.Provider{
+			ID:           domain.NewID(),
+			Name:         name,
+			DisplayName:  displayName,
+			ProviderType: "builtin",
+			Status:       domain.ProviderStatusActive,
+		}
+		if err := s.providerRepo.Create(ctx, p); err != nil {
+			logger.Warn("ensure_builtin_provider_create_failed", "provider", name, "error", err.Error())
+		} else {
+			logger.Info("builtin_provider_seeded", "provider", name, "id", p.ID)
+		}
+	}
+}
+
+// syncModelRegistryOverlay loads all model_registry entries and pushes
+// a status overlay to the LLM registry so that /v1/models reflects
+// the admin's model management decisions.
+func (s *AdminService) SyncModelRegistryOverlay(ctx context.Context) {
+	if s.llmRegistry == nil {
+		return
+	}
+	models, err := s.modelRepo.ListModels(ctx, "")
+	if err != nil {
+		logger.Warn("sync_model_overlay_failed", "error", err.Error())
+		return
+	}
+
+	providers, err := s.providerRepo.List(ctx)
+	if err != nil {
+		logger.Warn("sync_model_overlay_providers_failed", "error", err.Error())
+		return
+	}
+	providerNameByID := make(map[string]string, len(providers))
+	for _, p := range providers {
+		providerNameByID[p.ID] = p.Name
+	}
+
+	overlay := make(map[string]llmprovider.ModelOverlayEntry, len(models))
+	for _, m := range models {
+		provName := providerNameByID[m.ProviderID]
+		if provName == "" {
+			continue
+		}
+		key := provName + "/" + m.ModelID
+		overlay[key] = llmprovider.ModelOverlayEntry{
+			Status:      string(m.Status),
+			DisplayName: m.DisplayName,
+		}
+	}
+	s.llmRegistry.SetModelOverlay(overlay)
+	logger.Info("model_overlay_synced", "entries", len(overlay))
 }
 
 // ─── Users ───
@@ -443,6 +520,7 @@ func (s *AdminService) CreateModel(ctx context.Context, m *domain.ModelRegistry)
 	if err := s.modelRepo.CreateModel(ctx, m); err != nil {
 		return err
 	}
+	s.SyncModelRegistryOverlay(ctx)
 	s.refreshProviderModels(ctx, m.ProviderID)
 	return nil
 }
@@ -451,6 +529,7 @@ func (s *AdminService) UpdateModel(ctx context.Context, m *domain.ModelRegistry)
 	if err := s.modelRepo.UpdateModel(ctx, m); err != nil {
 		return err
 	}
+	s.SyncModelRegistryOverlay(ctx)
 	s.refreshProviderModels(ctx, m.ProviderID)
 	return nil
 }
@@ -463,6 +542,7 @@ func (s *AdminService) UpdateModelStatus(ctx context.Context, id string, status 
 	if err := s.modelRepo.UpdateModelStatus(ctx, id, status, replacementID); err != nil {
 		return err
 	}
+	s.SyncModelRegistryOverlay(ctx)
 	s.refreshProviderModels(ctx, m.ProviderID)
 	return nil
 }
@@ -476,6 +556,7 @@ func (s *AdminService) DeleteModel(ctx context.Context, id string) error {
 	if err := s.modelRepo.DeleteModel(ctx, id); err != nil {
 		return err
 	}
+	s.SyncModelRegistryOverlay(ctx)
 	s.refreshProviderModels(ctx, m.ProviderID)
 	return nil
 }

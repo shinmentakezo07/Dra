@@ -383,11 +383,18 @@ func (p *GenericProvider) ListModels(ctx context.Context) ([]llm.ModelInfo, erro
 	return []llm.ModelInfo{}, nil
 }
 
+// ModelOverlayEntry holds the DB-managed status for a single model.
+type ModelOverlayEntry struct {
+	Status      string
+	DisplayName string
+}
+
 // Registry holds and manages providers.
 type Registry struct {
-	mu        sync.RWMutex
-	providers map[string]llm.Provider
-	models    []llm.ModelInfo
+	mu           sync.RWMutex
+	providers    map[string]llm.Provider
+	models       []llm.ModelInfo
+	modelOverlay map[string]ModelOverlayEntry
 }
 
 // NewRegistry creates a new provider registry.
@@ -456,6 +463,16 @@ func (r *Registry) Providers() []string {
 	return names
 }
 
+// SetModelOverlay sets the model status overlay from the model_registry DB.
+// The key is the fully-qualified model ID (providerName/modelId).
+// Calling this invalidates the model cache.
+func (r *Registry) SetModelOverlay(overlay map[string]ModelOverlayEntry) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.modelOverlay = overlay
+	r.models = nil
+}
+
 // AllModels returns all models from all providers.
 func (r *Registry) AllModels(ctx context.Context) ([]llm.ModelInfo, error) {
 	r.mu.RLock()
@@ -478,6 +495,53 @@ func (r *Registry) AllModels(ctx context.Context) ([]llm.ModelInfo, error) {
 		}
 		all = append(all, models...)
 	}
+
+	// Apply model_registry overlay: set status, filter disabled/private
+	if r.modelOverlay != nil {
+		var filtered []llm.ModelInfo
+		for _, m := range all {
+			if entry, ok := r.modelOverlay[m.ID]; ok {
+				if entry.Status == "disabled" || entry.Status == "private" {
+					continue
+				}
+				m.Status = entry.Status
+				if entry.DisplayName != "" {
+					m.Name = entry.DisplayName
+				}
+			} else {
+				m.Status = "active"
+			}
+			filtered = append(filtered, m)
+		}
+		all = filtered
+	}
+
+	// Append DB-only models (admin-added for built-in providers)
+	if r.modelOverlay != nil {
+		existing := make(map[string]bool, len(all))
+		for _, m := range all {
+			existing[m.ID] = true
+		}
+		for id, entry := range r.modelOverlay {
+			if existing[id] {
+				continue
+			}
+			if entry.Status == "disabled" || entry.Status == "private" {
+				continue
+			}
+			provName, modelID := llm.ParseModelID(id)
+			if provName == "" || modelID == "" {
+				continue
+			}
+			all = append(all, llm.ModelInfo{
+				ID:       id,
+				Name:     entry.DisplayName,
+				Provider: provName,
+				Status:   entry.Status,
+			})
+		}
+	}
+
 	r.models = all
 	result := make([]llm.ModelInfo, len(all))
 	copy(result, all)

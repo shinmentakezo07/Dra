@@ -71,6 +71,27 @@ func (r *AdminProviderRepo) Get(ctx context.Context, id string) (*domain.Provide
 	return &p, nil
 }
 
+func (r *AdminProviderRepo) GetByName(ctx context.Context, name string) (*domain.Provider, error) {
+	var p domain.Provider
+	err := r.db.QueryRow(ctx, `
+		SELECT id, name, display_name, provider_type, base_url, status, priority,
+			timeout_ms, circuit_breaker_enabled, circuit_breaker_threshold,
+			circuit_breaker_recovery_ms, circuit_breaker_half_open_max, max_retries,
+			rate_limit_rpm, rate_limit_tpm, metadata, created_at, updated_at
+		FROM providers WHERE name = $1`, name).
+		Scan(&p.ID, &p.Name, &p.DisplayName, &p.ProviderType, &p.BaseURL, &p.Status,
+			&p.Priority, &p.TimeoutMS, &p.CircuitBreakerEnabled, &p.CircuitBreakerThreshold,
+			&p.CircuitBreakerRecoveryMS, &p.CircuitBreakerHalfOpenMax, &p.MaxRetries,
+			&p.RateLimitRPM, &p.RateLimitTPM, &p.Metadata, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get provider by name: %w", err)
+	}
+	return &p, nil
+}
+
 func (r *AdminProviderRepo) List(ctx context.Context) ([]domain.Provider, error) {
 	key := providerListCacheKey()
 	var list []domain.Provider

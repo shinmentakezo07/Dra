@@ -193,6 +193,7 @@ type ModelInfo struct {
 	SupportsThinking bool     `json:"supports_thinking"`
 	SupportsVision   bool     `json:"supports_vision"`
 	SupportsTools    bool     `json:"supports_tools"`
+	Status           string   `json:"status,omitempty"`
 }
 
 // Provider is the interface for AI backends.

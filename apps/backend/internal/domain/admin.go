@@ -39,6 +39,7 @@ const (
 	ModelStatusDeprecated  ModelStatus = "deprecated"
 	ModelStatusSunset      ModelStatus = "sunset"
 	ModelStatusPrivate     ModelStatus = "private"
+	ModelStatusDisabled    ModelStatus = "disabled"
 )
 
 type AuditAction string

@@ -343,7 +343,9 @@ func initAdminServices(ctx context.Context, database *db.DB, repoCache repositor
 		adminBillingRepo, adminSettingsRepo, adminAuditRepo,
 		adminSecurityRepo, adminFeaturesRepo, adminAuditSvc)
 	adminSvc.SetLLMRuntime(llmRegistry, llmCache, llmWatcher)
+	adminSvc.EnsureBuiltinProviders(ctx)
 	adminSvc.LoadProvidersFromDB(ctx, llmRegistry)
+	adminSvc.SyncModelRegistryOverlay(ctx)
 
 	adminSessionRepo := repository.NewAdminSessionRepo(database)
 	return adminSvc, adminSessionRepo
