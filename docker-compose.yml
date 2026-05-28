@@ -19,54 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - AUTH_SECRET=${AUTH_SECRET}
-      - NEXTAUTH_URL=${NEXTAUTH_URL}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - BACKEND_URL=http://backend:8080
-    env_file:
-      - apps/web/.env.local
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      backend:
-        condition: service_started
-
-  backend:
-    build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
-      - DB_TYPE=${DB_TYPE:-postgres}
-      - DATABASE_URL=${DATABASE_URL}
-      - AUTH_SECRET=${AUTH_SECRET}
-      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ENV=production
-      - RATE_LIMIT_RPM=60
-      - REDIS_URL=redis://redis:6379
-    env_file:
-      - apps/backend/.env
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-
   redis:
     image: redis:7-alpine
     container_name: dra_redis
@@ -80,6 +32,33 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - BACKEND_URL=http://localhost:8080
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - DB_TYPE=${DB_TYPE:-postgres}
+      - ENV=production
+      - RATE_LIMIT_RPM=60
+      - REDIS_URL=redis://redis:6379
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   mongodb:
     image: mongo:7
