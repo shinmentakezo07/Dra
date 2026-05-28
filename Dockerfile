@@ -60,6 +60,8 @@ COPY --from=frontend-builder /app/apps/web/public ./frontend/apps/web/public
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ENV BACKEND_URL=http://localhost:8080
+ENV ALLOWED_ORIGINS=*
+ENV ENV=production
 
 EXPOSE 3000
 
