@@ -19,11 +19,12 @@ WORKDIR /app
 # Copy root workspace files
 COPY package*.json ./
 COPY turbo.json ./
+COPY .npmrc ./
 
 # Copy frontend package files
 COPY apps/web/package*.json ./apps/web/
 
-# Install dependencies
+# Install dependencies (legacy-peer-deps required for next-auth + next canary)
 RUN npm ci
 
 # Copy source code for build
