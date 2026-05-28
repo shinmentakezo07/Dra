@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Send, Trash2, Plus } from "lucide-react";
+import AdminPageHeader from "../../AdminPageHeader";
 
 const PRIORITY_STYLES: Record<string, string> = {
   low: "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
