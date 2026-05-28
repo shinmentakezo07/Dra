@@ -61,6 +61,7 @@ RUN chmod +x /app/start.sh
 ENV BACKEND_URL=http://localhost:8080
 ENV ALLOWED_ORIGINS=*
 ENV ENV=production
+ENV AUTH_TRUST_HOST=true
 
 EXPOSE 3000
 
