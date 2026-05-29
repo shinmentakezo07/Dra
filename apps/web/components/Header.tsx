@@ -27,7 +27,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         {/* Static Header Content matching the initial state */}
         <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
           <div className="flex items-center gap-6 relative z-10">
-            <button className="md:hidden p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+            <button className="md:hidden p-2 text-cyan-400 hover:text-white hover:bg-cyan-500/10 rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50">
               <Menu className="h-5 w-5" />
             </button>
             <Link href="/" className="flex items-center space-x-3 group">
@@ -50,7 +50,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             </nav>
           </div>
           {/* ... Right side content (can be static for hydration) ... */}
-          <div className="flex items-center gap-4 relative z-10">
+          <div className="flex items-center gap-3 relative z-10">
             <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/5 text-gray-400 text-sm w-64">
               <Search className="h-4 w-4" />
               <input
@@ -63,6 +63,27 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 <span>K</span>
               </div>
             </div>
+            {!user && (
+              <Link
+                href="/signup"
+                className="md:hidden relative inline-flex items-center justify-center h-9 px-4 rounded-lg text-xs font-bold tracking-wide text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 uppercase"
+              >
+                Get Started
+              </Link>
+            )}
+            {user && (
+              <Link
+                href="/dashboard"
+                className="md:hidden flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-cyan-500/5 border border-cyan-500/20"
+              >
+                <div className="relative w-7 h-7 rounded-full flex items-center justify-center overflow-hidden border border-cyan-500/30">
+                  <div className="absolute inset-0 bg-cyan-500/20" />
+                  <span className="relative z-10 text-[10px] font-bold text-cyan-400">
+                    {user.name ? user.name[0].toUpperCase() : "U"}
+                  </span>
+                </div>
+              </Link>
+            )}
             <div className="flex gap-3">
               {user ? (
                 <div className="hidden md:flex items-center gap-3">
@@ -121,7 +142,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         >
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+            className="md:hidden p-2 text-cyan-400 hover:text-white hover:bg-cyan-500/10 rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -163,7 +184,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         </div>
 
         <div
-          className="flex items-center gap-4 relative z-10"
+          className="flex items-center gap-3 relative z-10"
           suppressHydrationWarning
         >
           <div
@@ -181,6 +202,31 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               <span>K</span>
             </div>
           </div>
+
+          {/* Mobile CTA - visible when not logged in on small screens */}
+          {!user && (
+            <Link
+              href="/signup"
+              className="md:hidden relative inline-flex items-center justify-center h-9 px-4 rounded-lg text-xs font-bold tracking-wide text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-500/60 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.3)] transition-all duration-300 uppercase"
+            >
+              Get Started
+            </Link>
+          )}
+
+          {/* Mobile user avatar - visible when logged in on small screens */}
+          {user && (
+            <Link
+              href="/dashboard"
+              className="md:hidden flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-cyan-500/5 border border-cyan-500/20 hover:bg-cyan-500/10 transition-all"
+            >
+              <div className="relative w-7 h-7 rounded-full flex items-center justify-center overflow-hidden border border-cyan-500/30">
+                <div className="absolute inset-0 bg-cyan-500/20" />
+                <span className="relative z-10 text-[10px] font-bold text-cyan-400">
+                  {user.name ? user.name[0].toUpperCase() : "U"}
+                </span>
+              </div>
+            </Link>
+          )}
 
           <div className="flex gap-3" suppressHydrationWarning>
             {user ? (
