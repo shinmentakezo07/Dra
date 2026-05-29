@@ -540,3 +540,91 @@ const rightItems = [
 - Active state: `font-semibold` weight shift + 2px gradient bar via `layoutId`. No colored background box.
 - Footer auth buttons: no borders, minimal `bg-white/[0.04]` fill, `strokeWidth: 1.5` icons.
 - Brand footer: `SYS.V.2.04` + `Yapapa — 2026` at `text-white/[0.07]` -- visible but never competing.
+
+---
+
+### [2026-05-29] Session: remove-login-home-btn | fix(ui): remove Home button from login page
+
+**Why**: The login page had redundant "Home" navigation buttons in both the desktop left panel and the mobile layout. Users on the login page don't need a Home button since the Yapapa logo already links to `/`.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/app/login/page.tsx` | L15-22 | modified |
+
+**Before** (`apps/web/app/login/page.tsx` L15-22):
+
+```tsx
+import {
+  Mail,
+  Lock,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ArrowLeft,
+  Home,
+} from "lucide-react";
+```
+
+**After** (`apps/web/app/login/page.tsx` L15-22):
+
+```tsx
+import {
+  Mail,
+  Lock,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+} from "lucide-react";
+```
+
+Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home" text from both the desktop left panel header and the mobile logo section.
+
+---
+
+### [2026-05-29] Session: remove-login-home-btn | fix(ui): remove Home button from signup page
+
+**Why**: Same cleanup as the login page -- redundant "Home" navigation buttons in both desktop left panel and mobile layout. The Yapapa logo already links to `/`.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/app/signup/page.tsx` | L16-27 | modified |
+
+**Before** (`apps/web/app/signup/page.tsx` L16-27):
+
+```tsx
+import {
+  Mail,
+  Lock,
+  User,
+  Loader2,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  ArrowLeft,
+  Home,
+} from "lucide-react";
+```
+
+**After** (`apps/web/app/signup/page.tsx` L16-27):
+
+```tsx
+import {
+  Mail,
+  Lock,
+  User,
+  Loader2,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+} from "lucide-react";
+```
+
+Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home" text from both the desktop left panel header and the mobile logo section.
