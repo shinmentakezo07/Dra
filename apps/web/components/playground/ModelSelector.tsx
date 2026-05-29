@@ -82,14 +82,14 @@ function ProviderSidebar({
     <div className="flex flex-col h-full">
       <div className="shrink-0 px-2 pb-2">
         <div className="flex items-center gap-2.5 px-2 py-1.5">
-          <div className="relative w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-600/10 flex items-center justify-center ring-1 ring-indigo-500/20">
-            <Layers className="w-3.5 h-3.5 text-indigo-300" />
+          <div className="relative w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center border border-white/[0.06]">
+            <Layers className="w-3.5 h-3.5 text-white/25" />
           </div>
           <div>
-            <h2 className="text-[10px] font-bold text-white/80 tracking-[0.15em] uppercase leading-tight">
+            <h2 className="text-[10px] font-bold text-white/60 tracking-[0.15em] uppercase leading-tight">
               Providers
             </h2>
-            <p className="text-[8px] text-gray-600 font-mono leading-tight">
+            <p className="text-[8px] text-white/15 font-mono leading-tight">
               {modelCount} models
             </p>
           </div>
@@ -106,17 +106,17 @@ function ProviderSidebar({
           <div
             className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
               active === null
-                ? "bg-white text-black shadow-lg shadow-white/10"
-                : "bg-white/[0.04] text-gray-600 group-hover:bg-white/[0.07]"
+                ? "bg-white/[0.12] text-white shadow-[0_0_12px_-2px_rgba(255,255,255,0.15)]"
+                : "bg-white/[0.03] text-gray-600 group-hover:bg-white/[0.06]"
             }`}
           >
             <LayoutGrid className="w-3.5 h-3.5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-semibold text-white/90 leading-tight">
+            <div className="text-[11px] font-semibold text-white/80 leading-tight">
               All Models
             </div>
-            <div className="text-[9px] text-gray-600 font-mono">
+            <div className="text-[9px] text-white/20 font-mono">
               {models.length} available
             </div>
           </div>
@@ -326,15 +326,15 @@ function ModelCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className={`relative w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden shrink-0 transition-all duration-500 ${
-                isSelected ? "scale-100" : "scale-100 group-hover:scale-105"
+              className={`relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 transition-all duration-500 ${
+                isSelected ? "scale-100" : "scale-100 group-hover:scale-[1.04]"
               }`}
               style={{
                 background: isSelected
                   ? `linear-gradient(135deg, ${color}25, ${color}08)`
-                  : "rgba(255,255,255,0.03)",
+                  : "rgba(255,255,255,0.025)",
                 boxShadow: isSelected
-                  ? `0 0 20px ${color}20, inset 0 1px 0 ${color}20`
+                  ? `0 0 24px -4px ${color}25, inset 0 1px 0 ${color}20`
                   : "none",
               }}
             >
@@ -424,13 +424,13 @@ function ModelCard({
         )}
 
         {/* Metrics bar */}
-        <div className="flex items-center gap-4 pt-3 border-t border-white/[0.04]">
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <Cpu className="w-3.5 h-3.5 opacity-50" />
+        <div className="flex items-center gap-4 pt-3 border-t border-white/[0.03]">
+          <div className="flex items-center gap-1.5 text-white/30">
+            <Cpu className="w-3.5 h-3.5 opacity-40" />
             <span className="text-[10px] font-mono tracking-tight">{ctx}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-gray-600">
-            <DollarSign className="w-3.5 h-3.5 opacity-40" />
+          <div className="flex items-center gap-1.5 text-white/20">
+            <DollarSign className="w-3.5 h-3.5 opacity-30" />
             <span className="text-[10px] font-mono tracking-tight">
               {formatPrice(model.pricing?.prompt)}
             </span>
@@ -581,6 +581,9 @@ export default function ModelSelector({
                 "0 0 80px rgba(0,0,0,0.5), 0 0 200px rgba(99,102,241,0.03)",
             }}
           >
+            {/* Top accent strip */}
+            <div className="shrink-0 h-[2px] w-full bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
             {/* Header bar */}
             <div className="shrink-0 relative border-b border-white/[0.05] bg-[#08080e]/80 backdrop-blur-2xl">
               <div className="absolute bottom-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-indigo-500/15 to-transparent" />
@@ -599,7 +602,7 @@ export default function ModelSelector({
                         setCategoryFilter(null);
                       }}
                       placeholder="Search models..."
-                      className="w-full bg-white/[0.04] border border-white/[0.06] focus:border-indigo-500/30 rounded-xl pl-10 pr-10 py-2.5 text-[13px] text-white/90 placeholder:text-gray-600 outline-none transition-all duration-300 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.05)]"
+                      className="w-full bg-white/[0.03] border border-white/[0.06] focus:border-indigo-500/30 rounded-xl pl-10 pr-10 py-2.5 text-[13px] text-white/90 placeholder:text-gray-600 outline-none transition-all duration-300 focus:bg-white/[0.05] focus:shadow-[0_0_24px_-4px_rgba(99,102,241,0.08)]"
                     />
                     {searchQuery && (
                       <button
@@ -655,7 +658,7 @@ export default function ModelSelector({
 
             <div className="flex-1 flex overflow-hidden">
               {/* Provider sidebar - desktop */}
-              <div className="hidden lg:flex flex-col w-[220px] min-w-0 shrink-0 border-r border-white/[0.04] bg-[#08080e]/40 p-2 min-h-0">
+              <div className="hidden lg:flex flex-col w-[230px] min-w-0 shrink-0 border-r border-white/[0.04] bg-[#08080e]/40 p-2 min-h-0">
                 <ProviderSidebar
                   providers={providers}
                   models={models}
@@ -685,8 +688,8 @@ export default function ModelSelector({
                           }}
                           className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-200 ${
                             isActive
-                              ? "bg-white/[0.08] text-white ring-1 ring-white/10"
-                              : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.03]"
+                              ? "bg-white/[0.07] text-white/90 shadow-[0_0_12px_-4px_rgba(255,255,255,0.1)]"
+                              : "text-white/25 hover:text-white/50 hover:bg-white/[0.03]"
                           }`}
                         >
                           <Icon className="w-3.5 h-3.5" />
@@ -799,8 +802,8 @@ export default function ModelSelector({
                             damping: 20,
                           }}
                         >
-                          <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 bg-gradient-to-br from-indigo-500/8 to-blue-500/5 border border-indigo-500/10 ring-1 ring-indigo-500/5">
-                            <BrainCircuit className="w-10 h-10 text-gray-600" />
+                          <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 bg-gradient-to-br from-indigo-500/[0.06] to-blue-500/[0.04] border border-indigo-500/[0.08]">
+                            <BrainCircuit className="w-10 h-10 text-white/15" />
                           </div>
                         </motion.div>
                         <p className="text-base text-gray-400 font-semibold mb-1">
@@ -839,10 +842,10 @@ export default function ModelSelector({
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="flex items-center gap-2 text-gray-600"
+                      className="flex items-center gap-2.5 text-white/20"
                     >
-                      <div className="w-5 h-5 rounded-md border border-dashed border-white/[0.08] flex items-center justify-center">
-                        <span className="text-[9px]">✦</span>
+                      <div className="w-5 h-5 rounded-md border border-dashed border-white/[0.06] flex items-center justify-center">
+                        <span className="text-[9px] opacity-50">✦</span>
                       </div>
                       <span className="text-[11px] font-mono">
                         Select up to {MAX_MODELS} models to compare
@@ -948,8 +951,9 @@ export default function ModelSelector({
                   className="relative flex items-center gap-2.5 px-5 sm:px-6 py-2.5 disabled:opacity-20 disabled:cursor-not-allowed rounded-xl text-[13px] font-semibold overflow-hidden shrink-0 group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600 transition-all duration-500 group-hover:from-indigo-500 group-hover:via-blue-500 group-hover:to-violet-500" />
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.1),transparent)]" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12),transparent)]" />
                   <div className="absolute inset-[1px] rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600" />
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: "0 0 24px -4px rgba(99,102,241,0.25)" }} />
                   <Zap className="w-4 h-4 relative z-10 text-white" />
                   <span className="relative z-10 text-white whitespace-nowrap">
                     {pending.length > 0
