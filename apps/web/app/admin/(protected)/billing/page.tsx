@@ -6,6 +6,12 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { DollarSign, CreditCard, History, Loader2 } from "lucide-react";
 import type { CreditAdjustment } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminPageShell,
+  AdminSection,
+  AdminEmptyState,
+  fadeUp,
+} from "@/components/admin/AdminUI";
 
 export default function AdminBillingPage() {
   const queryClient = useQueryClient();
@@ -41,22 +47,17 @@ export default function AdminBillingPage() {
     >
       <div className="space-y-5">
         {/* Revenue Summary */}
-        <div className="admin-card p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="rounded-[10px] bg-emerald-500/[0.06] border border-emerald-500/10 p-2.5 text-emerald-400/70">
-              <DollarSign className="h-[18px] w-[18px]" />
+        <AdminSection
+          title="Revenue Summary"
+          subtitle="Track platform revenue and transaction metrics"
+          action={
+            <div className="w-9 h-9 rounded-[10px] bg-emerald-500/[0.06] border border-emerald-500/10 flex items-center justify-center">
+              <DollarSign className="h-4 w-4 text-emerald-400/70" />
             </div>
-            <div>
-              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
-                Revenue Summary
-              </h2>
-              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
-                Track platform revenue and transaction metrics
-              </p>
-            </div>
-          </div>
+          }
+        >
           <div className="rounded-[14px] border border-dashed border-[var(--admin-border)] bg-white/[0.008] p-10 text-center">
-            <DollarSign className="mx-auto h-8 w-8 text-[var(--admin-text-dim)]" />
+            <DollarSign className="mx-auto h-8 w-8 text-[var(--admin-text-dim)] opacity-40" />
             <p className="mt-3 text-[13px] font-medium text-[var(--admin-text-muted)]">
               Coming Soon
             </p>
@@ -65,23 +66,18 @@ export default function AdminBillingPage() {
               exportable billing reports will appear here.
             </p>
           </div>
-        </div>
+        </AdminSection>
 
         {/* Manual Credit Adjustment */}
-        <div className="admin-card p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="rounded-[10px] bg-indigo-500/[0.06] border border-indigo-500/10 p-2.5 text-indigo-400/70">
-              <CreditCard className="h-[18px] w-[18px]" />
+        <AdminSection
+          title="Manual Credit Adjustment"
+          subtitle="Add or remove credits from any user account"
+          action={
+            <div className="w-9 h-9 rounded-[10px] bg-blue-500/[0.06] border border-blue-500/10 flex items-center justify-center">
+              <CreditCard className="h-4 w-4 text-blue-400/70" />
             </div>
-            <div>
-              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
-                Manual Credit Adjustment
-              </h2>
-              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
-                Add or remove credits from any user account
-              </p>
-            </div>
-          </div>
+          }
+        >
 
           <form onSubmit={handleAdjust} className="space-y-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -142,24 +138,18 @@ export default function AdminBillingPage() {
               </p>
             )}
           </form>
-        </div>
+        </AdminSection>
 
         {/* Recent Adjustments */}
-        <div className="admin-card p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="rounded-[10px] bg-violet-500/[0.06] border border-violet-500/10 p-2.5 text-violet-400/70">
-              <History className="h-[18px] w-[18px]" />
+        <AdminSection
+          title="Recent Adjustments"
+          subtitle="Credit adjustments applied in this session"
+          action={
+            <div className="w-9 h-9 rounded-[10px] bg-violet-500/[0.06] border border-violet-500/10 flex items-center justify-center">
+              <History className="h-4 w-4 text-violet-400/70" />
             </div>
-            <div>
-              <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
-                Recent Adjustments
-              </h2>
-              <p className="text-[11px] text-[var(--admin-text-dim)] font-mono">
-                Credit adjustments applied in this session
-              </p>
-            </div>
-          </div>
-
+          }
+        >
           {adjustments.length === 0 ? (
             <div className="rounded-[14px] border border-dashed border-[var(--admin-border)] bg-white/[0.008] p-8 text-center">
               <p className="text-[12px] text-[var(--admin-text-dim)]">
@@ -206,7 +196,7 @@ export default function AdminBillingPage() {
               </table>
             </div>
           )}
-        </div>
+        </AdminSection>
       </div>
     </AdminPageHeader>
   );

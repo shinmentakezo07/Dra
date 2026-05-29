@@ -3,6 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 export default function AdminAdminsPage() {
   const {
@@ -15,25 +19,16 @@ export default function AdminAdminsPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading admins" />;
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error
-            ? error.message
-            : "Failed to load admin users"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Users}
+        title="Failed to load admins"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -43,16 +38,11 @@ export default function AdminAdminsPage() {
       subtitle="Manage administrator accounts"
     >
       {!admins || admins.length === 0 ? (
-        <div className="admin-card flex items-center justify-center min-h-[300px]">
-          <div className="text-center">
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No admin users found
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              No administrator accounts have been created yet
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={Users}
+          title="No admin users"
+          description="No administrator accounts have been created yet"
+        />
       ) : (
         <div className="admin-table">
           <table className="w-full">

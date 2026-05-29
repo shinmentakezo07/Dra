@@ -5,6 +5,10 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Info, CheckCircle, XCircle } from "lucide-react";
 import type { ScheduledReport } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 export default function AdminReportsPage() {
   const {
@@ -17,23 +21,16 @@ export default function AdminReportsPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading reports" />;
   }
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error ? error.message : "Failed to load reports"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Info}
+        title="Failed to load reports"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -43,17 +40,11 @@ export default function AdminReportsPage() {
       subtitle="Automated report scheduling and delivery"
     >
       {!reports || reports.length === 0 ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center">
-            <Info className="mx-auto h-9 w-9 text-[var(--admin-text-dim)]" />
-            <p className="mt-3 text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No scheduled reports
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              Create your first scheduled report to automate data delivery
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={Info}
+          title="No scheduled reports"
+          description="Create your first scheduled report to automate data delivery"
+        />
       ) : (
         <div className="admin-table">
           <table className="w-full">

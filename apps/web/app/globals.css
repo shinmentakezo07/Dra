@@ -564,6 +564,156 @@ textarea[data-autoresize] {
   background-clip: text;
 }
 
+/* ─── Dashboard: Hero Metric ─── */
+.admin-hero-metric {
+  border-color: rgba(59, 130, 246, 0.06);
+  background: linear-gradient(
+    135deg,
+    var(--admin-surface) 0%,
+    rgba(59, 130, 246, 0.015) 100%
+  );
+}
+.admin-hero-metric:hover {
+  border-color: rgba(59, 130, 246, 0.1);
+}
+.admin-hero-value {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--admin-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Dashboard: Compact Stat ─── */
+.admin-compact-stat {
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
+.admin-compact-stat:hover {
+  border-color: var(--admin-border-hover);
+  transform: translateY(-1px);
+}
+
+/* ─── Dashboard: Status Strip ─── */
+.admin-status-strip {
+  border-color: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.008);
+}
+
+/* ─── Dashboard: Live Badge ─── */
+.admin-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(59, 130, 246, 0.7);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(124, 58, 237, 0.04));
+  border: 1px solid rgba(59, 130, 246, 0.08);
+}
+.admin-live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: admin-pulse-dot 2s ease-in-out infinite;
+}
+
+/* ─── Dashboard: View All Link ─── */
+.admin-view-all-link {
+  color: rgba(59, 130, 246, 0.4);
+}
+.admin-view-all-link:hover {
+  color: rgba(59, 130, 246, 0.8);
+}
+
+/* ─── Dashboard: Command Button ─── */
+.admin-command-btn:hover svg {
+  opacity: 0.8 !important;
+}
+
+/* ─── Admin: Stat Highlight ─── */
+.admin-stat-highlight {
+  border-color: rgba(59, 130, 246, 0.06);
+  background: linear-gradient(
+    135deg,
+    var(--admin-surface) 0%,
+    rgba(59, 130, 246, 0.012) 100%
+  );
+}
+.admin-stat-highlight:hover {
+  border-color: rgba(59, 130, 246, 0.1);
+}
+
+/* ─── Admin: Empty State ─── */
+.admin-empty-state {
+  border-style: dashed;
+  border-color: var(--admin-border);
+  background: rgba(255, 255, 255, 0.004);
+}
+
+/* ─── Admin: Tab Nav Enhanced ─── */
+.admin-tab-nav {
+  backdrop-filter: blur(8px);
+}
+.admin-tab-active {
+  box-shadow: 0 0 12px -4px rgba(59, 130, 246, 0.15);
+}
+
+/* ─── Admin: Table Enhanced ─── */
+.admin-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--admin-surface);
+}
+
+/* ─── Admin: Card Hover Glow ─── */
+.admin-card-glow:hover {
+  box-shadow:
+    0 0 40px -12px rgba(59, 130, 246, 0.08),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Admin: Form Section ─── */
+.admin-form-section {
+  border-color: rgba(59, 130, 246, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.01) 0%,
+    rgba(124, 58, 237, 0.008) 100%
+  );
+}
+
+/* ─── Admin: Info Banner ─── */
+.admin-info-banner {
+  background: rgba(59, 130, 246, 0.03);
+  border-color: rgba(59, 130, 246, 0.06);
+  border-radius: var(--admin-radius);
+}
+
+/* ─── Admin: Keyboard Shortcut ─── */
+.admin-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  font-size: 9px;
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  color: var(--admin-text-dim);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  line-height: 1;
+}
+
 /* Admin stagger animation helper */
 @keyframes admin-fade-up {
   from {
@@ -627,6 +777,23 @@ textarea[data-autoresize] {
   z-index: 1;
   opacity: 0.5;
   border-radius: inherit;
+}
+
+/* ─── Dashboard: Responsive ─── */
+@media (max-width: 1024px) {
+  .admin-hero-value {
+    font-size: 32px;
+  }
+  .admin-status-strip {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-hero-value {
+    font-size: 28px;
+  }
 }
 
 /* Reduced motion overrides — respect user preferences */

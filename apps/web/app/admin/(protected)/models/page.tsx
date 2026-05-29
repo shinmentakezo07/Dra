@@ -6,6 +6,12 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Search, Check, Plus, Pencil, Trash2 } from "lucide-react";
 import type { ModelRegistry, ModelAlias, ModelStatus } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminTabNav,
+  AdminCenterLoading,
+  AdminEmptyState,
+  AdminTableLoading,
+} from "@/components/admin/AdminUI";
 
 const statusConfig: Record<string, { label: string; classes: string }> = {
   active: {
@@ -445,32 +451,14 @@ export default function AdminModelsPage() {
       subtitle="Model registry and alias management"
     >
       {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-[12px] border border-[var(--admin-border)] bg-white/[0.01] p-1 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 rounded-[9px] px-4 py-2 text-[12px] font-medium transition-all duration-200 ${
-              activeTab === tab.key
-                ? "bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10"
-                : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent"
-            }`}
-          >
-            {tab.label}
-            {tab.count !== undefined && (
-              <span
-                className={`rounded-[5px] px-1.5 py-[1px] text-[10px] font-semibold ${
-                  activeTab === tab.key
-                    ? "bg-indigo-500/10 text-indigo-400"
-                    : "bg-white/[0.03] text-[var(--admin-text-dim)]"
-                }`}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <AdminTabNav
+        tabs={[
+          { key: "registry", label: "Model Registry", count: models?.length },
+          { key: "aliases", label: "Aliases", count: aliases?.length },
+        ]}
+        active={activeTab}
+        onChange={(key) => setActiveTab(key as "registry" | "aliases")}
+      />
 
       {activeTab === "registry" && (
         <div>
@@ -516,20 +504,13 @@ export default function AdminModelsPage() {
           )}
 
           {modelsLoading ? (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-                <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-              </div>
-            </div>
+            <AdminTableLoading rows={6} cols={8} />
           ) : modelsError ? (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <p className="text-[13px] text-red-400/70">
-                {modelsError instanceof Error
-                  ? modelsError.message
-                  : "Failed to load models"}
-              </p>
-            </div>
+            <AdminEmptyState
+              icon={Activity}
+              title="Failed to load models"
+              description={modelsError instanceof Error ? modelsError.message : "An error occurred"}
+            />
           ) : (
             <div className="admin-table">
               <table className="w-full">
@@ -685,20 +666,13 @@ export default function AdminModelsPage() {
           )}
 
           {aliasesLoading ? (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-                <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-              </div>
-            </div>
+            <AdminTableLoading rows={4} cols={6} />
           ) : aliasesError ? (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <p className="text-[13px] text-red-400/70">
-                {aliasesError instanceof Error
-                  ? aliasesError.message
-                  : "Failed to load aliases"}
-              </p>
-            </div>
+            <AdminEmptyState
+              icon={Activity}
+              title="Failed to load aliases"
+              description={aliasesError instanceof Error ? aliasesError.message : "An error occurred"}
+            />
           ) : (
             <div className="admin-table">
               <table className="w-full">

@@ -6,6 +6,11 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Settings, Flag, Globe, Save, Pencil } from "lucide-react";
 import type { SystemSetting, FeatureFlag } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminTabNav,
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 function DocsBaseUrlCard({
   setting,
@@ -130,30 +135,14 @@ export default function AdminSettingsPage() {
       subtitle="System configuration and feature flags"
     >
       {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-[12px] border border-[var(--admin-border)] bg-white/[0.01] p-1 w-fit">
-        <button
-          onClick={() => setActiveTab("system")}
-          className={`flex items-center gap-2 rounded-[9px] px-4 py-2 text-[12px] font-medium transition-all duration-200 ${
-            activeTab === "system"
-              ? "bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10"
-              : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent"
-          }`}
-        >
-          <Settings className="h-3.5 w-3.5" />
-          System Settings
-        </button>
-        <button
-          onClick={() => setActiveTab("flags")}
-          className={`flex items-center gap-2 rounded-[9px] px-4 py-2 text-[12px] font-medium transition-all duration-200 ${
-            activeTab === "flags"
-              ? "bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10"
-              : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent"
-          }`}
-        >
-          <Flag className="h-3.5 w-3.5" />
-          Feature Flags
-        </button>
-      </div>
+      <AdminTabNav
+        tabs={[
+          { key: "system", label: "System Settings", icon: Settings },
+          { key: "flags", label: "Feature Flags", icon: Flag },
+        ]}
+        active={activeTab}
+        onChange={(key) => setActiveTab(key as "system" | "flags")}
+      />
 
       {activeTab === "system" ? <SystemSettingsTab /> : <FeatureFlagsTab />}
     </AdminPageHeader>
@@ -181,25 +170,16 @@ function SystemSettingsTab() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading settings" />;
   }
 
   if (error || !settings) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error
-            ? error.message
-            : "Failed to load system settings"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Settings}
+        title="Failed to load settings"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -282,37 +262,27 @@ function FeatureFlagsTab() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading feature flags" />;
   }
 
   if (error || !flags) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error
-            ? error.message
-            : "Failed to load feature flags"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Flag}
+        title="Failed to load feature flags"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
   return (
     <div className="space-y-2.5">
       {flags.length === 0 ? (
-        <div className="admin-card border-dashed border-[var(--admin-border)] p-8 text-center">
-          <Flag className="mx-auto h-7 w-7 text-[var(--admin-text-dim)]" />
-          <p className="mt-3 text-[13px] text-[var(--admin-text-dim)]">
-            No feature flags configured.
-          </p>
-        </div>
+        <AdminEmptyState
+          icon={Flag}
+          title="No feature flags"
+          description="Feature flags will appear here once configured"
+        />
       ) : (
         flags.map((flag) => (
           <div

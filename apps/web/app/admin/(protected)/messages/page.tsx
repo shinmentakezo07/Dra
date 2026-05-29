@@ -5,6 +5,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Send, Trash2, Plus } from "lucide-react";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 const PRIORITY_STYLES: Record<string, string> = {
   low: "text-[var(--admin-text-dim)] bg-white/[0.03] border border-white/[0.04]",
@@ -78,23 +82,16 @@ export default function AdminMessagesPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading messages" />;
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error ? error.message : "Failed to load messages"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Send}
+        title="Failed to load messages"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -227,16 +224,11 @@ export default function AdminMessagesPage() {
       )}
 
       {!data || data.data.length === 0 ? (
-        <div className="admin-card flex items-center justify-center min-h-[300px]">
-          <div className="text-center">
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No messages
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              Send your first message to users
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={Send}
+          title="No messages"
+          description="Send your first message to users"
+        />
       ) : (
         <div className="space-y-3">
           {data.data.map((msg) => (

@@ -760,3 +760,121 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 ```
 
 **Verification**: `make build` passes, pushed as `aafaf4b`.
+
+---
+
+### [2026-05-29] Session: admin-dashboard-ui-enhancement | feat(ui): redesign admin dashboard with editorial layout
+
+**Why**: The admin dashboard used a generic 4-column stat card grid that felt like a SaaS template. Replaced with an asymmetric editorial layout: dominant hero metric, compact supporting stats, system health strip, activity feed, and command palette for a bespoke, high-information-density experience.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/app/admin/(protected)/dashboard/page.tsx` | ~520 lines | modified — complete rewrite of dashboard layout and components |
+| `apps/web/app/globals.css` | ~65 lines | modified — added dashboard-specific design tokens and responsive styles |
+
+**Design decisions**:
+- **Hero metric**: Revenue as the dominant element (42px monospace numeral, 24-hour bar visualization) — the metric that matters most gets the most space
+- **System status strip**: Full-width health bar showing provider status at a glance — operators need system health visible without scrolling
+- **Compact stats**: Users, Requests, Providers as 3 stacked cards with colored dots — supporting metrics that don't compete with the hero
+- **Platform Pulse**: Request metrics with progress bar and token breakdown — data-dense without clutter
+- **Activity feed**: Timeline of recent registrations with hover-reveal timestamps — progressive disclosure reduces visual noise
+- **Commands**: 2x3 grid with keyboard shortcut hints — quick navigation without card bloat
+- **Removed**: Generic `StatCard` component (hero-metric anti-pattern), `QuickActionCard` (replaced with command grid)
+
+**Before** (page.tsx structure):
+```tsx
+// 4-column generic stat cards
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <StatCard icon={Users} label="Total Users" value={...} />
+  <StatCard icon={Zap} label="Requests Today" value={...} />
+  <StatCard icon={DollarSign} label="Revenue Today" value={...} />
+  <StatCard icon={ShieldCheck} label="Providers Online" value={...} />
+</div>
+// 2-column: Recent Users (2/3) + Quick Actions (1/3)
+```
+
+**After** (page.tsx structure):
+```tsx
+// System status strip (full width)
+<SystemStatusStrip stats={stats} />
+// Asymmetric grid: Hero (5/12) + Compact Stats (3/12) + Pulse (4/12)
+<div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+  <HeroMetric stats={stats} />
+  <CompactStat /> <CompactStat /> <CompactStat />
+  <PlatformPulse stats={stats} />
+</div>
+// Activity (2/3) + Commands (1/3)
+<ActivityFeed usersData={usersData?.data} />
+<QuickCommands />
+```
+
+**New CSS** (globals.css):
+```css
+.admin-hero-metric { border-color: rgba(59, 130, 246, 0.06); background: linear-gradient(135deg, var(--admin-surface) 0%, rgba(59, 130, 246, 0.015) 100%); }
+.admin-hero-value { font-size: 42px; font-weight: 700; letter-spacing: -0.035em; }
+.admin-compact-stat:hover { border-color: var(--admin-border-hover); transform: translateY(-1px); }
+.admin-status-strip { border-color: rgba(255, 255, 255, 0.03); background: rgba(255, 255, 255, 0.008); }
+.admin-live-badge { ... } .admin-live-dot { animation: admin-pulse-dot 2s ease-in-out infinite; }
+.admin-command-btn:hover svg { opacity: 0.8 !important; }
+```
+
+**Verification**: `npm run build` passes (37.5s), `npm run test:web` passes (296 tests, 24 files).
+
+---
+
+### [2026-05-29] Session: admin-ui-enhancement | feat(ui): enhance all admin pages with shared components and visual consistency
+
+**Why**: Admin pages had repetitive loading spinners, inconsistent empty states, and duplicated tab navigation patterns. Created a shared component library and applied it across all 18 admin pages for visual consistency and reduced code duplication.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/components/admin/AdminUI.tsx` | ~280 lines | created — shared admin UI components |
+| `apps/web/app/globals.css` | ~50 lines | modified — added enhanced admin CSS tokens |
+| `apps/web/app/admin/(protected)/users/page.tsx` | ~20 lines | modified — uses AdminTableLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/providers/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/models/page.tsx` | ~30 lines | modified — uses AdminTabNav, AdminTableLoading |
+| `apps/web/app/admin/(protected)/billing/page.tsx` | ~40 lines | modified — uses AdminSection, AdminEmptyState |
+| `apps/web/app/admin/(protected)/cost/page.tsx` | ~30 lines | modified — uses AdminStat, AdminCenterLoading |
+| `apps/web/app/admin/(protected)/security/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/audit/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/logs/page.tsx` | ~15 lines | modified — uses AdminTableLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/settings/page.tsx` | ~30 lines | modified — uses AdminTabNav, AdminCenterLoading |
+| `apps/web/app/admin/(protected)/operations/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/messages/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/promos/page.tsx` | ~10 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/ip/page.tsx` | ~20 lines | modified — uses AdminTabNav, AdminCenterLoading |
+| `apps/web/app/admin/(protected)/announcements/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/changelog/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/reports/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/admins/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/sso/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+
+**New shared components** (`components/admin/AdminUI.tsx`):
+- `AdminLoading` / `AdminTableLoading` / `AdminCenterLoading` — skeleton loaders with consistent animation
+- `AdminEmptyState` — dashed-border empty state with icon, title, description, optional action
+- `AdminError` — error state with retry button
+- `AdminStat` — compact stat card with icon, accent color, highlight variant
+- `AdminSection` — card wrapper with title/subtitle/action header
+- `AdminTabNav` — tab navigation with count badges and icon support
+- `AdminPageShell` — staggered animation wrapper
+- `AdminStatusDot` — animated status indicator
+- `AdminViewAll` — consistent "view all" link
+- Exported animation presets: `stagger`, `fadeUp`, `fadeIn`
+
+**New CSS** (`globals.css`):
+```css
+.admin-stat-highlight { /* blue-tinted gradient background */ }
+.admin-empty-state { /* dashed border, subtle background */ }
+.admin-tab-nav { backdrop-filter: blur(8px); }
+.admin-tab-active { box-shadow: 0 0 12px -4px rgba(59,130,246,0.15); }
+.admin-table thead { position: sticky; top: 0; z-index: 2; }
+.admin-form-section { /* blue/violet gradient background */ }
+.admin-info-banner { /* blue-tinted info banner */ }
+.admin-kbd { /* keyboard shortcut badge */ }
+```
+
+**Verification**: `npm run build` passes (35.5s), `npm run test:web` passes (296 tests, 24 files).

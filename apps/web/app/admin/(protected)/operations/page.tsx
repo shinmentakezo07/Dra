@@ -5,6 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { RefreshCw, CheckCircle, XCircle, Info } from "lucide-react";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+  AdminSection,
+} from "@/components/admin/AdminUI";
 
 interface CacheStats {
   entries: number;
@@ -48,14 +53,7 @@ export default function AdminOperationsPage() {
   const isLoading = cacheLoading || webhookLoading;
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading operations" />;
   }
 
   const logs: WebhookLogEntry[] = Array.isArray(webhookLogs)
@@ -121,14 +119,11 @@ export default function AdminOperationsPage() {
             Webhook Deliveries
           </h2>
           {!logs || logs.length === 0 ? (
-            <div className="flex min-h-[200px] items-center justify-center">
-              <div className="text-center">
-                <Info className="mx-auto h-7 w-7 text-[var(--admin-text-dim)]" />
-                <p className="mt-2 text-[12px] text-[var(--admin-text-dim)]">
-                  No webhook deliveries yet
-                </p>
-              </div>
-            </div>
+            <AdminEmptyState
+              icon={Info}
+              title="No webhook deliveries"
+              description="Webhook delivery logs will appear here"
+            />
           ) : (
             <div className="admin-table !border-0 !bg-transparent !rounded-[12px]">
               <table className="w-full">

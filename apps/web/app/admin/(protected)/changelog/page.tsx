@@ -5,6 +5,10 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { cn } from "@/lib/utils";
 import type { ChangelogEntry } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 const TYPE_STYLES: Record<string, string> = {
   new: "text-emerald-400 bg-emerald-500/8 border border-emerald-500/15",
@@ -22,39 +26,27 @@ export default function AdminChangelogPage() {
   const entries = data ?? [];
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading changelog" />;
   }
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error ? error.message : "Failed to load changelog"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={FileText}
+        title="Failed to load changelog"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
   return (
     <AdminPageHeader title="Changelog" subtitle="API changelog management">
       {entries.length === 0 ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center">
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No changelog entries
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              Changelog entries will appear here once published
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={FileText}
+          title="No changelog entries"
+          description="Changelog entries will appear here once published"
+        />
       ) : (
         <div className="space-y-3">
           {entries.map((entry) => (

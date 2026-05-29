@@ -5,6 +5,11 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import type { AuditLog } from "@/types/admin";
 import type { PaginatedResult } from "@/lib/api/admin-sdk";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+  AdminTableLoading,
+} from "@/components/admin/AdminUI";
 
 const severityConfig: Record<string, { bg: string; text: string }> = {
   info: { bg: "bg-indigo-500/8", text: "text-indigo-400" },
@@ -34,23 +39,16 @@ export default function AdminAuditPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading audit logs" />;
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error ? error.message : "Failed to load audit logs"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={FileText}
+        title="Failed to load audit logs"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -62,11 +60,11 @@ export default function AdminAuditPage() {
       subtitle="Complete audit log of all admin actions"
     >
       {logs.length === 0 ? (
-        <div className="admin-card flex items-center justify-center min-h-[200px]">
-          <p className="text-[13px] text-[var(--admin-text-muted)]">
-            No audit log entries found
-          </p>
-        </div>
+        <AdminEmptyState
+          icon={FileText}
+          title="No audit entries"
+          description="Admin actions will be logged here as they occur"
+        />
       ) : (
         <div className="admin-table">
           <table className="w-full">

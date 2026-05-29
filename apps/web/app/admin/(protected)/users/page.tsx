@@ -13,11 +13,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type { AdminUserDetail, PaginatedResponse } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminPageShell,
+  AdminCenterLoading,
+  AdminEmptyState,
+  AdminTableLoading,
+  fadeUp,
+} from "@/components/admin/AdminUI";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All Status" },
@@ -208,32 +216,23 @@ export default function AdminUsersPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-            <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-          </div>
-        </div>
+        <AdminTableLoading rows={8} cols={6} />
       ) : error ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <p className="text-[13px] text-red-400/70">
-            {error instanceof Error ? error.message : "Failed to load users"}
-          </p>
-        </div>
+        <AdminEmptyState
+          icon={Users}
+          title="Failed to load users"
+          description={error instanceof Error ? error.message : "An error occurred"}
+        />
       ) : users.length === 0 ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center">
-            <Users className="mx-auto w-10 h-10 text-[var(--admin-text-dim)] mb-3" />
-            <p className="text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No users found
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              {debouncedQuery || statusFilter
-                ? "Try adjusting your search or filters"
-                : "No users have registered yet"}
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={UserPlus}
+          title="No users found"
+          description={
+            debouncedQuery || statusFilter
+              ? "Try adjusting your search or filters"
+              : "No users have registered yet"
+          }
+        />
       ) : (
         <motion.div
           initial={{ opacity: 0, y: 8 }}

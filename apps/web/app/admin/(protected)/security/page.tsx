@@ -5,6 +5,11 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import type { SuspiciousActivity } from "@/types/admin";
 import type { PaginatedResult } from "@/lib/api/admin-sdk";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+  AdminTableLoading,
+} from "@/components/admin/AdminUI";
 
 const severityConfig: Record<
   string,
@@ -48,25 +53,16 @@ export default function AdminSecurityPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading security data" />;
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error
-            ? error.message
-            : "Failed to load suspicious activities"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Shield}
+        title="Failed to load security data"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -75,11 +71,11 @@ export default function AdminSecurityPage() {
   return (
     <AdminPageHeader title="Security" subtitle="Suspicious activity monitoring">
       {activities.length === 0 ? (
-        <div className="admin-card flex items-center justify-center min-h-[200px]">
-          <p className="text-[13px] text-[var(--admin-text-muted)]">
-            No suspicious activity detected
-          </p>
-        </div>
+        <AdminEmptyState
+          icon={Shield}
+          title="No suspicious activity"
+          description="Security threats and anomalies will appear here when detected"
+        />
       ) : (
         <div className="admin-table">
           <table className="w-full">

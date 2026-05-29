@@ -5,6 +5,10 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { CheckCircle, XCircle, Info } from "lucide-react";
 import type { SSOConfig } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 function maskClientId(clientId: string): string {
   if (clientId.length <= 8) return clientId.slice(0, 4) + "****";
@@ -22,25 +26,16 @@ export default function AdminSSOPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading SSO configs" />;
   }
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error
-            ? error.message
-            : "Failed to load SSO configs"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Info}
+        title="Failed to load SSO configs"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -50,17 +45,11 @@ export default function AdminSSOPage() {
       subtitle="Single sign-on provider settings"
     >
       {!configs || configs.length === 0 ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center">
-            <Info className="mx-auto h-9 w-9 text-[var(--admin-text-dim)]" />
-            <p className="mt-3 text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No SSO providers configured
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              Add an SSO provider to enable single sign-on for your organization
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={Info}
+          title="No SSO providers"
+          description="Add an SSO provider to enable single sign-on for your organization"
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {configs.map((cfg) => (

@@ -7,6 +7,10 @@ import { Gift, RefreshCw, Check, Loader2, Copy, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import type { PromoCode } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 function generateCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -190,19 +194,13 @@ export default function AdminPromosPage() {
       )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-            <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-          </div>
-        </div>
+        <AdminCenterLoading label="Loading promo codes" />
       ) : !promos || promos.length === 0 ? (
-        <div className="admin-card p-12 text-center">
-          <Gift className="w-8 h-8 text-[var(--admin-text-dim)] mx-auto mb-3" />
-          <p className="text-[13px] text-[var(--admin-text-dim)]">
-            No promo codes yet
-          </p>
-        </div>
+        <AdminEmptyState
+          icon={Gift}
+          title="No promo codes"
+          description="Create your first promotional code to get started"
+        />
       ) : (
         <div className="admin-table">
           <table className="w-full">

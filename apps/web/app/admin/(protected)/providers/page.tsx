@@ -11,6 +11,11 @@ import type {
 } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
 import {
+  AdminCenterLoading,
+  AdminEmptyState,
+  fadeUp,
+} from "@/components/admin/AdminUI";
+import {
   Plus,
   Activity,
   ArrowUpDown,
@@ -790,23 +795,16 @@ export default function AdminProvidersPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading providers" />;
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error ? error.message : "Failed to load providers"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Server}
+        title="Failed to load providers"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -1074,15 +1072,21 @@ export default function AdminProvidersPage() {
           />
         ))}
         {paginated.length === 0 && (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 text-[var(--admin-text-dim)]">
-            <Server className="h-10 w-10 mb-3 opacity-40" />
-            <p className="text-[13px]">No providers configured</p>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="mt-2 text-[11px] text-indigo-400/60 hover:text-indigo-400 transition-colors font-medium"
-            >
-              Add your first provider
-            </button>
+          <div className="col-span-full">
+            <AdminEmptyState
+              icon={Server}
+              title="No providers configured"
+              description="Add your first AI provider to start routing requests"
+              action={
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="admin-btn admin-btn-primary text-[11px]"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Provider
+                </button>
+              }
+            />
           </div>
         )}
       </div>

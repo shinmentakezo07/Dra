@@ -5,6 +5,14 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { Info, TrendingUp } from "lucide-react";
 import AdminPageHeader from "../../AdminPageHeader";
 import { cn } from "@/lib/utils";
+import {
+  AdminPageShell,
+  AdminStat,
+  AdminSection,
+  AdminCenterLoading,
+  AdminEmptyState,
+  fadeUp,
+} from "@/components/admin/AdminUI";
 
 interface CostForecast {
   currentMonth: number;
@@ -35,14 +43,7 @@ export default function AdminCostPage() {
   const isLoading = optLoading || forecastLoading;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminCenterLoading label="Loading cost data" />;
   }
 
   return (
@@ -52,27 +53,25 @@ export default function AdminCostPage() {
     >
       {/* Forecast Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="admin-card p-6">
-          <p className="admin-label mb-2">Current Month Spend</p>
-          <p className="admin-stat-value">
-            ${forecast ? (forecast.currentMonth / 100).toFixed(2) : "—"}
-          </p>
-        </div>
-        <div className="admin-card p-6 border-amber-500/10">
-          <div className="flex items-center gap-2 mb-2">
-            <p className="admin-label">Forecasted Total</p>
-            <TrendingUp className="w-3 h-3 text-amber-400/50" />
-          </div>
-          <p className="admin-stat-value text-amber-400">
-            ${forecast ? (forecast.forecast / 100).toFixed(2) : "—"}
-          </p>
-        </div>
-        <div className="admin-card p-6">
-          <p className="admin-label mb-2">Previous Month</p>
-          <p className="admin-stat-value">
-            ${forecast ? (forecast.previousMonth / 100).toFixed(2) : "—"}
-          </p>
-        </div>
+        <AdminStat
+          label="Current Month Spend"
+          value={`$${forecast ? (forecast.currentMonth / 100).toFixed(2) : "—"}`}
+          icon={DollarSign}
+          accentColor="#34d399"
+        />
+        <AdminStat
+          label="Forecasted Total"
+          value={`$${forecast ? (forecast.forecast / 100).toFixed(2) : "—"}`}
+          sub="Projected end-of-month"
+          icon={TrendingUp}
+          accentColor="#fbbf24"
+          variant="highlight"
+        />
+        <AdminStat
+          label="Previous Month"
+          value={`$${forecast ? (forecast.previousMonth / 100).toFixed(2) : "—"}`}
+          icon={DollarSign}
+        />
       </div>
 
       {/* Optimization Suggestions */}
@@ -81,14 +80,11 @@ export default function AdminCostPage() {
           Optimization Suggestions
         </h2>
         {!optimizations || optimizations.length === 0 ? (
-          <div className="admin-card flex min-h-[200px] items-center justify-center">
-            <div className="text-center">
-              <Info className="mx-auto h-7 w-7 text-[var(--admin-text-dim)]" />
-              <p className="mt-2 text-[12px] text-[var(--admin-text-dim)]">
-                No optimization suggestions available
-              </p>
-            </div>
-          </div>
+          <AdminEmptyState
+            icon={Info}
+            title="No optimization suggestions"
+            description="Cost optimization recommendations will appear here as usage patterns are analyzed"
+          />
         ) : (
           <div className="space-y-3">
             {optimizations.map((opt) => (

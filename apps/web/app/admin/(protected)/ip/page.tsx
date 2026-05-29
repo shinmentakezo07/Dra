@@ -7,6 +7,11 @@ import { CheckCircle, XCircle } from "lucide-react";
 import type { IPListEntry, IPAccessLog } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
 import { cn } from "@/lib/utils";
+import {
+  AdminTabNav,
+  AdminCenterLoading,
+  AdminEmptyState,
+} from "@/components/admin/AdminUI";
 
 const TABS = ["IP Lists", "Access Logs"] as const;
 
@@ -50,29 +55,17 @@ export default function AdminIPPage() {
       subtitle="IP allow/block lists and access logs"
     >
       {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-[12px] border border-[var(--admin-border)] bg-white/[0.01] p-1 w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`rounded-[9px] px-4 py-2 text-[12px] font-medium transition-all duration-200 ${
-              activeTab === tab
-                ? "bg-indigo-500/[0.06] text-indigo-400 border border-indigo-500/10"
-                : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] border border-transparent"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <AdminTabNav
+        tabs={[
+          { key: "IP Lists", label: "IP Lists" },
+          { key: "Access Logs", label: "Access Logs" },
+        ]}
+        active={activeTab}
+        onChange={setActiveTab}
+      />
 
       {isLoading ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-            <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-          </div>
-        </div>
+        <AdminCenterLoading label="Loading IP data" />
       ) : activeTab === "IP Lists" ? (
         <div className="admin-table">
           <table className="w-full">

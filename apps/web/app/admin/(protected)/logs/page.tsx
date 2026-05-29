@@ -6,6 +6,11 @@ import { getAdminSDK } from "@/lib/api/admin-sdk";
 import { CheckCircle, XCircle, Info } from "lucide-react";
 import type { UsageRecord } from "@/types/admin";
 import AdminPageHeader from "../../AdminPageHeader";
+import {
+  AdminCenterLoading,
+  AdminEmptyState,
+  AdminTableLoading,
+} from "@/components/admin/AdminUI";
 
 function StatusBadge({ statusCode }: { statusCode: number }) {
   const isSuccess = statusCode < 400;
@@ -35,23 +40,16 @@ export default function AdminLogsPage() {
   const totalPages = data?.totalPages ?? 1;
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border border-[var(--admin-border)]" />
-          <div className="absolute inset-0 rounded-full border-t-indigo-400/60 border-2 border-transparent animate-spin" />
-        </div>
-      </div>
-    );
+    return <AdminTableLoading rows={8} cols={7} />;
   }
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[13px] text-red-400/70">
-          {error instanceof Error ? error.message : "Failed to load logs"}
-        </p>
-      </div>
+      <AdminEmptyState
+        icon={Info}
+        title="Failed to load logs"
+        description={error instanceof Error ? error.message : "An error occurred"}
+      />
     );
   }
 
@@ -61,17 +59,11 @@ export default function AdminLogsPage() {
       subtitle="API request history and error monitoring"
     >
       {logs.length === 0 ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center">
-            <Info className="mx-auto h-9 w-9 text-[var(--admin-text-dim)]" />
-            <p className="mt-3 text-[14px] font-medium text-[var(--admin-text-muted)]">
-              No request logs found
-            </p>
-            <p className="mt-1 text-[12px] text-[var(--admin-text-dim)]">
-              API requests will appear here once users start using the platform
-            </p>
-          </div>
-        </div>
+        <AdminEmptyState
+          icon={Info}
+          title="No request logs"
+          description="API requests will appear here once users start using the platform"
+        />
       ) : (
         <div className="admin-table">
           <table className="w-full">
