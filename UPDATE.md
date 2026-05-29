@@ -405,3 +405,47 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 ```
 
 **Notes**: Documentation-only changes. No runtime behavior affected.
+
+---
+
+### [2026-05-29 12:10] Session: mobile-navbar | feat(ui): add main logo to mobile bottom nav bar
+
+**Why**: The mobile bottom tab nav only had plain icons with no branding. Added the Yapapa logo (nervous-cat.jpg) as the center element with the same cyberpunk animated styling (rotating tech rings, scanline sweep, grid background) as the main header CyberpunkLogo, making the mobile nav feel like a real extension of the main navbar.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/components/MobileBottomNav.tsx` | L1-L133 | modified |
+| `UPDATE.md` | L408 | modified |
+
+**Before** (`apps/web/components/MobileBottomNav.tsx`):
+
+```tsx
+const navItems = [
+  { label: "Home", href: "/", icon: Home },
+  { label: "Models", href: "/models", icon: Cpu },
+  { label: "Play", href: "/playground", icon: Code2 },
+  { label: "Docs", href: "/docs", icon: BookOpen },
+  { label: "Pricing", href: "/pricing", icon: CreditCard },
+];
+
+// 5 equal-width tabs, no logo
+```
+
+**After** (`apps/web/components/MobileBottomNav.tsx`):
+
+```tsx
+const leftItems = [
+  { label: "Home", href: "/", icon: Home },
+  { label: "Models", href: "/models", icon: Cpu },
+];
+const rightItems = [
+  { label: "Docs", href: "/docs", icon: BookOpen },
+  { label: "Pricing", href: "/pricing", icon: CreditCard },
+];
+
+// 2 tabs + center logo + 2 tabs, logo has rotating tech rings, scanline sweep, grid background
+```
+
+**Notes**: The center logo uses the same `nervous-cat.jpg` image and animated effects (dual counter-rotating border rings, scanline sweep, tech grid) as the `CyberpunkLogo` component, keeping visual consistency between desktop and mobile navbars.
