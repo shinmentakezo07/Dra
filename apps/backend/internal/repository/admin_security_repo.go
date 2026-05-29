@@ -23,7 +23,7 @@ var allowedTables = map[string]bool{
 }
 
 // validIdentifier validates that a string is a safe SQL identifier or function call (letters, digits, underscores, dots, spaces, parens, quotes for COALESCE/etc).
-var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 
 type AdminSecurityRepo struct{ db *db.DB }
 
