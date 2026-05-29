@@ -70,8 +70,6 @@ export default function AdminLayoutClient({
         style={{
           left: sidebarWidth,
           right: 0,
-          background:
-            "linear-gradient(180deg, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0) 100%)",
         }}
       >
         <AdminTopBar />
@@ -79,7 +77,7 @@ export default function AdminLayoutClient({
 
       {/* Scrollable content */}
       <div
-        className="h-screen pt-[88px] transition-all duration-300 relative"
+        className="h-screen pt-[65px] transition-all duration-300 relative"
         style={{ marginLeft: sidebarWidth, zIndex: 1 }}
       >
         <main className="h-full overflow-y-auto admin-scroll">

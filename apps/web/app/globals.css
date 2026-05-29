@@ -714,6 +714,79 @@ textarea[data-autoresize] {
   line-height: 1;
 }
 
+/* ─── Admin: Top Bar ─── */
+.admin-topbar {
+  backdrop-filter: blur(12px) saturate(1.2);
+  background: rgba(5, 5, 5, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.admin-topbar-border {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.06) 20%,
+    rgba(124, 58, 237, 0.04) 50%,
+    rgba(59, 130, 246, 0.06) 80%,
+    transparent 100%
+  );
+}
+
+/* ─── Admin: Nav Pill ─── */
+.admin-nav-pill {
+  position: relative;
+}
+.admin-nav-pill:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Admin: Search Trigger ─── */
+.admin-search-trigger {
+  cursor: pointer;
+}
+.admin-search-trigger:focus-visible {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* ─── Admin: Icon Button ─── */
+.admin-icon-btn {
+  position: relative;
+}
+.admin-icon-btn:focus-visible {
+  outline: none;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Admin: Notification Dot ─── */
+.admin-notif-dot {
+  animation: admin-pulse-dot 2s ease-in-out infinite;
+}
+
+/* ─── Admin: User Avatar ─── */
+.admin-user-avatar {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(124, 58, 237, 0.12));
+  color: rgba(59, 130, 246, 0.6);
+  ring: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Admin: Dropdown ─── */
+.admin-dropdown {
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+
+/* ─── Admin: Menu Item ─── */
+.admin-menu-item {
+  position: relative;
+}
+.admin-menu-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.admin-menu-item:hover svg:last-child {
+  opacity: 0.3;
+}
+
 /* Admin stagger animation helper */
 @keyframes admin-fade-up {
   from {
