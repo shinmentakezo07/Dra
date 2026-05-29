@@ -449,3 +449,53 @@ const rightItems = [
 ```
 
 **Notes**: The center logo uses the same `nervous-cat.jpg` image and animated effects (dual counter-rotating border rings, scanline sweep, tech grid) as the `CyberpunkLogo` component, keeping visual consistency between desktop and mobile navbars.
+
+---
+
+### [2026-05-29 12:20] Session: mobile-navbar | feat(ui): enhance hamburger menu with animated icon and redesigned sidebar
+
+**Why**: The mobile hamburger menu (three-line button) used a static lucide Menu icon and the sidebar was inlined in MainLayout with basic styling. Extracted the sidebar into a dedicated `MobileSidebar` component with polished cyberpunk visuals, added an animated hamburger-to-X morph using Framer Motion, and gave each nav item an icon badge, description text, and active page highlighting.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/components/MobileSidebar.tsx` | L1-L267 | created |
+| `apps/web/components/Header.tsx` | L1-L288 | modified |
+| `apps/web/components/MainLayout.tsx` | L1-L55 | modified |
+| `UPDATE.md` | L452 | modified |
+
+**Before** (`apps/web/components/MainLayout.tsx`):
+
+```tsx
+// 180+ lines of inline sidebar JSX with basic cyan-500 styling
+// Used lucide Menu icon, Zap icon for logo, simple hover states
+```
+
+**After** (`apps/web/components/MainLayout.tsx`):
+
+```tsx
+// Clean 55-line component, sidebar extracted to MobileSidebar
+<MobileSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} user={user} />
+```
+
+**Before** (`apps/web/components/Header.tsx` hamburger button):
+
+```tsx
+<Menu className="h-5 w-5" />
+```
+
+**After** (`apps/web/components/Header.tsx` animated hamburger):
+
+```tsx
+// Three animated lines that morph to X when sidebarOpen
+<motion.span animate={sidebarOpen ? { rotate: 45 } : { rotate: 0 }} />
+<motion.span animate={sidebarOpen ? { width: 0 } : { width: 14 }} />
+<motion.span animate={sidebarOpen ? { rotate: -45 } : { rotate: 0 }} />
+```
+
+**Notes**:
+- `MobileSidebar.tsx` features: glass panel with tech grid background, right-edge gradient accent, rotating tech rings on the logo, active page indicator with `layoutId` animation, icon badges in rounded containers, description text per nav item, gradient user card.
+- `MainLayout.tsx` reduced from ~180 lines to ~55 lines by extracting sidebar logic.
+- Hamburger button now has three custom animated lines (top=20px, middle=14px, bottom=20px) that smoothly morph into an X when the sidebar opens.
+- Removed unused `Menu` lucide import from Header.tsx.

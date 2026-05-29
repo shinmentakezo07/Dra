@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Menu, Search, Command, Zap, Settings } from "lucide-react";
+import { Search, Command, Settings } from "lucide-react";
 import { signOutAction } from "@/app/lib/actions";
 import { useState, useEffect } from "react";
 
@@ -11,9 +11,10 @@ import { CyberpunkLogo } from "./CyberpunkLogo";
 interface HeaderProps {
   user?: any;
   onMenuClick?: () => void;
+  sidebarOpen?: boolean;
 }
 
-export function Header({ user, onMenuClick }: HeaderProps) {
+export function Header({ user, onMenuClick, sidebarOpen }: HeaderProps) {
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -27,8 +28,12 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         {/* Mobile: compact header with logo + auth only */}
         <div className="relative w-full max-w-6xl h-14 md:h-16 px-3 md:px-4 flex items-center justify-between rounded-xl md:rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
           <div className="flex items-center gap-3 md:gap-6 relative z-10">
-            <button className="md:hidden p-2 text-cyan-400 hover:text-white hover:bg-cyan-500/10 rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50">
-              <Menu className="h-5 w-5" />
+            <button className="md:hidden relative p-2 text-cyan-400 hover:text-white rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50 hover:bg-cyan-500/10">
+              <div className="flex flex-col gap-[5px] w-5">
+                <span className="block h-[2px] w-5 bg-current rounded-full" />
+                <span className="block h-[2px] w-3.5 bg-current rounded-full" />
+                <span className="block h-[2px] w-5 bg-current rounded-full" />
+              </div>
             </button>
             <Link href="/" className="flex items-center space-x-3 group">
               <CyberpunkLogo />
@@ -141,9 +146,37 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         >
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 text-cyan-400 hover:text-white hover:bg-cyan-500/10 rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50"
+            className="md:hidden relative p-2 text-cyan-400 hover:text-white rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50 hover:bg-cyan-500/10"
           >
-            <Menu className="h-5 w-5" />
+            <div className="relative w-5 h-4 flex flex-col justify-center">
+              <motion.span
+                className="absolute left-0 h-[2px] w-5 bg-current rounded-full origin-center"
+                animate={
+                  sidebarOpen
+                    ? { top: "50%", rotate: 45, y: "-50%", width: 20 }
+                    : { top: "0%", rotate: 0, y: "0%", width: 20 }
+                }
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              />
+              <motion.span
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-current rounded-full origin-center"
+                animate={
+                  sidebarOpen
+                    ? { width: 0, opacity: 0, x: 4 }
+                    : { width: 14, opacity: 1, x: 0 }
+                }
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              />
+              <motion.span
+                className="absolute left-0 h-[2px] w-5 bg-current rounded-full origin-center"
+                animate={
+                  sidebarOpen
+                    ? { bottom: "50%", rotate: -45, y: "50%", width: 20 }
+                    : { bottom: "0%", rotate: 0, y: "0%", width: 20 }
+                }
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
           </button>
           <Link href="/" className="flex items-center space-x-3 group">
             <CyberpunkLogo />
