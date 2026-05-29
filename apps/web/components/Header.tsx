@@ -23,10 +23,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
 
   if (!isMounted) {
     return (
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
-        {/* Static Header Content matching the initial state */}
-        <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
-          <div className="flex items-center gap-6 relative z-10">
+      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-3 md:px-4">
+        {/* Mobile: compact header with logo + auth only */}
+        <div className="relative w-full max-w-6xl h-14 md:h-16 px-3 md:px-4 flex items-center justify-between rounded-xl md:rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+          <div className="flex items-center gap-3 md:gap-6 relative z-10">
             <button className="md:hidden p-2 text-cyan-400 hover:text-white hover:bg-cyan-500/10 rounded-xl transition-colors border border-cyan-500/20 hover:border-cyan-500/50">
               <Menu className="h-5 w-5" />
             </button>
@@ -49,7 +49,6 @@ export function Header({ user, onMenuClick }: HeaderProps) {
               ))}
             </nav>
           </div>
-          {/* ... Right side content (can be static for hydration) ... */}
           <div className="flex items-center gap-3 relative z-10">
             <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/5 text-gray-400 text-sm w-64">
               <Search className="h-4 w-4" />
@@ -66,7 +65,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             {!user && (
               <Link
                 href="/signup"
-                className="md:hidden relative inline-flex items-center justify-center h-9 px-4 rounded-lg text-xs font-bold tracking-wide text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 uppercase"
+                className="md:hidden relative inline-flex items-center justify-center h-8 px-3.5 rounded-lg text-[11px] font-bold tracking-wide text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 uppercase"
               >
                 Get Started
               </Link>
@@ -129,15 +128,15 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4"
+      className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-3 md:px-4"
       suppressHydrationWarning
     >
       <div
-        className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5"
+        className="relative w-full max-w-6xl h-14 md:h-16 px-3 md:px-4 flex items-center justify-between rounded-xl md:rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-[#3b82f6]/10 shadow-2xl shadow-black/50 ring-1 ring-white/5"
         suppressHydrationWarning
       >
         <div
-          className="flex items-center gap-6 relative z-10"
+          className="flex items-center gap-3 md:gap-6 relative z-10"
           suppressHydrationWarning
         >
           <button
@@ -203,17 +202,17 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             </div>
           </div>
 
-          {/* Mobile CTA - visible when not logged in on small screens */}
+          {/* Mobile CTA - compact on phones */}
           {!user && (
             <Link
               href="/signup"
-              className="md:hidden relative inline-flex items-center justify-center h-9 px-4 rounded-lg text-xs font-bold tracking-wide text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-500/60 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.3)] transition-all duration-300 uppercase"
+              className="md:hidden relative inline-flex items-center justify-center h-8 px-3.5 rounded-lg text-[11px] font-bold tracking-wide text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-500/60 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.3)] transition-all duration-300 uppercase"
             >
               Get Started
             </Link>
           )}
 
-          {/* Mobile user avatar - visible when logged in on small screens */}
+          {/* Mobile user avatar */}
           {user && (
             <Link
               href="/dashboard"
@@ -239,10 +238,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                   className="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full bg-[#3b82f6]/5 border border-[#3b82f6]/20 hover:bg-[#3b82f6]/10 transition-all cursor-pointer group"
                 >
                   <div className="relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border border-[#3b82f6]/30 group-hover:border-[#3b82f6] transition-colors">
-                    {/* Cyberpunk Avatar BG */}
                     <div className="absolute inset-0 bg-[#3b82f6]/20 animate-pulse" />
                     <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/50 to-purple-600/50 mix-blend-overlay" />
-
                     <span className="relative z-10 text-xs font-bold text-[#3b82f6] text-shadow-neon">
                       {user.name ? user.name[0].toUpperCase() : "U"}
                     </span>

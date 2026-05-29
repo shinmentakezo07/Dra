@@ -286,3 +286,52 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 | P3       | Webhook UI improvements             | Not started |
 | P3       | Provider health UI polish           | Not started |
 | P3       | Delete `docs/missing.md` (resolved) | Not started |
+
+---
+
+### [2026-05-29 12:00] fix(ui): add dedicated mobile bottom nav bar for phone screens
+
+**Why**: The existing navbar tried to serve both desktop and mobile, resulting in a cramped header on small screens where nav links were hidden behind a hamburger menu with no quick way to navigate between pages. A dedicated mobile bottom tab bar gives phone users instant access to all main pages.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/components/MobileBottomNav.tsx` | L1-L93 | created |
+| `apps/web/components/Header.tsx` | L67-L225 | modified |
+| `apps/web/components/MainLayout.tsx` | L1-L185 | modified |
+| `UPDATE.md` | L289 | modified |
+
+**Before** (`apps/web/components/Header.tsx` L67):
+
+```tsx
+<header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
+  <div className="relative w-full max-w-6xl h-16 px-4 flex items-center justify-between rounded-2xl ...">
+```
+
+**After** (`apps/web/components/Header.tsx` L67):
+
+```tsx
+<header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-3 md:px-4">
+  <div className="relative w-full max-w-6xl h-14 md:h-16 px-3 md:px-4 flex items-center justify-between rounded-xl md:rounded-2xl ...">
+```
+
+**Before** (`apps/web/components/MainLayout.tsx` content wrapper):
+
+```tsx
+<div className={`flex ${isDashboardRoute || ... ? "" : "pt-20"}`}>
+  <main className="flex-1 w-full min-w-0">{children}</main>
+</div>
+```
+
+**After** (`apps/web/components/MainLayout.tsx` content wrapper):
+
+```tsx
+<div className={`flex ${isDashboardRoute || ... ? "" : "pt-16 md:pt-20 pb-20 md:pb-0"}`}>
+  <main className="flex-1 w-full min-w-0">{children}</main>
+</div>
+
+{!isDashboardRoute && !isAuthRoute && !isFullScreenRoute && !isAdminRoute && !isDocsRoute && <MobileBottomNav />}
+```
+
+**Notes**: `MobileBottomNav.tsx` is a new component — fixed bottom tab bar with 5 tabs (Home, Models, Play, Docs, Pricing) using `md:hidden` breakpoint. Matches the cyberpunk/cyan theme with animated active indicator via Framer Motion `layoutId`. Header on mobile is now more compact (`h-14`, tighter padding). Bottom padding (`pb-20 md:pb-0`) prevents content from being hidden behind the fixed bottom nav. Sidebar drawer preserved for account/settings actions.

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/Header";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -267,10 +268,17 @@ export function MainLayout({
       </AnimatePresence>
 
       <div
-        className={`flex ${isDashboardRoute || isAuthRoute || isFullScreenRoute || isDocsRoute ? "" : "pt-20"}`}
+        className={`flex ${isDashboardRoute || isAuthRoute || isFullScreenRoute || isDocsRoute ? "" : "pt-16 md:pt-20 pb-20 md:pb-0"}`}
       >
         <main className="flex-1 w-full min-w-0">{children}</main>
       </div>
+
+      {/* Mobile bottom tab bar - visible on phones for public pages */}
+      {!isDashboardRoute &&
+        !isAuthRoute &&
+        !isFullScreenRoute &&
+        !isAdminRoute &&
+        !isDocsRoute && <MobileBottomNav />}
     </div>
   );
 }
