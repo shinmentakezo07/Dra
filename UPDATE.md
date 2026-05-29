@@ -628,3 +628,65 @@ import {
 ```
 
 Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home" text from both the desktop left panel header and the mobile logo section.
+
+---
+
+### [2026-05-29] Session: signup-ui-enhancement | feat(ui): redesign signup page with anti-generic editorial layout
+
+**Why**: The previous version still looked generic: standard split-screen with a card wrapper, identical step cards, icon-left inputs, and "or continue with email" divider. Rebuilt with an anti-generic editorial approach: no card wrapper on the form, terminal-styled inputs with `>` prompt prefix, vertical timeline with connector line replacing identical cards, animated stat counters, and an asymmetric column layout with a glowing separator.
+
+**What was removed (anti-generic decisions)**:
+- Card wrapper around the form: form now sits directly on the background, only the page provides structure
+- Identical step cards: replaced with a vertical timeline using a gradient connector line and dot indicators
+- Icon-left inputs: replaced with terminal-styled inputs showing `name>`, `mail>`, `pass>` prompt prefixes
+- "Or continue with email" text: replaced with minimal "OR USE EMAIL"
+- Standard "Create Account" gradient button: CyberButton with slant clip-path
+- Feature chips: replaced with animated stat counters (100+, 50K+, 99.9%)
+- Floating tech icons: removed (too decorative, no purpose)
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/app/signup/page.tsx` | full rewrite | modified |
+| `apps/web/app/globals.css` | +55 lines | modified |
+
+**Key design components**:
+- `TerminalInput` — terminal-styled input with `icon prefix > prompt` layout, focus glow, error display
+- `GlitchText` — CSS glitch effect with `::before`/`::after` pseudo-elements
+- `TypewriterText` — character-by-character spring animation
+- `HUDOverlay` — corner brackets, vertical accent lines, system text
+- `CyberButton` — `clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)` with hover shine
+- `DynamicSpotlight` — mouse-following radial gradient
+- `MovingGrid` — animated backgroundPosition with perspective rotation
+- `RegistrationTerminal` — compact terminal with typewriter effect
+- `AnimatedStat` — number + label counter
+
+**Layout**: Two-column editorial (45/55 split) with a vertical separator that has a gradient glow. No card wrapper. Form header uses step indicator ("STEP 01" badge). Vertical timeline with connector line replaces identical cards.
+
+**Verification**: `next build` passes.
+
+---
+
+### [2026-05-29] Session: signup-ui-enhancement | feat(ui): redesign login page with same anti-generic editorial layout
+
+**Why**: Login page had identical generic patterns: card wrapper, icon-left inputs, "or continue with email" divider, quote+avatar testimonial block, standard gradient button. Applied the same anti-generic editorial approach as the signup page: no card wrapper, terminal-styled inputs with prompt prefix, CyberButton, asymmetric column layout with glowing separator, feature list with vertical connector, and auth terminal.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/app/login/page.tsx` | full rewrite | modified |
+
+**Key differences from signup**:
+- No name field (login only needs email + password)
+- "GATEWAY ACCESS" badge instead of "STEP 01"
+- "Welcome BACK" headline (Typewriter + Glitch) vs "Universal LLM GATEWAY"
+- Auth terminal shows `curl /v1/auth/login` response with JWT token
+- Feature list shows dashboard capabilities (analytics, routing, team management) instead of onboarding steps
+- "Forgot?" link shown above password field alongside SHOW/HIDE toggle
+- Submit button says "Access Gateway" instead of "Claim your key"
+- Footer says "New here? Create Account" instead of "Have an account? Sign in"
+- HUD text: "AUTH.V.3.0 // GATEWAY" and "SESSION: PENDING"
+
+**Verification**: `next build` passes.
