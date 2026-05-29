@@ -335,3 +335,73 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 ```
 
 **Notes**: `MobileBottomNav.tsx` is a new component — fixed bottom tab bar with 5 tabs (Home, Models, Play, Docs, Pricing) using `md:hidden` breakpoint. Matches the cyberpunk/cyan theme with animated active indicator via Framer Motion `layoutId`. Header on mobile is now more compact (`h-14`, tighter padding). Bottom padding (`pb-20 md:pb-0`) prevents content from being hidden behind the fixed bottom nav. Sidebar drawer preserved for account/settings actions.
+
+---
+
+### [2026-05-29 12:05] docs: enforce UPDATE.md mandatory rules in AGENTS.md and CLAUDE.md
+
+**Why**: AGENTS.md and CLAUDE.md were missing the explicit UPDATE.md enforcement rules, which could cause agents to skip the mandatory change-log step. Also added Anthropic SSE event names to CLAUDE.md for completeness.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `AGENTS.md` | L66-L78 | modified |
+| `CLAUDE.md` | L125, L141 | modified |
+
+**Before** (`AGENTS.md` L66):
+
+```md
+## Critical Constraints
+
+- `AUTH_SECRET` must be identical between frontend and backend (HS256 JWT).
+```
+
+**After** (`AGENTS.md` L66):
+
+```md
+## Critical Constraints
+
+- **UPDATE.md is MANDATORY for every code change.** After completing ANY modification to the codebase (fixes, features, refactors, config changes — anything), you MUST append a detailed entry to `UPDATE.md`. The entry must include:
+  1. Timestamp and **session name/ID** (e.g. Droid session name, `ses_abc123`, or a descriptive label like `mobile-navbar-fix`)
+  2. Conventional-commit style title
+  3. **Why** — the problem or motivation, not just what changed
+  4. **Files changed table** — every file touched, with line ranges and change type (created/modified/deleted)
+  5. **Before code block** — the exact old code with file path and line number
+  6. **After code block** — the exact new code with file path and line number
+  7. Optional notes for side effects, follow-ups, or migration steps
+- **Use the same session name across all entries from the same session** so later agents can group changes and understand what happened in each session.
+- **No task is considered complete until the UPDATE.md entry is written.** This is a hard requirement. Skipping UPDATE.md logging is a policy violation. See `UPDATE.md` for the full template and examples.
+- `AUTH_SECRET` must be identical between frontend and backend (HS256 JWT).
+```
+
+**Before** (`CLAUDE.md` L125):
+
+```md
+- Anthropic compatibility at `/v1/messages` via `internal/handler/anthropic_messages.go` + `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline. Streaming uses Anthropic SSE events.
+```
+
+**After** (`CLAUDE.md` L125):
+
+```md
+- Anthropic compatibility at `/v1/messages` via `internal/handler/anthropic_messages.go` + `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline. Streaming uses Anthropic SSE events (`message_start`, `content_block_delta`, `message_delta`, `message_stop`).
+```
+
+**Before** (`CLAUDE.md` L139):
+
+```md
+## Hard Constraints
+
+- **No `as any` or `@ts-ignore`** in TypeScript — enforced at review
+```
+
+**After** (`CLAUDE.md` L139):
+
+```md
+## Hard Constraints
+
+- **UPDATE.md is MANDATORY.** After completing ANY code change (no matter how small), you MUST append an entry to `UPDATE.md` following the exact template defined in that file. The entry must include: timestamp, **session name/ID**, conventional-commit title, "Why" explanation, files-changed table with line ranges, and Before/After code blocks showing the exact old and new code. **No task is "done" until the UPDATE.md entry is written.** Use the same session name across all entries from the same session so later agents can group changes by session. This is non-negotiable — skipping this step is a violation of project rules.
+- **No `as any` or `@ts-ignore`** in TypeScript — enforced at review
+```
+
+**Notes**: Documentation-only changes. No runtime behavior affected.

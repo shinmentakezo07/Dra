@@ -123,7 +123,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - OpenAI-compatible proxy (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`) built on `pkg/llm/`.
 - 10-stage pipeline: **validator → router → cache → guardrails → moderation → translator → provider → telemetry → circuit breaker → watcher**. Orchestrated by `pkg/llm/pipeline/pipeline.go`.
 - 18+ subpackages under `pkg/llm/`: `provider/` (registry, key rotation, health, fallback, OpenAI SDK integration), `router/` (model→provider mapping, A/B, budget-aware), `cache/` (TTL + semantic dedup + Redis), `guardrails/`, `moderation/`, `translator/` (Anthropic ↔ OpenAI ↔ Generic), `tools/` (function calling, `websearch/`), `telemetry/`, `tokens/`, `embeddings/`, `batch/`, `circuitbreaker/`, `watcher/`, `openai/` (schema types), `validator/`, `pipeline/`, `anthropic/` (Anthropic format), `sdk.go` (facade).
-- Anthropic compatibility at `/v1/messages` via `internal/handler/anthropic_messages.go` + `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline. Streaming uses Anthropic SSE events.
+- Anthropic compatibility at `/v1/messages` via `internal/handler/anthropic_messages.go` + `pkg/llm/anthropic/`, reusing the same auth/quota/billing pipeline. Streaming uses Anthropic SSE events (`message_start`, `content_block_delta`, `message_delta`, `message_stop`).
 - Official Go SDKs: `github.com/openai/openai-go/v3`, `github.com/anthropics/anthropic-sdk-go`, `github.com/sashabaranov/go-openai`.
 - `X-Sandbox: true` on `/v1/chat/completions` disables quota, cost, and logging for testing.
 
@@ -138,6 +138,7 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 
 ## Hard Constraints
 
+- **UPDATE.md is MANDATORY.** After completing ANY code change (no matter how small), you MUST append an entry to `UPDATE.md` following the exact template defined in that file. The entry must include: timestamp, **session name/ID**, conventional-commit title, "Why" explanation, files-changed table with line ranges, and Before/After code blocks showing the exact old and new code. **No task is "done" until the UPDATE.md entry is written.** Use the same session name across all entries from the same session so later agents can group changes by session. This is non-negotiable — skipping this step is a violation of project rules.
 - **No `as any` or `@ts-ignore`** in TypeScript — enforced at review
 - **No mock data** in dashboard components — must use `getSDK()`. Enforced by `tests/wiring-verification.test.ts` and `scripts/smoke-test.sh`
 - **Zod v4** — breaking changes from v3. Do not use v3 patterns

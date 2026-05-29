@@ -66,6 +66,16 @@ go test -race -cover -run TestName ./pkg/llm/tools/...  # Single test
 
 ## Critical Constraints
 
+- **UPDATE.md is MANDATORY for every code change.** After completing ANY modification to the codebase (fixes, features, refactors, config changes — anything), you MUST append a detailed entry to `UPDATE.md`. The entry must include:
+  1. Timestamp and **session name/ID** (e.g. Droid session name, `ses_abc123`, or a descriptive label like `mobile-navbar-fix`)
+  2. Conventional-commit style title
+  3. **Why** — the problem or motivation, not just what changed
+  4. **Files changed table** — every file touched, with line ranges and change type (created/modified/deleted)
+  5. **Before code block** — the exact old code with file path and line number
+  6. **After code block** — the exact new code with file path and line number
+  7. Optional notes for side effects, follow-ups, or migration steps
+- **Use the same session name across all entries from the same session** so later agents can group changes and understand what happened in each session.
+- **No task is considered complete until the UPDATE.md entry is written.** This is a hard requirement. Skipping UPDATE.md logging is a policy violation. See `UPDATE.md` for the full template and examples.
 - `AUTH_SECRET` must be identical between frontend and backend (HS256 JWT).
 - `.npmrc` has `legacy-peer-deps=true` — do not remove.
 - Root `.env` uses Docker network URLs; local dev needs `.env.local` with `BACKEND_URL=http://localhost:8080`.
