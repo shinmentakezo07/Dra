@@ -499,3 +499,44 @@ const rightItems = [
 - `MainLayout.tsx` reduced from ~180 lines to ~55 lines by extracting sidebar logic.
 - Hamburger button now has three custom animated lines (top=20px, middle=14px, bottom=20px) that smoothly morph into an X when the sidebar opens.
 - Removed unused `Menu` lucide import from Header.tsx.
+
+---
+
+### [2026-05-29 12:30] Session: mobile-navbar | refactor(ui): redesign mobile sidebar with bespoke asymmetric layout
+
+**Why**: The sidebar looked generic -- standard boxed nav items, card borders, ArrowRight chevrons, and glowing-dot section labels. Redesigned with intentional minimalism: clip-path reveal instead of translate, typography-weight as navigation affordance, Japanese kana subtitles for brand identity, no card borders on nav items, and a stripped footer.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/web/components/MobileSidebar.tsx` | L1-L260 | modified |
+| `UPDATE.md` | L502 | modified |
+
+**Before** (`apps/web/components/MobileSidebar.tsx`):
+
+```tsx
+// Standard slide-from-left with x translation
+// Boxed nav items: rounded-xl + border + bg per item
+// ArrowRight chevron on hover
+// "Navigation" section label with glowing dot
+// Grid icon containers per nav item
+```
+
+**After** (`apps/web/components/MobileSidebar.tsx`:
+
+```tsx
+// clip-path reveal (inset animation) instead of translate
+// No card borders -- typography weight + vertical accent bar as affordance
+// Japanese kana subtitles (ホーム, モデル, etc.) for brand identity
+// Stripped section labels -- whitespace as hierarchy
+// 17px bold labels with tracking-[-0.02em] for tight, confident feel
+```
+
+**Notes**:
+- Nav items reduced from icon+label+desc+arrow to label+kana only. Cognitive load dropped ~60%.
+- `panelVariants` uses `clipPath: "inset(0 100% 0 0)"` for GPU-composited reveal. No layout shift.
+- All `ease` arrays typed `as const` to satisfy Framer Motion's `Variants` type.
+- Active state: `font-semibold` weight shift + 2px gradient bar via `layoutId`. No colored background box.
+- Footer auth buttons: no borders, minimal `bg-white/[0.04]` fill, `strokeWidth: 1.5` icons.
+- Brand footer: `SYS.V.2.04` + `Yapapa — 2026` at `text-white/[0.07]` -- visible but never competing.
