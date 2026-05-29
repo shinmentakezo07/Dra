@@ -736,3 +736,27 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
 ```
 
 **Verification**: `make build` passes, `make test-unit` passes (all green).
+
+---
+
+### [2026-05-29] Session: fix-migrations-and-admin-panic | fix(backend): add curly braces to validIdentifier regex
+
+**Why**: `COALESCE(u.tags,'{}')` in the admin users list query contains curly braces `{}` which weren't included in the regex, causing the same panic as before.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/backend/internal/repository/admin_security_repo.go` | 1 line | modified — added `{}` to regex character class |
+
+**Before**:
+```go
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
+```
+
+**After**:
+```go
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
+```
+
+**Verification**: `make build` passes, pushed as `aafaf4b`.
