@@ -690,3 +690,49 @@ Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home"
 - HUD text: "AUTH.V.3.0 // GATEWAY" and "SESSION: PENDING"
 
 **Verification**: `next build` passes.
+
+---
+
+### [2026-05-29] Session: fix-migrations-and-admin-panic | fix(backend): make migrations idempotent and fix admin users list panic
+
+**Why**: Backend crashed on startup because migration `010_budget_alerts.sql` used `CREATE INDEX` without `IF NOT EXISTS`, causing `os.Exit(1)` when indexes already existed from a previous partial run. Migration `019_docs_base_url.sql` also failed because it inserted an empty string `''` into a JSONB column. Additionally, the admin users list endpoint panicked with `invalid column identifier: COALESCE(u.status` because the `validateColumns` function split by comma (breaking COALESCE arguments) and the regex didn't allow parentheses/quotes.
+
+**Files changed**:
+
+| File | Lines | Change type |
+|------|-------|-------------|
+| `apps/backend/migrations/008_rbac.sql` | ~10 lines | modified — `CREATE INDEX IF NOT EXISTS`, `ON CONFLICT DO NOTHING` on all INSERTs |
+| `apps/backend/migrations/009_rate_limits.sql` | 1 line | modified — `CREATE INDEX IF NOT EXISTS`, `ON CONFLICT (name) DO NOTHING` |
+| `apps/backend/migrations/010_budget_alerts.sql` | 2 lines | modified — `CREATE INDEX IF NOT EXISTS` |
+| `apps/backend/migrations/011_ab_comparison.sql` | 2 lines | modified — `CREATE INDEX IF NOT EXISTS` |
+| `apps/backend/migrations/012_fine_tuning.sql` | 3 lines | modified — `CREATE INDEX IF NOT EXISTS` |
+| `apps/backend/migrations/013_provider_plugins.sql` | 1 line | modified — `CREATE INDEX IF NOT EXISTS` |
+| `apps/backend/migrations/014_exports.sql` | 2 lines | modified — `CREATE INDEX IF NOT EXISTS` |
+| `apps/backend/migrations/019_docs_base_url.sql` | 1 line | modified — `''` → `'""'` for valid JSONB |
+| `apps/backend/internal/repository/admin_security_repo.go` | ~20 lines | modified — regex allows parens/quotes, `validateColumns` splits by top-level commas respecting parentheses |
+
+**Before** (migration 010):
+```sql
+CREATE INDEX idx_budget_alerts_user ON budget_alerts(user_id, is_active);
+CREATE INDEX idx_budget_caps_user ON budget_caps(user_id, is_active);
+```
+
+**After** (migration 010):
+```sql
+CREATE INDEX IF NOT EXISTS idx_budget_alerts_user ON budget_alerts(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_budget_caps_user ON budget_caps(user_id, is_active);
+```
+
+**Before** (admin_security_repo.go):
+```go
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.* ]*$`)
+// validateColumns used strings.Split(cols, ",") which broke COALESCE(a,'b')
+```
+
+**After** (admin_security_repo.go):
+```go
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
+// validateColumns now splits by top-level commas only (respects parentheses depth)
+```
+
+**Verification**: `make build` passes, `make test-unit` passes (all green).

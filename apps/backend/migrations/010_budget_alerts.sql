@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS budget_caps (
     UNIQUE(user_id)
 );
 
-CREATE INDEX idx_budget_alerts_user ON budget_alerts(user_id, is_active);
-CREATE INDEX idx_budget_caps_user ON budget_caps(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_budget_alerts_user ON budget_alerts(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_budget_caps_user ON budget_caps(user_id, is_active);

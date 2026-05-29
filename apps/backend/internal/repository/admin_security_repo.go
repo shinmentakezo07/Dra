@@ -22,8 +22,8 @@ var allowedTables = map[string]bool{
 	"users":                true,
 }
 
-// validIdentifier validates that a string is a safe SQL identifier (letters, digits, underscores, dots, spaces for aliases).
-var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.* ]*$`)
+// validIdentifier validates that a string is a safe SQL identifier or function call (letters, digits, underscores, dots, spaces, parens, quotes for COALESCE/etc).
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
 
 type AdminSecurityRepo struct{ db *db.DB }
 
@@ -76,7 +76,25 @@ func validateTableName(from string) error {
 }
 
 func validateColumns(cols string) error {
-	for _, col := range strings.Split(cols, ",") {
+	// Split by top-level commas (not inside parentheses)
+	var parts []string
+	depth := 0
+	start := 0
+	for i, c := range cols {
+		switch c {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				parts = append(parts, cols[start:i])
+				start = i + 1
+			}
+		}
+	}
+	parts = append(parts, cols[start:])
+	for _, col := range parts {
 		col = strings.TrimSpace(col)
 		if col == "" {
 			continue

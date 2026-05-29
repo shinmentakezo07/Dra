@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS provider_plugins (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_provider_plugins_active ON provider_plugins(is_active);
+CREATE INDEX IF NOT EXISTS idx_provider_plugins_active ON provider_plugins(is_active);

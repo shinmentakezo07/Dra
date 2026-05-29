@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS export_jobs (
     completed_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_export_jobs_user ON export_jobs(user_id, created_at DESC);
-CREATE INDEX idx_export_jobs_status ON export_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_export_jobs_user ON export_jobs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_export_jobs_status ON export_jobs(status);

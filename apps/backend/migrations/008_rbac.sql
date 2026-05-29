@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     UNIQUE(role, permission_name)
 );
 
-CREATE INDEX idx_role_permissions_role ON role_permissions(role);
-CREATE INDEX idx_permissions_resource ON permissions(resource);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role ON role_permissions(role);
+CREATE INDEX IF NOT EXISTS idx_permissions_resource ON permissions(resource);
 
 -- Seed default permissions
 INSERT INTO permissions (name, description, resource, action) VALUES
@@ -34,21 +34,26 @@ INSERT INTO permissions (name, description, resource, action) VALUES
     ('security.read', 'View security logs and IP lists', 'security', 'read'),
     ('security.write', 'Manage IP lists and security rules', 'security', 'write'),
     ('audit.read', 'View audit logs', 'audit', 'read'),
-    ('audit.export', 'Export audit logs', 'audit', 'export');
+    ('audit.export', 'Export audit logs', 'audit', 'export')
+ON CONFLICT (name) DO NOTHING;
 
 -- Seed default role-permission mappings
 -- superadmin gets all permissions
 INSERT INTO role_permissions (role, permission_name)
-SELECT 'superadmin', name FROM permissions;
+SELECT 'superadmin', name FROM permissions
+ON CONFLICT (role, permission_name) DO NOTHING;
 
 -- admin gets most permissions except security.write
 INSERT INTO role_permissions (role, permission_name)
-SELECT 'admin', name FROM permissions WHERE name NOT IN ('security.write');
+SELECT 'admin', name FROM permissions WHERE name NOT IN ('security.write')
+ON CONFLICT (role, permission_name) DO NOTHING;
 
 -- support gets read-only access
 INSERT INTO role_permissions (role, permission_name)
-SELECT 'support', name FROM permissions WHERE name LIKE '%.read';
+SELECT 'support', name FROM permissions WHERE name LIKE '%.read'
+ON CONFLICT (role, permission_name) DO NOTHING;
 
 -- analyst gets read + export
 INSERT INTO role_permissions (role, permission_name)
-SELECT 'analyst', name FROM permissions WHERE name LIKE '%.read' OR name = 'audit.export';
+SELECT 'analyst', name FROM permissions WHERE name LIKE '%.read' OR name = 'audit.export'
+ON CONFLICT (role, permission_name) DO NOTHING;

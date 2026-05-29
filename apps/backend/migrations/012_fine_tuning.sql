@@ -24,6 +24,6 @@ CREATE TABLE IF NOT EXISTS fine_tuning_jobs (
     finished_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_ft_datasets_user ON fine_tuning_datasets(user_id, created_at DESC);
-CREATE INDEX idx_ft_jobs_user ON fine_tuning_jobs(user_id, created_at DESC);
-CREATE INDEX idx_ft_jobs_status ON fine_tuning_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_ft_datasets_user ON fine_tuning_datasets(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ft_jobs_user ON fine_tuning_jobs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ft_jobs_status ON fine_tuning_jobs(status);

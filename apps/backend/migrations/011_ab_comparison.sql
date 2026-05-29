@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS ab_comparisons (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_ab_comparisons_user ON ab_comparisons(user_id, created_at DESC);
-CREATE INDEX idx_ab_comparisons_status ON ab_comparisons(status);
+CREATE INDEX IF NOT EXISTS idx_ab_comparisons_user ON ab_comparisons(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ab_comparisons_status ON ab_comparisons(status);
