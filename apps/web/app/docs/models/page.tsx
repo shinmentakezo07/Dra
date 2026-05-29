@@ -24,7 +24,7 @@ export default function ModelsPage() {
         <p>
           Yapapa routes requests to the optimal model based on your selected
           provider prefix. Use the{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
             /api/models
           </code>{" "}
           endpoint to get the full, up-to-date list of available models.
@@ -33,7 +33,7 @@ export default function ModelsPage() {
         <div className="overflow-x-auto mt-6">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.05]">
+              <tr className="border-b border-white/[0.07]">
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">
                   Provider
                 </th>
@@ -97,7 +97,7 @@ export default function ModelsPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Fetching models via API
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Use the API to get the complete, dynamically-updated list of
             supported models. This is useful for populating model selectors in
             your own application.
@@ -116,9 +116,9 @@ export default function ModelsPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             OpenAI-compatible endpoint
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Use{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               /v1/models
             </code>{" "}
             for OpenAI SDK compatibility. This endpoint returns models in the
@@ -170,7 +170,7 @@ export default function ModelsPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Provider-specific model listing
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Filter models by provider to see only the models available from a
             specific provider.
           </p>

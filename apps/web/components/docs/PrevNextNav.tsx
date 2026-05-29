@@ -67,7 +67,7 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
   return (
     <nav
       aria-label="Documentation page navigation"
-      className="mt-20 pt-10 border-t border-white/[0.06]"
+      className="mt-20 pt-10 border-t border-white/[0.08]"
     >
       <div className="flex items-stretch justify-between gap-4">
         <div className="flex-1 min-w-0">
@@ -76,12 +76,12 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
               href={`/docs/${prev.id}`}
               className="group block text-left h-full"
             >
-              <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.15em] block mb-2.5">
+              <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.15em] block mb-2.5">
                 Previous
               </span>
-              <div className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10 transition-all duration-200 h-full">
-                <ChevronLeft className="w-4 h-4 text-white/20 group-hover:text-emerald-400/50 group-hover:-translate-x-0.5 transition-all flex-shrink-0" />
-                <span className="text-sm text-white/[0.55] group-hover:text-white/80 transition-colors truncate font-medium">
+              <div className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.15] hover:shadow-lg hover:shadow-black/10 transition-all duration-200 h-full">
+                <ChevronLeft className="w-4 h-4 text-white/30 group-hover:text-emerald-400/60 group-hover:-translate-x-0.5 transition-all flex-shrink-0" />
+                <span className="text-sm text-white/60 group-hover:text-white/85 transition-colors truncate font-medium">
                   {prev.label}
                 </span>
               </div>
@@ -94,14 +94,14 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
               href={`/docs/${next.id}`}
               className="group block text-right h-full"
             >
-              <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.15em] block mb-2.5">
+              <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.15em] block mb-2.5">
                 Next
               </span>
-              <div className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10 transition-all duration-200 h-full">
-                <span className="text-sm text-white/[0.55] group-hover:text-white/80 transition-colors truncate font-medium">
+              <div className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.15] hover:shadow-lg hover:shadow-black/10 transition-all duration-200 h-full">
+                <span className="text-sm text-white/60 group-hover:text-white/85 transition-colors truncate font-medium">
                   {next.label}
                 </span>
-                <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-emerald-400/50 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-emerald-400/60 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
               </div>
             </Link>
           )}

@@ -52,12 +52,12 @@ export const EndpointCard = ({
         <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors flex-shrink min-w-0 truncate">
           {path}
         </code>
-        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/15 truncate pl-4">
+        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/30 truncate pl-4">
           {description}
         </span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {auth && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.05] text-[9px] font-medium text-white/20">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[9px] font-medium text-white/35">
               <Lock className="w-2.5 h-2.5" />
               Auth
             </span>
@@ -66,7 +66,7 @@ export const EndpointCard = ({
             animate={{ rotate: open ? 90 : 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/35 transition-colors" />
+            <ChevronRight className="w-3.5 h-3.5 text-white/25 group-hover:text-white/50 transition-colors" />
           </motion.div>
         </div>
       </button>
@@ -79,12 +79,12 @@ export const EndpointCard = ({
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-4 border-t border-white/[0.04] pt-4">
-              <p className="text-sm text-white/[0.45] flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400/40 mt-1.5 flex-shrink-0" />
+            <div className="px-4 pb-4 space-y-4 border-t border-white/[0.06] pt-4">
+              <p className="text-sm text-white/50 flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50 mt-1.5 flex-shrink-0" />
                 <span className="leading-relaxed">{description}</span>
               </p>
-              <div className="pl-4 border-l-2 border-white/[0.06]">
+              <div className="pl-4 border-l-2 border-white/[0.08]">
                 {children}
               </div>
             </div>

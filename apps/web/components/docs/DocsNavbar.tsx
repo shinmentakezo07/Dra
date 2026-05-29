@@ -96,31 +96,47 @@ export function DocsNavbar({
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
-      {/* Accent strip — shifts color with section */}
-      <motion.div
-        className="h-[2px] w-full"
-        initial={false}
-        animate={{ backgroundColor: accentHex }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        style={{ opacity: scrolled ? 0.6 : 0.3 }}
-      />
+      {/* Accent strip with animated shimmer */}
+      <div className="relative h-[2px] w-full overflow-hidden">
+        <motion.div
+          className="absolute inset-0"
+          initial={false}
+          animate={{ backgroundColor: accentHex }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ opacity: scrolled ? 0.7 : 0.35 }}
+        />
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${accentHex}40 50%, transparent 100%)`,
+            opacity: scrolled ? 0.6 : 0,
+          }}
+          animate={{ x: scrolled ? ["-100%", "200%"] : "-100%" }}
+          transition={{
+            duration: 2.5,
+            repeat: scrolled ? Infinity : 0,
+            repeatDelay: 3,
+            ease: "linear",
+          }}
+        />
+      </div>
 
       {/* Navbar body */}
       <div
-        className={`pointer-events-auto transition-all duration-300 ${
+        className={`pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           scrolled
-            ? "bg-[#08080a]/95 backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.03)]"
-            : "bg-[#08080a]/70 backdrop-blur-xl"
+            ? "bg-[#08080a]/97 backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)]"
+            : "bg-[#08080a]/60 backdrop-blur-xl"
         }`}
       >
-        <header className="mx-auto max-w-6xl flex items-center h-[52px] px-4 sm:px-6">
+        <header className="mx-auto max-w-6xl flex items-center h-[56px] px-4 sm:px-6">
           {/* ── Left cluster: logo + section badge ── */}
           <div className="flex items-center gap-3 min-w-0">
             {/* Mobile menu trigger */}
             <button
               onClick={onMobileMenuClick}
               aria-label="Open navigation"
-              className="lg:hidden p-1.5 -ml-1.5 text-white/30 hover:text-white/60 rounded-lg transition-colors duration-200 cursor-pointer"
+              className="lg:hidden p-2 -ml-1 text-white/30 hover:text-white/70 rounded-xl hover:bg-white/[0.06] transition-all duration-200 cursor-pointer"
             >
               <Menu className="w-[18px] h-[18px]" />
             </button>
@@ -130,61 +146,82 @@ export function DocsNavbar({
               href="/"
               className="flex items-center gap-2.5 group flex-shrink-0"
             >
-              <div className="relative w-8 h-8 rounded-xl bg-black border border-white/[0.1] overflow-hidden flex items-center justify-center group-hover:border-white/[0.2] transition-all duration-300 shadow-sm shadow-black/20">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:5px_5px]" />
+              <div className="relative w-9 h-9 rounded-[10px] bg-black border border-white/[0.08] overflow-hidden flex items-center justify-center group-hover:border-white/[0.18] transition-all duration-500 shadow-[0_0_0_0_transparent] group-hover:shadow-[0_0_16px_-2px_rgba(255,255,255,0.06)]">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:6px_6px]" />
+                <div
+                  className="absolute inset-0 rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ boxShadow: `inset 0 0 12px -4px ${accentHex}15` }}
+                />
                 <Image
                   src="/nervous-cat.jpg"
                   alt="Yapapa"
-                  width={24}
-                  height={24}
-                  className="rounded-[5px] object-cover relative z-10"
+                  width={26}
+                  height={26}
+                  className="rounded-[6px] object-cover relative z-10"
                 />
               </div>
-              <span
-                className="text-[16px] font-extrabold tracking-[-0.03em] text-white/75 group-hover:text-white transition-colors duration-300"
-                style={{ fontFamily: "var(--font-sans)" }}
-              >
-                YAPAPA
-              </span>
+              <div className="flex flex-col">
+                <span
+                  className="text-[15px] font-extrabold tracking-[-0.04em] text-white/70 group-hover:text-white transition-colors duration-300"
+                  style={{ fontFamily: "var(--font-sans)" }}
+                >
+                  YAPAPA
+                </span>
+                <span className="hidden sm:block text-[8px] font-mono uppercase tracking-[0.2em] text-white/[0.12] -mt-0.5 group-hover:text-white/[0.18] transition-colors duration-300">
+                  LLM Gateway
+                </span>
+              </div>
             </Link>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px h-5 bg-white/[0.08]" />
+            <div className="hidden sm:block w-px h-6 bg-gradient-to-b from-transparent via-white/[0.08] to-transparent" />
 
-            {/* Section indicator — asymmetric badge */}
+            {/* Section indicator */}
             <div className="hidden sm:flex items-center gap-2">
               <motion.div
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border relative overflow-hidden"
                 style={{
-                  borderColor: `${accentHex}20`,
-                  backgroundColor: `${accentHex}0a`,
+                  borderColor: `${accentHex}18`,
+                  backgroundColor: `${accentHex}08`,
                 }}
                 initial={false}
                 animate={{
-                  borderColor: `${accentHex}20`,
-                  backgroundColor: `${accentHex}0a`,
+                  borderColor: `${accentHex}18`,
+                  backgroundColor: `${accentHex}08`,
                 }}
                 transition={{ duration: 0.4 }}
               >
-                <BookOpen
-                  className="w-3 h-3"
-                  style={{ color: accentHex, opacity: 0.8 }}
+                <div
+                  className="absolute inset-0 opacity-20 rounded-lg"
+                  style={{ background: `radial-gradient(ellipse at 0% 50%, ${accentHex}15, transparent 70%)` }}
                 />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                <BookOpen
+                  className="w-3 h-3 relative z-10"
+                  style={{ color: accentHex, opacity: 0.7 }}
+                />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/30 relative z-10">
                   Docs
                 </span>
               </motion.div>
 
               {currentSectionLabel && (
                 <>
-                  <span className="text-white/[0.08] text-[11px] font-light select-none">
+                  <motion.span
+                    className="text-white/[0.06] text-[11px] font-light select-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
                     /
-                  </span>
+                  </motion.span>
                   <motion.span
                     key={currentSectionLabel}
-                    initial={{ opacity: 0, x: -4 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="text-[12px] text-white/50 font-medium truncate max-w-[160px]"
+                    initial={{ opacity: 0, x: -6, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: 4, filter: "blur(4px)" }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-[12px] font-medium truncate max-w-[160px]"
+                    style={{ color: `${accentHex}90` }}
                   >
                     {currentSectionLabel}
                   </motion.span>
@@ -194,7 +231,7 @@ export function DocsNavbar({
           </div>
 
           {/* ── Right cluster: nav + actions ── */}
-          <div className="flex items-center gap-1 ml-auto">
+          <div className="flex items-center gap-1.5 ml-auto">
             {/* Desktop nav links */}
             <nav
               className="hidden lg:flex items-center mr-1"
@@ -204,9 +241,11 @@ export function DocsNavbar({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer"
+                  className="relative px-3 py-1.5 rounded-lg text-[12px] font-medium text-white/35 hover:text-white/70 transition-all duration-200 cursor-pointer group"
                 >
-                  {link.label}
+                  <span className="relative z-10">{link.label}</span>
+                  <div className="absolute inset-0 rounded-lg bg-white/[0.04] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  <div className="absolute bottom-0.5 left-3 right-3 h-px bg-white/[0.12] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] origin-left" />
                 </Link>
               ))}
             </nav>
@@ -217,11 +256,15 @@ export function DocsNavbar({
                 onClick={() => setProductOpen((v) => !v)}
                 aria-expanded={productOpen}
                 aria-haspopup="true"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-medium text-white/30 hover:text-white/55 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer"
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-200 cursor-pointer ${
+                  productOpen
+                    ? "text-white/70 bg-white/[0.06]"
+                    : "text-white/35 hover:text-white/65 hover:bg-white/[0.04]"
+                }`}
               >
                 Product
                 <ChevronDown
-                  className={`w-3 h-3 transition-transform duration-200 ease-out ${
+                  className={`w-3 h-3 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     productOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -230,40 +273,60 @@ export function DocsNavbar({
               <AnimatePresence>
                 {productOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute right-0 top-full mt-1.5 w-[240px] rounded-xl bg-[#0d0d0f]/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl shadow-black/60 overflow-hidden z-50"
+                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute right-0 top-full mt-2 w-[260px] rounded-xl bg-[#0b0b0d]/97 backdrop-blur-2xl border border-white/[0.06] overflow-hidden z-50"
+                    style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.03), 0 8px 40px -8px rgba(0,0,0,0.7), 0 0 24px -4px ${accentHex}08` }}
                   >
+                    {/* Top accent glow */}
+                    <div
+                      className="absolute top-0 left-0 right-0 h-12 opacity-30 pointer-events-none"
+                      style={{ background: `radial-gradient(ellipse at 50% -20%, ${accentHex}12, transparent 70%)` }}
+                    />
+
                     {/* Panel header */}
-                    <div className="px-4 pt-3.5 pb-2 border-b border-white/[0.04]">
-                      <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.2em] text-white/15">
+                    <div className="px-4 pt-4 pb-2.5 border-b border-white/[0.04] relative z-10">
+                      <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.2em] text-white/[0.13]">
                         Platform
                       </span>
                     </div>
 
                     {/* Links */}
-                    <div className="p-1.5">
-                      {productLinks.map((link) => (
-                        <Link
+                    <div className="p-2 relative z-10">
+                      {productLinks.map((link, i) => (
+                        <motion.div
                           key={link.href}
-                          href={link.href}
-                          onClick={() => setProductOpen(false)}
-                          className="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-colors duration-150 cursor-pointer group"
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04, duration: 0.2 }}
                         >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${link.accent} opacity-50 group-hover:opacity-80 transition-opacity mt-[5px] flex-shrink-0`}
-                          />
-                          <div className="min-w-0">
-                            <p className="text-[13px] font-medium text-white/[0.55] group-hover:text-white/85 transition-colors leading-tight">
-                              {link.label}
-                            </p>
-                            <p className="text-[11px] text-white/20 mt-0.5 leading-snug">
-                              {link.desc}
-                            </p>
-                          </div>
-                        </Link>
+                          <Link
+                            href={link.href}
+                            onClick={() => setProductOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-all duration-200 cursor-pointer group"
+                          >
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.04] group-hover:border-white/[0.08] transition-all duration-200`}
+                              style={{
+                                backgroundColor: `${ACCENT_MAP[link.accent.replace("bg-", "").replace("-500", "")] ?? "#60a5fa"}0a`,
+                                color: ACCENT_MAP[link.accent.replace("bg-", "").replace("-500", "")] ?? "#60a5fa",
+                                opacity: 0.5,
+                              }}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${link.accent} opacity-60`} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-medium text-white/[0.45] group-hover:text-white/85 transition-colors leading-tight">
+                                {link.label}
+                              </p>
+                              <p className="text-[11px] text-white/[0.15] mt-0.5 leading-snug group-hover:text-white/25 transition-colors">
+                                {link.desc}
+                              </p>
+                            </div>
+                          </Link>
+                        </motion.div>
                       ))}
                     </div>
                   </motion.div>
@@ -275,13 +338,11 @@ export function DocsNavbar({
             <button
               onClick={onSearchOpen}
               aria-label="Search documentation (Ctrl+K)"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06] text-white/30 hover:text-white/60 hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-200 cursor-pointer group"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06] text-white/35 hover:text-white/70 hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300 cursor-pointer group"
             >
               <Search className="w-3.5 h-3.5 group-hover:text-white/50 transition-colors" />
-              <span className="hidden sm:inline text-[12px] font-medium">
-                Search
-              </span>
-              <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-[2px] rounded-[4px] bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-white/15 leading-none">
+              <span className="hidden sm:inline text-[12px] font-medium">Search</span>
+              <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-[2px] rounded-[4px] bg-white/[0.03] border border-white/[0.04] text-[9px] font-mono text-white/[0.12] leading-none">
                 <span className="text-[10px]">&#8984;</span>K
               </kbd>
             </button>
@@ -292,7 +353,7 @@ export function DocsNavbar({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View source on GitHub"
-              className="p-1.5 rounded-md text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer ml-0.5"
+              className="p-2 rounded-lg text-white/[0.15] hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer ml-0.5"
             >
               <svg
                 className="w-4 h-4"

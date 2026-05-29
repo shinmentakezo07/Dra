@@ -117,33 +117,33 @@ fmt.Printf("%+v\\n", result)`,
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Streaming (SSE)
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Set{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               stream: true
             </code>{" "}
             in the request body to receive a Server-Sent Events stream. Each
             chunk is a JSON object prefixed with{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               data:
             </code>
             , and the stream terminates with{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               data: [DONE]
             </code>
             .
           </p>
 
-          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0c] overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.04] bg-black/20">
-              <span className="w-2 h-2 rounded-full bg-red-500/30" />
-              <span className="w-2 h-2 rounded-full bg-yellow-500/30" />
-              <span className="w-2 h-2 rounded-full bg-green-500/30" />
-              <span className="text-[10px] font-mono text-white/20 uppercase tracking-wider ml-2">
+          <div className="rounded-xl border border-white/[0.08] bg-[#0a0a0c] overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.06] bg-black/20">
+              <span className="w-2 h-2 rounded-full bg-red-500/40" />
+              <span className="w-2 h-2 rounded-full bg-yellow-500/40" />
+              <span className="w-2 h-2 rounded-full bg-green-500/40" />
+              <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider ml-2">
                 SSE stream format
               </span>
             </div>
-            <pre className="p-5 font-mono text-[13px] leading-[1.65] text-white/65 overflow-x-auto">{`data: {"choices":[{"delta":{"content":"Hello"},"index":0}]}
+            <pre className="p-5 font-mono text-[13px] leading-[1.65] text-white/70 overflow-x-auto">{`data: {"choices":[{"delta":{"content":"Hello"},"index":0}]}
 
 data: {"choices":[{"delta":{"content":"! How"},"index":0}]}
 
@@ -155,7 +155,7 @@ data: [DONE]`}</pre>
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Chunk format
               </h4>
@@ -175,7 +175,7 @@ data: [DONE]`}</pre>
                 with the partial content.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Stream end
               </h4>
@@ -187,7 +187,7 @@ data: [DONE]`}</pre>
                 . The server closes the connection after sending this signal.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Timeout
               </h4>
@@ -245,9 +245,9 @@ while (true) {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             OpenAI-compatible endpoint
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Yapapa also provides a fully OpenAI-compatible endpoint at{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               /v1/chat/completions
             </code>
             . This endpoint accepts the standard OpenAI request format and

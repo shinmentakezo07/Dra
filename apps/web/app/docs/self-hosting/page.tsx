@@ -28,7 +28,7 @@ export default function SelfHostingPage() {
         <p>
           When self-hosting Yapapa, you need to configure the base URL so that
           documentation code examples point to your own API endpoint instead of{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
             localhost:8080
           </code>
           .
@@ -54,9 +54,9 @@ export default function SelfHostingPage() {
                   Environment Variable
                 </h4>
               </div>
-              <p className="text-xs text-white/30 mb-4">
+              <p className="text-xs text-white/40 mb-4">
                 Set the{" "}
-                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
                   NEXT_PUBLIC_DOCS_BASE_URL
                 </code>{" "}
                 env var before building the web app. This is the recommended
@@ -78,9 +78,9 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`}
                   Admin Settings Panel
                 </h4>
               </div>
-              <p className="text-xs text-white/30 mb-4">
+              <p className="text-xs text-white/40 mb-4">
                 Navigate to{" "}
-                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
                   /admin/settings
                 </code>{" "}
                 and edit the Docs Base URL card. Changes are saved to the
@@ -139,7 +139,7 @@ docs_base_url = "https://api.yourdomain.com"`}
                     <code className="text-[13px] text-white/70 font-mono">
                       {item.key}
                     </code>
-                    <p className="text-[11px] text-white/25 mt-0.5">
+                    <p className="text-[11px] text-white/35 mt-0.5">
                       {item.desc}
                     </p>
                   </div>
@@ -209,7 +209,7 @@ NEXT_PUBLIC_DOCS_BASE_URL=https://api.yourdomain.com`,
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Docker Compose environment
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             When deploying with Docker Compose, configure these environment
             variables for the backend service:
           </p>
@@ -261,7 +261,7 @@ curl https://api.yourdomain.com/api/chat ...`}
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Post-deployment verification
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             After deploying, run a quick smoke test to verify that everything is
             wired correctly:
           </p>

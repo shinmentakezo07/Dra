@@ -53,7 +53,7 @@ export default function DashboardPage() {
         </ul>
 
         <h3 className="text-lg font-bold text-white mb-4">Usage analytics</h3>
-        <p className="text-sm text-white/40 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           Retrieve usage metrics including total requests, token counts, and
           costs over custom time ranges.
         </p>
@@ -91,7 +91,7 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
         <h3 className="text-lg font-bold text-white mb-4 mt-10">
           Credit balance
         </h3>
-        <p className="text-sm text-white/40 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           Check your current credit balance, daily spending, and budget limits
           at any time.
         </p>
@@ -145,7 +145,7 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
         <h3 className="text-lg font-bold text-white mb-4 mt-10">
           Request logs
         </h3>
-        <p className="text-sm text-white/40 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           View paginated request history with filtering by model, status, date
           range, and more.
         </p>

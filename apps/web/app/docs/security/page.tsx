@@ -48,14 +48,14 @@ export default function SecurityPage() {
           ].map((item) => (
             <div
               key={item.title}
-              className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]"
+              className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.07]"
             >
               <item.icon className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="text-white font-semibold text-sm">
                   {item.title}
                 </h3>
-                <p className="text-xs text-white/30 mt-0.5">{item.desc}</p>
+                <p className="text-xs text-white/40 mt-0.5">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -66,9 +66,9 @@ export default function SecurityPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             API Key Hashing
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             API keys are hashed using HMAC-SHA256 with a server-side pepper (
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               AUTH_SECRET
             </code>
             ) before storage. This ensures that even if the database is
@@ -94,13 +94,13 @@ const storedHash = hashAPIKey(providedKey, AUTH_SECRET);`}
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             JWT Authentication
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             The platform uses HS256 JWTs for session-based authentication.
             Tokens include user ID, email, role, and an expiration timestamp.
             Session tokens expire after 7 days by default.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Algorithm
               </h4>
@@ -108,7 +108,7 @@ const storedHash = hashAPIKey(providedKey, AUTH_SECRET);`}
                 HS256 (HMAC with SHA-256). Signing method is strictly enforced.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Expiry
               </h4>
@@ -120,7 +120,7 @@ const storedHash = hashAPIKey(providedKey, AUTH_SECRET);`}
                 claim is validated on every request.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Shared Secret
               </h4>
@@ -140,7 +140,7 @@ const storedHash = hashAPIKey(providedKey, AUTH_SECRET);`}
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Security Headers
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             The platform sets security headers on all responses to protect
             against common web vulnerabilities.
           </p>
@@ -160,7 +160,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()`}
             Additional Security Measures
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.07]">
               <FileCode className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="text-white font-semibold text-xs">
@@ -172,7 +172,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()`}
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.07]">
               <Shield className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="text-white font-semibold text-xs">
@@ -187,7 +187,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()`}
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.07]">
               <Globe className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="text-white font-semibold text-xs">
@@ -199,7 +199,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()`}
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.07]">
               <Activity className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="text-white font-semibold text-xs">

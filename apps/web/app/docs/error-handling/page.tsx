@@ -29,19 +29,19 @@ export default function ErrorHandlingPage() {
         <p>
           The API returns consistent error responses with descriptive messages.
           All errors return a JSON body with a{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
             success
           </code>{" "}
           field set to{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
             false
           </code>
           , an{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
             error
           </code>{" "}
           field with the error type, and a human-readable{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+          <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
             message
           </code>
           .
@@ -112,7 +112,7 @@ export default function ErrorHandlingPage() {
           ].map((err) => (
             <div
               key={err.code}
-              className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.05]"
+              className="flex items-start gap-3 p-4 rounded-xl bg-white/[0.01] border border-white/[0.07]"
             >
               <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 text-xs font-bold font-mono">
                 {err.code}
@@ -121,7 +121,7 @@ export default function ErrorHandlingPage() {
                 <div className="text-white font-medium text-sm">
                   {err.title}
                 </div>
-                <div className="text-xs text-white/30 mt-0.5">{err.desc}</div>
+                <div className="text-xs text-white/40 mt-0.5">{err.desc}</div>
               </div>
             </div>
           ))}
@@ -132,7 +132,7 @@ export default function ErrorHandlingPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Example: failed request
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Here is the response when making a request with an invalid API key:
           </p>
           <CodeBlock
@@ -150,7 +150,7 @@ export default function ErrorHandlingPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Retry strategy
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Implement exponential backoff for 429 (rate limit) and 5xx
             responses. Do not retry on 4xx errors other than 429.
           </p>

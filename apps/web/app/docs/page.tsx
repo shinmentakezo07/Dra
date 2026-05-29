@@ -228,24 +228,30 @@ export default function DocsIndexPage() {
       transition={{ duration: 0.5 }}
     >
       {/* ── Hero ── */}
-      <div className="mb-16 sm:mb-24 pt-8 sm:pt-12">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[10px] font-mono text-white/25 uppercase tracking-[0.2em]">
-            Documentation
-          </span>
+      <div className="mb-16 sm:mb-24 pt-8 sm:pt-12 relative">
+        {/* Decorative accent */}
+        <div className="absolute -top-4 -left-6 w-32 h-32 rounded-full bg-blue-500/[0.04] blur-3xl pointer-events-none" />
+        <div className="absolute top-12 right-0 w-24 h-24 rounded-full bg-emerald-500/[0.03] blur-2xl pointer-events-none" />
+
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span className="text-[10px] font-mono text-white/35 uppercase tracking-[0.2em]">
+              Documentation
+            </span>
+          </div>
+          <h1 className="text-[2.5rem] sm:text-[3.25rem] lg:text-[4rem] font-bold tracking-tight leading-[1.05] mb-6">
+            <span className="text-white">Build with</span>
+            <br />
+            <span className="text-blue-400">
+              Yapapa
+            </span>
+          </h1>
+          <p className="text-base sm:text-lg text-white/50 max-w-xl leading-relaxed">
+            One unified API for 100+ AI models. OpenAI-compatible drop-in
+            replacement with credit-based billing and real-time analytics.
+          </p>
         </div>
-        <h1 className="text-[2.5rem] sm:text-[3.25rem] lg:text-[4rem] font-bold tracking-tight leading-[1.05] mb-6">
-          <span className="text-white">Build with</span>
-          <br />
-          <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-emerald-200 bg-clip-text text-transparent">
-            Yapapa
-          </span>
-        </h1>
-        <p className="text-base sm:text-lg text-white/40 max-w-xl leading-relaxed">
-          One unified API for 100+ AI models. OpenAI-compatible drop-in
-          replacement with credit-based billing and real-time analytics.
-        </p>
       </div>
 
       {/* ── Quick Start rail ── */}
@@ -256,10 +262,10 @@ export default function DocsIndexPage() {
         className="mb-20 sm:mb-28"
       >
         <div className="flex items-center gap-3 mb-6">
-          <span className="text-[9px] font-mono font-semibold text-emerald-400/70 uppercase tracking-[0.18em]">
+          <span className="text-[9px] font-mono font-semibold text-emerald-400/80 uppercase tracking-[0.18em]">
             Quick Start
           </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/25 to-transparent" />
+          <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/30 to-transparent" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
@@ -282,20 +288,20 @@ export default function DocsIndexPage() {
             <Link
               key={item.step}
               href="/docs/quickstart"
-              className="group relative p-5 rounded-xl border border-white/[0.06] bg-white/[0.01] hover:border-emerald-500/[0.2] hover:bg-emerald-500/[0.02] hover:shadow-lg hover:shadow-emerald-500/[0.03] transition-all duration-300 cursor-pointer overflow-hidden"
+              className="group relative p-5 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:border-emerald-500/25 hover:bg-emerald-500/[0.03] hover:shadow-lg hover:shadow-emerald-500/[0.04] transition-all duration-300 cursor-pointer overflow-hidden"
             >
-              <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-emerald-500/[0.04] blur-xl group-hover:bg-emerald-500/[0.08] transition-all duration-500" />
+              <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-emerald-500/[0.05] blur-xl group-hover:bg-emerald-500/[0.1] transition-all duration-500" />
               <div className="relative">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-mono font-bold text-emerald-400/60 group-hover:text-emerald-400/90 transition-colors">
+                  <span className="text-xs font-mono font-bold text-emerald-400/70 group-hover:text-emerald-400 transition-colors">
                     {item.step}
                   </span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/20 to-transparent" />
+                  <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/25 to-transparent" />
                 </div>
-                <p className="text-sm font-semibold text-white/65 group-hover:text-white/85 transition-colors">
+                <p className="text-sm font-semibold text-white/70 group-hover:text-white/90 transition-colors">
                   {item.title}
                 </p>
-                <p className="text-xs text-white/25 mt-0.5 group-hover:text-white/35 transition-colors">
+                <p className="text-xs text-white/35 mt-0.5 group-hover:text-white/45 transition-colors">
                   {item.desc}
                 </p>
               </div>
@@ -325,15 +331,15 @@ export default function DocsIndexPage() {
             <div className="group cursor-default mb-5">
               <div className="flex items-center gap-3">
                 <span
-                  className={`w-2 h-2 rounded-full ${style.dot} opacity-60`}
+                  className={`w-2 h-2 rounded-full ${style.dot} opacity-70`}
                 />
                 <h3
                   className={`text-[10px] font-mono font-semibold uppercase tracking-[0.2em] ${style.icon.split(" ")[0]}`}
                 >
                   {category}
                 </h3>
-                <div className="h-px flex-1 bg-white/[0.04]" />
-                <span className="text-[10px] font-mono text-white/15">
+                <div className="h-px flex-1 bg-white/[0.06]" />
+                <span className="text-[10px] font-mono text-white/25">
                   {catSections.length}
                 </span>
               </div>
@@ -350,23 +356,23 @@ export default function DocsIndexPage() {
                 <motion.div key={section.id} variants={fadeUp}>
                   <Link
                     href={`/docs/${section.id}`}
-                    className={`group flex items-center gap-4 p-4 rounded-xl border border-white/[0.05] bg-white/[0.01] hover:border-white/[0.1] hover:bg-white/[0.02] hover:shadow-md hover:shadow-black/5 transition-all duration-200 cursor-pointer`}
+                    className={`group flex items-center gap-4 p-4 rounded-xl border border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.03] hover:shadow-md hover:shadow-black/10 transition-all duration-200 cursor-pointer`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl ${style.icon.split(" ").slice(1).join(" ")} flex items-center justify-center flex-shrink-0 border transition-all duration-200 shadow-sm shadow-black/10`}
+                      className={`w-10 h-10 rounded-xl ${style.icon.split(" ").slice(1).join(" ")} flex items-center justify-center flex-shrink-0 border transition-all duration-200 shadow-sm shadow-black/15`}
                     >
                       <section.icon className="w-4.5 h-4.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-medium text-white/[0.55] group-hover:text-white/85 transition-colors duration-200 truncate">
+                      <p className="text-[13px] font-medium text-white/60 group-hover:text-white/90 transition-colors duration-200 truncate">
                         {section.label}
                       </p>
-                      <p className="text-[11px] text-white/25 truncate mt-0.5 group-hover:text-white/35 transition-colors">
+                      <p className="text-[11px] text-white/35 truncate mt-0.5 group-hover:text-white/45 transition-colors">
                         {section.desc}
                       </p>
                     </div>
                     <ArrowRight
-                      className={`w-3 h-3 text-white/[0.08] group-hover:text-white/25 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0`}
+                      className={`w-3 h-3 text-white/15 group-hover:text-white/35 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0`}
                     />
                   </Link>
                 </motion.div>

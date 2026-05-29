@@ -309,18 +309,18 @@ export const CodeBlock = ({
 
   return (
     <div
-      className={`relative rounded-xl overflow-hidden bg-[#0a0a0c] border border-white/[0.06] group ${hasSingleLine ? "not-prose" : ""}`}
+      className={`relative rounded-xl overflow-hidden bg-[#0a0a0c] border border-white/[0.08] group ${hasSingleLine ? "not-prose" : ""}`}
     >
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04] bg-gradient-to-r from-white/[0.02] to-transparent">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] bg-gradient-to-r from-white/[0.03] to-transparent">
         <div className="flex items-center gap-1.5">
           {examples ? (
             <>
               {/* Terminal dot indicator */}
               <span className="hidden sm:flex gap-1.5 mr-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/40 ring-1 ring-red-500/20" />
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/40 ring-1 ring-yellow-500/20" />
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500/40 ring-1 ring-green-500/20" />
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/50 ring-1 ring-red-500/25" />
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/50 ring-1 ring-yellow-500/25" />
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500/50 ring-1 ring-green-500/25" />
               </span>
               {(Object.keys(examples) as Lang[]).map((lang) => (
                 <button
@@ -371,7 +371,7 @@ export const CodeBlock = ({
       </div>
 
       {/* Code */}
-      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.7] text-white/65 scrollbar-thin scrollbar-thumb-white/[0.06] scrollbar-track-transparent">
+      <pre className="p-5 overflow-x-auto font-mono text-[13px] leading-[1.7] text-white/70 scrollbar-thin scrollbar-thumb-white/[0.08] scrollbar-track-transparent">
         <code>
           {typeof highlightedCode === "string" ? displayCode : highlightedCode}
         </code>

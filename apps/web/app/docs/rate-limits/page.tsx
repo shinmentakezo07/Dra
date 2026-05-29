@@ -52,9 +52,9 @@ export default function RateLimitsPage() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="relative p-5 rounded-xl bg-white/[0.01] border border-white/[0.05] text-center group hover:border-blue-500/[0.12] transition-all duration-300"
+              className="relative p-5 rounded-xl bg-white/[0.01] border border-white/[0.07] text-center group hover:border-blue-500/[0.12] transition-all duration-300"
             >
-              <stat.icon className="w-5 h-5 text-blue-400/50 mx-auto mb-3" />
+              <stat.icon className="w-5 h-5 text-blue-400/60 mx-auto mb-3" />
               <div className="text-3xl font-black text-blue-400 mb-1 group-hover:scale-110 transition-transform duration-300">
                 {stat.value}
               </div>
@@ -73,7 +73,7 @@ export default function RateLimitsPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Rate limit headers
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Every response includes headers that indicate your current rate
             limit status. These can be used to implement client-side rate
             limiting.
@@ -86,7 +86,7 @@ X-RateLimit-Reset: 1684567890
 Retry-After: 2`}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 <code className="text-white/70 font-mono text-xs">
                   X-RateLimit-Limit
@@ -96,7 +96,7 @@ Retry-After: 2`}
                 Maximum requests allowed in the current window.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 <code className="text-white/70 font-mono text-xs">
                   X-RateLimit-Remaining
@@ -106,7 +106,7 @@ Retry-After: 2`}
                 Number of requests remaining in the current window.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 <code className="text-white/70 font-mono text-xs">
                   X-RateLimit-Reset
@@ -116,7 +116,7 @@ Retry-After: 2`}
                 Unix timestamp when the current window resets.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 <code className="text-white/70 font-mono text-xs">
                   Retry-After
@@ -156,14 +156,14 @@ Retry-After: 2
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             Endpoint-specific limits
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Different endpoint groups have different rate limits. Auth endpoints
             have stricter limits to prevent brute force attacks.
           </p>
           <div className="overflow-x-auto mt-4">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.05]">
+                <tr className="border-b border-white/[0.07]">
                   <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">
                     Group
                   </th>
@@ -196,7 +196,7 @@ Retry-After: 2
                 ].map((row) => (
                   <tr
                     key={row.group}
-                    className="text-white/30 text-xs hover:bg-white/[0.01] transition-colors"
+                    className="text-white/40 text-xs hover:bg-white/[0.01] transition-colors"
                   >
                     <td className="py-3 px-4 text-white font-medium">
                       {row.group}

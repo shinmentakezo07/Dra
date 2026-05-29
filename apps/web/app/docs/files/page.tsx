@@ -38,7 +38,7 @@ export default function FilesPage() {
             path="/api/files/upload"
             description="Upload image files for vision/multimodal models."
           >
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-white/50 mb-4">
               Multipart upload. Max file size: 10MB. Supported formats: PNG,
               JPEG, WebP, GIF.
             </p>

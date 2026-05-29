@@ -54,13 +54,13 @@ export default function OrganizationsPage() {
           ].map((item) => (
             <div
               key={item.title}
-              className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05] hover:border-white/[0.1] transition-all duration-200"
+              className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.07] hover:border-white/[0.1] transition-all duration-200"
             >
               <item.icon className="w-5 h-5 text-blue-400 mb-3" />
               <h3 className="text-white font-semibold text-sm mb-1">
                 {item.title}
               </h3>
-              <p className="text-xs text-white/30 leading-relaxed">
+              <p className="text-xs text-white/40 leading-relaxed">
                 {item.desc}
               </p>
             </div>
@@ -70,7 +70,7 @@ export default function OrganizationsPage() {
         <h3 className="text-lg font-bold text-white mb-4 mt-10">
           Organization Model
         </h3>
-        <p className="text-sm text-white/30 leading-relaxed mb-4">
+        <p className="text-sm text-white/50 leading-relaxed mb-4">
           Each organization has the following structure:
         </p>
         <CodeBlock
@@ -145,7 +145,7 @@ export default function OrganizationsPage() {
           Members & Invitations
         </h3>
 
-        <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05] mb-6">
+        <div className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.07] mb-6">
           <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <UserPlus className="w-4 h-4 text-blue-400" />
             Invitation Flow
@@ -157,7 +157,7 @@ export default function OrganizationsPage() {
               </span>
               <span>
                 Admin calls{" "}
-                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
                   POST /api/organizations/{"{id}"}/invite
                 </code>{" "}
                 with the invitee&apos;s email and role.
@@ -178,7 +178,7 @@ export default function OrganizationsPage() {
               </span>
               <span>
                 The invitee calls{" "}
-                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+                <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
                   POST /api/invites/accept
                 </code>{" "}
                 with the token to join the organization.
@@ -232,7 +232,7 @@ export default function OrganizationsPage() {
         <div className="overflow-x-auto mt-4">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.05]">
+              <tr className="border-b border-white/[0.07]">
                 <th className="text-left py-3 px-4 text-white/40 font-medium text-xs uppercase tracking-wider">
                   Role
                 </th>
@@ -276,7 +276,7 @@ export default function OrganizationsPage() {
               ].map((row) => (
                 <tr
                   key={row.role}
-                  className="text-white/30 text-xs hover:bg-white/[0.01] transition-colors"
+                  className="text-white/40 text-xs hover:bg-white/[0.01] transition-colors"
                 >
                   <td className="py-3 px-4 text-white font-medium">
                     {row.role}

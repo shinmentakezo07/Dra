@@ -128,9 +128,9 @@ fmt.Printf("%+v\\n", embeddings)`,
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
             OpenAI-compatible endpoint
           </h3>
-          <p className="text-sm text-white/40 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             For OpenAI SDK compatibility, use the{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.04] text-white/[0.65] font-mono text-xs">
+            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
               /v1/embeddings
             </code>{" "}
             endpoint. It accepts the standard OpenAI embedding request format
@@ -161,7 +161,7 @@ fmt.Printf("%+v\\n", embeddings)`,
             Use cases
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Semantic Search
               </h4>
@@ -170,7 +170,7 @@ fmt.Printf("%+v\\n", embeddings)`,
                 similarity to find semantically relevant results.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Clustering
               </h4>
@@ -179,7 +179,7 @@ fmt.Printf("%+v\\n", embeddings)`,
                 discovery, content organization, and deduplication.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 RAG Pipelines
               </h4>
@@ -188,7 +188,7 @@ fmt.Printf("%+v\\n", embeddings)`,
                 relevant context before sending to an LLM for generation.
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200">
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200">
               <h4 className="text-white/90 font-semibold text-xs mb-1.5">
                 Recommendation
               </h4>

@@ -227,7 +227,7 @@ export default function DocsLayout({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-[#0c0c0e] border-l border-white/[0.06] lg:hidden overflow-y-auto"
+            className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-[#0c0c0e] border-l border-white/[0.08] lg:hidden overflow-y-auto"
           >
             <SidebarContent
               mobile
@@ -243,7 +243,7 @@ export default function DocsLayout({
       </AnimatePresence>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-[64px] bottom-0 w-[260px] border-r border-white/[0.05] bg-[#08080a] z-20">
+      <aside className="hidden lg:flex flex-col fixed left-0 top-[58px] bottom-0 w-[260px] border-r border-white/[0.07] bg-[#08080a] z-20">
         <SidebarContent
           navGroups={filteredNavGroups}
           filter={sidebarFilter}
@@ -256,7 +256,7 @@ export default function DocsLayout({
 
       {/* Main content */}
       <div className="lg:ml-[260px] relative z-10">
-        <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[76px] pb-20">
+        <main className="max-w-[800px] mx-auto px-6 sm:px-10 pt-[80px] pb-20">
           <DocsPageShell>{children}</DocsPageShell>
         </main>
       </div>
@@ -325,7 +325,7 @@ function SidebarContent({
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             aria-label="Filter documentation pages"
-            className={`w-full bg-white/[0.02] border border-white/[0.06] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white/55 placeholder:text-white/15 font-mono outline-none focus:border-white/[0.14] focus:bg-white/[0.03] transition-all duration-200`}
+            className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white/60 placeholder:text-white/25 font-mono outline-none focus:border-white/[0.16] focus:bg-white/[0.04] transition-all duration-200`}
           />
         </div>
       </div>
@@ -362,8 +362,8 @@ function SidebarContent({
                         aria-current={isActive ? "page" : undefined}
                         className={`relative flex items-center gap-3 px-3 py-[10px] rounded-xl text-sm w-full text-left transition-all duration-200 cursor-pointer group ${
                           isActive
-                            ? `text-white ${groupColor.bg} border ${groupColor.border}/20`
-                            : "text-white/30 hover:text-white/55 hover:bg-white/[0.03] border border-transparent"
+                            ? `text-white ${groupColor.bg} border ${groupColor.border}/25`
+                            : "text-white/40 hover:text-white/65 hover:bg-white/[0.04] border border-transparent"
                         }`}
                       >
                         {isActive && (
@@ -381,7 +381,7 @@ function SidebarContent({
                           className={`w-[14px] h-[14px] flex-shrink-0 transition-colors duration-200 ${
                             isActive
                               ? groupColor.text
-                              : "text-white/18 group-hover:text-white/35"
+                              : "text-white/25 group-hover:text-white/45"
                           }`}
                         />
                         <span className="truncate text-[13px] font-medium">
@@ -412,7 +412,7 @@ function SidebarContent({
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-mono text-white/25 hover:text-white/50 hover:bg-white/[0.03] transition-all duration-200 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-mono text-white/35 hover:text-white/55 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer"
         >
           <ArrowUpRight className="w-3 h-3" />
           <span>Report an issue</span>

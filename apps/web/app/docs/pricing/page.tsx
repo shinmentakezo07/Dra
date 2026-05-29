@@ -61,7 +61,7 @@ export default function PricingPage() {
           ].map((item) => (
             <div
               key={item.label}
-              className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.06] hover:border-white/[0.1] transition-colors duration-200"
+              className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-200"
             >
               <h3 className="text-white font-semibold text-sm mb-1">
                 {item.label}
@@ -69,7 +69,7 @@ export default function PricingPage() {
               <code className="text-blue-400 font-mono text-xs">
                 {item.endpoint}
               </code>
-              <p className="text-xs text-white/30 mt-2">{item.desc}</p>
+              <p className="text-xs text-white/40 mt-2">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -77,7 +77,7 @@ export default function PricingPage() {
         <h3 className="text-lg font-bold text-white mb-4 mt-10">
           Credit balance
         </h3>
-        <p className="text-sm text-white/40 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           Retrieve your current credit balance and spending metrics at any time.
         </p>
         <EndpointCard
@@ -112,7 +112,7 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
         <h3 className="text-lg font-bold text-white mb-4 mt-10">
           Transaction history
         </h3>
-        <p className="text-sm text-white/40 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           View all credit transactions including purchases, deductions, and
           system adjustments.
         </p>
@@ -157,7 +157,7 @@ req.Header.Set("X-Api-Key", "YOUR_API_KEY")`,
         <h3 className="text-lg font-bold text-white mb-4 mt-10">
           Budget limits
         </h3>
-        <p className="text-sm text-white/40 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           Set daily and monthly budget limits to control spending. Once reached,
           further requests are blocked or warned.
         </p>
