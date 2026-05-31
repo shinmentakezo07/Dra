@@ -18,10 +18,19 @@ import (
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
 	"dra-platform/backend/pkg/llm"
+	"dra-platform/backend/pkg/llm/audit"
+	"dra-platform/backend/pkg/llm/budget"
 	"dra-platform/backend/pkg/llm/cache"
+	"dra-platform/backend/pkg/llm/credentials"
 	"dra-platform/backend/pkg/llm/embeddings"
+	"dra-platform/backend/pkg/llm/loadbalancer"
 	"dra-platform/backend/pkg/llm/moderation"
+	"dra-platform/backend/pkg/llm/otel"
 	"dra-platform/backend/pkg/llm/router"
+	"dra-platform/backend/pkg/llm/security"
+	"dra-platform/backend/pkg/llm/usage"
+	"dra-platform/backend/pkg/llm/virtualkeys"
+	"dra-platform/backend/pkg/llm/ws"
 	"dra-platform/backend/pkg/webhook"
 	"dra-platform/backend/pkg/email"
 
@@ -65,6 +74,16 @@ type Handler struct {
 	stripeSvc       *service.StripeService
 	embeddingRegistry *embeddings.Registry
 	pricingSvc      *service.PricingService
+	// Enterprise features
+	credVault       *credentials.Vault
+	vkeyManager     *virtualkeys.Manager
+	budgetMgr       *budget.Manager
+	securityGuard   *security.Guard
+	usageTracker    *usage.Tracker
+	auditLogger     *audit.Logger
+	loadBalancer    *loadbalancer.Balancer
+	otelProvider    *otel.Provider
+	wsGateway       *ws.Gateway
 }
 
 func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService, p *service.ProviderService, w *service.WebhookService, b *service.BatchService, o *service.OrganizationService) *Handler {
@@ -102,6 +121,15 @@ func (h *Handler) SetEmailSender(s email.Sender)             { h.emailSender = s
 func (h *Handler) SetStripeService(s *service.StripeService) { h.stripeSvc = s }
 func (h *Handler) SetEmbeddingRegistry(r *embeddings.Registry) { h.embeddingRegistry = r }
 func (h *Handler) SetPricingService(s *service.PricingService) { h.pricingSvc = s }
+func (h *Handler) SetCredentialVault(v *credentials.Vault)     { h.credVault = v }
+func (h *Handler) SetVirtualKeyManager(m *virtualkeys.Manager) { h.vkeyManager = m }
+func (h *Handler) SetBudgetManager(m *budget.Manager)          { h.budgetMgr = m }
+func (h *Handler) SetSecurityGuard(g *security.Guard)          { h.securityGuard = g }
+func (h *Handler) SetUsageTracker(t *usage.Tracker)            { h.usageTracker = t }
+func (h *Handler) SetAuditLogger(l *audit.Logger)              { h.auditLogger = l }
+func (h *Handler) SetLoadBalancer(b *loadbalancer.Balancer)    { h.loadBalancer = b }
+func (h *Handler) SetOtelProvider(p *otel.Provider)            { h.otelProvider = p }
+func (h *Handler) SetWSGateway(g *ws.Gateway)                 { h.wsGateway = g }
 
 func (h *Handler) ChatFnForBatch() func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {
 	return func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {

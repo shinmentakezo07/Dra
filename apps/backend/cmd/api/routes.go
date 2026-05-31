@@ -398,5 +398,41 @@ func registerRoutes(
 		r.Get("/api/admin/plugins/{id}", appmiddleware.RequireAdmin(h.GetProviderPlugin))
 		r.Put("/api/admin/plugins/{id}/toggle", appmiddleware.RequireAdmin(h.ToggleProviderPlugin))
 		r.Delete("/api/admin/plugins/{id}", appmiddleware.RequireAdmin(h.DeleteProviderPlugin))
+
+		// --- Enterprise Features (SONAOP) ---
+		// Credential Vault
+		r.Get("/api/admin/credentials", appmiddleware.RequirePermission("providers.write")(h.ListCredentials))
+		r.Post("/api/admin/credentials", appmiddleware.RequirePermission("providers.write")(h.AddCredential))
+		r.Post("/api/admin/credentials/{id}/rotate", appmiddleware.RequirePermission("providers.write")(h.RotateCredential))
+		r.Delete("/api/admin/credentials/{id}", appmiddleware.RequirePermission("providers.write")(h.DeleteCredential))
+
+		// Security
+		r.Get("/api/admin/security/events", appmiddleware.RequireAdmin(h.GetSecurityEvents))
+		r.Post("/api/admin/security/scan", appmiddleware.RequireAdmin(h.ScanContent))
+
+		// Usage & Pricing
+		r.Get("/api/admin/usage/summary", appmiddleware.RequireAdmin(h.GetUsageSummary))
+		r.Get("/api/admin/pricing", appmiddleware.RequireAdmin(h.ListPricing))
+
+		// Load Balancer
+		r.Get("/api/admin/load-balancer", appmiddleware.RequireAdmin(h.GetLoadBalancerStats))
+
+		// Provider Health (detailed)
+		r.Get("/api/admin/provider-health-detailed", appmiddleware.RequireAdmin(h.ProviderHealthDetailed))
+	})
+
+	// Enterprise protected routes (require auth)
+	r.Group(func(r chi.Router) {
+		r.Use(authMW)
+		r.Use(tokenBlacklistMW)
+
+		// Virtual Keys
+		r.Get("/api/virtual-keys", h.ListVirtualKeys)
+		r.Post("/api/virtual-keys", h.CreateVirtualKey)
+		r.Post("/api/virtual-keys/{id}/deactivate", h.DeactivateVirtualKey)
+
+		// WebSocket
+		r.Get("/ws", h.WebSocketHandler)
+		r.Get("/v1/stream", h.WebSocketHandler)
 	})
 }

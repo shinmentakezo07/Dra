@@ -1339,3 +1339,61 @@ SONAOP.md identified 67 feature gaps vs CLIProxyAPI/LiteLLM/OpenRouter. This imp
 - Packages use in-memory store interfaces for testability — PostgreSQL implementations should be added in follow-up
 - Security patterns inspired by Lakera Guard, LlamaGuard, and OWASP LLM Top 10
 - Migration 022 must be applied manually: `psql $DATABASE_URL -f migrations/022_enterprise_features.sql`
+
+---
+
+## 16. Wire Enterprise Packages — PostgreSQL Stores, Handlers, Routes, Services
+
+**Session**: droid-enterprise-wiring
+**Date**: 2026-05-31
+
+### Why
+Entry #15 created 9 enterprise packages but they were all dead code — never imported by production code. This entry wires them into the actual backend: PostgreSQL store implementations, handler methods, HTTP routes, and service initialization.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/backend/pkg/llm/stores/postgres.go` | 1-630 | created |
+| `apps/backend/internal/handler/enterprise.go` | 1-290 | created |
+| `apps/backend/internal/handler/handler.go` | L26-55 | modified |
+| `apps/backend/cmd/api/services.go` | L1-180 | modified |
+| `apps/backend/cmd/api/routes.go` | L361-403 | modified |
+
+### New Capabilities
+
+1. **PostgreSQL Stores** (`pkg/llm/stores/postgres.go`): Implements `credentials.Store`, `virtualkeys.Store`, `budget.Store`, `usage.Store`, `usage.PricingStore`, `audit.Store` — all backed by PostgreSQL with pgx.
+
+2. **Handler Methods** (`internal/handler/enterprise.go`):
+   - `ListCredentials`, `AddCredential`, `RotateCredential`, `DeleteCredential` — credential vault CRUD
+   - `ListVirtualKeys`, `CreateVirtualKey`, `DeactivateVirtualKey` — virtual key management
+   - `GetSecurityEvents`, `ScanContent` — security guard endpoints
+   - `GetUsageSummary`, `ListPricing` — usage and pricing queries
+   - `GetAuditLogs` — audit log queries
+   - `GetLoadBalancerStats` — load balancer endpoint stats
+   - `WebSocketHandler` — SSE streaming endpoint
+   - `ProviderHealthDetailed` — detailed provider health
+
+3. **New Routes**:
+   - `GET/POST /api/virtual-keys` — virtual key management (authenticated)
+   - `POST /api/virtual-keys/{id}/deactivate` — deactivate key
+   - `GET/POST /api/admin/credentials` — credential CRUD (admin)
+   - `POST /api/admin/credentials/{id}/rotate` — rotate credential
+   - `DELETE /api/admin/credentials/{id}` — delete credential
+   - `GET /api/admin/security/events` — security events
+   - `POST /api/admin/security/scan` — scan content for threats
+   - `GET /api/admin/usage/summary` — usage summary
+   - `GET /api/admin/pricing` — model pricing
+   - `GET /api/admin/load-balancer` — load balancer stats
+   - `GET /api/admin/provider-health-detailed` — detailed health
+   - `GET /ws`, `GET /v1/stream` — WebSocket/SSE streaming
+
+4. **Service Wiring** (`services.go`): All 9 enterprise packages initialized with PostgreSQL stores and wired into handler via setter methods.
+
+### Notes
+- All enterprise packages now have production-grade PostgreSQL persistence
+- Credential vault uses AES-256-GCM encryption with AUTH_SECRET as key base
+- Security guard runs in blocking mode by default (prompt injection/jailbreak/PII/secrets)
+- Load balancer auto-populates from provider registry
+- Budget manager sends alerts via logger (webhook/email integration is a follow-up)
+- `go vet ./...` clean, all tests pass with `-race -cover`

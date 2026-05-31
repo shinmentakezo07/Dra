@@ -11,13 +11,23 @@ import (
 	"dra-platform/backend/internal/repository"
 	"dra-platform/backend/internal/service"
 	"dra-platform/backend/pkg/llm"
+	"dra-platform/backend/pkg/llm/audit"
+	"dra-platform/backend/pkg/llm/budget"
 	"dra-platform/backend/pkg/llm/cache"
 	"dra-platform/backend/pkg/llm/circuitbreaker"
+	"dra-platform/backend/pkg/llm/credentials"
 	"dra-platform/backend/pkg/llm/guardrails"
 	"dra-platform/backend/pkg/llm/embeddings"
+	"dra-platform/backend/pkg/llm/loadbalancer"
+	"dra-platform/backend/pkg/llm/otel"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
 	"dra-platform/backend/pkg/llm/router"
+	"dra-platform/backend/pkg/llm/security"
+	"dra-platform/backend/pkg/llm/stores"
+	"dra-platform/backend/pkg/llm/usage"
+	"dra-platform/backend/pkg/llm/virtualkeys"
 	"dra-platform/backend/pkg/llm/watcher"
+	"dra-platform/backend/pkg/llm/ws"
 	"dra-platform/backend/pkg/email"
 
 	"github.com/redis/go-redis/v9"
@@ -128,7 +138,79 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 		logger.Info("stripe_service_configured")
 	}
 
-	// Handler
+	// --- Enterprise Features (SONAOP packages) ---
+	encryptionKey := cfg.AuthSecret // Use auth secret as encryption key base
+
+	// Credential Vault (AES-256-GCM encrypted API key storage)
+	credStore := stores.NewPostgresCredentialStore(database.Pool)
+	credVault, err := credentials.NewVault(credStore, encryptionKey)
+	if err != nil {
+		logger.Warn("credential_vault_init_failed", "error", err.Error())
+	} else {
+		logger.Info("credential_vault_initialized")
+	}
+
+	// Virtual Keys (sk-* API keys with team scoping)
+	vkeyStore := stores.NewPostgresVirtualKeyStore(database.Pool)
+	vkeyManager := virtualkeys.NewManager(vkeyStore)
+	logger.Info("virtual_key_manager_initialized")
+
+	// Budget Manager (hierarchical team->user->key budgets)
+	budgetStore := stores.NewPostgresBudgetStore(database.Pool)
+	budgetMgr := budget.NewManager(budgetStore)
+	budgetMgr.SetAlertFunc(func(ctx context.Context, b *budget.Budget, pct int) {
+		logger.Warn("budget_threshold_alert", "scope", string(b.Scope), "scope_id", b.ScopeID, "percent", pct, "limit", b.LimitCents)
+	})
+	logger.Info("budget_manager_initialized")
+
+	// Security Guard (prompt injection, jailbreak, PII, secrets)
+	securityGuard := security.NewGuard(security.Config{
+		EnablePromptInjection: true,
+		EnableJailbreak:       true,
+		EnablePIIDetection:    true,
+		EnableSecretDetection: true,
+		BlockOnDetection:      true,
+		RedactPII:             true,
+	})
+	logger.Info("security_guard_initialized")
+
+	// Usage Tracker (per-request cost tracking)
+	usageStore := stores.NewPostgresUsageStore(database.Pool)
+	pricingStore := stores.NewPostgresPricingStore(database.Pool)
+	usageTracker := usage.NewTracker(usageStore, pricingStore)
+	logger.Info("usage_tracker_initialized")
+
+	// Audit Logger (immutable audit trail)
+	auditStore := stores.NewPostgresAuditStore(database.Pool)
+	auditLogger := audit.NewLogger(auditStore)
+	logger.Info("audit_logger_initialized")
+
+	// Load Balancer (6 strategies)
+	loadBalancer := loadbalancer.New(loadbalancer.StrategyFromString(cfg.RouterStrategy))
+	for _, name := range llmRegistry.Providers() {
+		if p, ok := llmRegistry.Get(name); ok {
+			loadBalancer.AddEndpoint(&loadbalancer.Endpoint{
+				ID:        name,
+				Provider:  name,
+				Model:     "*",
+				IsActive:  true,
+				IsHealthy: true,
+				Priority:  1,
+			})
+			_ = p // keep reference
+		}
+	}
+	logger.Info("load_balancer_initialized", "strategy", cfg.RouterStrategy)
+
+	// OpenTelemetry
+	otelProvider := otel.NewProvider(&otel.LoggingExporter{}, cfg.EnableMetrics)
+	logger.Info("otel_provider_initialized")
+
+	// WebSocket Gateway
+	wsGateway := ws.NewGateway(1000) // 1000 max connections
+	logger.Info("ws_gateway_initialized")
+
+	// Wire enterprise features into handler
 	h := handler.New(cfg, database, userSvc, keySvc, creditSvc, analyticsSvc, logSvc, providerSvc, webhookSvc, nil, orgSvc)
 	h.SetEmailSender(emailSender)
 	h.SetStripeService(stripeSvc)
@@ -140,6 +222,16 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 	h.SetAdminSessionRepo(adminSessionRepo)
 	h.SetEmbeddingRegistry(embeddingRegistry)
 	h.SetPricingService(pricingSvc)
+	// Enterprise features
+	h.SetCredentialVault(credVault)
+	h.SetVirtualKeyManager(vkeyManager)
+	h.SetBudgetManager(budgetMgr)
+	h.SetSecurityGuard(securityGuard)
+	h.SetUsageTracker(usageTracker)
+	h.SetAuditLogger(auditLogger)
+	h.SetLoadBalancer(loadBalancer)
+	h.SetOtelProvider(otelProvider)
+	h.SetWSGateway(wsGateway)
 
 	// Fine-tuning
 	fineTuningSvc := service.NewFineTuningService(repository.NewFineTuningRepo(database))
