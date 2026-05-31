@@ -1226,3 +1226,116 @@ User requested deep web research (25+ searches) to identify every missing featur
 - 67 distinct feature gaps identified, prioritized as Critical/High/Medium/Nice-to-have
 - Database schema includes 8 new tables for virtual keys, teams, credentials, usage tracking, audit logs
 - Quick wins section identifies 10 features that can be implemented in < 1 day each
+
+---
+
+## 14. Enhanced Platform Capabilities UI — Magnetic Hover, Particle Field, Live Visuals
+
+**Session**: droid-ui-enhance
+**Date**: 2026-05-31 05:00
+
+### Why
+The Platform Capabilities section (GatewayFeatures) had functional but static visuals. Cards lacked depth, hover states were minimal, and the in-card data visualizations (terminal, stats, edge, routing, pricing) were plain. This overhaul adds magnetic cursor tracking, particle fields, animated data streams, and micro-interactions that match the site's dark cyberpunk aesthetic.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/GatewayFeatures.tsx` | L1-680 | rewritten |
+
+### Before
+```code
+// GatewayFeatures.tsx — static cards with simple hover opacity transitions
+// Terminal: plain pre-formatted text, no animation
+// Stats: single SVG sparkline + static metric rows
+// Edge: single-line uptime/latency text
+// Routing: static tag pills
+// Pricing: simple list with dot indicators
+// No cursor tracking, no particles, no perspective tilt
+```
+
+### After
+```code
+// GatewayFeatures.tsx — fully interactive bento grid with:
+// - useMagneticHover() hook: cards tilt toward cursor via useMotionValue + useSpring
+// - ParticleField: 30 floating particles with randomized drift animations
+// - MouseSpotlight: radial gradient follows cursor across section
+// - TerminalBlock: live line-by-line typing animation on scroll-into-view
+// - StatsBlock: animated sparkline pathLength + per-metric progress bars with color coding
+// - GlobeVisual: SVG wireframe globe with animated connection lines + pulsing node rings
+// - RoutingVisual: animated SVG path with traveling dot + policy tag pills
+// - PricingBlock: horizontal bar chart with staggered reveal + price labels
+// - IconWrap: outer glow ring + scale transform on hover
+// - Card gradient border + grid texture reveal on hover
+// - Top accent line per card on hover
+// - ArrowUpRight icon container with hover scale
+// - Stats strip uses CSS grid (2x2 mobile, 4-col desktop) instead of flex
+```
+
+### Notes
+- All animations respect `prefers-reduced-motion` (Framer Motion handles this natively)
+- No new dependencies added — uses existing framer-motion, lucide-react, tailwind-merge
+- Build verified: `next build` passes cleanly
+- Visual style matches existing dark (#050505/#0A0A0A) cyberpunk aesthetic with blue/purple/amber/emerald accents
+
+---
+
+## 15. Enterprise Features — SONAOP Implementation (9 New Packages)
+
+**Session**: droid-enterprise-features
+**Date**: 2026-05-31
+
+### Why
+SONAOP.md identified 67 feature gaps vs CLIProxyAPI/LiteLLM/OpenRouter. This implements the Phase 1 (Critical) and Phase 2 (High Priority) features as 9 new Go packages under `pkg/llm/`, plus database migration 022.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/backend/migrations/022_enterprise_features.sql` | 1-230 | created |
+| `apps/backend/pkg/llm/credentials/vault.go` | 1-310 | created |
+| `apps/backend/pkg/llm/credentials/vault_test.go` | 1-170 | created |
+| `apps/backend/pkg/llm/virtualkeys/manager.go` | 1-230 | created |
+| `apps/backend/pkg/llm/virtualkeys/manager_test.go` | 1-190 | created |
+| `apps/backend/pkg/llm/budget/budget.go` | 1-230 | created |
+| `apps/backend/pkg/llm/budget/budget_test.go` | 1-195 | created |
+| `apps/backend/pkg/llm/security/guardrails.go` | 1-310 | created |
+| `apps/backend/pkg/llm/security/guardrails_test.go` | 1-165 | created |
+| `apps/backend/pkg/llm/usage/tracker.go` | 1-210 | created |
+| `apps/backend/pkg/llm/usage/tracker_test.go` | 1-230 | created |
+| `apps/backend/pkg/llm/audit/audit.go` | 1-265 | created |
+| `apps/backend/pkg/llm/audit/audit_test.go` | 1-135 | created |
+| `apps/backend/pkg/llm/loadbalancer/balancer.go` | 1-260 | created |
+| `apps/backend/pkg/llm/loadbalancer/balancer_test.go` | 1-135 | created |
+| `apps/backend/pkg/llm/otel/otel.go` | 1-220 | created |
+| `apps/backend/pkg/llm/otel/otel_test.go` | 1-90 | created |
+| `apps/backend/pkg/llm/ws/gateway.go` | 1-310 | created |
+| `apps/backend/pkg/llm/ws/gateway_test.go` | 1-150 | created |
+| `apps/backend/pkg/llm/router/ab_testing.go` | 1-200 | created |
+| `apps/backend/pkg/llm/router/ab_testing_test.go` | 1-135 | created |
+
+### New Packages
+
+1. **`pkg/llm/credentials/`** — Encrypted credential vault with AES-256-GCM encryption, health-based key rotation, per-provider credential pools, automatic failover to backup keys on 401/403.
+2. **`pkg/llm/virtualkeys/`** — Virtual API key management (sk-* format) with SHA-256 hash storage, team/user scoping, model access control with wildcards, rate limits (RPM/RPD/TPM), budget limits, IP allowlisting, expiration.
+3. **`pkg/llm/budget/`** — Hierarchical budget management (team → user → key) with daily/weekly/monthly/total reset periods, soft limits with alert callbacks, hard limits with rejection, background periodic reset.
+4. **`pkg/llm/security/`** — Prompt injection detection (13 patterns), jailbreak defense (10 patterns including DAN/roleplay/token smuggling), PII detection (SSN/CC/email/phone/IP with redaction), secret detection (OpenAI/Anthropic/AWS/GitHub keys, bearer tokens, private keys), topic restriction.
+5. **`pkg/llm/usage/`** — Per-request usage tracking with cost calculation in microcents, built-in pricing for 16 models (GPT-4o, Claude 3.5, Gemini 2.0, Llama 3.1, Mixtral), custom pricing overrides, aggregation by user/model/provider/team.
+6. **`pkg/llm/audit/`** — Comprehensive audit logging for all operations (key CRUD, model access, budget events, security events, credential changes, provider health changes, team management) with async persistence and query filtering.
+7. **`pkg/llm/loadbalancer/`** — 6 routing strategies: round-robin, least-busy, latency-based, cost-optimized, weighted, random. Per-endpoint health/active status, active request tracking, success rate calculation, model-based filtering.
+8. **`pkg/llm/otel/`** — OpenTelemetry integration with GenAI semantic conventions (gen_ai.system, gen_ai.request.model, gen_ai.usage.*), gateway-specific attributes, span lifecycle management, metric recording, noop and logging exporters.
+9. **`pkg/llm/ws/`** — WebSocket gateway with connection management, topic-based pub/sub, per-user message delivery, ping/pong keepalive, connection limits, SSE fallback with keepalive, message routing.
+10. **`pkg/llm/router/ab_testing.go`** — A/B testing with configurable traffic split percentages, start/end time windows, traffic counting. Canary deployments with error-based auto-disable, success recovery.
+
+### Database Migration (022)
+
+13 new tables: `teams`, `team_members`, `virtual_keys`, `credentials`, `usage_records`, `audit_logs`, `model_access_groups`, `model_pricing`, `fallback_configs`, `security_events`, `budget_alerts`, `ab_test_configs`, `provider_health_history`.
+
+### Notes
+- All packages compile cleanly (`go build ./...`)
+- `go vet ./pkg/llm/...` clean
+- 9 new test suites with 70+ test cases, all passing with `-race -cover`
+- Pre-existing `TestRouter_RouteByCapability` failure is unrelated (existing code)
+- Packages use in-memory store interfaces for testability — PostgreSQL implementations should be added in follow-up
+- Security patterns inspired by Lakera Guard, LlamaGuard, and OWASP LLM Top 10
+- Migration 022 must be applied manually: `psql $DATABASE_URL -f migrations/022_enterprise_features.sql`
