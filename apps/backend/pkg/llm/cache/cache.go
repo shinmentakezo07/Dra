@@ -91,27 +91,30 @@ func NewMemoryCache(opts ...Option) *MemoryCache {
 }
 
 // Get retrieves a cached response.
+// Bug #40: releases lock before expensive deep copy to reduce contention.
 func (c *MemoryCache) Get(ctx context.Context, key string) (*llm.ChatResponse, error) {
 	c.mu.Lock()
-	defer c.mu.Unlock()
-
 	entry, exists := c.entries[key]
 	if !exists {
 		c.misses++
+		c.mu.Unlock()
 		return nil, ErrCacheMiss
 	}
 
 	if entry.IsExpired() {
 		delete(c.entries, key)
 		c.misses++
+		c.mu.Unlock()
 		return nil, ErrCacheMiss
 	}
 
 	entry.AccessCount++
 	c.hits++
+	// Snapshot the response while holding the lock, then release before deep copy
+	snapshot := entry.Response
+	c.mu.Unlock()
 
-	// Return deep copy to prevent mutation
-	return deepCopyResponse(entry.Response), nil
+	return deepCopyResponse(snapshot), nil
 }
 
 // Set stores a response in the cache.

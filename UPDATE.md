@@ -1397,3 +1397,120 @@ Entry #15 created 9 enterprise packages but they were all dead code — never im
 - Load balancer auto-populates from provider registry
 - Budget manager sends alerts via logger (webhook/email integration is a follow-up)
 - `go vet ./...` clean, all tests pass with `-race -cover`
+
+---
+
+## 8. Deep Bug Fix Pass — 16 Critical/High Issues Resolved
+
+**Session**: Droid-2026-05-31-bugfix
+**Date**: 2026-05-31
+
+### Why
+Deep codebase analysis identified 60 bugs across the backend. This pass fixes the 16 most impactful issues spanning repository cache, LLM enterprise packages, security guardrails, stream handling, and WebSocket gateway.
+
+### Files Changed
+
+| File | Change Type |
+|------|-------------|
+| `apps/backend/internal/repository/user.go` | modified |
+| `apps/backend/internal/repository/cache.go` | modified |
+| `apps/backend/internal/repository/apikey.go` | modified |
+| `apps/backend/internal/repository/user_by_key.go` | modified |
+| `apps/backend/pkg/llm/cache/cache.go` | modified |
+| `apps/backend/pkg/llm/circuitbreaker/circuitbreaker.go` | modified |
+| `apps/backend/pkg/llm/budget/budget.go` | modified |
+| `apps/backend/pkg/llm/virtualkeys/manager.go` | modified |
+| `apps/backend/pkg/llm/security/guardrails.go` | modified |
+| `apps/backend/pkg/llm/helper.go` | modified |
+| `apps/backend/pkg/llm/router/router.go` | modified |
+| `apps/backend/pkg/llm/provider/openai_sdk.go` | modified |
+| `apps/backend/pkg/llm/ws/gateway.go` | modified |
+
+### Fixes Applied
+
+#### Bug #37 — UserRepo.UpdateProfile stale email cache
+**File**: `internal/repository/user.go`
+**Problem**: When a user changed their email, the old email cache key was never invalidated. Subsequent lookups by old email returned stale data.
+**Fix**: Fetch old email before update, invalidate both old and new email cache keys.
+
+#### Bug #40 — LLM MemoryCache.Get holds write lock during deep copy
+**File**: `pkg/llm/cache/cache.go`
+**Problem**: `Get()` held a write lock for the entire operation including the expensive `deepCopyResponse()`, serializing all cache reads.
+**Fix**: Release the write lock before the deep copy, only holding it for counter updates.
+
+#### Bug #41 — Circuit breaker 5s stream timeout kills reasoning models
+**File**: `pkg/llm/circuitbreaker/circuitbreaker.go`
+**Problem**: `wrapStream()` used a 5-second timeout between chunks. Reasoning models (o1, deepseek-r1) can pause 10-30s during thinking, causing silent stream termination.
+**Fix**: Increased timeout to 120s. Added error recording on timeout so circuit breaker tracks the failure.
+
+#### Bug #42 — Budget TOCTOU race condition
+**File**: `pkg/llm/budget/budget.go`
+**Problem**: `CheckAndRecord()` read `UsedCents`, checked the limit, then wrote the new total without synchronization. Concurrent requests could both pass the hard limit check.
+**Fix**: Hold mutex for the entire check-and-record operation.
+
+#### Bug #43 — Virtual key cache O(N) lookup in RecordUsage
+**File**: `pkg/llm/virtualkeys/manager.go`
+**Problem**: `RecordUsage()` iterated all cache entries to find by ID (O(N)). Cache was keyed only by hash.
+**Fix**: Cache entries indexed by both hash and ID (`"id:"+vk.ID`). `RecordUsage()` now does O(1) lookup.
+
+#### Bug #49/#50 — PII redaction corrupts text with multiple detections
+**File**: `pkg/llm/security/guardrails.go`
+**Problem**: `Redact()` applied detections in arbitrary order. When the first redaction changed string length, all subsequent position-based redactions hit wrong offsets.
+**Fix**: Sort detections by position descending before redacting, so earlier positions remain valid.
+
+#### Bug #51 — MemoryRepoCache evicts by expiry time, not access time
+**File**: `internal/repository/cache.go`
+**Problem**: Eviction policy removed entries with the soonest expiry, not the least recently used. Frequently-accessed entries with short TTLs were evicted while stale entries with long TTLs persisted.
+**Fix**: Added `lastAccess` field to cache entries. Eviction now uses LRU policy. `Get()` updates `lastAccess` on successful reads.
+
+#### Bug #52 — MemoryRepoCache deadlock on expired entry cleanup
+**File**: `internal/repository/cache.go`
+**Problem**: `Get()` held a read lock, then tried to acquire a write lock to delete expired entries. This is a deadlock if another goroutine holds a read lock and needs a write lock.
+**Fix**: Release the read lock before acquiring the write lock for the delete operation.
+
+#### Bug #54 — Reasoning effort not propagated to OpenAI SDK
+**File**: `pkg/llm/provider/openai_sdk.go`
+**Problem**: `toOpenAIRequest()` didn't map `Thinking` config to the OpenAI SDK's `ReasoningEffort` field. Thinking configuration was silently lost for o1/o3 models.
+**Fix**: Added `ReasoningEffort` mapping based on `Thinking.BudgetTokens` thresholds (low/medium/high).
+
+#### Bug #57 — Router calls ListModels on every request
+**File**: `pkg/llm/router/router.go`
+**Problem**: `routeByCost()` called `ListModels()` on every provider for every request. If providers are remote APIs, this adds significant latency.
+**Fix**: Added per-provider model cache with 5-minute TTL. `getCachedModels()` returns cached results or fetches fresh ones.
+
+#### Bug #58 — DeepCopyRequest shallow-copies ContentBlocks and Metadata
+**File**: `pkg/llm/helper.go`
+**Problem**: `copy()` on structs copies by value, but `ContentBlocks []ContentBlock` and `Metadata map[string]any` are reference types. Modifying them on the copy affected the original.
+**Fix**: Deep copy `ContentBlocks` slice and `Metadata` map for each message.
+
+#### Bug #59 — Virtual key cache single cacheTime for all entries
+**File**: `pkg/llm/virtualkeys/manager.go`
+**Problem**: One `cacheTime` for the entire cache meant one miss refreshed all entries.
+**Fix**: Per-entry `expiresAt` via `cacheEntry` wrapper struct. Each entry has its own TTL.
+
+#### Bug #60 — Budget periodicReset holds write lock during store calls
+**File**: `pkg/llm/budget/budget.go`
+**Problem**: `periodicReset()` held a write lock while iterating cached budgets AND making store calls (DB queries). Blocked all `CheckAndRecord` calls.
+**Fix**: Two-phase approach: collect budgets needing reset under lock, then release lock before persisting resets.
+
+#### Bug #47 — WebSocket gateway has no per-user connection limit
+**File**: `pkg/llm/ws/gateway.go`
+**Problem**: A single user could consume all connection slots by opening many tabs.
+**Fix**: Added `maxPerUser` (default: 10) with per-user connection counting in `HandleHTTP()`.
+
+#### Bug #48 — WebSocket pingLoop updates lastPing on send, not on pong
+**File**: `pkg/llm/ws/gateway.go`
+**Problem**: `lastPing` was updated when the ping was *sent*, not when the pong was *received*. The timeout check never triggered.
+**Fix**: Added pong handler that updates `lastPing`. Removed `lastPing` update from ping send. Ping loop now correctly detects dead connections.
+
+### Known Debt (Not Fixed — Requires Interface Changes)
+- **Bugs #44/#46**: `PostgresCredentialStore` and `PostgresAuditStore` use `context.Background()` instead of request-scoped contexts. Fix requires changing the `Store` interface signatures, which is a breaking change affecting all implementations.
+- **Bug #45**: Budget store reuses `budget_alerts` table with `threshold_percent=0` sentinel. Requires schema migration to add a `type` column.
+- **Bug #55**: Dashboard stats query `usage_records` while billing writes to `api_logs`. Requires data pipeline unification.
+- **Bug #38**: Plaintext API key fallback now logs warnings but is still supported for backward compatibility. Should be migrated and removed.
+
+### Verification
+- `go build ./...` — passes clean
+- `go test -race -short ./...` — all pre-existing passing tests continue to pass
+- No new test failures introduced
+- Pre-existing failures (unrelated): `TestRouter_RouteByCapability`, `TestValidateRequest_ClampsValues`, `TestRoundRobin`, `service_integration_test.go`

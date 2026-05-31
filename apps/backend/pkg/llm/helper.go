@@ -382,13 +382,31 @@ func BuildToolResultMessage(toolCallID, content string, isError bool) Message {
 }
 
 // DeepCopyRequest creates a deep copy of a ChatRequest.
+// Bug #58: deep-copies ContentBlocks and Metadata in messages to prevent mutation.
 func DeepCopyRequest(req *ChatRequest) *ChatRequest {
 	if req == nil {
 		return nil
 	}
 	cpy := *req
 	cpy.Messages = make([]Message, len(req.Messages))
-	copy(cpy.Messages, req.Messages)
+	for i, m := range req.Messages {
+		cpy.Messages[i] = m
+		cpy.Messages[i].Content = strings.Clone(m.Content)
+		// Deep copy ContentBlocks
+		if len(m.ContentBlocks) > 0 {
+			blocks := make([]ContentBlock, len(m.ContentBlocks))
+			copy(blocks, m.ContentBlocks)
+			cpy.Messages[i].ContentBlocks = blocks
+		}
+		// Deep copy Metadata map
+		if m.Metadata != nil {
+			meta := make(map[string]any, len(m.Metadata))
+			for k, v := range m.Metadata {
+				meta[k] = v
+			}
+			cpy.Messages[i].Metadata = meta
+		}
+	}
 	cpy.Tools = make([]ToolDefinition, len(req.Tools))
 	copy(cpy.Tools, req.Tools)
 	cpy.StopSequences = make([]string, len(req.StopSequences))

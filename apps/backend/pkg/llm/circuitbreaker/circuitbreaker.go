@@ -186,13 +186,16 @@ func (cb *CircuitBreaker) wrapStream(ch <-chan llm.StreamChunk) <-chan llm.Strea
 	go func() {
 		defer close(out)
 		success := false
-		timer := time.NewTimer(5 * time.Second)
+		// Bug #41: 5s timeout killed streams from reasoning models (o1, deepseek-r1, etc.)
+		// that can pause 10-30s between chunks during thinking. 120s is safe for all models.
+		timer := time.NewTimer(120 * time.Second)
 		defer timer.Stop()
 		for chunk := range ch {
-			timer.Reset(5 * time.Second)
+			timer.Reset(120 * time.Second)
 			select {
 			case out <- chunk:
 			case <-timer.C:
+				cb.recordResult(fmt.Errorf("stream timeout after 120s"))
 				return
 			}
 			if chunk.FinishReason != nil {

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log/slog"
 
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/domain"
@@ -33,6 +34,8 @@ func GetUserByAPIKey(ctx context.Context, db *db.DB, key, pepper string) (*domai
 			return nil, nil, err
 		}
 		// Fallback: raw key lookup for legacy plaintext keys
+		// Bug #38: log warning — plaintext keys are a security weakness, should be migrated
+		slog.Warn("api_key_plaintext_fallback_used", "hint", "migrate legacy plaintext keys to HMAC-hashed format")
 		row = db.QueryRow(ctx, `
 			SELECT u.id, u.name, u.email, u.password, u.role, u.created_at,
 			       k.id, k.user_id, k.name, k.key, k.last_used, k.created_at, k.revoked_at,

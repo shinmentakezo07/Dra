@@ -86,6 +86,17 @@ func toOpenAIRequest(req *llm.ChatRequest) openai.ChatCompletionRequest {
 	if req.ToolChoice != "" {
 		chatReq.ToolChoice = req.ToolChoice
 	}
+	// Bug #54: map Thinking config to ReasoningEffort for o1/o3 models
+	if req.Thinking != nil && req.Thinking.Enabled && llm.IsThinkingModel(req.Model) {
+		effort := "medium"
+		switch {
+		case req.Thinking.BudgetTokens > 16000:
+			effort = "high"
+		case req.Thinking.BudgetTokens < 4000:
+			effort = "low"
+		}
+		chatReq.ReasoningEffort = effort
+	}
 	return chatReq
 }
 

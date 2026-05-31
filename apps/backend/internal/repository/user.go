@@ -78,10 +78,18 @@ func (r *UserRepo) Create(ctx context.Context, name, email, hashedPassword, role
 }
 
 func (r *UserRepo) UpdateProfile(ctx context.Context, id, name, email string) error {
+	// Fetch old email before update so we can invalidate the old cache key (Bug #37)
+	var oldEmail string
+	if r.cache != nil {
+		_ = r.db.QueryRow(ctx, `SELECT email FROM users WHERE id = $1`, id).Scan(&oldEmail)
+	}
 	_, err := r.db.Exec(ctx, `UPDATE users SET name = $2, email = $3 WHERE id = $1`, id, name, email)
 	if err == nil && r.cache != nil {
 		_ = r.cache.Delete(ctx, userCacheKey(id))
 		_ = r.cache.Delete(ctx, userEmailCacheKey(email))
+		if oldEmail != "" && oldEmail != email {
+			_ = r.cache.Delete(ctx, userEmailCacheKey(oldEmail))
+		}
 	}
 	return err
 }

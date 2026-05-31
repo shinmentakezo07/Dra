@@ -110,6 +110,7 @@ func (m *Manager) Create(b *Budget) error {
 
 // CheckAndRecord checks if a charge would exceed the budget and records it.
 // Returns nil if within budget, error if exceeded.
+// Bug #42: hold mutex for entire check-and-record to prevent TOCTOU race on concurrent requests.
 func (m *Manager) CheckAndRecord(ctx context.Context, scope BudgetScope, scopeID string, costCents int64) error {
 	b, err := m.getBudget(scope, scopeID)
 	if err != nil {
@@ -118,6 +119,9 @@ func (m *Manager) CheckAndRecord(ctx context.Context, scope BudgetScope, scopeID
 	if b == nil {
 		return nil // no budget set = unlimited
 	}
+
+	// Serialize check-and-record per budget scope to prevent TOCTOU race
+	m.mu.Lock()
 
 	// Check if budget needs reset
 	if b.Period != PeriodTotal && time.Now().After(b.ResetAt) {
@@ -130,6 +134,7 @@ func (m *Manager) CheckAndRecord(ctx context.Context, scope BudgetScope, scopeID
 
 	// Hard limit check
 	if b.HardLimit && b.LimitCents > 0 && newTotal > b.LimitCents {
+		m.mu.Unlock()
 		return fmt.Errorf("budget exceeded for %s/%s: used %d cents, limit %d cents",
 			scope, scopeID, newTotal, b.LimitCents)
 	}
@@ -137,8 +142,11 @@ func (m *Manager) CheckAndRecord(ctx context.Context, scope BudgetScope, scopeID
 	// Record usage
 	b.UsedCents = newTotal
 	if err := m.store.UpdateUsage(scope, scopeID, costCents); err != nil {
+		m.mu.Unlock()
 		return fmt.Errorf("update usage: %w", err)
 	}
+
+	m.mu.Unlock()
 
 	// Soft limit alert
 	if b.LimitCents > 0 {
@@ -243,23 +251,35 @@ func (m *Manager) calculateReset(period BudgetPeriod) time.Time {
 	}
 }
 
+// Bug #60: collect budgets needing reset under lock, then release lock before store calls.
 func (m *Manager) periodicReset() {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
+			// Phase 1: identify and update budgets under lock
+			type resetItem struct {
+				scope   BudgetScope
+				scopeID string
+			}
+			var toReset []resetItem
 			m.mu.Lock()
 			now := time.Now()
 			for key, b := range m.cache {
 				if b.Period != PeriodTotal && now.After(b.ResetAt) {
 					b.UsedCents = 0
 					b.ResetAt = m.calculateReset(b.Period)
-					_ = m.store.ResetUsage(b.Scope, b.ScopeID)
 					m.cache[key] = b
+					toReset = append(toReset, resetItem{b.Scope, b.ScopeID})
 				}
 			}
 			m.mu.Unlock()
+
+			// Phase 2: persist resets without holding the lock
+			for _, item := range toReset {
+				_ = m.store.ResetUsage(item.scope, item.scopeID)
+			}
 		case <-m.stopCh:
 			return
 		}

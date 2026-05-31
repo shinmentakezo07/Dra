@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -200,9 +201,20 @@ func (g *Guard) Scan(ctx context.Context, text string, meta map[string]string) (
 }
 
 // Redact applies redaction to text based on detections.
+// Bug #49/#50: sort detections by position descending so earlier redactions don't shift later positions.
 func (g *Guard) Redact(text string, detections []Detection) string {
+	if len(detections) == 0 {
+		return text
+	}
+	// Sort by position descending — process from end to start to preserve positions
+	sorted := make([]Detection, len(detections))
+	copy(sorted, detections)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Position > sorted[j].Position
+	})
+
 	result := text
-	for _, d := range detections {
+	for _, d := range sorted {
 		if d.Redacted != "" && d.Position >= 0 && d.Position+d.Length <= len(result) {
 			result = result[:d.Position] + d.Redacted + result[d.Position+d.Length:]
 		}

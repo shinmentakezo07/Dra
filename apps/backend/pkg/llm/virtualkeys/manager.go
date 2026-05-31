@@ -53,21 +53,26 @@ type Store interface {
 	List() ([]*VirtualKey, error)
 }
 
+// cacheEntry wraps a VirtualKey with per-entry expiry (Bug #59).
+type cacheEntry struct {
+	vk        *VirtualKey
+	expiresAt time.Time
+}
+
 // Manager manages virtual API keys.
 type Manager struct {
-	store     Store
-	mu        sync.RWMutex
-	cache     map[string]*VirtualKey // hash -> key
-	cacheTime time.Time
-	cacheTTL  time.Duration
+	store    Store
+	mu       sync.RWMutex
+	cache    map[string]*cacheEntry // hash -> entry (Bug #43: also indexed by ID)
+	cacheTTL time.Duration
 }
 
 // NewManager creates a new virtual key manager.
 func NewManager(store Store) *Manager {
 	return &Manager{
-		store:     store,
-		cache:     make(map[string]*VirtualKey),
-		cacheTTL:  2 * time.Minute,
+		store:    store,
+		cache:    make(map[string]*cacheEntry),
+		cacheTTL: 2 * time.Minute,
 	}
 }
 
@@ -139,17 +144,18 @@ func (m *Manager) Validate(rawKey string) (*VirtualKey, error) {
 	hash := sha256.Sum256([]byte(rawKey))
 	hashStr := hex.EncodeToString(hash[:])
 
-	// Check cache first
+	// Bug #59: check per-entry expiry instead of global cacheTime
 	m.mu.RLock()
-	if cached, ok := m.cache[hashStr]; ok && time.Since(m.cacheTime) < m.cacheTTL {
+	if entry, ok := m.cache[hashStr]; ok && time.Now().Before(entry.expiresAt) {
 		m.mu.RUnlock()
-		if !cached.IsActive {
+		vk := entry.vk
+		if !vk.IsActive {
 			return nil, fmt.Errorf("API key is deactivated")
 		}
-		if cached.ExpiresAt != nil && cached.ExpiresAt.Before(time.Now()) {
+		if vk.ExpiresAt != nil && vk.ExpiresAt.Before(time.Now()) {
 			return nil, fmt.Errorf("API key has expired")
 		}
-		return cached, nil
+		return vk, nil
 	}
 	m.mu.RUnlock()
 
@@ -161,10 +167,11 @@ func (m *Manager) Validate(rawKey string) (*VirtualKey, error) {
 		return nil, fmt.Errorf("invalid API key")
 	}
 
-	// Cache it
+	// Bug #43: cache by both hash and ID for O(1) lookup in RecordUsage
+	ce := &cacheEntry{vk: vk, expiresAt: time.Now().Add(m.cacheTTL)}
 	m.mu.Lock()
-	m.cache[hashStr] = vk
-	m.cacheTime = time.Now()
+	m.cache[hashStr] = ce
+	m.cache["id:"+vk.ID] = ce
 	m.mu.Unlock()
 
 	if !vk.IsActive {
@@ -200,17 +207,14 @@ func (m *Manager) RecordUsage(id string, costCents int64, tokens int) error {
 		return fmt.Errorf("update usage: %w", err)
 	}
 
-	// Update cache
+	// Bug #43: O(1) lookup by ID instead of O(N) iteration
 	m.mu.Lock()
-	for _, vk := range m.cache {
-		if vk.ID == id {
-			vk.BudgetUsedCents += costCents
-			vk.RequestCount++
-			vk.TotalTokens += int64(tokens)
-			now := time.Now()
-			vk.LastUsedAt = &now
-			break
-		}
+	if entry, ok := m.cache["id:"+id]; ok {
+		entry.vk.BudgetUsedCents += costCents
+		entry.vk.RequestCount++
+		entry.vk.TotalTokens += int64(tokens)
+		now := time.Now()
+		entry.vk.LastUsedAt = &now
 	}
 	m.mu.Unlock()
 
@@ -243,8 +247,7 @@ func (m *Manager) List() ([]*VirtualKey, error) {
 
 func (m *Manager) invalidateCache() {
 	m.mu.Lock()
-	m.cache = make(map[string]*VirtualKey)
-	m.cacheTime = time.Time{}
+	m.cache = make(map[string]*cacheEntry)
 	m.mu.Unlock()
 }
 

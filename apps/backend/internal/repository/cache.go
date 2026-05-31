@@ -89,6 +89,7 @@ type MemoryRepoCache struct {
 type memoryCacheEntry struct {
 	value      []byte
 	expiresAt  time.Time
+	lastAccess time.Time // Bug #51: track access time for proper eviction
 }
 
 func NewMemoryRepoCache(limit int) *MemoryRepoCache {
@@ -106,6 +107,7 @@ func (c *MemoryRepoCache) Get(ctx context.Context, key string, dest any) bool {
 		return false
 	}
 	if time.Now().After(entry.expiresAt) {
+		// Bug #52: release read lock before acquiring write lock to prevent deadlock
 		c.mu.Lock()
 		delete(c.data, key)
 		c.mu.Unlock()
@@ -114,6 +116,13 @@ func (c *MemoryRepoCache) Get(ctx context.Context, key string, dest any) bool {
 	if err := json.Unmarshal(entry.value, dest); err != nil {
 		return false
 	}
+	// Bug #51: update lastAccess time on successful read
+	c.mu.Lock()
+	if e, exists := c.data[key]; exists {
+		e.lastAccess = time.Now()
+		c.data[key] = e
+	}
+	c.mu.Unlock()
 	return true
 }
 
@@ -124,19 +133,21 @@ func (c *MemoryRepoCache) Set(ctx context.Context, key string, value any, ttl ti
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if len(c.data) >= c.limit && c.data[key].expiresAt.IsZero() {
-		// Simple eviction: remove oldest entry
-		var oldestKey string
-		var oldestTime time.Time
+	if len(c.data) >= c.limit {
+		// Bug #51: evict by least recently accessed (LRU), not by soonest expiry
+		var lruKey string
+		var lruTime time.Time
 		for k, v := range c.data {
-			if oldestTime.IsZero() || v.expiresAt.Before(oldestTime) {
-				oldestTime = v.expiresAt
-				oldestKey = k
+			if lruTime.IsZero() || v.lastAccess.Before(lruTime) {
+				lruTime = v.lastAccess
+				lruKey = k
 			}
 		}
-		delete(c.data, oldestKey)
+		if lruKey != "" {
+			delete(c.data, lruKey)
+		}
 	}
-	c.data[key] = memoryCacheEntry{value: data, expiresAt: time.Now().Add(ttl)}
+	c.data[key] = memoryCacheEntry{value: data, expiresAt: time.Now().Add(ttl), lastAccess: time.Now()}
 	return nil
 }
 

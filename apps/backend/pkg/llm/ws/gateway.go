@@ -54,6 +54,7 @@ type Gateway struct {
 	connections map[string]*connectionState
 	handlers    map[string]Handler
 	maxConns    int
+	maxPerUser  int // Bug #47: per-user connection limit
 	pingInterval time.Duration
 	pongTimeout  time.Duration
 	connCount    atomic.Int64
@@ -75,6 +76,7 @@ func NewGateway(maxConns int) *Gateway {
 		connections:  make(map[string]*connectionState),
 		handlers:     make(map[string]Handler),
 		maxConns:     maxConns,
+		maxPerUser:   10, // Bug #47: default per-user connection limit
 		pingInterval: 30 * time.Second,
 		pongTimeout:  10 * time.Second,
 	}
@@ -82,6 +84,18 @@ func NewGateway(maxConns int) *Gateway {
 	// Register default handlers
 	g.handlers[TypePing] = func(conn Conn, msg *Message) error {
 		return g.Send(conn, &Message{Type: TypePong, Timestamp: time.Now().UnixMilli()})
+	}
+	// Bug #48: pong handler updates lastPing so pingLoop knows the peer is alive
+	g.handlers[TypePong] = func(conn Conn, msg *Message) error {
+		g.mu.Lock()
+		for _, cs := range g.connections {
+			if cs.conn == conn {
+				cs.lastPing = time.Now()
+				break
+			}
+		}
+		g.mu.Unlock()
+		return nil
 	}
 
 	return g
@@ -99,6 +113,22 @@ func (g *Gateway) HandleHTTP(w http.ResponseWriter, r *http.Request, conn Conn, 
 	if int(g.connCount.Load()) >= g.maxConns {
 		http.Error(w, "connection limit reached", http.StatusServiceUnavailable)
 		return fmt.Errorf("connection limit reached")
+	}
+
+	// Bug #47: check per-user connection limit
+	if userID != "" && g.maxPerUser > 0 {
+		g.mu.RLock()
+		userConns := 0
+		for _, cs := range g.connections {
+			if cs.userID == userID {
+				userConns++
+			}
+		}
+		g.mu.RUnlock()
+		if userConns >= g.maxPerUser {
+			http.Error(w, "per-user connection limit reached", http.StatusServiceUnavailable)
+			return fmt.Errorf("per-user connection limit reached for user %s", userID)
+		}
 	}
 
 	connID := fmt.Sprintf("ws-%d", time.Now().UnixNano())
@@ -303,6 +333,7 @@ func (g *Gateway) pingLoop(cs *connectionState) {
 			return
 		}
 
+		// Bug #48: check if pong was received since last ping (not just if ping was sent)
 		if time.Since(cs.lastPing) > g.pingInterval+g.pongTimeout {
 			g.Disconnect(cs.id)
 			return
@@ -312,7 +343,8 @@ func (g *Gateway) pingLoop(cs *connectionState) {
 			g.Disconnect(cs.id)
 			return
 		}
-		cs.lastPing = time.Now()
+		// Note: lastPing is updated by the pong handler in readLoop, not here.
+		// This ensures we only consider the connection alive if the peer responded.
 	}
 }
 

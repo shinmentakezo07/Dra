@@ -43,6 +43,12 @@ func (s Strategy) String() string {
 	}
 }
 
+// modelCacheEntry caches ListModels results per provider (Bug #57).
+type modelCacheEntry struct {
+	models    []llm.ModelInfo
+	fetchedAt time.Time
+}
+
 // Router intelligently routes requests to providers based on strategy.
 type Router struct {
 	mu         sync.RWMutex
@@ -51,6 +57,8 @@ type Router struct {
 	strategy   Strategy
 	latencies  map[string]*latencyTracker
 	errors     map[string]*errorTracker
+	modelCache map[string]*modelCacheEntry // Bug #57: cache ListModels per provider
+	modelTTL   time.Duration
 }
 
 type latencyTracker struct {
@@ -112,9 +120,11 @@ func (et *errorTracker) errorRate() float64 {
 // New creates a new router with the given strategy.
 func New(strategy Strategy) *Router {
 	return &Router{
-		strategy:  strategy,
-		latencies: make(map[string]*latencyTracker),
-		errors:    make(map[string]*errorTracker),
+		strategy:   strategy,
+		latencies:  make(map[string]*latencyTracker),
+		errors:      make(map[string]*errorTracker),
+		modelCache:  make(map[string]*modelCacheEntry),
+		modelTTL:    5 * time.Minute,
 	}
 }
 
@@ -223,15 +233,12 @@ func supportsTools(p llm.Provider) bool {
 }
 
 func (r *Router) routeByCost(ctx context.Context, providers []llm.Provider, req *llm.ChatRequest) (llm.Provider, error) {
-	// Get model pricing and pick cheapest
+	// Bug #57: cache ListModels results per provider to avoid N API calls per request
 	var best llm.Provider
 	bestCost := math.MaxFloat64
 
 	for _, p := range providers {
-		models, err := p.ListModels(ctx)
-		if err != nil {
-			continue
-		}
+		models := r.getCachedModels(ctx, p)
 		for _, m := range models {
 			if matchesModel(m.ID, req.Model) {
 				cost := m.InputPricePer1k + m.OutputPricePer1k
@@ -248,6 +255,30 @@ func (r *Router) routeByCost(ctx context.Context, providers []llm.Provider, req 
 		return best, nil
 	}
 	return providers[0], nil
+}
+
+// getCachedModels returns cached models for a provider, fetching if expired.
+func (r *Router) getCachedModels(ctx context.Context, p llm.Provider) []llm.ModelInfo {
+	name := p.Name()
+
+	r.mu.RLock()
+	if entry, ok := r.modelCache[name]; ok && time.Since(entry.fetchedAt) < r.modelTTL {
+		models := entry.models
+		r.mu.RUnlock()
+		return models
+	}
+	r.mu.RUnlock()
+
+	models, err := p.ListModels(ctx)
+	if err != nil {
+		return nil
+	}
+
+	r.mu.Lock()
+	r.modelCache[name] = &modelCacheEntry{models: models, fetchedAt: time.Now()}
+	r.mu.Unlock()
+
+	return models
 }
 
 func (r *Router) routeByLatency(providers []llm.Provider) (llm.Provider, error) {
