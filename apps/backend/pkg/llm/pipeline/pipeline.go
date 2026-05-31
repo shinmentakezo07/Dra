@@ -155,3 +155,164 @@ func (s *ToolStep) Before(ctx context.Context, req *llm.ChatRequest) error {
 func (s *ToolStep) After(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) error {
 	return nil
 }
+
+// --- Middleware Chain & Interceptors (CLIProxyAPI-inspired) ---
+
+// RequestInterceptor inspects/modifies requests before provider execution.
+type RequestInterceptor interface {
+	Name() string
+	Intercept(ctx context.Context, req *llm.ChatRequest) (*llm.ChatRequest, error)
+}
+
+// ResponseInterceptor inspects/modifies responses after provider execution.
+type ResponseInterceptor interface {
+	Name() string
+	Intercept(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) (*llm.ChatResponse, error)
+}
+
+// ChainPipeline extends Pipeline with middleware chain and interceptors.
+type ChainPipeline struct {
+	*Pipeline
+	interceptors       []RequestInterceptor
+	responseInterceptors []ResponseInterceptor
+}
+
+// NewChain creates a new chain pipeline with middleware support.
+func NewChain() *ChainPipeline {
+	return &ChainPipeline{
+		Pipeline: New(),
+	}
+}
+
+// AddRequestInterceptor adds a request interceptor to the chain.
+func (cp *ChainPipeline) AddRequestInterceptor(i RequestInterceptor) {
+	cp.interceptors = append(cp.interceptors, i)
+}
+
+// AddResponseInterceptor adds a response interceptor to the chain.
+func (cp *ChainPipeline) AddResponseInterceptor(i ResponseInterceptor) {
+	cp.responseInterceptors = append(cp.responseInterceptors, i)
+}
+
+// RunRequestInterceptors runs all request interceptors in order.
+func (cp *ChainPipeline) RunRequestInterceptors(ctx context.Context, req *llm.ChatRequest) (*llm.ChatRequest, error) {
+	var err error
+	for _, interceptor := range cp.interceptors {
+		req, err = interceptor.Intercept(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("interceptor %s: %w", interceptor.Name(), err)
+		}
+	}
+	return req, nil
+}
+
+// RunResponseInterceptors runs all response interceptors in order.
+func (cp *ChainPipeline) RunResponseInterceptors(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) (*llm.ChatResponse, error) {
+	var err error
+	for _, interceptor := range cp.responseInterceptors {
+		resp, err = interceptor.Intercept(ctx, req, resp)
+		if err != nil {
+			return nil, fmt.Errorf("response interceptor %s: %w", interceptor.Name(), err)
+		}
+	}
+	return resp, nil
+}
+
+// Execute runs the full pipeline: before steps -> request interceptors -> handler -> response interceptors -> after steps.
+func (cp *ChainPipeline) Execute(ctx context.Context, req *llm.ChatRequest, handler func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error)) (*llm.ChatResponse, error) {
+	// 1. Pre-processing steps
+	if err := cp.RunBefore(ctx, req); err != nil {
+		return nil, err
+	}
+
+	// 2. Request interceptors
+	req, err := cp.RunRequestInterceptors(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Execute handler
+	resp, err := handler(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 4. Response interceptors
+	resp, err = cp.RunResponseInterceptors(ctx, req, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. Post-processing steps
+	if err := cp.RunAfter(ctx, req, resp); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// --- Built-in Interceptors ---
+
+// ModelValidationInterceptor validates that the requested model is available.
+type ModelValidationInterceptor struct {
+	IsAvailable func(model string) bool
+}
+
+func (i *ModelValidationInterceptor) Name() string { return "model_validation" }
+
+func (i *ModelValidationInterceptor) Intercept(ctx context.Context, req *llm.ChatRequest) (*llm.ChatRequest, error) {
+	if i.IsAvailable != nil && !i.IsAvailable(req.Model) {
+		return nil, fmt.Errorf("model %s is not available", req.Model)
+	}
+	return req, nil
+}
+
+// RateLimitInterceptor enforces rate limiting per model or user.
+type RateLimitInterceptor struct {
+	CheckLimit func(model, userID string) error
+}
+
+func (i *RateLimitInterceptor) Name() string { return "rate_limit" }
+
+func (i *RateLimitInterceptor) Intercept(ctx context.Context, req *llm.ChatRequest) (*llm.ChatRequest, error) {
+	if i.CheckLimit != nil {
+		userID := ""
+		if req.Metadata != nil {
+			userID = req.Metadata["user_id"]
+		}
+		if err := i.CheckLimit(req.Model, userID); err != nil {
+			return nil, err
+		}
+	}
+	return req, nil
+}
+
+// GuardrailInterceptor applies input guardrails.
+type GuardrailInterceptor struct {
+	Check func(req *llm.ChatRequest) error
+}
+
+func (i *GuardrailInterceptor) Name() string { return "guardrail" }
+
+func (i *GuardrailInterceptor) Intercept(ctx context.Context, req *llm.ChatRequest) (*llm.ChatRequest, error) {
+	if i.Check != nil {
+		if err := i.Check(req); err != nil {
+			return nil, err
+		}
+	}
+	return req, nil
+}
+
+// TelemetryInterceptor records request metrics.
+type TelemetryInterceptor struct {
+	Record func(model, provider string, usage llm.Usage, duration int64)
+}
+
+func (i *TelemetryInterceptor) Name() string { return "telemetry" }
+
+func (i *TelemetryInterceptor) Intercept(ctx context.Context, req *llm.ChatRequest, resp *llm.ChatResponse) (*llm.ChatResponse, error) {
+	if i.Record != nil {
+		i.Record(req.Model, resp.Provider, resp.Usage, 0)
+	}
+	return resp, nil
+}

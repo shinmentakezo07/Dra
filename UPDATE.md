@@ -1119,3 +1119,62 @@ type Registry struct { ... }
 - Backward compatible: existing `translator.Registry` and `watcher.Watcher` unchanged.
 - The thinking package's `ProviderApplier` interface uses `map[string]interface{}` for ergonomic JSON manipulation. Raw-byte translators can be added via `RegisterTranslator()`.
 - Signature cache uses `sync.Map` for lock-free concurrent access with per-group mutexes for entry-level locking.
+
+## 12. CLIProxyAPI Full Pipeline — Model Registry, Pipeline Chain, Interfaces
+
+**Session**: cli-proxy-api-patterns
+**Date**: 2026-05-31
+
+### Why
+CLIProxyAPI's architecture has a sophisticated model registry with reference counting, quota tracking, per-client suspension, provider-specific model info, hooks for registration events, and a middleware chain pipeline with interceptors. We implemented these patterns to complete Yapapa's pipeline architecture.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| pkg/llm/registry/registry.go | L1-680 | created |
+| pkg/llm/registry/registry_test.go | L1-230 | created |
+| pkg/llm/interfaces/interfaces.go | L1-65 | created |
+| pkg/llm/pipeline/pipeline.go | L165-340 | modified |
+
+### Before
+```go
+// Pipeline only had Step-based before/after processing
+type Pipeline struct {
+    before []Step
+    after  []Step
+}
+```
+
+### After
+```go
+// ChainPipeline adds middleware chain, interceptors, and full execution flow
+type ChainPipeline struct {
+    *Pipeline
+    interceptors         []RequestInterceptor
+    responseInterceptors []ResponseInterceptor
+}
+
+func (cp *ChainPipeline) Execute(ctx, req, handler) (*ChatResponse, error) {
+    // 1. Before steps -> 2. Request interceptors -> 3. Handler -> 4. Response interceptors -> 5. After steps
+}
+
+// ModelRegistry with reference counting, quota tracking, suspension
+type ModelRegistry struct {
+    models, clientModels, clientProviders ...
+}
+func (r *ModelRegistry) RegisterClient(clientID, provider, models)
+func (r *ModelRegistry) SetModelQuotaExceeded(clientID, modelID)
+func (r *ModelRegistry) SuspendClientModel(clientID, modelID, reason)
+```
+
+### New Capabilities
+1. **Model Registry** (`pkg/llm/registry/`): Reference-counted model registration with per-client quota tracking, suspension, provider-specific model info, registration hooks, reconciliation on re-registration, and format-specific model serialization (OpenAI/Anthropic/Gemini).
+2. **Pipeline Chain** (`pkg/llm/pipeline/`): `ChainPipeline` extends Pipeline with request/response interceptors and `Execute()` that runs the full before→interceptors→handler→interceptors→after flow.
+3. **Interfaces** (`pkg/llm/interfaces/`): Core type definitions for `TranslateRequestFunc`, `TranslateResponseFunc`, `ProviderExecutor`, `MiddlewareFunc`, `RequestHandler`, `InterceptorFunc`, `ResponseInterceptorFunc`.
+4. **Built-in Interceptors**: `ModelValidationInterceptor`, `RateLimitInterceptor`, `GuardrailInterceptor`, `TelemetryInterceptor`.
+
+### Notes
+- Model registry test covers: register/unregister, multiple clients, quota exceeded, suspend/resume, reconciliation, hooks.
+- All hooks run asynchronously with panic recovery and 5-second timeout.
+- Pipeline chain is backward-compatible — existing `Step` interface works unchanged.
