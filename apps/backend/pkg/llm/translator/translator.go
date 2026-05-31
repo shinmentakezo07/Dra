@@ -24,7 +24,57 @@ type Translator interface {
 	TranslateStreamChunk(data []byte, model, provider string) (*llm.StreamChunk, error)
 }
 
-// Registry holds available translators.
+// TranslatorFunc is a raw-bytes translation function for init()-based registration.
+// It takes raw JSON input and returns translated raw JSON output.
+type TranslatorFunc func(body []byte, model string, stream bool) []byte
+
+// translatorEntry holds a registered translator pair.
+type translatorEntry struct {
+	// Key is "from:to" (e.g., "openai:anthropic")
+	key string
+	// Fn is the raw-bytes translation function
+	Fn TranslatorFunc
+}
+
+// globalRegistry is the init()-based self-registration registry.
+// Translator packages register themselves via init() -> RegisterTranslator().
+var globalRegistry []translatorEntry
+
+// RegisterTranslator registers a translator for a from->to format pair.
+// Called from init() functions in translator sub-packages.
+// Example: RegisterTranslator("openai", "anthropic", translateOpenAIToAnthropic)
+func RegisterTranslator(from, to string, fn TranslatorFunc) {
+	key := strings.ToLower(from) + ":" + strings.ToLower(to)
+	globalRegistry = append(globalRegistry, translatorEntry{key: key, Fn: fn})
+}
+
+// GetTranslatorFunc returns a raw-bytes translator for the given format pair.
+// Returns nil if no translator is registered.
+func GetTranslatorFunc(from, to string) TranslatorFunc {
+	key := strings.ToLower(from) + ":" + strings.ToLower(to)
+	for _, entry := range globalRegistry {
+		if entry.key == key {
+			return entry.Fn
+		}
+	}
+	return nil
+}
+
+// HasTranslator returns true if a translator exists for the given format pair.
+func HasTranslator(from, to string) bool {
+	return GetTranslatorFunc(from, to) != nil
+}
+
+// ListTranslators returns all registered translator keys.
+func ListTranslators() []string {
+	keys := make([]string, len(globalRegistry))
+	for i, entry := range globalRegistry {
+		keys[i] = entry.key
+	}
+	return keys
+}
+
+// Registry holds available translators (struct-based, for backward compatibility).
 type Registry struct {
 	translators map[Direction]Translator
 }
@@ -36,7 +86,7 @@ func NewRegistry() *Registry {
 	}
 }
 
-// Register registers a translator.
+// Register registers a struct-based translator.
 func (r *Registry) Register(t Translator) {
 	r.translators[t.Direction()] = t
 }

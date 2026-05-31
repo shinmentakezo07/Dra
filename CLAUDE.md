@@ -139,6 +139,38 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 ## Hard Constraints
 
 - **UPDATE.md is MANDATORY.** After completing ANY code change (no matter how small), you MUST append an entry to `UPDATE.md` following the exact template defined in that file. The entry must include: timestamp, **session name/ID**, conventional-commit title, "Why" explanation, files-changed table with line ranges, and Before/After code blocks showing the exact old and new code. **No task is "done" until the UPDATE.md entry is written.** Use the same session name across all entries from the same session so later agents can group changes by session. This is non-negotiable — skipping this step is a violation of project rules.
+
+**UPDATE.md Entry Template:**
+```markdown
+## [N]. [Short Title]
+
+**Session**: [Session Name/ID]
+**Date**: [YYYY-MM-DD HH:MM]
+
+### Why
+[Problem or motivation — not just what changed]
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| path/to/file.ts | L10-25 | modified |
+| path/to/new.ts | L1-50 | created |
+
+### Before
+```code
+// exact old code with file path and line number
+```
+
+### After
+```code
+// exact new code with file path and line number
+```
+
+### Notes
+[Optional: side effects, follow-ups, migration steps]
+```
+
 - **No `as any` or `@ts-ignore`** in TypeScript — enforced at review
 - **No mock data** in dashboard components — must use `getSDK()`. Enforced by `tests/wiring-verification.test.ts` and `scripts/smoke-test.sh`
 - **Zod v4** — breaking changes from v3. Do not use v3 patterns
@@ -147,6 +179,22 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - **CI workflows** in `.github/workflows/`: `ci.yml` (lint, frontend tests, backend tests, build) and `e2e.yml` (Playwright E2E). Both run on push/PR to `main`.
 - **Branch naming**: `feature/*`, `fix/*`, `refactor/*`, `docs/*`
 - **Conventional commits**: `feat:`, `fix:`, `refactor:`, `test:`, `docs:` (scope optional: `refactor(docs):`)
+
+## Pre-Commit Checklist
+
+Before committing, run these checks:
+
+```bash
+# Backend
+make vet               # Go vet
+make fmt               # Go format + goimports
+
+# Frontend
+npm run format         # Prettier on TS/TSX/MD
+
+# Full-stack verification
+bash scripts/smoke-test.sh  # Wiring verification after significant changes
+```
 
 ## Tests and Verification
 
@@ -196,6 +244,8 @@ docker-compose --profile mongo up -d  # Start Postgres + Mongo profile
 - **MongoDB** in `docker-compose.yml` is behind a `mongo` profile — NOT started by default.
 - **`opencode.json`** configures the project to use its own Yapapa instance as the LLM provider.
 - **Package overrides** in root `package.json`: dompurify, esbuild, postcss, uuid — pinned across all workspaces.
+- **Frontend dual DB driver**: Uses `@neondatabase/serverless` for cloud Neon databases, `pg` for local Postgres. Check `DATABASE_URL` for `neon.tech` to determine which driver is active.
+- **API Sandbox Mode**: Send `X-Sandbox: true` header on `/v1/chat/completions` to disable quota, cost tracking, and logging. Useful for testing — never ship with it enabled.
 
 ## Files Worth Checking Before Non-Trivial Changes
 

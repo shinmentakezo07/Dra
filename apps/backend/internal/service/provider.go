@@ -14,6 +14,7 @@ import (
 	"dra-platform/backend/pkg/llm/circuitbreaker"
 	"dra-platform/backend/pkg/llm/pipeline"
 	llmprovider "dra-platform/backend/pkg/llm/provider"
+	llmrouter "dra-platform/backend/pkg/llm/router"
 	"dra-platform/backend/pkg/llm/watcher"
 )
 
@@ -24,6 +25,7 @@ type ProviderService struct {
 	watcher       *watcher.Watcher
 	pipeline      *pipeline.Pipeline
 	healthChecker *llmprovider.HealthChecker
+	groupRouter   *llmrouter.GroupRouter
 }
 
 // NewProviderService creates a new provider service.
@@ -71,6 +73,11 @@ func (s *ProviderService) HealthChecker() *llmprovider.HealthChecker {
 	return s.healthChecker
 }
 
+// SetGroupRouter sets the group router for model group and fallback resolution.
+func (s *ProviderService) SetGroupRouter(gr *llmrouter.GroupRouter) {
+	s.groupRouter = gr
+}
+
 // ProviderHealthStatuses returns current health statuses for all providers.
 func (s *ProviderService) ProviderHealthStatuses() []llmprovider.ProviderHealth {
 	if s.healthChecker == nil {
@@ -98,10 +105,38 @@ func (s *ProviderService) ListModels(ctx context.Context) ([]llm.ModelInfo, *dom
 }
 
 func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*llm.ChatResponse, *domain.AppError) {
-	provName, modelID := llm.ParseModelID(req.Model)
+	// Resolve model group if applicable
+	modelID := req.Model
+	if s.groupRouter != nil {
+		provName, resolved, err := s.groupRouter.ResolveModel(modelID)
+		if err == nil && provName != "" {
+			modelID = provName + "/" + resolved
+		}
+	}
+
+	// Try with fallback support
+	if s.groupRouter != nil {
+		resp, err := llmrouter.WrapWithFallbackSync(ctx, modelID, s.groupRouter, func(ctx context.Context, model string) (*llm.ChatResponse, error) {
+			return s.chatSingle(ctx, req, model)
+		})
+		if err != nil {
+			return nil, domain.Wrap(domain.ErrInternal, 500, "chat failed", err)
+		}
+		return resp, nil
+	}
+
+	resp, err := s.chatSingle(ctx, req, modelID)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s *ProviderService) chatSingle(ctx context.Context, req domain.ChatRequest, modelID string) (*llm.ChatResponse, *domain.AppError) {
+	provName, modelName := llm.ParseModelID(modelID)
 	if provName == "" {
 		provName = "nvidia"
-		modelID = req.Model
+		modelName = modelID
 	}
 
 	p, ok := s.registry.Get(provName)
@@ -110,9 +145,8 @@ func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*ll
 	}
 
 	llmReq := toLLMChatRequest(req)
-	llmReq.Model = modelID
+	llmReq.Model = modelName
 
-	// Run pre-processing pipeline
 	if s.pipeline != nil {
 		if err := s.pipeline.RunBefore(ctx, llmReq); err != nil {
 			return nil, domain.NewError(domain.ErrBadRequest, 400, fmt.Sprintf("pipeline rejected request: %v", err))
@@ -122,16 +156,14 @@ func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*ll
 	resp, err := p.Chat(ctx, llmReq)
 	if err != nil {
 		if s.watcher != nil {
-			s.watcher.Watch(ctx, err, provName, modelID, "")
+			s.watcher.Watch(ctx, err, provName, modelName, "")
 		}
 		return nil, domain.Wrap(domain.ErrInternal, 500, "chat failed", err)
 	}
 
-	// Run post-processing pipeline
 	if s.pipeline != nil {
 		if err := s.pipeline.RunAfter(ctx, llmReq, resp); err != nil {
 			logger.Warn("pipeline_post_processing_failed", "error", err.Error())
-			// Don't fail the request on post-processing errors
 		}
 	}
 
@@ -139,10 +171,38 @@ func (s *ProviderService) Chat(ctx context.Context, req domain.ChatRequest) (*ll
 }
 
 func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest) (<-chan llm.StreamChunk, *domain.AppError) {
-	provName, modelID := llm.ParseModelID(req.Model)
+	// Resolve model group if applicable
+	modelID := req.Model
+	if s.groupRouter != nil {
+		provName, resolved, err := s.groupRouter.ResolveModel(modelID)
+		if err == nil && provName != "" {
+			modelID = provName + "/" + resolved
+		}
+	}
+
+	// Try with fallback support
+	if s.groupRouter != nil {
+		ch, err := llmrouter.WrapWithFallback(ctx, modelID, s.groupRouter, func(ctx context.Context, model string) (<-chan llm.StreamChunk, error) {
+			return s.chatStreamSingle(ctx, req, model)
+		})
+		if err != nil {
+			return nil, domain.Wrap(domain.ErrInternal, 500, "chat stream failed", err)
+		}
+		return ch, nil
+	}
+
+	ch, err := s.chatStreamSingle(ctx, req, modelID)
+	if err != nil {
+		return nil, err
+	}
+	return ch, nil
+}
+
+func (s *ProviderService) chatStreamSingle(ctx context.Context, req domain.ChatRequest, modelID string) (<-chan llm.StreamChunk, *domain.AppError) {
+	provName, modelName := llm.ParseModelID(modelID)
 	if provName == "" {
 		provName = "nvidia"
-		modelID = req.Model
+		modelName = modelID
 	}
 
 	p, ok := s.registry.Get(provName)
@@ -151,9 +211,8 @@ func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest
 	}
 
 	llmReq := toLLMChatRequest(req)
-	llmReq.Model = modelID
+	llmReq.Model = modelName
 
-	// Run pre-processing pipeline
 	if s.pipeline != nil {
 		if err := s.pipeline.RunBefore(ctx, llmReq); err != nil {
 			return nil, domain.NewError(domain.ErrBadRequest, 400, fmt.Sprintf("pipeline rejected request: %v", err))
@@ -163,7 +222,7 @@ func (s *ProviderService) ChatStream(ctx context.Context, req domain.ChatRequest
 	ch, err := p.ChatStream(ctx, llmReq)
 	if err != nil {
 		if s.watcher != nil {
-			s.watcher.Watch(ctx, err, provName, modelID, "")
+			s.watcher.Watch(ctx, err, provName, modelName, "")
 		}
 		return nil, domain.Wrap(domain.ErrInternal, 500, "chat stream failed", err)
 	}

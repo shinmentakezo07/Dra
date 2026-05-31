@@ -177,6 +177,11 @@ type ModelRegistry struct {
 	SunsetDate         *time.Time      `json:"sunsetDate,omitempty"`
 	ReplacementModelID *string         `json:"replacementModelId,omitempty"`
 	Metadata           json.RawMessage `json:"metadata"`
+	ModelGroup         string          `json:"modelGroup,omitempty"`
+	FallbackModels     json.RawMessage `json:"fallbackModels,omitempty"`
+	CredentialName     string          `json:"credentialName,omitempty"`
+	RoutingWeight      int             `json:"routingWeight"`
+	IsWildcard         bool            `json:"isWildcard"`
 	CreatedAt          time.Time       `json:"createdAt"`
 }
 
@@ -192,6 +197,18 @@ type ModelAlias struct {
 	AllowedUserIDs     []string `json:"allowedUserIds"`
 	IsActive           bool     `json:"isActive"`
 	CreatedAt          time.Time `json:"createdAt"`
+}
+
+type CredentialVault struct {
+	ID              string          `json:"id"`
+	Name            string          `json:"name"`
+	ProviderType    string          `json:"providerType"`
+	APIKeyEncrypted string          `json:"-"`
+	APIBase         string          `json:"apiBase,omitempty"`
+	ExtraConfig     json.RawMessage `json:"extraConfig,omitempty"`
+	Description     string          `json:"description,omitempty"`
+	CreatedAt       time.Time       `json:"createdAt"`
+	UpdatedAt       time.Time       `json:"updatedAt"`
 }
 
 type CreditAdjustment struct {

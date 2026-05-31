@@ -87,6 +87,11 @@ function ModelForm({
     supportsTools: initial?.supportsTools ?? false,
     supportsThinking: initial?.supportsThinking ?? false,
     status: initial?.status ?? ("active" as ModelStatus),
+    modelGroup: initial?.modelGroup ?? "",
+    fallbackModels: initial?.fallbackModels?.join(", ") ?? "",
+    credentialName: initial?.credentialName ?? "",
+    routingWeight: initial?.routingWeight ?? 1,
+    isWildcard: initial?.isWildcard ?? false,
   });
 
   const handleSubmit = () => {
@@ -97,6 +102,9 @@ function ModelForm({
         ...(form.supportsTools ? ["tools"] : []),
         ...(form.supportsThinking ? ["thinking"] : []),
       ],
+      fallbackModels: form.fallbackModels
+        ? form.fallbackModels.split(",").map((s: string) => s.trim()).filter(Boolean)
+        : [],
     });
   };
 
@@ -222,6 +230,52 @@ function ModelForm({
           Thinking
         </label>
       </div>
+      {/* Model Group & Routing */}
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        <input
+          placeholder="Model group (e.g. gpt-4o)"
+          value={form.modelGroup}
+          onChange={(e) => setForm({ ...form, modelGroup: e.target.value })}
+          className="admin-input text-[12px] py-[7px] font-mono"
+          title="Group multiple deployments under one name for load balancing"
+        />
+        <input
+          type="number"
+          placeholder="Routing weight (1-100)"
+          value={form.routingWeight}
+          onChange={(e) =>
+            setForm({ ...form, routingWeight: Math.max(1, Number(e.target.value)) })
+          }
+          className="admin-input text-[12px] py-[7px]"
+          min={1}
+          title="Higher weight = more traffic in group load balancing"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        <input
+          placeholder="Fallback models (comma-separated)"
+          value={form.fallbackModels}
+          onChange={(e) => setForm({ ...form, fallbackModels: e.target.value })}
+          className="admin-input text-[12px] py-[7px] font-mono"
+          title="Model IDs to try if this model fails"
+        />
+        <input
+          placeholder="Credential name"
+          value={form.credentialName}
+          onChange={(e) => setForm({ ...form, credentialName: e.target.value })}
+          className="admin-input text-[12px] py-[7px]"
+          title="Reference to centralized credential in vault"
+        />
+      </div>
+      <label className="flex items-center gap-2 text-[12px] text-[var(--admin-text-muted)] cursor-pointer mt-3">
+        <input
+          type="checkbox"
+          checked={form.isWildcard}
+          onChange={(e) => setForm({ ...form, isWildcard: e.target.checked })}
+          className="rounded border-white/20 bg-white/5 accent-indigo-500"
+        />
+        Wildcard (catch-all for this provider)
+      </label>
       <div className="flex gap-2 pt-3">
         <button
           onClick={handleSubmit}
@@ -519,6 +573,7 @@ export default function AdminModelsPage() {
                     <th>Model ID</th>
                     <th>Display Name</th>
                     <th>Provider</th>
+                    <th>Group</th>
                     <th>Context</th>
                     <th>Price (In/Out)</th>
                     <th>Status</th>
@@ -551,6 +606,9 @@ export default function AdminModelsPage() {
                         </td>
                         <td className="text-[var(--admin-text-muted)]">
                           {providerNameMap.get(model.providerId) ?? model.providerId}
+                        </td>
+                        <td className="text-[var(--admin-text-muted)] font-mono text-[11px]">
+                          {model.modelGroup || "-"}
                         </td>
                         <td className="text-[var(--admin-text)]">
                           {(model.contextWindow / 1000).toFixed(0)}k

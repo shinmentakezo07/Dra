@@ -64,6 +64,7 @@ type Handler struct {
 	emailSender     email.Sender
 	stripeSvc       *service.StripeService
 	embeddingRegistry *embeddings.Registry
+	pricingSvc      *service.PricingService
 }
 
 func New(cfg *config.Config, database *db.DB, u *service.UserService, k *service.APIKeyService, c *service.CreditService, a *service.AnalyticsService, l *service.LogService, p *service.ProviderService, w *service.WebhookService, b *service.BatchService, o *service.OrganizationService) *Handler {
@@ -100,6 +101,7 @@ func (h *Handler) SetAdminSessionRepo(r *repository.AdminSessionRepo) { h.adminS
 func (h *Handler) SetEmailSender(s email.Sender)             { h.emailSender = s }
 func (h *Handler) SetStripeService(s *service.StripeService) { h.stripeSvc = s }
 func (h *Handler) SetEmbeddingRegistry(r *embeddings.Registry) { h.embeddingRegistry = r }
+func (h *Handler) SetPricingService(s *service.PricingService) { h.pricingSvc = s }
 
 func (h *Handler) ChatFnForBatch() func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {
 	return func(ctx context.Context, req *llm.ChatRequest) (*llm.ChatResponse, error) {
@@ -521,10 +523,7 @@ FINISH:
 	if outputTokens == 0 {
 		outputTokens = inputTokens / 2
 	}
-	cost := (inputTokens + outputTokens) * 2
-	if cost < 100 {
-		cost = 100
-	}
+	cost := h.calculateCost(req.Model, inputTokens, outputTokens)
 	latency := int(time.Since(start).Milliseconds())
 
 	apiKeyID := ""

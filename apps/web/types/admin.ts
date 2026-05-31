@@ -106,6 +106,11 @@ export interface ModelRegistry {
   sunsetDate?: string;
   replacementModelId?: string;
   metadata?: Record<string, unknown>;
+  modelGroup?: string;
+  fallbackModels?: string[];
+  credentialName?: string;
+  routingWeight: number;
+  isWildcard: boolean;
   createdAt: string;
 }
 

@@ -324,10 +324,7 @@ ANTHROPIC_FINISH:
 }
 
 func (h *Handler) asyncLogAndDeductAnthropic(ctx context.Context, userID string, apiKeyID *string, model string, inputTokens, outputTokens int) {
-	cost := (inputTokens + outputTokens) * 2
-	if cost < 100 {
-		cost = 100
-	}
+	cost := h.calculateCost(model, inputTokens, outputTokens)
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {

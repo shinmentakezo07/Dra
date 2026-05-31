@@ -103,6 +103,17 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 	analyticsSvc := service.NewAnalyticsService(logRepo, userRepo, creditsRepo, keyRepo)
 	logSvc := service.NewLogService(logRepo)
 	providerSvc := service.NewProviderServiceWithFeatures(llmRegistry, llmCache, llmWatcher)
+
+	// Model group router (LiteLLM-style load balancing + fallbacks)
+	groupRouter := router.NewGroupRouter()
+	providerSvc.SetGroupRouter(groupRouter)
+	logger.Info("group_router_initialized")
+
+	// Pricing service (per-model token pricing from DB)
+	modelRepo := repository.NewAdminModelRepo(database)
+	pricingSvc := service.NewPricingService(modelRepo)
+	pricingSvc.RefreshCache(ctx)
+	logger.Info("pricing_service_initialized")
 	webhookSvc := service.NewWebhookService(repository.NewWebhookRepo(database))
 	webhookSvc.StartRetryWorker(ctx, 10*time.Second)
 	orgSvc := service.NewOrganizationService(repository.NewOrganizationRepo(database), userRepo)
@@ -128,6 +139,7 @@ func initServices(ctx context.Context, cfg *config.Config, database *db.DB, redi
 	h.SetAdminService(adminSvc)
 	h.SetAdminSessionRepo(adminSessionRepo)
 	h.SetEmbeddingRegistry(embeddingRegistry)
+	h.SetPricingService(pricingSvc)
 
 	// Fine-tuning
 	fineTuningSvc := service.NewFineTuningService(repository.NewFineTuningRepo(database))

@@ -235,10 +235,7 @@ FINISH:
 }
 
 func (h *Handler) asyncLogAndDeduct(ctx context.Context, userID string, apiKeyID *string, model string, inputTokens, outputTokens int) {
-	cost := (inputTokens + outputTokens) * 2
-	if cost < 100 {
-		cost = 100
-	}
+	cost := h.calculateCost(model, inputTokens, outputTokens)
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -387,4 +384,16 @@ func writeOpenAIError(w http.ResponseWriter, status int, errType, message string
 			Type:    errType,
 		},
 	})
+}
+
+// calculateCost uses the pricing service for per-model pricing, falling back to flat formula.
+func (h *Handler) calculateCost(model string, inputTokens, outputTokens int) int {
+	if h.pricingSvc != nil {
+		return h.pricingSvc.CalculateCost(model, inputTokens, outputTokens)
+	}
+	cost := (inputTokens + outputTokens) * 2
+	if cost < 100 {
+		cost = 100
+	}
+	return cost
 }

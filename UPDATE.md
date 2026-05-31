@@ -878,3 +878,244 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 ```
 
 **Verification**: `npm run build` passes (35.5s), `npm run test:web` passes (296 tests, 24 files).
+
+---
+
+## 9. Unified Streaming Formatter SDK
+
+**Session**: streaming-sdk
+**Date**: 2026-05-31
+
+### Why
+The existing streaming infrastructure was fragmented: `openai.StreamFormatter` only supported content deltas (no tool calls, thinking, or errors), the Anthropic formatter was a separate implementation in `anthropic/formatter.go`, and there was no unified abstraction for writing SSE in any format. The frontend SDK's `chatStream()` only parsed content deltas, ignoring tool calls and thinking. This created a maintenance burden and made it impossible to add new streaming features without touching multiple disconnected implementations.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/backend/pkg/llm/streaming/writer.go` | L1-390 | created |
+| `apps/backend/pkg/llm/streaming/relay.go` | L1-190 | created |
+| `apps/backend/pkg/llm/streaming/streaming_test.go` | L1-310 | created |
+| `apps/backend/pkg/llm/openai/stream_formatter.go` | L1-180 | modified |
+| `apps/backend/pkg/llm/openai/schema.go` | L55 | modified |
+| `apps/web/lib/streaming/index.ts` | L1-430 | created |
+| `apps/web/tests/lib/streaming.test.ts` | L1-250 | created |
+
+### Before
+```go
+// apps/backend/pkg/llm/openai/stream_formatter.go
+type StreamFormatter struct {
+    writer io.Writer
+    model  string
+}
+
+func (f *StreamFormatter) WriteChunk(content string) error { ... }
+func (f *StreamFormatter) WriteRole(role string) error { ... }
+func (f *StreamFormatter) WriteFinish(reason string) error { ... }
+func (f *StreamFormatter) WriteUsage(promptTokens, completionTokens int) error { ... }
+// No tool call support, no thinking support, no error support
+```
+
+```typescript
+// apps/web/lib/api/sdk.ts — chatStream only yields content
+async *chatStream(data: { model: string; messages: ChatMessage[] }): AsyncGenerator<string> {
+    // ...
+    const parsed = JSON.parse(payload) as ChatCompletionChunk;
+    const content = parsed.choices?.[0]?.delta?.content;
+    if (content) yield content;
+    // Ignores tool calls, thinking, usage, errors
+}
+```
+
+### After
+```go
+// apps/backend/pkg/llm/streaming/writer.go — Unified StreamWriter interface
+type StreamWriter interface {
+    WriteChunk(chunk *llm.StreamChunk) error
+    WriteToolCallStart(tc *llm.ToolCall) error
+    WriteToolCallDelta(index int, argsDelta string) error
+    WriteToolCallEnd(index int) error
+    WriteThinking(thinking string) error
+    WriteFinish(reason llm.FinishReason, usage *llm.Usage) error
+    WriteError(code, message string) error
+    WriteRaw(event string, data interface{}) error
+    Flush()
+    Format() Format
+}
+
+// Three implementations: OpenAIStreamWriter, AnthropicStreamWriter, InternalStreamWriter
+// Plus StreamPump that reads from <-chan StreamChunk and writes through any StreamWriter
+// Plus Accumulator for building complete messages from stream chunks
+```
+
+```typescript
+// apps/web/lib/streaming/index.ts — Full streaming SDK
+// Supports OpenAI, Anthropic, and Internal SSE formats
+// Auto-detects format from first event
+// Provides: consumeStream(), streamText(), streamToMessage(), StreamAccumulator
+// Parses: content, thinking, tool calls (start/delta), finish, usage, errors
+```
+
+### Notes
+- `openai.StreamFormatter` enhanced with `WriteToolCallStart`, `WriteToolCallDelta`, `WriteReasoning`, `WriteError`, `WriteFinishWithUsage` methods. Old methods preserved for backward compatibility.
+- `openai.ToolCall` struct gained `Index` field for streaming delta support.
+- Backend `pkg/llm/streaming/` tests: 74.8% coverage, all passing.
+- Frontend `lib/streaming/` tests: 31 tests, all passing.
+- `go vet ./pkg/llm/...` clean.
+
+---
+
+## 10. LiteLLM-Style Model Management — Groups, Fallbacks, Pricing, Wildcards
+
+**Session**: litellm-model-mgmt
+**Date**: 2026-05-31
+
+### Why
+The platform needed LiteLLM-style dynamic model management: model groups for load balancing across multiple deployments of the same model, fallback chains for resilience, per-model pricing from the DB instead of flat formulas, wildcard model routing, and credential vault references. Previously, each model mapped 1:1 to a provider with no grouping, no fallbacks, and hardcoded billing at `(input+output) * 2` cents.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/backend/migrations/021_model_groups_and_routing.sql` | L1-42 | created |
+| `apps/backend/internal/domain/admin.go` | L78-96, L108-118 | modified |
+| `apps/backend/pkg/llm/router/groups.go` | L1-270 | created |
+| `apps/backend/internal/service/pricing.go` | L1-110 | created |
+| `apps/backend/internal/service/provider.go` | L28, L82-85, L93-160 | modified |
+| `apps/backend/internal/handler/handler.go` | L57, L106, L325 | modified |
+| `apps/backend/internal/handler/openai_proxy.go` | L261-275 | modified |
+| `apps/backend/internal/handler/anthropic_messages.go` | L268 | modified |
+| `apps/backend/internal/repository/admin_model_repo.go` | L27-75, L105-135, L137-175 | modified |
+| `apps/backend/cmd/api/services.go` | L115-126, L141 | modified |
+| `apps/web/types/admin.ts` | L122-140 | modified |
+| `apps/web/app/admin/(protected)/models/page.tsx` | L93-100, L108-115, L232-270, L310-315 | modified |
+
+### Before
+```go
+// ProviderService.Chat — direct 1:1 provider lookup, no groups, no fallbacks
+provName, modelID := llm.ParseModelID(req.Model)
+p, ok := s.registry.Get(provName)
+resp, err := p.Chat(ctx, llmReq)
+
+// Billing — flat formula everywhere
+cost := (inputTokens + outputTokens) * 2
+if cost < 100 { cost = 100 }
+```
+
+```typescript
+// Frontend ModelRegistry type — no group/fallback/credential fields
+export interface ModelRegistry {
+  id: string; modelId: string; providerId: string;
+  // ... no modelGroup, fallbackModels, routingWeight, etc.
+}
+```
+
+### After
+```go
+// ProviderService.Chat — model group resolution + fallback chains
+modelID := req.Model
+if s.groupRouter != nil {
+    provName, resolved, _ := s.groupRouter.ResolveModel(modelID)
+    modelID = provName + "/" + resolved
+}
+resp, err := llmrouter.WrapWithFallbackSync(ctx, modelID, s.groupRouter, chatFn)
+
+// Pricing — per-model from DB, flat formula as fallback
+cost := h.pricingSvc.CalculateCost(model, inputTokens, outputTokens)
+
+// ModelRegistry domain — new fields
+type ModelRegistry struct {
+    // ... existing fields ...
+    ModelGroup     string          `json:"modelGroup,omitempty"`
+    FallbackModels json.RawMessage `json:"fallbackModels,omitempty"`
+    CredentialName string          `json:"credentialName,omitempty"`
+    RoutingWeight  int             `json:"routingWeight"`
+    IsWildcard     bool            `json:"isWildcard"`
+}
+```
+
+### Notes
+- Migration `021_model_groups_and_routing.sql` adds 5 columns to `model_registry` + `credential_vault` table. Run manually.
+- `GroupRouter` does weighted random selection within a group. Fallback chains try models in order on failure.
+- `PricingService` caches pricing from DB, refreshed on admin model CRUD. Falls back to flat formula if no DB pricing.
+- Frontend models page now shows "Group" column and form fields for group, weight, fallbacks, credential, wildcard.
+- All existing tests pass. Pre-existing failures (`TestRouter_RouteByCapability`, `TestValidateRequest_ClampsValues`, `go vet` in service_integration_test) unchanged.
+
+## 11. CLIProxyAPI-Inspired Architecture — Thinking, Translator Registry, Util, Watcher, Signature Cache
+
+**Session**: cli-proxy-api-patterns
+**Date**: 2026-05-31
+
+### Why
+CLIProxyAPI (35k stars) uses a mature architecture with unified thinking/reasoning config, init()-based translator self-registration, shared utility functions, file-based config hot-reload with debouncing, and thinking signature caching for multi-turn conversations. We implemented equivalent capabilities to bring Yapapa's backend to the same level of provider-agnostic design.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| pkg/llm/thinking/types.go | L1-108 | created |
+| pkg/llm/thinking/suffix.go | L1-95 | created |
+| pkg/llm/thinking/convert.go | L1-110 | created |
+| pkg/llm/thinking/errors.go | L1-52 | created |
+| pkg/llm/thinking/extract.go | L1-140 | created |
+| pkg/llm/thinking/validate.go | L1-140 | created |
+| pkg/llm/thinking/strip.go | L1-38 | created |
+| pkg/llm/thinking/apply.go | L1-105 | created |
+| pkg/llm/thinking/provider_openai.go | L1-32 | created |
+| pkg/llm/thinking/provider_anthropic.go | L1-40 | created |
+| pkg/llm/thinking/provider_gemini.go | L1-35 | created |
+| pkg/llm/thinking/thinking_test.go | L1-250 | created |
+| pkg/llm/util/util.go | L1-210 | created |
+| pkg/llm/util/util_test.go | L1-150 | created |
+| pkg/llm/translator/translator.go | L37-90 | modified |
+| pkg/llm/cache/signature_cache.go | L1-180 | created |
+| pkg/llm/cache/signature_cache_test.go | L1-110 | created |
+| pkg/llm/watcher/config_watcher.go | L1-140 | created |
+| pkg/llm/watcher/config_watcher_test.go | L1-75 | created |
+| pkg/llm/watcher/provider_health.go | L1-175 | created |
+
+### Before
+```go
+// Translator registry: only Direction enum, manual registration in DefaultRegistry()
+type Registry struct {
+    translators map[Direction]Translator
+}
+func DefaultRegistry() *Registry {
+    reg := NewRegistry()
+    reg.Register(NewAnthropicToOpenAI())
+    reg.Register(NewOpenAIToAnthropic())
+    return reg
+}
+```
+
+### After
+```go
+// Translator registry: init()-based self-registration + struct-based backward compat
+var globalRegistry []translatorEntry
+
+func RegisterTranslator(from, to string, fn TranslatorFunc) {
+    key := strings.ToLower(from) + ":" + strings.ToLower(to)
+    globalRegistry = append(globalRegistry, translatorEntry{key: key, Fn: fn})
+}
+
+func GetTranslatorFunc(from, to string) TranslatorFunc { ... }
+func HasTranslator(from, to string) bool { ... }
+func ListTranslators() []string { ... }
+
+// Original struct-based Registry preserved for backward compatibility
+type Registry struct { ... }
+```
+
+### New Capabilities
+1. **Thinking Package** (`pkg/llm/thinking/`): Unified thinking/reasoning config across providers. Supports suffix parsing (`model(high)`), config extraction from OpenAI/Anthropic/Gemini formats, level-budget auto-conversion, validation with clamping, and provider-specific appliers via init() registration.
+2. **Translator Registry**: Added init()-based self-registration pattern (`RegisterTranslator("openai", "anthropic", fn)`) alongside existing struct-based registry. Translators can register themselves from init() functions.
+3. **Util Package** (`pkg/llm/util/`): Shared utilities including `SanitizeFunctionName` for Gemini compatibility, `FixJSON` for single-quote JSON, tool name mapping (`CanonicalToolName`, `ToolNameMap`, `SanitizedToolNameMap`), model family detection, and JSON tree walking.
+4. **Signature Cache** (`pkg/llm/cache/signature_cache.go`): Thread-safe thinking signature cache with model-group scoping, sliding TTL expiration, background cleanup, and enable/disable controls.
+5. **Config Watcher** (`pkg/llm/watcher/config_watcher.go`): Poll-based config file change detection with SHA256 hashing, debounced notifications, and handler registration.
+6. **Provider Health Watcher** (`pkg/llm/watcher/provider_health.go`): Periodic provider health checks with success/failure tracking, degraded/unhealthy status thresholds, and rolling latency averages.
+
+### Notes
+- All 4 new packages compile and pass tests (`go test -race -cover`, `go vet`).
+- Backward compatible: existing `translator.Registry` and `watcher.Watcher` unchanged.
+- The thinking package's `ProviderApplier` interface uses `map[string]interface{}` for ergonomic JSON manipulation. Raw-byte translators can be added via `RegisterTranslator()`.
+- Signature cache uses `sync.Map` for lock-free concurrent access with per-group mutexes for entry-level locking.
