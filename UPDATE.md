@@ -1178,3 +1178,51 @@ func (r *ModelRegistry) SuspendClientModel(clientID, modelID, reason)
 - Model registry test covers: register/unregister, multiple clients, quota exceeded, suspend/resume, reconciliation, hooks.
 - All hooks run asynchronously with panic recovery and 5-second timeout.
 - Pipeline chain is backward-compatible — existing `Step` interface works unchanged.
+
+---
+
+## 13. SONAOP.md — Comprehensive Gap Analysis
+
+**Session**: droid-research-sonaop
+**Date**: 2026-05-31
+
+### Why
+User requested deep web research (25+ searches) to identify every missing feature compared to CLIProxyAPI, LiteLLM, OpenRouter, and other LLM gateway platforms, then produce a single comprehensive analysis document.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `SONAOP.md` | 1-520 | created |
+
+### Before
+```code
+// No comprehensive gap analysis existed
+// Only scattered notes in ops.md and osa.md
+```
+
+### After
+```code
+// SONAOP.md — 67 feature gaps across 12 categories:
+// - Part 1: What Yapapa already has (18+ subpackages)
+// - Part 2: CLIProxyAPI gaps (credential vault, WebSocket relay, usage stats, model mapping)
+// - Part 3: LiteLLM gaps (virtual keys, hierarchical budgets, multi-tier caching, SSO/SAML)
+// - Part 4: OpenRouter gaps (provider marketplace, sorting, performance thresholds, ZDR)
+// - Part 5: Security & guardrails (prompt injection, jailbreak defense, PII detection)
+// - Part 6: Streaming & real-time (WebSocket gateway, stream interruption)
+// - Part 7: Advanced routing (A/B testing, canary, affinity, geographic, cost-optimized)
+// - Part 8: Enterprise & compliance (audit trail, data residency, multi-tenant isolation)
+// - Part 9: Developer experience (SDK generation, playground, request replay)
+// - Part 10: Priority matrix (Phase 1-4, weeks 1-13+)
+// - Part 11: Architecture diagrams (credential vault, virtual keys, multi-tier caching, OTel)
+// - Part 12: Database schema additions (8 new tables: api_keys, teams, credentials, usage_records, audit_logs, etc.)
+// - Part 13: Feature coverage comparison matrix (Yapapa 48% vs CLIProxyAPI 67% vs LiteLLM 84%)
+// - Part 14: Quick wins (10 features implementable in < 1 day each)
+// - Part 15: Technical debt & architecture improvements
+```
+
+### Notes
+- Research covered 25+ web searches across CLIProxyAPI, LiteLLM, OpenRouter, LLM gateway best practices
+- 67 distinct feature gaps identified, prioritized as Critical/High/Medium/Nice-to-have
+- Database schema includes 8 new tables for virtual keys, teams, credentials, usage tracking, audit logs
+- Quick wins section identifies 10 features that can be implemented in < 1 day each
