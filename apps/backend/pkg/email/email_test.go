@@ -2,6 +2,7 @@ package email
 
 import (
 	"context"
+	"strings"
 	"testing"
 )
 
@@ -106,5 +107,57 @@ func TestNewSMTPSender_DefaultFrom(t *testing.T) {
 	s := NewSMTPSender("smtp.example.com", "587", "noreply@example.com", "pass", "")
 	if s.from != "noreply@example.com" {
 		t.Errorf("from = %q, want noreply@example.com", s.from)
+	}
+}
+
+// TestSMTPSender_RejectsCRLFInTo (C8) — msg.To is formatted directly into
+// the wire bytes. An attacker who controls the email field can inject
+// "\r\nBcc: attacker@evil.com" and have the SMTP server accept it.
+func TestSMTPSender_RejectsCRLFInTo(t *testing.T) {
+	s := NewSMTPSender("smtp.example.com", "587", "u", "p", "from@example.com")
+	err := s.Send(context.Background(), Message{
+		To:      "victim@example.com\r\nBcc: attacker@evil.com",
+		Subject: "hi",
+		Body:    "test",
+	})
+	if err == nil {
+		t.Fatal("expected CRLF in To to be rejected")
+	}
+	// Must be a validation error, not a network error (the test uses a
+	// fake host; without the fix, the network call is what fails).
+	if !strings.Contains(err.Error(), "invalid To") {
+		t.Errorf("expected validation error mentioning 'invalid To', got: %v", err)
+	}
+}
+
+// TestSMTPSender_RejectsCRLFInSubject (C8) — same as above for Subject.
+func TestSMTPSender_RejectsCRLFInSubject(t *testing.T) {
+	s := NewSMTPSender("smtp.example.com", "587", "u", "p", "from@example.com")
+	err := s.Send(context.Background(), Message{
+		To:      "victim@example.com",
+		Subject: "hi\r\nBcc: attacker@evil.com",
+		Body:    "test",
+	})
+	if err == nil {
+		t.Fatal("expected CRLF in Subject to be rejected")
+	}
+	if !strings.Contains(err.Error(), "invalid Subject") {
+		t.Errorf("expected validation error mentioning 'invalid Subject', got: %v", err)
+	}
+}
+
+// TestSMTPSender_RejectsInvalidEmail (C8) — reject malformed To.
+func TestSMTPSender_RejectsInvalidEmail(t *testing.T) {
+	s := NewSMTPSender("smtp.example.com", "587", "u", "p", "from@example.com")
+	err := s.Send(context.Background(), Message{
+		To:      "not-an-email",
+		Subject: "hi",
+		Body:    "test",
+	})
+	if err == nil {
+		t.Fatal("expected invalid email to be rejected")
+	}
+	if !strings.Contains(err.Error(), "invalid To") {
+		t.Errorf("expected validation error mentioning 'invalid To', got: %v", err)
 	}
 }

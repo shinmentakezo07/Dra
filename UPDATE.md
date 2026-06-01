@@ -1935,4 +1935,47 @@ if seeker, ok := r.Body.(io.Seeker); ok {
 - The cap is hardcoded as `10 << 20` to match the `BodyLimit(10 << 20)` call in `cmd/api/routes.go:41`. A future change should source both from a single constant.
 - `TestQuotaTracker_CheckRequest_MonthlyLimit` and `TestQuotaTracker_RecordUsage` are pre-existing failures unrelated to this change.
 
+### 25.3 Validate SMTP To/Subject to prevent CRLF injection (C8)
+
+**Why**: `msg.To` and `msg.Subject` were formatted directly into wire bytes via `fmt.Sprintf("To: %s\r\nSubject: %s\r\n...", msg.To, msg.Subject)`. An attacker who controls these fields (signup form, password-reset request) could inject `To: victim@target.com\r\nBcc: attacker@evil.com` and have the SMTP server accept the message with attacker-supplied Bcc or other injected headers.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/pkg/email/smtp.go | 1-43 | modified (add `mail.ParseAddress` + `strings.ContainsAny` validation) |
+| apps/backend/pkg/email/email_test.go | (new tests) | modified (TestSMTPSender_RejectsCRLFInTo/Subject, RejectsInvalidEmail) |
+
+**Before**
+
+```go
+func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
+    addr := fmt.Sprintf("%s:%s", s.host, s.port)
+    headers := fmt.Sprintf("To: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n", msg.To, msg.Subject)
+    ...
+}
+```
+
+**After**
+
+```go
+func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
+    if _, err := mail.ParseAddress(msg.To); err != nil {
+        return fmt.Errorf("invalid To address: %w", err)
+    }
+    if strings.ContainsAny(msg.Subject, "\r\n") {
+        return fmt.Errorf("invalid Subject: must not contain CR or LF")
+    }
+    addr := fmt.Sprintf("%s:%s", s.host, s.port)
+    headers := fmt.Sprintf("To: %s\r\nSubject: %s\r\n...", msg.To, msg.Subject)
+    ...
+}
+```
+
+**Notes**
+- Go's `net/smtp` library happens to reject `\r\n` in the body internally, so the CRLF-in-To case would surface as `smtp: A line must not contain CR or LF`. The fix short-circuits with a clear validation error before any SMTP call.
+- CRLF in Subject bypasses Go's check because Subject is passed to `SMTP` as a single wire-format string.
+- A future change should HTML-escape the `resetURL`/`inviteURL` interpolated into `pkg/email/email.go` to prevent XSS in mail clients (H61).
+
+
 
