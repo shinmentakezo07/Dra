@@ -1558,3 +1558,51 @@ The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 d
 - Build: no new TS errors introduced (`tsc --noEmit` clean for `GatewayFeatures.tsx`; pre-existing errors in unrelated files unchanged)
 - No new dependencies — uses existing `framer-motion`, `lucide-react`, `tailwind-merge`, `clsx`
 - Reduced motion (`prefers-reduced-motion: reduce`) handled natively by Framer Motion variants
+
+---
+
+## 18. Zero to Production (IntegrationFlow) — Editorial Timeline with Single Indigo Accent
+
+**Session**: drai-platform-capabilities-v2
+**Date**: 2026-06-01
+
+### Why
+The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 different accent colors (emerald/blue/violet/amber) per step and a string-replacement-based code highlighter that produced broken output. This entry extracts the section into its own component, applies the same editorial language as Platform Capabilities v2, and replaces the hacky syntax highlighter with a real token-based one.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/IntegrationFlow.tsx` | 1-582 | created |
+| `apps/web/app/page.tsx` | 1-32 | rewritten (extraction) |
+
+### Before
+- Section inline in `page.tsx` (366 lines total)
+- 4 different accent colors per step (emerald, blue, violet, amber)
+- String-replacement-based syntax highlighting (`line.replace("const", "").replace("{", "")...`)
+- Plain pill + h2 + p header
+- No scroll-driven progress
+- Code block had no copy button
+- No time-to-complete metadata per step
+
+### After
+- **Extracted to `IntegrationFlow.tsx`** — `page.tsx` is now a 32-line orchestrator
+- **Single indigo accent** throughout; green reserved for live status (Beta badge, guarantees, CTA dot)
+- **Editorial section number "02"** matching the "01" watermark from Platform Capabilities v2
+- **Vertical timeline rail** with scroll-driven indigo fill via `useScroll + useTransform`; timeline dots appear per step on `useInView`
+- **Step number as visual anchor** — large `text-5xl lg:text-6xl` gradient number on left of each step, with small `Step` micro-label below
+- **Time-to-ship chip** per step: `15s` / `instant` / `5 min` / `continuous` — quantifies the "Zero to Production" promise
+- **Token-based syntax highlighter** — hand-authored `Token[]` per line with type → className map (kw/str/id/punct). No regex, no DOM injection, no broken output
+- **Copy button on code block** with `navigator.clipboard.writeText` and 2s "Copied" confirmation state (uses modern API; works on HTTPS + localhost secure contexts)
+- **Sticky left rail** with title + animated SVG underline; right column has subtitle + "4 steps" dot indicator
+- **CTA panel refined** with indigo glows, 2x2 guarantees grid, and white claim button (unchanged behavior, editorial polish)
+- Uses project's `cn` utility from `@/lib/utils`
+
+### Notes
+- `page.tsx`: 366 → 32 lines (91% reduction)
+- `IntegrationFlow.tsx`: 582 lines, well under the 800-line soft cap
+- `tsc --noEmit`: 0 new errors in `IntegrationFlow.tsx` and `page.tsx`
+- Pre-existing TS errors in `app/admin/**` and `app/dashboard/**` are unchanged
+- No new dependencies
+- `prefers-reduced-motion` handled natively by Framer Motion
+- `aria-labelledby="integration-heading"` on the section element
