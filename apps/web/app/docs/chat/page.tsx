@@ -20,31 +20,35 @@ export default function ChatPage() {
         visible: { transition: { staggerChildren: 0.06 } },
       }}
     >
-      <Section id="chat" icon={MessageSquare} title="Chat & Streaming">
+      <Section
+        id="chat"
+        icon={MessageSquare}
+        eyebrow="Core Features"
+        title="Chat &"
+        italic="streaming"
+        description="One chat endpoint that fronts every provider. Switch models by changing the model string. Toggle streaming with a single flag. Everything else — retries, fallbacks, token accounting — is handled by the gateway."
+      >
         <p>
           The chat endpoint supports both standard JSON response and Server-Sent
           Events (SSE) streaming. Streaming is enabled by setting{" "}
-          <code className="px-1.5 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400/90 font-mono text-xs border border-blue-500/[0.1]">
-            stream: true
-          </code>
-          .
+          <code>stream: true</code>.
         </p>
 
-        <div className="flex items-center gap-3 mt-4 mb-6">
-          <span className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-blue-500/[0.12] to-blue-600/[0.04] text-blue-400 text-[11px] font-mono font-bold border border-blue-500/[0.2] shadow-sm">
+        <div className="flex items-center gap-3 mt-4 mb-6 p-3 rounded-xl border border-indigo-500/15 bg-indigo-500/[0.04] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+          <span className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-indigo-500/[0.15] to-indigo-600/[0.04] text-indigo-200 text-[11px] font-mono font-bold border border-indigo-500/20 shadow-sm">
             POST
           </span>
-          <code className="text-white/65 font-mono text-sm">
+          <code className="text-white/75 font-mono text-sm tracking-[-0.01em]">
             {BASE_URL}/api/chat
           </code>
-          <span className="text-[11px] font-mono text-white/25 uppercase tracking-wider ml-auto">
+          <span className="text-[10px] font-mono text-indigo-200/60 uppercase tracking-[0.18em] ml-auto">
             Unified endpoint
           </span>
         </div>
 
         <div className="mt-8">
           <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(165,180,252,0.6)]" />
             Standard request
           </h3>
           <CodeBlock
@@ -114,24 +118,14 @@ fmt.Printf("%+v\\n", result)`,
 
         <div className="mt-10">
           <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(165,180,252,0.6)]" />
             Streaming (SSE)
           </h3>
-          <p className="text-sm text-white/50 mb-4">
-            Set{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
-              stream: true
-            </code>{" "}
-            in the request body to receive a Server-Sent Events stream. Each
-            chunk is a JSON object prefixed with{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
-              data:
-            </code>
-            , and the stream terminates with{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
-              data: [DONE]
-            </code>
-            .
+          <p>
+            Set <code>stream: true</code> in the request body to receive a
+            Server-Sent Events stream. Each chunk is a JSON object prefixed with{" "}
+            <code>data:</code>, and the stream terminates with{" "}
+            <code>data: [DONE]</code>.
           </p>
 
           <div className="rounded-xl border border-white/[0.08] bg-[#0a0a0c] overflow-hidden">
@@ -201,7 +195,7 @@ data: [DONE]`}</pre>
 
         <div className="mt-10">
           <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(165,180,252,0.6)]" />
             Streaming with JavaScript
           </h3>
           <CodeBlock
@@ -242,23 +236,21 @@ while (true) {
 
         <div className="mt-10">
           <h3 className="text-white/95 font-semibold text-sm mb-4 flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(165,180,252,0.6)]" />
             OpenAI-compatible endpoint
           </h3>
-          <p className="text-sm text-white/50 mb-4">
+          <p>
             Yapapa also provides a fully OpenAI-compatible endpoint at{" "}
-            <code className="px-1.5 py-0.5 rounded-md bg-white/[0.05] text-white/70 font-mono text-xs">
-              /v1/chat/completions
-            </code>
-            . This endpoint accepts the standard OpenAI request format and
-            returns responses in OpenAI format, making it a drop-in replacement
-            for existing OpenAI integrations.
+            <code>/v1/chat/completions</code>. This endpoint accepts the
+            standard OpenAI request format and returns responses in OpenAI
+            format, making it a drop-in replacement for existing OpenAI
+            integrations.
           </p>
-          <div className="flex items-center gap-3 mb-3">
-            <span className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-emerald-500/[0.12] to-emerald-600/[0.04] text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/[0.2] shadow-sm">
+          <div className="flex items-center gap-3 my-4 p-3 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.04]">
+            <span className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-emerald-500/[0.12] to-emerald-600/[0.04] text-emerald-300 text-[11px] font-mono font-bold border border-emerald-500/20 shadow-sm">
               POST
             </span>
-            <code className="text-white/65 font-mono text-sm">
+            <code className="text-white/75 font-mono text-sm">
               {BASE_URL}/v1/chat/completions
             </code>
           </div>
@@ -274,23 +266,12 @@ while (true) {
           />
         </div>
 
-        <TipBox>
-          Always use{" "}
-          <code className="text-blue-400 font-mono text-xs">X-Api-Key</code> for
-          the <code className="text-blue-400 font-mono text-xs">/api/chat</code>{" "}
-          endpoint or{" "}
-          <code className="text-blue-400 font-mono text-xs">
-            Authorization: Bearer
-          </code>{" "}
-          for the{" "}
-          <code className="text-blue-400 font-mono text-xs">
-            /v1/chat/completions
-          </code>{" "}
-          endpoint. For streaming, set{" "}
-          <code className="text-blue-400 font-mono text-xs">stream: true</code>{" "}
-          and use{" "}
-          <code className="text-blue-400 font-mono text-xs">curl -N</code> to
-          disable output buffering.
+        <TipBox variant="info">
+          Always use <code>X-Api-Key</code> for the <code>/api/chat</code>{" "}
+          endpoint or <code>Authorization: Bearer</code> for the{" "}
+          <code>/v1/chat/completions</code> endpoint. For streaming, set{" "}
+          <code>stream: true</code> and use <code>curl -N</code> to disable
+          output buffering.
         </TipBox>
       </Section>
     </motion.div>

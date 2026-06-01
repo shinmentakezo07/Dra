@@ -21,7 +21,7 @@ export default function FilesPage() {
         visible: { transition: { staggerChildren: 0.06 } },
       }}
     >
-      <Section id="files" icon={UploadCloud} title="File Upload" accent="amber">
+      <Section id="files" icon={UploadCloud} title="File Upload">
         <p>
           Upload images for vision and multimodal model support. Files are
           validated, typed, and returned as base64 data URIs that can be passed

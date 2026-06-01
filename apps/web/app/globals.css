@@ -1029,3 +1029,15 @@ textarea[data-autoresize] {
     border-radius: 0.75rem;
   }
 }
+
+/* Atmosphere breathe animation — used in docs/index page orbs */
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-\\[breathe"] {
+    animation: none !important;
+  }
+}

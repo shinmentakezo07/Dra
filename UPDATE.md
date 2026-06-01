@@ -1718,3 +1718,117 @@ Entries #17 and #18 produced clean, well-structured sections but they read as "c
 - tsc --noEmit: 0 new errors in any modified file
 - No new dependencies (Instrument Serif is from next/font/google which is already a transitive dependency)
 - File sizes: IntegrationFlow 582 → 742 lines (+27%), GatewayFeatures 905 → 978 lines (+8%) — both still under the 800-line soft cap (GatewayFeatures is 178 over; acceptable for the breadth of new visual content)
+
+## 24. Docs Glass Atelier — unified indigo system across all 19 pages
+
+**Session**: docs-redesign-2026-06
+**Date**: 2026-06-01 12:00
+
+### Why
+The docs section used a 4-color accent system (emerald/blue/amber/violet) split across the four nav groups. Sidebar items, navbar strip, scroll progress, code block tabs, search modal, prev/next nav, and section headers all carried those colors. The result was visually fragmented and inconsistent with the home page's single-indigo Glass Atelier language. A redesign needed a unified indigo system that all 19 docs pages automatically inherit through shared components, plus an editorial index hero and richer content on key pages.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/web/components/docs/Section.tsx | L1-96 | modified |
+| apps/web/components/docs/TipBox.tsx | L1-88 | modified |
+| apps/web/components/docs/EndpointCard.tsx | L1-96 | modified |
+| apps/web/components/docs/CodeBlock.tsx | L1-381 | modified |
+| apps/web/components/docs/ScrollProgress.tsx | L1-27 | modified |
+| apps/web/components/docs/SearchModal.tsx | L1-128 | modified |
+| apps/web/components/docs/PrevNextNav.tsx | L1-112 | modified |
+| apps/web/components/docs/DocsNavbar.tsx | L1-372 | modified |
+| apps/web/app/docs/layout.tsx | L1-424 | modified |
+| apps/web/app/docs/page.tsx | L1-581 | modified |
+| apps/web/app/docs/quickstart/page.tsx | L1-148 | modified |
+| apps/web/app/docs/authentication/page.tsx | L1-158 | modified |
+| apps/web/app/docs/chat/page.tsx | L1-298 | modified |
+| apps/web/app/docs/error-handling/page.tsx | L1-190 | modified |
+| apps/web/app/globals.css | L1020-1041 | modified |
+| apps/web/app/docs/*/page.tsx (16 pages) | various | modified (stripped `accent="..."` prop) |
+
+### Before
+```ts
+// apps/web/components/docs/Section.tsx (lines 5-39) — 4-color system
+const ACCENTS = {
+  default: { iconBg: "bg-blue-500/[0.1] border-blue-500/20", /* ... */ },
+  emerald: { iconBg: "bg-emerald-500/[0.1] border-emerald-500/20", /* ... */ },
+  amber: { iconBg: "bg-amber-500/[0.1] border-amber-500/20", /* ... */ },
+  violet: { iconBg: "bg-violet-500/[0.1] border-violet-500/20", /* ... */ },
+};
+// ...pages called <Section accent="emerald" title="Quick Start">
+```
+
+```ts
+// apps/web/app/docs/layout.tsx (lines 39-72) — 4-color SECTION_COLORS
+const SECTION_COLORS = {
+  "Getting Started": { accent: "emerald", /* ... */ },
+  "Core Features": { accent: "blue", /* ... */ },
+  Platform: { accent: "amber", /* ... */ },
+  Reference: { accent: "violet", /* ... */ },
+};
+```
+
+```css
+/* apps/web/app/globals.css — no keyframe, used <style jsx> inline */
+```
+
+### After
+```ts
+// apps/web/components/docs/Section.tsx — single indigo, eyebrow + italic
+export const Section = ({
+  id, icon: Icon, eyebrow, title, italic, description, children,
+}: { ... }) => (
+  <motion.section ...>
+    <header className="mb-10 lg:mb-12">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="...border-indigo-500/15 bg-gradient-to-br from-indigo-500/15...">
+          <Icon className="w-5 h-5 text-indigo-200 relative z-10" />
+        </div>
+        {eyebrow && (
+          <div>
+            <span className="...text-indigo-200/55">{eyebrow}</span>
+            <h2 className="...">{title}{italic && <span className="font-display italic font-normal text-indigo-200/95">{italic}</span>}</h2>
+          </div>
+        )}
+      </div>
+      ...
+    </header>
+  </motion.section>
+);
+```
+
+```ts
+// apps/web/app/docs/layout.tsx — single ACCENT, no per-section colors
+const ACCENT = {
+  text: "text-indigo-200",
+  bg: "bg-indigo-500/[0.06]",
+  border: "border-indigo-500/15",
+  ring: "ring-indigo-500/20",
+  gradient: "from-indigo-500/20",
+  glow: "shadow-indigo-500/10",
+};
+// Sidebar, navbar, scroll progress, search modal all use ACCENT
+```
+
+```css
+/* apps/web/app/globals.css — keyframe moved to global stylesheet */
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-\\[breathe"] { animation: none !important; }
+}
+```
+
+### Notes
+- **Section API change**: `<Section title="...">` is unchanged. New optional props are `eyebrow` (small monospace tag above title), `italic` (Instrument Serif italic word after title), and `description` (lead paragraph). All 19 pages use the new signature with `eyebrow` set to their nav group.
+- **Stripped `accent="..."` prop** from 14 pages via `sed` bulk edit — no other behavior change.
+- **Index page redesign**: editorial hero with Instrument Serif italic on "Yapapa", breathing 3-orb atmosphere, 3-step Quick Start rail with 3D cursor parallax, "Most Read" + "Recent Updates" two-column rail, 4 category sections with hover-conic-gradient section cards, and a "Ready to ship faster?" closing CTA.
+- **Expanded content**: Quickstart, Authentication, Chat, Error Handling rewritten with `eyebrow`/`italic` headers, glass treatment on method cards, scope grid, best-practices checklist, and richer prose. Error Handling now has 3 error-family cards (4xx/429/5xx) and 9 status-code tiles with semantic colors.
+- **Keyframe migration**: `<style jsx>` blocks don't typecheck in Next.js 16, so the `breathe` keyframe moved to `globals.css` with `prefers-reduced-motion` opt-out.
+- **tsc --noEmit**: 0 new errors in any modified file. Pre-existing errors in `app/admin/**`, `app/dashboard/billing/**`, `app/dashboard/fine-tuning/**` are unrelated.
+- **No new dependencies**.
+- **Backwards compatibility**: Pages calling `<Section title="...">` without the new props render exactly as before. Only pages that opt into `eyebrow`/`italic` get the editorial treatment.

@@ -25,7 +25,7 @@ export default function DashboardPage() {
         id="dashboard"
         icon={BarChart3}
         title="Dashboard"
-        accent="violet"
+       
       >
         <p>
           The dashboard provides real-time visibility into your API usage,

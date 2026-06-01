@@ -25,7 +25,7 @@ export default function OrganizationsPage() {
         id="organizations"
         icon={Users}
         title="Organizations"
-        accent="amber"
+       
       >
         <p>
           Organizations enable teams to collaborate with shared resources, API

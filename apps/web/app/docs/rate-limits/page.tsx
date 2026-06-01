@@ -20,7 +20,7 @@ export default function RateLimitsPage() {
         id="rate-limits"
         icon={Shield}
         title="Rate Limits"
-        accent="amber"
+       
       >
         <p>
           Rate limits protect the API from abuse and ensure fair usage. Limits

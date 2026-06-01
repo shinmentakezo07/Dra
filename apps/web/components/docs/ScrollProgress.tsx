@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
+/* ── Indigo-only scroll progress with glow ── */
 export const ScrollProgress = () => {
   const [progress, setProgress] = useState(0);
 
@@ -19,8 +21,13 @@ export const ScrollProgress = () => {
   return (
     <div className="fixed top-0 left-0 right-0 z-[60] h-[3px] pointer-events-none">
       <div
-        className="h-full bg-gradient-to-r from-blue-500/80 via-purple-500/60 to-emerald-500/50 transition-[width] duration-75 shadow-sm shadow-blue-500/20"
+        className="absolute inset-0 bg-white/[0.02] backdrop-blur-sm"
+        aria-hidden
+      />
+      <motion.div
+        className="relative h-full bg-gradient-to-r from-indigo-400/90 via-indigo-300/80 to-violet-300/70 shadow-[0_0_12px_2px_rgba(99,102,241,0.4)]"
         style={{ width: `${progress * 100}%` }}
+        transition={{ duration: 0.1 }}
       />
     </div>
   );
