@@ -1514,3 +1514,47 @@ Deep codebase analysis identified 60 bugs across the backend. This pass fixes th
 - `go test -race -short ./...` — all pre-existing passing tests continue to pass
 - No new test failures introduced
 - Pre-existing failures (unrelated): `TestRouter_RouteByCapability`, `TestValidateRequest_ClampsValues`, `TestRoundRobin`, `service_integration_test.go`
+
+---
+
+## 17. Platform Capabilities v2 — Editorial Bento with Single Indigo Accent
+
+**Session**: drai-platform-capabilities-v2
+**Date**: 2026-06-01
+
+### Why
+The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 different accent colors (blue/cyan/purple/amber/emerald), a 30-particle field, a mouse-tracking radial spotlight, and per-card magnetic 3D tilt on every card competed for attention. The result was "everything moves, nothing anchors the eye." This pass collapses the palette to a single brand indigo (with green reserved for live status), removes particle/spin gimmicks, and adopts an editorial layout: a massive "01" section watermark, asymmetric header with a live system-status panel, category labels (Protocol / Policy / Infrastructure / Observability / Billing) per card, and stat deltas.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/GatewayFeatures.tsx` | L1-905 | rewritten |
+
+### Before
+- 5 different accent palettes (blue / cyan / purple / amber / emerald) for 5 features
+- `ParticleField` with 30 randomized floating particles
+- `MouseSpotlight` following cursor with multi-stop radial gradient
+- 3-axis magnetic 3D tilt on every card
+- Plain pill + h2 + p header structure
+- Stat strip with raw numbers and gray labels
+- Pricing bars used 5 different brand colors per model
+
+### After
+- **Single indigo accent** throughout (`#6366f1` / `rgb(99,102,241)`); green (`#10b981`) reserved for status/uptime only
+- Removed `ParticleField` and parallax atmosphere
+- Simplified `MouseSpotlight` to subtle 500px indigo glow (no 600px multi-stop)
+- Magnetic hover restricted to the hero card (`unified` only); other cards use lightweight border-glow
+- **Editorial header**: massive `01` watermark in `text-white/[0.025]`, `Section 01 — Platform Capabilities` label with hairline rule, animated SVG underline beneath the gradient span
+- **Right rail**: new live "System Status" panel (3 regions with live latency bars, "LIVE" indicator dot)
+- **Category labels** on every card: `Protocol`, `Policy`, `Infrastructure`, `Observability`, `Billing` + index `01`–`05`
+- **Stat strip deltas**: each stat gets a trend chip (`+12 this month`, `+4 this quarter`, `30-day rolling`, `OpenAI-compatible`)
+- Pricing bars unified to a single indigo gradient
+- Uses project's `cn` utility from `@/lib/utils` for cleaner class composition
+- Added `aria-labelledby` for accessibility; reduced-motion respected via Framer Motion defaults
+
+### Notes
+- File: 953 lines → 905 lines (5% reduction) while adding new structural pieces
+- Build: no new TS errors introduced (`tsc --noEmit` clean for `GatewayFeatures.tsx`; pre-existing errors in unrelated files unchanged)
+- No new dependencies — uses existing `framer-motion`, `lucide-react`, `tailwind-merge`, `clsx`
+- Reduced motion (`prefers-reduced-motion: reduce`) handled natively by Framer Motion variants
