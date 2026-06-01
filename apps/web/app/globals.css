@@ -3,6 +3,7 @@
 @theme inline {
   --font-sans: var(--font-inter), sans-serif;
   --font-mono: var(--font-space), monospace;
+  --font-display: var(--font-instrument), ui-serif, Georgia, serif;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -1026,5 +1027,17 @@ textarea[data-autoresize] {
   .clip-path-slant {
     clip-path: none;
     border-radius: 0.75rem;
+  }
+}
+
+/* Atmosphere breathe animation — used in docs/index page orbs */
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-\\[breathe"] {
+    animation: none !important;
   }
 }

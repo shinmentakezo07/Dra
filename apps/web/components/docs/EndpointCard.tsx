@@ -3,26 +3,62 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Lock, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const METHOD_COLORS: Record<string, string> = {
-  GET: "bg-emerald-500/[0.1] text-emerald-400 border-emerald-500/[0.2] shadow-emerald-500/[0.05]",
-  POST: "bg-blue-500/[0.1] text-blue-400 border-blue-500/[0.2] shadow-blue-500/[0.05]",
-  PUT: "bg-amber-500/[0.1] text-amber-400 border-amber-500/[0.2] shadow-amber-500/[0.05]",
-  PATCH:
-    "bg-orange-500/[0.1] text-orange-400 border-orange-500/[0.2] shadow-orange-500/[0.05]",
-  DELETE:
-    "bg-red-500/[0.1] text-red-400 border-red-500/[0.2] shadow-red-500/[0.05]",
+/* ── Glass Atelier method colors — muted, semantically rich ── */
+const METHOD_STYLES: Record<
+  string,
+  { color: string; bg: string; border: string; glow: string }
+> = {
+  GET: {
+    color: "text-emerald-200",
+    bg: "bg-emerald-500/[0.08]",
+    border: "border-emerald-500/20",
+    glow: "shadow-emerald-500/[0.06]",
+  },
+  POST: {
+    color: "text-indigo-200",
+    bg: "bg-indigo-500/[0.08]",
+    border: "border-indigo-500/20",
+    glow: "shadow-indigo-500/[0.06]",
+  },
+  PUT: {
+    color: "text-amber-200",
+    bg: "bg-amber-500/[0.08]",
+    border: "border-amber-500/20",
+    glow: "shadow-amber-500/[0.06]",
+  },
+  PATCH: {
+    color: "text-orange-200",
+    bg: "bg-orange-500/[0.08]",
+    border: "border-orange-500/20",
+    glow: "shadow-orange-500/[0.06]",
+  },
+  DELETE: {
+    color: "text-rose-200",
+    bg: "bg-rose-500/[0.08]",
+    border: "border-rose-500/20",
+    glow: "shadow-rose-500/[0.06]",
+  },
 };
 
-export const MethodBadge = ({ method }: { method: string }) => (
-  <span
-    className={`inline-flex items-center px-2.5 py-1 rounded-lg font-mono text-[10px] font-bold tracking-wider border shadow-sm ${
-      METHOD_COLORS[method] || METHOD_COLORS.GET
-    }`}
-  >
-    {method}
-  </span>
-);
+export const MethodBadge = ({ method }: { method: string }) => {
+  const style = METHOD_STYLES[method] || METHOD_STYLES.GET;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center px-2.5 py-1 rounded-lg font-mono text-[10px] font-bold tracking-[0.12em] border",
+        "shadow-sm",
+        style.color,
+        style.bg,
+        style.border,
+        style.glow,
+      )}
+    >
+      {method}
+    </span>
+  );
+};
 
 export const EndpointCard = ({
   method,
@@ -42,22 +78,29 @@ export const EndpointCard = ({
   return (
     <motion.div
       layout
-      className="rounded-xl border border-white/[0.06] bg-[#0a0a0c] overflow-hidden transition-all duration-200 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10"
+      className={cn(
+        "group rounded-2xl border border-white/[0.07] overflow-hidden",
+        "bg-gradient-to-br from-white/[0.02] via-white/[0.01] to-transparent",
+        "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
+        "hover:border-indigo-500/25 hover:shadow-[0_8px_32px_-12px_rgba(99,102,241,0.18),inset_0_1px_0_0_rgba(255,255,255,0.06)]",
+        "transition-all duration-300",
+      )}
     >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 sm:gap-4 px-4 py-3.5 text-left group cursor-pointer"
+        aria-expanded={open}
+        className="w-full flex items-center gap-3 sm:gap-4 px-4 py-3.5 text-left cursor-pointer"
       >
         <MethodBadge method={method} />
         <code className="text-white/80 font-mono text-sm tracking-tight group-hover:text-white transition-colors flex-shrink min-w-0 truncate">
           {path}
         </code>
-        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/30 truncate pl-4">
+        <span className="hidden sm:block flex-1 text-right text-[12px] text-white/30 truncate pl-4 group-hover:text-white/45 transition-colors">
           {description}
         </span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {auth && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[9px] font-medium text-white/35">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[9px] font-medium text-white/40">
               <Lock className="w-2.5 h-2.5" />
               Auth
             </span>
@@ -65,8 +108,9 @@ export const EndpointCard = ({
           <motion.div
             animate={{ rotate: open ? 90 : 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="w-6 h-6 rounded-md flex items-center justify-center bg-white/[0.02] border border-white/[0.05] group-hover:border-indigo-500/20 group-hover:bg-indigo-500/[0.04] transition-all"
           >
-            <ChevronRight className="w-3.5 h-3.5 text-white/25 group-hover:text-white/50 transition-colors" />
+            <ChevronRight className="w-3 h-3 text-white/30 group-hover:text-indigo-200 transition-colors" />
           </motion.div>
         </div>
       </button>
@@ -76,17 +120,19 @@ export const EndpointCard = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-4 border-t border-white/[0.06] pt-4">
-              <p className="text-sm text-white/50 flex items-start gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400/50 mt-1.5 flex-shrink-0" />
-                <span className="leading-relaxed">{description}</span>
+            <div className="px-5 pb-5 pt-1 space-y-4 border-t border-white/[0.05]">
+              <p className="text-sm text-white/55 flex items-start gap-3 pt-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400/60 mt-2 flex-shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                <span className="leading-[1.7]">{description}</span>
               </p>
-              <div className="pl-4 border-l-2 border-white/[0.08]">
-                {children}
-              </div>
+              {children && (
+                <div className="pl-5 border-l-2 border-indigo-500/15">
+                  {children}
+                </div>
+              )}
             </div>
           </motion.div>
         )}

@@ -16,7 +16,7 @@ export default function SecurityPage() {
         visible: { transition: { staggerChildren: 0.06 } },
       }}
     >
-      <Section id="security" icon={Lock} title="Security" accent="violet">
+      <Section id="security" icon={Lock} title="Security">
         <p>
           Security is built into every layer of Yapapa. All data in transit is
           encrypted via TLS. API keys are hashed using HMAC-SHA256 before

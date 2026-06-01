@@ -10,62 +10,23 @@ interface DocsNavbarProps {
   onSearchOpen: () => void;
   onMobileMenuClick: () => void;
   currentSectionLabel?: string;
-  currentColor?: {
-    accent: string;
-    ring: string;
-    text: string;
-    bg: string;
-    border: string;
-    gradient: string;
-  };
 }
 
 const productLinks = [
-  {
-    label: "Models",
-    href: "/models",
-    desc: "Browse 100+ AI models",
-    accent: "bg-emerald-500",
-  },
-  {
-    label: "Playground",
-    href: "/playground",
-    desc: "Test models in-browser",
-    accent: "bg-blue-500",
-  },
-  {
-    label: "Pricing",
-    href: "/pricing",
-    desc: "Credit-based billing",
-    accent: "bg-amber-500",
-  },
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    desc: "Usage analytics & keys",
-    accent: "bg-violet-500",
-  },
+  { label: "Models", href: "/models", desc: "Browse 100+ AI models" },
+  { label: "Playground", href: "/playground", desc: "Test models in-browser" },
+  { label: "Pricing", href: "/pricing", desc: "Credit-based billing" },
+  { label: "Dashboard", href: "/dashboard", desc: "Usage analytics & keys" },
 ];
-
-const ACCENT_MAP: Record<string, string> = {
-  emerald: "#34d399",
-  blue: "#60a5fa",
-  amber: "#fbbf24",
-  violet: "#a78bfa",
-};
 
 export function DocsNavbar({
   onSearchOpen,
   onMobileMenuClick,
   currentSectionLabel,
-  currentColor,
 }: DocsNavbarProps) {
   const [productOpen, setProductOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const accentHex =
-    ACCENT_MAP[currentColor?.accent ?? "blue"] ?? ACCENT_MAP.blue;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -96,26 +57,25 @@ export function DocsNavbar({
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
-      {/* Accent strip with animated shimmer */}
+      {/* Single indigo accent strip */}
       <div className="relative h-[2px] w-full overflow-hidden">
         <motion.div
-          className="absolute inset-0"
+          className="absolute inset-0 bg-gradient-to-r from-indigo-400/60 via-violet-400/40 to-indigo-300/30"
           initial={false}
-          animate={{ backgroundColor: accentHex }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          style={{ opacity: scrolled ? 0.7 : 0.35 }}
+          animate={{ opacity: scrolled ? 0.85 : 0.5 }}
+          transition={{ duration: 0.4 }}
         />
         <motion.div
           className="absolute inset-0"
           style={{
-            background: `linear-gradient(90deg, transparent 0%, ${accentHex}40 50%, transparent 100%)`,
-            opacity: scrolled ? 0.6 : 0,
+            background:
+              "linear-gradient(90deg, transparent 0%, rgba(165,180,252,0.5) 50%, transparent 100%)",
           }}
           animate={{ x: scrolled ? ["-100%", "200%"] : "-100%" }}
           transition={{
-            duration: 2.5,
+            duration: 3,
             repeat: scrolled ? Infinity : 0,
-            repeatDelay: 3,
+            repeatDelay: 4,
             ease: "linear",
           }}
         />
@@ -125,14 +85,13 @@ export function DocsNavbar({
       <div
         className={`pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           scrolled
-            ? "bg-[#08080a]/97 backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)]"
-            : "bg-[#08080a]/60 backdrop-blur-xl"
+            ? "bg-[#06060a]/96 backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.05),0_8px_32px_-8px_rgba(99,102,241,0.08),0_4px_24px_rgba(0,0,0,0.4)]"
+            : "bg-[#06060a]/55 backdrop-blur-xl"
         }`}
       >
         <header className="mx-auto max-w-6xl flex items-center h-[56px] px-4 sm:px-6">
-          {/* ── Left cluster: logo + section badge ── */}
+          {/* ── Left cluster ── */}
           <div className="flex items-center gap-3 min-w-0">
-            {/* Mobile menu trigger */}
             <button
               onClick={onMobileMenuClick}
               aria-label="Open navigation"
@@ -146,12 +105,9 @@ export function DocsNavbar({
               href="/"
               className="flex items-center gap-2.5 group flex-shrink-0"
             >
-              <div className="relative w-9 h-9 rounded-[10px] bg-black border border-white/[0.08] overflow-hidden flex items-center justify-center group-hover:border-white/[0.18] transition-all duration-500 shadow-[0_0_0_0_transparent] group-hover:shadow-[0_0_16px_-2px_rgba(255,255,255,0.06)]">
+              <div className="relative w-9 h-9 rounded-[10px] bg-black border border-white/[0.08] overflow-hidden flex items-center justify-center group-hover:border-indigo-500/30 transition-all duration-500 group-hover:shadow-[0_0_18px_-2px_rgba(99,102,241,0.4)]">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:6px_6px]" />
-                <div
-                  className="absolute inset-0 rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ boxShadow: `inset 0 0 12px -4px ${accentHex}15` }}
-                />
+                <div className="absolute inset-0 rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-[inset_0_0_14px_-3px_rgba(165,180,252,0.25)]" />
                 <Image
                   src="/nervous-cat.jpg"
                   alt="Yapapa"
@@ -162,66 +118,52 @@ export function DocsNavbar({
               </div>
               <div className="flex flex-col">
                 <span
-                  className="text-[15px] font-extrabold tracking-[-0.04em] text-white/70 group-hover:text-white transition-colors duration-300"
+                  className="text-[15px] font-extrabold tracking-[-0.04em] text-white/75 group-hover:text-white transition-colors duration-300"
                   style={{ fontFamily: "var(--font-sans)" }}
                 >
                   YAPAPA
                 </span>
-                <span className="hidden sm:block text-[8px] font-mono uppercase tracking-[0.2em] text-white/[0.12] -mt-0.5 group-hover:text-white/[0.18] transition-colors duration-300">
+                <span className="hidden sm:block text-[8px] font-mono uppercase tracking-[0.2em] text-white/[0.12] -mt-0.5 group-hover:text-indigo-200/60 transition-colors duration-300">
                   LLM Gateway
                 </span>
               </div>
             </Link>
 
-            {/* Divider */}
             <div className="hidden sm:block w-px h-6 bg-gradient-to-b from-transparent via-white/[0.08] to-transparent" />
 
-            {/* Section indicator */}
+            {/* Section indicator — unified indigo */}
             <div className="hidden sm:flex items-center gap-2">
               <motion.div
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border relative overflow-hidden"
-                style={{
-                  borderColor: `${accentHex}18`,
-                  backgroundColor: `${accentHex}08`,
-                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-indigo-500/20 bg-indigo-500/[0.06] relative overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]"
                 initial={false}
-                animate={{
-                  borderColor: `${accentHex}18`,
-                  backgroundColor: `${accentHex}08`,
-                }}
+                animate={{ borderColor: "rgba(99,102,241,0.2)" }}
                 transition={{ duration: 0.4 }}
               >
                 <div
-                  className="absolute inset-0 opacity-20 rounded-lg"
-                  style={{ background: `radial-gradient(ellipse at 0% 50%, ${accentHex}15, transparent 70%)` }}
+                  className="absolute inset-0 opacity-30 rounded-lg"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at 0% 50%, rgba(99,102,241,0.18), transparent 70%)",
+                  }}
                 />
-                <BookOpen
-                  className="w-3 h-3 relative z-10"
-                  style={{ color: accentHex, opacity: 0.7 }}
-                />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/30 relative z-10">
+                <BookOpen className="w-3 h-3 text-indigo-200 relative z-10" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-200/80 relative z-10">
                   Docs
                 </span>
               </motion.div>
 
               {currentSectionLabel && (
                 <>
-                  <motion.span
-                    className="text-white/[0.06] text-[11px] font-light select-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
+                  <span className="text-white/[0.08] text-[11px] font-light select-none">
                     /
-                  </motion.span>
+                  </span>
                   <motion.span
                     key={currentSectionLabel}
                     initial={{ opacity: 0, x: -6, filter: "blur(4px)" }}
                     animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
                     exit={{ opacity: 0, x: 4, filter: "blur(4px)" }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-[12px] font-medium truncate max-w-[160px]"
-                    style={{ color: `${accentHex}90` }}
+                    className="text-[12px] font-medium text-white/55 truncate max-w-[160px]"
                   >
                     {currentSectionLabel}
                   </motion.span>
@@ -230,9 +172,8 @@ export function DocsNavbar({
             </div>
           </div>
 
-          {/* ── Right cluster: nav + actions ── */}
+          {/* ── Right cluster ── */}
           <div className="flex items-center gap-1.5 ml-auto">
-            {/* Desktop nav links */}
             <nav
               className="hidden lg:flex items-center mr-1"
               aria-label="Platform navigation"
@@ -245,12 +186,11 @@ export function DocsNavbar({
                 >
                   <span className="relative z-10">{link.label}</span>
                   <div className="absolute inset-0 rounded-lg bg-white/[0.04] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                  <div className="absolute bottom-0.5 left-3 right-3 h-px bg-white/[0.12] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] origin-left" />
+                  <div className="absolute bottom-0.5 left-3 right-3 h-px bg-indigo-400/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] origin-left" />
                 </Link>
               ))}
             </nav>
 
-            {/* Product dropdown */}
             <div className="relative hidden md:block" ref={dropdownRef}>
               <button
                 onClick={() => setProductOpen((v) => !v)}
@@ -277,23 +217,20 @@ export function DocsNavbar({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.97 }}
                     transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute right-0 top-full mt-2 w-[260px] rounded-xl bg-[#0b0b0d]/97 backdrop-blur-2xl border border-white/[0.06] overflow-hidden z-50"
-                    style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.03), 0 8px 40px -8px rgba(0,0,0,0.7), 0 0 24px -4px ${accentHex}08` }}
+                    className="absolute right-0 top-full mt-2 w-[260px] rounded-xl bg-[#0a0a0d]/97 backdrop-blur-2xl border border-white/[0.07] overflow-hidden z-50 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_8px_40px_-8px_rgba(0,0,0,0.7),0_0_40px_-8px_rgba(99,102,241,0.18)]"
                   >
-                    {/* Top accent glow */}
                     <div
-                      className="absolute top-0 left-0 right-0 h-12 opacity-30 pointer-events-none"
-                      style={{ background: `radial-gradient(ellipse at 50% -20%, ${accentHex}12, transparent 70%)` }}
+                      className="absolute top-0 left-0 right-0 h-12 opacity-40 pointer-events-none"
+                      style={{
+                        background:
+                          "radial-gradient(ellipse at 50% -20%, rgba(99,102,241,0.18), transparent 70%)",
+                      }}
                     />
-
-                    {/* Panel header */}
                     <div className="px-4 pt-4 pb-2.5 border-b border-white/[0.04] relative z-10">
-                      <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.2em] text-white/[0.13]">
+                      <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.2em] text-white/15">
                         Platform
                       </span>
                     </div>
-
-                    {/* Links */}
                     <div className="p-2 relative z-10">
                       {productLinks.map((link, i) => (
                         <motion.div
@@ -307,21 +244,14 @@ export function DocsNavbar({
                             onClick={() => setProductOpen(false)}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-all duration-200 cursor-pointer group"
                           >
-                            <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.04] group-hover:border-white/[0.08] transition-all duration-200`}
-                              style={{
-                                backgroundColor: `${ACCENT_MAP[link.accent.replace("bg-", "").replace("-500", "")] ?? "#60a5fa"}0a`,
-                                color: ACCENT_MAP[link.accent.replace("bg-", "").replace("-500", "")] ?? "#60a5fa",
-                                opacity: 0.5,
-                              }}
-                            >
-                              <span className={`w-2 h-2 rounded-full ${link.accent} opacity-60`} />
+                            <div className="w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.04] group-hover:border-indigo-500/25 bg-indigo-500/[0.04] group-hover:bg-indigo-500/[0.08] transition-all duration-200">
+                              <span className="w-2 h-2 rounded-full bg-indigo-300/60 group-hover:bg-indigo-200 transition-colors" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[13px] font-medium text-white/[0.45] group-hover:text-white/85 transition-colors leading-tight">
+                              <p className="text-[13px] font-medium text-white/50 group-hover:text-white/90 transition-colors leading-tight">
                                 {link.label}
                               </p>
-                              <p className="text-[11px] text-white/[0.15] mt-0.5 leading-snug group-hover:text-white/25 transition-colors">
+                              <p className="text-[11px] text-white/20 mt-0.5 leading-snug group-hover:text-white/35 transition-colors">
                                 {link.desc}
                               </p>
                             </div>
@@ -338,11 +268,13 @@ export function DocsNavbar({
             <button
               onClick={onSearchOpen}
               aria-label="Search documentation (Ctrl+K)"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06] text-white/35 hover:text-white/70 hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300 cursor-pointer group"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06] text-white/35 hover:text-white/70 hover:border-indigo-500/20 hover:bg-indigo-500/[0.04] transition-all duration-300 cursor-pointer group"
             >
-              <Search className="w-3.5 h-3.5 group-hover:text-white/50 transition-colors" />
-              <span className="hidden sm:inline text-[12px] font-medium">Search</span>
-              <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-[2px] rounded-[4px] bg-white/[0.03] border border-white/[0.04] text-[9px] font-mono text-white/[0.12] leading-none">
+              <Search className="w-3.5 h-3.5 group-hover:text-indigo-200 transition-colors" />
+              <span className="hidden sm:inline text-[12px] font-medium">
+                Search
+              </span>
+              <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-[2px] rounded-[4px] bg-white/[0.04] border border-white/[0.05] text-[9px] font-mono text-white/15 leading-none">
                 <span className="text-[10px]">&#8984;</span>K
               </kbd>
             </button>
@@ -353,7 +285,7 @@ export function DocsNavbar({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View source on GitHub"
-              className="p-2 rounded-lg text-white/[0.15] hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer ml-0.5"
+              className="p-2 rounded-lg text-white/15 hover:text-white/55 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer ml-0.5"
             >
               <svg
                 className="w-4 h-4"

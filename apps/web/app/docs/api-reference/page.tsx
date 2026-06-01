@@ -24,7 +24,7 @@ export default function ApiReferencePage() {
         id="api-reference"
         icon={Code2}
         title="API Reference"
-        accent="emerald"
+       
       >
         <div className="flex items-center gap-3 mb-6">
           <span className="text-sm text-white/35 font-mono">Base URL</span>

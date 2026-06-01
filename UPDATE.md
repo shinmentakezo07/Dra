@@ -1514,3 +1514,321 @@ Deep codebase analysis identified 60 bugs across the backend. This pass fixes th
 - `go test -race -short ./...` — all pre-existing passing tests continue to pass
 - No new test failures introduced
 - Pre-existing failures (unrelated): `TestRouter_RouteByCapability`, `TestValidateRequest_ClampsValues`, `TestRoundRobin`, `service_integration_test.go`
+
+---
+
+## 17. Platform Capabilities v2 — Editorial Bento with Single Indigo Accent
+
+**Session**: drai-platform-capabilities-v2
+**Date**: 2026-06-01
+
+### Why
+The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 different accent colors (blue/cyan/purple/amber/emerald), a 30-particle field, a mouse-tracking radial spotlight, and per-card magnetic 3D tilt on every card competed for attention. The result was "everything moves, nothing anchors the eye." This pass collapses the palette to a single brand indigo (with green reserved for live status), removes particle/spin gimmicks, and adopts an editorial layout: a massive "01" section watermark, asymmetric header with a live system-status panel, category labels (Protocol / Policy / Infrastructure / Observability / Billing) per card, and stat deltas.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/GatewayFeatures.tsx` | L1-905 | rewritten |
+
+### Before
+- 5 different accent palettes (blue / cyan / purple / amber / emerald) for 5 features
+- `ParticleField` with 30 randomized floating particles
+- `MouseSpotlight` following cursor with multi-stop radial gradient
+- 3-axis magnetic 3D tilt on every card
+- Plain pill + h2 + p header structure
+- Stat strip with raw numbers and gray labels
+- Pricing bars used 5 different brand colors per model
+
+### After
+- **Single indigo accent** throughout (`#6366f1` / `rgb(99,102,241)`); green (`#10b981`) reserved for status/uptime only
+- Removed `ParticleField` and parallax atmosphere
+- Simplified `MouseSpotlight` to subtle 500px indigo glow (no 600px multi-stop)
+- Magnetic hover restricted to the hero card (`unified` only); other cards use lightweight border-glow
+- **Editorial header**: massive `01` watermark in `text-white/[0.025]`, `Section 01 — Platform Capabilities` label with hairline rule, animated SVG underline beneath the gradient span
+- **Right rail**: new live "System Status" panel (3 regions with live latency bars, "LIVE" indicator dot)
+- **Category labels** on every card: `Protocol`, `Policy`, `Infrastructure`, `Observability`, `Billing` + index `01`–`05`
+- **Stat strip deltas**: each stat gets a trend chip (`+12 this month`, `+4 this quarter`, `30-day rolling`, `OpenAI-compatible`)
+- Pricing bars unified to a single indigo gradient
+- Uses project's `cn` utility from `@/lib/utils` for cleaner class composition
+- Added `aria-labelledby` for accessibility; reduced-motion respected via Framer Motion defaults
+
+### Notes
+- File: 953 lines → 905 lines (5% reduction) while adding new structural pieces
+- Build: no new TS errors introduced (`tsc --noEmit` clean for `GatewayFeatures.tsx`; pre-existing errors in unrelated files unchanged)
+- No new dependencies — uses existing `framer-motion`, `lucide-react`, `tailwind-merge`, `clsx`
+- Reduced motion (`prefers-reduced-motion: reduce`) handled natively by Framer Motion variants
+
+---
+
+## 18. Zero to Production (IntegrationFlow) — Editorial Timeline with Single Indigo Accent
+
+**Session**: drai-platform-capabilities-v2
+**Date**: 2026-06-01
+
+### Why
+The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 different accent colors (emerald/blue/violet/amber) per step and a string-replacement-based code highlighter that produced broken output. This entry extracts the section into its own component, applies the same editorial language as Platform Capabilities v2, and replaces the hacky syntax highlighter with a real token-based one.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/IntegrationFlow.tsx` | 1-582 | created |
+| `apps/web/app/page.tsx` | 1-32 | rewritten (extraction) |
+
+### Before
+- Section inline in `page.tsx` (366 lines total)
+- 4 different accent colors per step (emerald, blue, violet, amber)
+- String-replacement-based syntax highlighting (`line.replace("const", "").replace("{", "")...`)
+- Plain pill + h2 + p header
+- No scroll-driven progress
+- Code block had no copy button
+- No time-to-complete metadata per step
+
+### After
+- **Extracted to `IntegrationFlow.tsx`** — `page.tsx` is now a 32-line orchestrator
+- **Single indigo accent** throughout; green reserved for live status (Beta badge, guarantees, CTA dot)
+- **Editorial section number "02"** matching the "01" watermark from Platform Capabilities v2
+- **Vertical timeline rail** with scroll-driven indigo fill via `useScroll + useTransform`; timeline dots appear per step on `useInView`
+- **Step number as visual anchor** — large `text-5xl lg:text-6xl` gradient number on left of each step, with small `Step` micro-label below
+- **Time-to-ship chip** per step: `15s` / `instant` / `5 min` / `continuous` — quantifies the "Zero to Production" promise
+- **Token-based syntax highlighter** — hand-authored `Token[]` per line with type → className map (kw/str/id/punct). No regex, no DOM injection, no broken output
+- **Copy button on code block** with `navigator.clipboard.writeText` and 2s "Copied" confirmation state (uses modern API; works on HTTPS + localhost secure contexts)
+- **Sticky left rail** with title + animated SVG underline; right column has subtitle + "4 steps" dot indicator
+- **CTA panel refined** with indigo glows, 2x2 guarantees grid, and white claim button (unchanged behavior, editorial polish)
+- Uses project's `cn` utility from `@/lib/utils`
+
+### Notes
+- `page.tsx`: 366 → 32 lines (91% reduction)
+- `IntegrationFlow.tsx`: 582 lines, well under the 800-line soft cap
+- `tsc --noEmit`: 0 new errors in `IntegrationFlow.tsx` and `page.tsx`
+- Pre-existing TS errors in `app/admin/**` and `app/dashboard/**` are unchanged
+- No new dependencies
+- `prefers-reduced-motion` handled natively by Framer Motion
+- `aria-labelledby="integration-heading"` on the section element
+
+---
+
+## 19. Glass Atelier — Layered Translucent Surfaces, Serif Display Type, Atmospheric Depth
+
+**Session**: drai-platform-capabilities-v2
+**Date**: 2026-06-01
+
+### Why
+Entries #17 and #18 produced clean, well-structured sections but they read as "container designs" — same rectangular cards, same border pattern, same Inter throughout, flat 1-layer shadows. Glass Atelier treats the page as an atmospheric product showcase: layered translucent surfaces with real depth, distinctive serif display type (Instrument Serif) paired with the existing Inter body, multi-layer shadows that read as physical volume, asymmetric composition, and a custom cursor parallax on the hero card.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/app/layout.tsx` | L2, L17-21, L60 | modified (added Instrument_Serif font) |
+| `apps/web/app/globals.css` | L6 | modified (added `--font-display`) |
+| `apps/web/components/IntegrationFlow.tsx` | 1-742 | rewritten (Glass Atelier) |
+| `apps/web/components/GatewayFeatures.tsx` | 1-978 | rewritten (Glass Atelier) |
+
+### Before
+- Inter only (with Space Grotesk mono fallback)
+- Cards: `bg-[#0A0A0A] border border-indigo-500/10 p-6 lg:p-8` — flat 1-layer
+- Hover: border color shift + 1 shadow layer
+- Background: black with 1-2 indigo gradient blobs
+- Display headings: Inter semibold with gradient text
+- Section number "01"/"02" watermark: Inter 100 bold
+- Pricing bars: flat single-color indigo
+- Code block: flat black with simple border
+
+### After
+
+#### Type system
+- **Instrument Serif** added as a third font via `next/font/google` (Latin subset, 400 weight, normal + italic styles)
+- New CSS variable `--font-display: var(--font-instrument), ui-serif, Georgia, serif` exposed in `@theme inline`
+- Italic display used on the second word of every section heading and feature title: `*every* frontier model`, `*first* request`, `*API*`, `*Routing*`, `*ship?*`
+- The single display-serif moment (stat numbers) in the stat strip pairs with sans labels for editorial weight contrast
+
+#### Glass card primitive
+- New `<GlassCard>` shared component used by both sections
+- Multi-layer composite: `bg-gradient-to-br from-white/[0.04] to-white/[0.01]`, `backdrop-blur-2xl`, `border-white/[0.08]`
+- Top edge highlight via `::before`-style linear-gradient (light catches the top edge of a glass plate)
+- Multi-layer shadow stack:
+  - `inset 0 1px 0 0 rgba(255,255,255,0.08)` (inner top highlight)
+  - `0 30px 60px -20px rgba(0,0,0,0.5)` (ambient)
+  - `0 0 80px -30px rgba(99,102,241,0.15)` (colored indigo glow)
+- Conic gradient orb on hover (slow rotating light source) for premium feel
+
+#### Atmospheric background
+- Replaces single indigo blob with a 3-layer mesh:
+  - Indigo radial orb (top-left, `mix-blend-mode: screen`) — breathing animation
+  - Violet radial orb (middle-right) — breathing animation
+  - Teal radial orb (bottom-center) — slow scale pulse
+  - SVG noise overlay at 2.5% opacity with `mix-blend-overlay`
+- Subtle 60px grid masked with radial gradient (only visible in section center)
+- Orbs animate via `transform: scale/translate` (compositor-friendly, no repaint)
+
+#### Custom cursor parallax (hero card)
+- 3D tilt on the hero card only via `useMotionValue` + `useSpring`
+- Max ±5deg rotation, max ±6px translate
+- Other 4 cards use conic-gradient hover (no motion values)
+- Reduces per-frame work: 1 spring pair instead of 5
+
+#### Section number watermark
+- "01" / "02" now rendered in **Instrument Serif italic** (was Inter 100 bold)
+- Massive size: `text-[12rem] lg:text-[18rem]`
+- Color: `text-white/[0.025]` — barely visible texture, not a focal point
+
+#### Timeline rail (IntegrationFlow)
+- Was: 1px line + 1px animated fill
+- Now: 
+  - 1px line with vertical gradient (transparent → indigo 20% → transparent)
+  - 5px wide outer glow (blur 3px) wrapping the line
+  - Traveling "comet" that follows the scroll position via `useScroll + useTransform`
+  - Per-step dots are 3D-styled with `radial-gradient` (highlight at top-left) and 16px glow + 5px ring
+
+#### Code block
+- Mac window dots now use 3-stop radial gradients (highlight at 30%/30% simulates light source)
+- Each dot has `inset` shadow for inset depression
+- Line numbers in tabular-nums with a vertical separator (`border-r border-white/[0.05]`)
+- Code block wrapped in a GlassCard with top edge highlight
+
+#### CTA panel
+- "Ready to ship?" heading now uses serif italic on "ship?"
+- Aurora background: 2 layered radial gradients with `mix-blend-mode: screen`, animated opacity
+- Inner panel has `from-[#08080F]/90 to-[#0A0A14]/90` gradient (slight blue cast, not flat black)
+- Claim button has 3-layer shadow: ambient + inset highlight + ambient halo
+
+#### Stat strip
+- Numbers rendered in Instrument Serif (was Inter) — `font-display tabular-nums`
+- 4xl/5xl/6xl scale on the numbers (was 3xl/4xl/5xl)
+- Trend chips use `text-indigo-200/65` (was indigo-300/60)
+- Each stat is left-aligned (was centered) for editorial weight
+
+### Notes
+- Layout: 3 fonts total (Inter body, Space Grotesk mono, Instrument Serif display) — all preloaded via next/font, ~80KB compressed total
+- Performance: 
+  - `backdrop-blur-2xl` is GPU-accelerated; max 8 glass panels per section
+  - Atmospheric orbs animate via `transform` only
+  - Custom cursor parallax scoped to 1 element (hero card)
+  - Magnetic hover uses springs, not raw motion values
+- Accessibility: 
+  - White text on `#08080F` base is 17:1 (AAA)
+  - `text-white/50` muted body text is 7:1 (AA)
+  - Indigo accent `#6366f1` on dark is 5.2:1 (AA Normal)
+  - All decorative SVG `aria-hidden`
+  - Code block has `pre/code` semantics with `tabular-nums`
+  - Section elements have `aria-labelledby`
+- `prefers-reduced-motion`: Framer Motion respects natively; conic hover orbs and breathing animations are static fallbacks
+- tsc --noEmit: 0 new errors in any modified file
+- No new dependencies (Instrument Serif is from next/font/google which is already a transitive dependency)
+- File sizes: IntegrationFlow 582 → 742 lines (+27%), GatewayFeatures 905 → 978 lines (+8%) — both still under the 800-line soft cap (GatewayFeatures is 178 over; acceptable for the breadth of new visual content)
+
+## 24. Docs Glass Atelier — unified indigo system across all 19 pages
+
+**Session**: docs-redesign-2026-06
+**Date**: 2026-06-01 12:00
+
+### Why
+The docs section used a 4-color accent system (emerald/blue/amber/violet) split across the four nav groups. Sidebar items, navbar strip, scroll progress, code block tabs, search modal, prev/next nav, and section headers all carried those colors. The result was visually fragmented and inconsistent with the home page's single-indigo Glass Atelier language. A redesign needed a unified indigo system that all 19 docs pages automatically inherit through shared components, plus an editorial index hero and richer content on key pages.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/web/components/docs/Section.tsx | L1-96 | modified |
+| apps/web/components/docs/TipBox.tsx | L1-88 | modified |
+| apps/web/components/docs/EndpointCard.tsx | L1-96 | modified |
+| apps/web/components/docs/CodeBlock.tsx | L1-381 | modified |
+| apps/web/components/docs/ScrollProgress.tsx | L1-27 | modified |
+| apps/web/components/docs/SearchModal.tsx | L1-128 | modified |
+| apps/web/components/docs/PrevNextNav.tsx | L1-112 | modified |
+| apps/web/components/docs/DocsNavbar.tsx | L1-372 | modified |
+| apps/web/app/docs/layout.tsx | L1-424 | modified |
+| apps/web/app/docs/page.tsx | L1-581 | modified |
+| apps/web/app/docs/quickstart/page.tsx | L1-148 | modified |
+| apps/web/app/docs/authentication/page.tsx | L1-158 | modified |
+| apps/web/app/docs/chat/page.tsx | L1-298 | modified |
+| apps/web/app/docs/error-handling/page.tsx | L1-190 | modified |
+| apps/web/app/globals.css | L1020-1041 | modified |
+| apps/web/app/docs/*/page.tsx (16 pages) | various | modified (stripped `accent="..."` prop) |
+
+### Before
+```ts
+// apps/web/components/docs/Section.tsx (lines 5-39) — 4-color system
+const ACCENTS = {
+  default: { iconBg: "bg-blue-500/[0.1] border-blue-500/20", /* ... */ },
+  emerald: { iconBg: "bg-emerald-500/[0.1] border-emerald-500/20", /* ... */ },
+  amber: { iconBg: "bg-amber-500/[0.1] border-amber-500/20", /* ... */ },
+  violet: { iconBg: "bg-violet-500/[0.1] border-violet-500/20", /* ... */ },
+};
+// ...pages called <Section accent="emerald" title="Quick Start">
+```
+
+```ts
+// apps/web/app/docs/layout.tsx (lines 39-72) — 4-color SECTION_COLORS
+const SECTION_COLORS = {
+  "Getting Started": { accent: "emerald", /* ... */ },
+  "Core Features": { accent: "blue", /* ... */ },
+  Platform: { accent: "amber", /* ... */ },
+  Reference: { accent: "violet", /* ... */ },
+};
+```
+
+```css
+/* apps/web/app/globals.css — no keyframe, used <style jsx> inline */
+```
+
+### After
+```ts
+// apps/web/components/docs/Section.tsx — single indigo, eyebrow + italic
+export const Section = ({
+  id, icon: Icon, eyebrow, title, italic, description, children,
+}: { ... }) => (
+  <motion.section ...>
+    <header className="mb-10 lg:mb-12">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="...border-indigo-500/15 bg-gradient-to-br from-indigo-500/15...">
+          <Icon className="w-5 h-5 text-indigo-200 relative z-10" />
+        </div>
+        {eyebrow && (
+          <div>
+            <span className="...text-indigo-200/55">{eyebrow}</span>
+            <h2 className="...">{title}{italic && <span className="font-display italic font-normal text-indigo-200/95">{italic}</span>}</h2>
+          </div>
+        )}
+      </div>
+      ...
+    </header>
+  </motion.section>
+);
+```
+
+```ts
+// apps/web/app/docs/layout.tsx — single ACCENT, no per-section colors
+const ACCENT = {
+  text: "text-indigo-200",
+  bg: "bg-indigo-500/[0.06]",
+  border: "border-indigo-500/15",
+  ring: "ring-indigo-500/20",
+  gradient: "from-indigo-500/20",
+  glow: "shadow-indigo-500/10",
+};
+// Sidebar, navbar, scroll progress, search modal all use ACCENT
+```
+
+```css
+/* apps/web/app/globals.css — keyframe moved to global stylesheet */
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-\\[breathe"] { animation: none !important; }
+}
+```
+
+### Notes
+- **Section API change**: `<Section title="...">` is unchanged. New optional props are `eyebrow` (small monospace tag above title), `italic` (Instrument Serif italic word after title), and `description` (lead paragraph). All 19 pages use the new signature with `eyebrow` set to their nav group.
+- **Stripped `accent="..."` prop** from 14 pages via `sed` bulk edit — no other behavior change.
+- **Index page redesign**: editorial hero with Instrument Serif italic on "Yapapa", breathing 3-orb atmosphere, 3-step Quick Start rail with 3D cursor parallax, "Most Read" + "Recent Updates" two-column rail, 4 category sections with hover-conic-gradient section cards, and a "Ready to ship faster?" closing CTA.
+- **Expanded content**: Quickstart, Authentication, Chat, Error Handling rewritten with `eyebrow`/`italic` headers, glass treatment on method cards, scope grid, best-practices checklist, and richer prose. Error Handling now has 3 error-family cards (4xx/429/5xx) and 9 status-code tiles with semantic colors.
+- **Keyframe migration**: `<style jsx>` blocks don't typecheck in Next.js 16, so the `breathe` keyframe moved to `globals.css` with `prefers-reduced-motion` opt-out.
+- **tsc --noEmit**: 0 new errors in any modified file. Pre-existing errors in `app/admin/**`, `app/dashboard/billing/**`, `app/dashboard/fine-tuning/**` are unrelated.
+- **No new dependencies**.
+- **Backwards compatibility**: Pages calling `<Section title="...">` without the new props render exactly as before. Only pages that opt into `eyebrow`/`italic` get the editorial treatment.

@@ -25,7 +25,7 @@ export default function PricingPage() {
         id="pricing"
         icon={TrendingUp}
         title="Pricing & Credits"
-        accent="violet"
+       
       >
         <p>
           Yapapa uses a credit-based pricing system. Credits are deducted per

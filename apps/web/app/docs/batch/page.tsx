@@ -21,7 +21,7 @@ export default function BatchPage() {
         visible: { transition: { staggerChildren: 0.06 } },
       }}
     >
-      <Section id="batch" icon={Layers} title="Batch API" accent="amber">
+      <Section id="batch" icon={Layers} title="Batch API">
         <p>
           Process multiple chat requests in a single batch request. The Batch
           API reduces overhead when you need to process multiple independent

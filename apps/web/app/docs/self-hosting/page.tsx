@@ -23,7 +23,7 @@ export default function SelfHostingPage() {
         id="self-hosting"
         icon={Globe}
         title="Self-Hosting & Configuration"
-        accent="emerald"
+       
       >
         <p>
           When self-hosting Yapapa, you need to configure the base URL so that

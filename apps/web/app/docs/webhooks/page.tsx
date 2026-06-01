@@ -21,7 +21,7 @@ export default function WebhooksPage() {
         visible: { transition: { staggerChildren: 0.06 } },
       }}
     >
-      <Section id="webhooks" icon={Webhook} title="Webhooks" accent="amber">
+      <Section id="webhooks" icon={Webhook} title="Webhooks">
         <p>
           Webhooks allow you to receive real-time HTTP callbacks when events
           occur in your account. Configure endpoints to receive POST

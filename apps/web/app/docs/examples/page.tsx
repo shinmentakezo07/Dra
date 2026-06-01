@@ -32,7 +32,7 @@ export default function ExamplesPage() {
         id="examples"
         icon={Terminal}
         title="Code Examples"
-        accent="violet"
+       
       >
         <p className="text-white/80">
           Full working examples in multiple languages to help you integrate

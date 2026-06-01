@@ -20,7 +20,7 @@ export default function ModelsPage() {
         visible: { transition: { staggerChildren: 0.06 } },
       }}
     >
-      <Section id="models" icon={Cpu} title="Available Models" accent="violet">
+      <Section id="models" icon={Cpu} title="Available Models">
         <p>
           Yapapa routes requests to the optimal model based on your selected
           provider prefix. Use the{" "}

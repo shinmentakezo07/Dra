@@ -1,94 +1,103 @@
 "use client";
 
-import { motion } from "framer-motion";
+import * as React from "react";
+import { motion, useInView } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-/* ── Section variants by accent type ── */
-const ACCENTS = {
-  default: {
-    iconBg:
-      "bg-blue-500/[0.1] border-blue-500/20",
-    iconColor: "text-blue-400",
-    bar: "from-blue-500/60",
-    heading: "text-white",
-    dot: "bg-blue-500",
-  },
-  emerald: {
-    iconBg:
-      "bg-emerald-500/[0.1] border-emerald-500/20",
-    iconColor: "text-emerald-400",
-    bar: "from-emerald-500/60",
-    heading: "text-white",
-    dot: "bg-emerald-500",
-  },
-  amber: {
-    iconBg:
-      "bg-amber-500/[0.1] border-amber-500/20",
-    iconColor: "text-amber-400",
-    bar: "from-amber-500/60",
-    heading: "text-white",
-    dot: "bg-amber-500",
-  },
-  violet: {
-    iconBg:
-      "bg-violet-500/[0.1] border-violet-500/20",
-    iconColor: "text-violet-400",
-    bar: "from-violet-500/60",
-    heading: "text-white",
-    dot: "bg-violet-500",
-  },
-};
-
+/* ── Editorial Section with Glass Atelier treatment ── */
 export const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring" as const, stiffness: 120, damping: 20 },
+    filter: "blur(0px)",
+    transition: { type: "spring" as const, stiffness: 120, damping: 22 },
   },
 };
 
 export const Section = ({
   id,
   icon: Icon,
+  eyebrow,
   title,
+  italic,
+  description,
   children,
-  accent = "default",
 }: {
   id: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
+  eyebrow?: string;
   title: string;
+  italic?: string;
+  description?: string;
   children: React.ReactNode;
-  accent?: keyof typeof ACCENTS;
 }) => {
-  const a = ACCENTS[accent];
+  const ref = React.useRef<HTMLElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+
   return (
     <motion.section
+      ref={ref}
       id={id}
       variants={itemVariants}
-      className="mb-28 scroll-mt-20"
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      className="mb-24 lg:mb-32 scroll-mt-24"
     >
-      {/* Section heading block */}
-      <div className="mb-2">
-        <div className="flex items-center gap-4 mb-4">
+      {/* Editorial header */}
+      <header className="mb-10 lg:mb-12">
+        <div className="flex items-center gap-4 mb-6">
+          {/* Glass icon */}
           <div
-            className={`w-12 h-12 rounded-2xl ${a.iconBg} flex items-center justify-center flex-shrink-0 border shadow-lg shadow-black/30`}
+            className={cn(
+              "shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border border-indigo-500/15",
+              "bg-gradient-to-br from-indigo-500/15 via-indigo-500/5 to-transparent",
+              "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_8px_24px_-8px_rgba(99,102,241,0.25)]",
+              "relative overflow-hidden",
+            )}
           >
-            <Icon className={`w-5.5 h-5.5 ${a.iconColor}`} />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+            <Icon className="w-5 h-5 text-indigo-200 relative z-10" />
           </div>
-          <h2
-            className={`text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-bold tracking-tight leading-tight text-white`}
-          >
-            {title}
-          </h2>
+
+          {eyebrow && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-[9px] font-mono tracking-[0.22em] uppercase text-indigo-200/55 mb-1.5">
+                {eyebrow}
+              </span>
+              <h2 className="text-[1.75rem] sm:text-[2.1rem] lg:text-[2.6rem] font-semibold tracking-[-0.035em] leading-[1.02] text-white">
+                {title}
+                {italic && (
+                  <>
+                    {" "}
+                    <span className="font-display italic font-normal text-indigo-200/95">
+                      {italic}
+                    </span>
+                  </>
+                )}
+              </h2>
+            </div>
+          )}
         </div>
+
+        {/* Hairline + section id */}
         <div className="flex items-center gap-3">
-          <div
-            className={`h-[2px] w-20 bg-gradient-to-r ${a.bar} to-transparent rounded-full`}
-          />
-          <div className="h-px flex-1 bg-white/[0.05]" />
+          <div className="h-[2px] w-16 bg-gradient-to-r from-indigo-400/70 via-indigo-400/30 to-transparent rounded-full" />
+          <div className="h-px flex-1 bg-gradient-to-r from-white/[0.08] to-transparent" />
+          <span className="text-[9px] font-mono tracking-[0.2em] uppercase text-white/20">
+            §{id}
+          </span>
         </div>
-      </div>
-      <div className="mt-8 space-y-6 text-[15px] text-white/60 leading-[1.85]">
+
+        {description && (
+          <p className="mt-6 text-[15px] text-white/55 leading-[1.85] max-w-2xl">
+            {description}
+          </p>
+        )}
+      </header>
+
+      <div className="space-y-5 text-[15px] text-white/60 leading-[1.85] [&_p]:text-white/60 [&_strong]:text-white/85 [&_strong]:font-medium [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-indigo-500/[0.08] [&_code]:text-indigo-200/95 [&_code]:font-mono [&_code]:text-[13px] [&_code]:border [&_code]:border-indigo-500/[0.12]">
         {children}
       </div>
     </motion.section>

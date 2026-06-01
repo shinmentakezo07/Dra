@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import {
   Zap,
   Key,
@@ -25,56 +25,20 @@ import {
   Users,
   Webhook,
   Globe,
+  BookOpen,
+  Sparkles,
+  Command,
+  Clock,
+  Activity,
+  Search,
 } from "lucide-react";
 import type { NavItem } from "@/components/docs/types";
-
-/* ── Section design tokens ── */
-const SECTION_STYLES = {
-  "Getting Started": {
-    accent: "#34d399",
-    border: "border-emerald-500/[0.1]",
-    hoverBorder: "hover:border-emerald-500/25",
-    iconBg: "bg-emerald-500/[0.06]",
-    iconBorder: "border-emerald-500/[0.12]",
-    iconText: "text-emerald-400",
-    dot: "bg-emerald-500",
-    glow: "shadow-emerald-500/[0.06]",
-  },
-  "Core Features": {
-    accent: "#60a5fa",
-    border: "border-blue-500/[0.1]",
-    hoverBorder: "hover:border-blue-500/25",
-    iconBg: "bg-blue-500/[0.06]",
-    iconBorder: "border-blue-500/[0.12]",
-    iconText: "text-blue-400",
-    dot: "bg-blue-500",
-    glow: "shadow-blue-500/[0.06]",
-  },
-  Platform: {
-    accent: "#fbbf24",
-    border: "border-amber-500/[0.1]",
-    hoverBorder: "hover:border-amber-500/25",
-    iconBg: "bg-amber-500/[0.06]",
-    iconBorder: "border-amber-500/[0.12]",
-    iconText: "text-amber-400",
-    dot: "bg-amber-500",
-    glow: "shadow-amber-500/[0.06]",
-  },
-  Reference: {
-    accent: "#a78bfa",
-    border: "border-violet-500/[0.1]",
-    hoverBorder: "hover:border-violet-500/25",
-    iconBg: "bg-violet-500/[0.06]",
-    iconBorder: "border-violet-500/[0.12]",
-    iconText: "text-violet-400",
-    dot: "bg-violet-500",
-    glow: "shadow-violet-500/[0.06]",
-  },
-} as const;
+import { cn } from "@/lib/utils";
 
 interface DocSection extends NavItem {
   desc: string;
   category: string;
+  href: string;
 }
 
 const sections: DocSection[] = [
@@ -84,6 +48,7 @@ const sections: DocSection[] = [
     icon: Zap,
     desc: "Get up and running in under 5 minutes.",
     category: "Getting Started",
+    href: "/docs/quickstart",
   },
   {
     id: "authentication",
@@ -91,6 +56,7 @@ const sections: DocSection[] = [
     icon: Key,
     desc: "API keys, JWT, and bearer token auth.",
     category: "Getting Started",
+    href: "/docs/authentication",
   },
   {
     id: "api-reference",
@@ -98,6 +64,7 @@ const sections: DocSection[] = [
     icon: Code2,
     desc: "Complete endpoint documentation.",
     category: "Getting Started",
+    href: "/docs/api-reference",
   },
   {
     id: "self-hosting",
@@ -105,6 +72,7 @@ const sections: DocSection[] = [
     icon: Globe,
     desc: "Configure base URL for your deployment.",
     category: "Getting Started",
+    href: "/docs/self-hosting",
   },
   {
     id: "chat",
@@ -112,6 +80,7 @@ const sections: DocSection[] = [
     icon: MessageSquare,
     desc: "SSE streaming and standard chat.",
     category: "Core Features",
+    href: "/docs/chat",
   },
   {
     id: "embeddings",
@@ -119,6 +88,7 @@ const sections: DocSection[] = [
     icon: Database,
     desc: "Generate text embeddings.",
     category: "Core Features",
+    href: "/docs/embeddings",
   },
   {
     id: "conversations",
@@ -126,6 +96,7 @@ const sections: DocSection[] = [
     icon: Boxes,
     desc: "Multi-turn conversation management.",
     category: "Core Features",
+    href: "/docs/conversations",
   },
   {
     id: "prompts",
@@ -133,6 +104,7 @@ const sections: DocSection[] = [
     icon: FileText,
     desc: "Reusable prompt templates.",
     category: "Core Features",
+    href: "/docs/prompts",
   },
   {
     id: "batch",
@@ -140,6 +112,7 @@ const sections: DocSection[] = [
     icon: Layers,
     desc: "Process multiple requests at once.",
     category: "Platform",
+    href: "/docs/batch",
   },
   {
     id: "files",
@@ -147,13 +120,15 @@ const sections: DocSection[] = [
     icon: UploadCloud,
     desc: "Upload images for vision models.",
     category: "Platform",
+    href: "/docs/files",
   },
   {
     id: "webhooks",
     label: "Webhooks",
     icon: Webhook,
-    desc: "Event-driven outbound webhook delivery.",
+    desc: "Event-driven outbound delivery.",
     category: "Platform",
+    href: "/docs/webhooks",
   },
   {
     id: "rate-limits",
@@ -161,6 +136,7 @@ const sections: DocSection[] = [
     icon: Shield,
     desc: "Usage limits and throttling.",
     category: "Platform",
+    href: "/docs/rate-limits",
   },
   {
     id: "error-handling",
@@ -168,6 +144,7 @@ const sections: DocSection[] = [
     icon: AlertTriangle,
     desc: "Error codes and responses.",
     category: "Platform",
+    href: "/docs/error-handling",
   },
   {
     id: "organizations",
@@ -175,6 +152,7 @@ const sections: DocSection[] = [
     icon: Users,
     desc: "Multi-user organization management.",
     category: "Platform",
+    href: "/docs/organizations",
   },
   {
     id: "models",
@@ -182,6 +160,7 @@ const sections: DocSection[] = [
     icon: Cpu,
     desc: "Supported providers and models.",
     category: "Reference",
+    href: "/docs/models",
   },
   {
     id: "pricing",
@@ -189,6 +168,7 @@ const sections: DocSection[] = [
     icon: TrendingUp,
     desc: "Credit system and costs.",
     category: "Reference",
+    href: "/docs/pricing",
   },
   {
     id: "dashboard",
@@ -196,6 +176,7 @@ const sections: DocSection[] = [
     icon: BarChart3,
     desc: "Usage analytics and monitoring.",
     category: "Reference",
+    href: "/docs/dashboard",
   },
   {
     id: "security",
@@ -203,6 +184,7 @@ const sections: DocSection[] = [
     icon: Lock,
     desc: "Encryption, hashing, and CORS.",
     category: "Reference",
+    href: "/docs/security",
   },
   {
     id: "examples",
@@ -210,164 +192,244 @@ const sections: DocSection[] = [
     icon: Terminal,
     desc: "Full examples in Python, JS, Go.",
     category: "Reference",
+    href: "/docs/examples",
   },
 ];
 
-const categories = [
-  "Getting Started",
-  "Core Features",
-  "Platform",
-  "Reference",
-] as const;
-
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: { transition: { staggerChildren: 0.05 } },
-};
+const categories = ["Getting Started", "Core Features", "Platform", "Reference"] as const;
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
+  hidden: { opacity: 0, y: 20, filter: "blur(6px)" },
+  visible: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
-  },
+    filter: "blur(0px)",
+    transition: {
+      delay: 0.1 + i * 0.05,
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  }),
 };
 
-/* ── Quick Start step data ── */
 const quickSteps = [
   {
     step: "01",
     title: "Sign up",
-    desc: "Create an account in seconds",
+    desc: "Create an account in under 30 seconds",
     icon: Key,
+    href: "/docs/authentication",
   },
   {
     step: "02",
     title: "Get a key",
-    desc: "Generate your API credentials",
+    desc: "Generate your first API credential",
     icon: Zap,
+    href: "/docs/authentication",
   },
   {
     step: "03",
-    title: "Make a request",
-    desc: "Call any model instantly",
+    title: "Make a call",
+    desc: "Hit any of 100+ models in one line",
     icon: Code2,
+    href: "/docs/chat",
   },
 ];
 
-/* ── Animated grid background ── */
-function GridBg() {
+const popularPages = [
+  { id: "quickstart", label: "Quick Start", href: "/docs/quickstart" },
+  { id: "authentication", label: "Authentication", href: "/docs/authentication" },
+  { id: "chat", label: "Chat & Streaming", href: "/docs/chat" },
+  { id: "api-reference", label: "API Reference", href: "/docs/api-reference" },
+];
+
+const recentUpdates = [
+  {
+    date: "2026-05-30",
+    title: "SSE streaming for Claude 4 Sonnet",
+    page: "chat",
+  },
+  {
+    date: "2026-05-28",
+    title: "Webhooks v2 with retries and DLQ",
+    page: "webhooks",
+  },
+  {
+    date: "2026-05-26",
+    title: "Batch API async submissions",
+    page: "batch",
+  },
+];
+
+/* ── Atmospheric background with breathing orbs ── */
+function Atmosphere() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none -mx-6 sm:-mx-10">
+      <div className="absolute -top-40 -left-32 w-[600px] h-[600px] rounded-full bg-indigo-500/[0.07] blur-[120px] animate-[breathe_14s_ease-in-out_infinite]" />
+      <div className="absolute -top-20 right-0 w-[500px] h-[500px] rounded-full bg-violet-500/[0.06] blur-[120px] animate-[breathe_18s_ease-in-out_infinite_3s]" />
+      <div className="absolute top-40 left-1/3 w-[400px] h-[400px] rounded-full bg-indigo-400/[0.04] blur-[100px] animate-[breathe_22s_ease-in-out_infinite_6s]" />
+
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.025]"
         style={{
           backgroundImage:
             "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
+          backgroundSize: "80px 80px",
+          maskImage:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 80%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 80%)",
         }}
       />
-      {/* Radial fade */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#08080a_70%)]" />
     </div>
   );
 }
 
-/* ── Floating accent orb ── */
-function AccentOrb({
-  color,
-  size,
-  top,
-  left,
-  delay,
+/* ── 3D parallax card with cursor reactivity ── */
+function ParallaxCard({
+  children,
+  className,
+  intensity = 8,
 }: {
-  color: string;
-  size: number;
-  top: string;
-  left: string;
-  delay: number;
+  children: React.ReactNode;
+  className?: string;
+  intensity?: number;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const rx = useTransform(my, [0, 1], [intensity, -intensity]);
+  const ry = useTransform(mx, [0, 1], [-intensity, intensity]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onMove = (e: MouseEvent) => {
+      const r = el.getBoundingClientRect();
+      mx.set((e.clientX - r.left) / r.width);
+      my.set((e.clientY - r.top) / r.height);
+    };
+    el.addEventListener("mousemove", onMove);
+    return () => el.removeEventListener("mousemove", onMove);
+  }, [mx, my]);
+
   return (
     <motion.div
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        top,
-        left,
-        background: `radial-gradient(circle, ${color}10, transparent 70%)`,
-        filter: "blur(40px)",
-      }}
-      animate={{
-        scale: [1, 1.2, 1],
-        opacity: [0.4, 0.7, 0.4],
-      }}
-      transition={{
-        duration: 6,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
+      ref={ref}
+      style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}
+      className={cn("relative", className)}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ── Section card with editorial hover state ── */
+function SectionCard({ section, idx }: { section: DocSection; idx: number }) {
+  return (
+    <motion.div variants={fadeUp} custom={idx}>
+      <Link
+        href={section.href}
+        className={cn(
+          "group relative block p-5 rounded-2xl overflow-hidden",
+          "border border-white/[0.06] bg-gradient-to-br from-white/[0.02] via-white/[0.01] to-transparent",
+          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
+          "hover:border-indigo-500/25 hover:from-indigo-500/[0.04] hover:to-transparent",
+          "hover:shadow-[0_8px_32px_-12px_rgba(99,102,241,0.2),inset_0_1px_0_0_rgba(255,255,255,0.06)]",
+          "transition-all duration-300 cursor-pointer",
+        )}
+      >
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Conic gradient hover orb */}
+        <div
+          className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+          style={{
+            background:
+              "conic-gradient(from 220deg, rgba(99,102,241,0.18), transparent 30%, transparent 70%, rgba(99,102,241,0.12))",
+            filter: "blur(24px)",
+          }}
+        />
+
+        <div className="relative flex items-center gap-4">
+          {/* Glass icon */}
+          <div
+            className={cn(
+              "w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 border border-white/[0.06] bg-white/[0.02] relative overflow-hidden",
+              "group-hover:border-indigo-500/25 group-hover:bg-indigo-500/[0.06]",
+              "transition-all duration-300",
+            )}
+          >
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <section.icon
+              className="w-[18px] h-[18px] text-white/45 group-hover:text-indigo-200 transition-colors duration-300"
+              style={{ transform: "translateZ(20px)" }}
+            />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold text-white/70 group-hover:text-white transition-colors duration-200 truncate tracking-[-0.01em]">
+              {section.label}
+            </p>
+            <p className="text-[11.5px] text-white/30 truncate mt-0.5 group-hover:text-white/45 transition-colors leading-relaxed">
+              {section.desc}
+            </p>
+          </div>
+
+          <ArrowRight
+            className="w-3.5 h-3.5 text-white/[0.1] group-hover:text-indigo-200 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0"
+          />
+        </div>
+      </Link>
+    </motion.div>
   );
 }
 
 export default function DocsIndexPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   return (
-    <motion.div
-      ref={containerRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-    >
-      {/* ══════════════════════════════════════════════════
-          HERO
-          ══════════════════════════════════════════════════ */}
-      <section className="relative mb-20 sm:mb-28 pt-8 sm:pt-14 overflow-hidden rounded-2xl">
-        <GridBg />
-        <AccentOrb color="#60a5fa" size={280} top="-60px" left="-40px" delay={0} />
-        <AccentOrb color="#34d399" size={180} top="40px" left="60%" delay={2} />
-        <AccentOrb color="#a78bfa" size={140} top="-20px" left="85%" delay={4} />
+    <div className="relative">
+      <Atmosphere />
 
+      {/* ═══════════════════════════════════════════
+          EDITORIAL HERO
+          ═══════════════════════════════════════════ */}
+      <section className="relative mb-24 sm:mb-32 pt-6 sm:pt-10">
         <div className="relative z-10">
           {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="flex items-center gap-2.5 mb-10"
+            className="flex items-center gap-3 mb-10"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-300 shadow-[0_0_8px_rgba(165,180,252,0.8)]" />
             </span>
-            <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.25em]">
+            <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.3em]">
               Documentation
             </span>
-            <div className="h-px w-12 bg-gradient-to-r from-white/[0.08] to-transparent" />
+            <div className="h-px w-12 bg-gradient-to-r from-white/[0.1] to-transparent" />
+            <span className="text-[10px] font-mono text-white/25 tracking-[0.2em]">
+              v1.0
+            </span>
           </motion.div>
 
-          {/* Title */}
+          {/* Title with editorial italic */}
           <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[2.75rem] sm:text-[3.75rem] lg:text-[4.5rem] font-bold tracking-[-0.04em] leading-[1.0] mb-8"
+            initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ delay: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="text-[2.75rem] sm:text-[3.75rem] lg:text-[4.5rem] font-semibold tracking-[-0.04em] leading-[0.96] mb-8"
           >
-            <span className="text-white/90">Build with</span>
-            <br />
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #34d399 100%)",
-              }}
-            >
+            <span className="text-white/95">Build with</span>{" "}
+            <span className="font-display italic font-normal bg-clip-text text-transparent bg-gradient-to-br from-indigo-200 via-violet-200 to-indigo-300">
               Yapapa
             </span>
+            <span className="text-white/40">.</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -375,207 +437,350 @@ export default function DocsIndexPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.5 }}
-            className="text-[15px] sm:text-[17px] text-white/40 max-w-xl leading-relaxed"
+            className="text-[15px] sm:text-[17px] text-white/45 max-w-xl leading-[1.7] mb-10"
           >
             One unified API for 100+ AI models. OpenAI-compatible drop-in
-            replacement with credit-based billing and real-time analytics.
+            replacement with credit-based billing, real-time analytics, and
+            full conversation control.
           </motion.p>
 
-          {/* CTA row */}
+          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.5 }}
-            className="flex items-center gap-3 mt-8"
+            className="flex flex-wrap items-center gap-3"
           >
             <Link
               href="/docs/quickstart"
-              className="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/[0.1] hover:border-white/[0.18] hover:shadow-lg hover:shadow-white/[0.03] transition-all duration-300"
+              className={cn(
+                "group flex items-center gap-2 px-5 py-2.5 rounded-xl",
+                "bg-gradient-to-br from-indigo-500/20 via-indigo-500/12 to-violet-500/10",
+                "border border-indigo-500/25",
+                "text-[13px] font-medium text-white/85 hover:text-white",
+                "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_8px_24px_-8px_rgba(99,102,241,0.4)]",
+                "hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_12px_32px_-8px_rgba(99,102,241,0.55)]",
+                "hover:border-indigo-400/40",
+                "transition-all duration-300 relative overflow-hidden",
+              )}
             >
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              <Zap className="w-3.5 h-3.5 text-indigo-200" />
               Get Started
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                const e = new KeyboardEvent("keydown", {
+                  key: "k",
+                  metaKey: true,
+                  bubbles: true,
+                });
+                document.dispatchEvent(e);
+              }}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer",
+                "border border-white/[0.07] bg-white/[0.02]",
+                "text-[13px] font-medium text-white/45 hover:text-white/75",
+                "hover:border-indigo-500/20 hover:bg-indigo-500/[0.04]",
+                "transition-all duration-300",
+              )}
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search docs
+              <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-[2px] rounded-[4px] bg-white/[0.04] border border-white/[0.06] text-[9px] font-mono text-white/30 leading-none ml-1">
+                <Command className="w-2.5 h-2.5" />K
+              </kbd>
+            </button>
             <Link
               href="/docs/api-reference"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium text-white/30 hover:text-white/60 transition-colors duration-300"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium text-white/35 hover:text-white/65 transition-colors duration-300"
             >
               API Reference
               <ArrowUpRight className="w-3 h-3" />
             </Link>
           </motion.div>
+
+          {/* Live status rail */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-12 text-[11px] font-mono text-white/30"
+          >
+            <span className="flex items-center gap-1.5">
+              <Activity className="w-3 h-3 text-emerald-400/80" />
+              <span>All systems operational</span>
+            </span>
+            <span className="text-white/10">·</span>
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-indigo-200/70" />
+              <span>100+ models available</span>
+            </span>
+            <span className="text-white/10">·</span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-violet-200/70" />
+              <span>Last updated 2 days ago</span>
+            </span>
+          </motion.div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
+      {/* ═══════════════════════════════════════════
           QUICK START RAIL
-          ══════════════════════════════════════════════════ */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-24 sm:mb-32"
-      >
-        <div className="flex items-center gap-3 mb-8">
-          <span className="text-[9px] font-mono font-semibold text-emerald-400/60 uppercase tracking-[0.2em]">
-            Quick Start
+          ═══════════════════════════════════════════ */}
+      <section className="relative mb-24 sm:mb-32">
+        <header className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg border border-indigo-500/15 bg-indigo-500/[0.06] flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+              <Zap className="w-3.5 h-3.5 text-indigo-200" />
+            </div>
+            <h2 className="text-[20px] sm:text-[24px] font-semibold tracking-[-0.025em] text-white">
+              From zero to{" "}
+              <span className="font-display italic font-normal text-indigo-200/95">
+                production
+              </span>
+            </h2>
+          </div>
+          <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/15 via-white/[0.05] to-transparent" />
+          <span className="text-[9px] font-mono text-white/25 tracking-[0.18em]">
+            03 STEPS
           </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-emerald-500/20 to-transparent" />
-        </div>
+        </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {quickSteps.map((item, i) => (
-            <Link
-              key={item.step}
-              href="/docs/quickstart"
-              className="group relative rounded-xl border border-white/[0.06] bg-white/[0.015] hover:border-emerald-500/20 hover:bg-emerald-500/[0.025] transition-all duration-400 cursor-pointer overflow-hidden"
-            >
-              {/* Top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <ParallaxCard key={item.step} intensity={6}>
+              <Link
+                href={item.href}
+                className={cn(
+                  "group relative block rounded-2xl overflow-hidden p-6",
+                  "border border-white/[0.07] bg-gradient-to-br from-white/[0.025] via-white/[0.01] to-transparent",
+                  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04),0_8px_24px_-12px_rgba(0,0,0,0.4)]",
+                  "hover:border-indigo-500/25 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_12px_32px_-12px_rgba(99,102,241,0.3)]",
+                  "transition-all duration-400 cursor-pointer",
+                )}
+              >
+                {/* Top hairline highlight */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-60" />
+                {/* Hover glow */}
+                <div
+                  className="absolute -top-16 -right-16 w-40 h-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%)",
+                    filter: "blur(20px)",
+                  }}
+                />
 
-              {/* Corner glow */}
-              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-emerald-500/[0.04] blur-xl group-hover:bg-emerald-500/[0.1] transition-all duration-600" />
-
-              <div className="relative p-5 sm:p-6">
-                {/* Step number + connector line */}
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/[0.06] border border-emerald-500/[0.1]">
-                    <span className="text-[11px] font-mono font-bold text-emerald-400/60 group-hover:text-emerald-400 transition-colors">
-                      {item.step}
-                    </span>
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                      <span className="text-[11px] font-mono font-bold text-indigo-200 tracking-[0.05em]">
+                        {item.step}
+                      </span>
+                    </div>
+                    {i < quickSteps.length - 1 && (
+                      <div className="hidden sm:block flex-1 h-px bg-gradient-to-r from-indigo-500/20 via-white/[0.05] to-transparent" />
+                    )}
+                    {i < quickSteps.length - 1 && (
+                      <ArrowRight className="hidden sm:block w-3 h-3 text-indigo-200/30" />
+                    )}
                   </div>
-                  {i < quickSteps.length - 1 && (
-                    <div className="hidden sm:block flex-1 h-px bg-gradient-to-r from-emerald-500/15 to-transparent" />
-                  )}
+
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={cn(
+                        "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
+                        "border border-white/[0.06] bg-white/[0.02]",
+                        "group-hover:border-indigo-500/25 group-hover:bg-indigo-500/[0.06]",
+                        "transition-all duration-300",
+                      )}
+                    >
+                      <item.icon className="w-4 h-4 text-white/40 group-hover:text-indigo-200 transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-semibold text-white/75 group-hover:text-white transition-colors tracking-[-0.01em]">
+                        {item.title}
+                      </p>
+                      <p className="text-[11.5px] text-white/35 mt-1 leading-[1.55] group-hover:text-white/50 transition-colors">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-
-                {/* Icon + text */}
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center flex-shrink-0 group-hover:border-emerald-500/15 group-hover:bg-emerald-500/[0.04] transition-all duration-300">
-                    <item.icon className="w-4 h-4 text-white/25 group-hover:text-emerald-400/70 transition-colors" />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-white/60 group-hover:text-white/90 transition-colors">
-                      {item.title}
-                    </p>
-                    <p className="text-[11px] text-white/25 mt-1 leading-relaxed group-hover:text-white/40 transition-colors">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </ParallaxCard>
           ))}
         </div>
-      </motion.section>
+      </section>
 
-      {/* ══════════════════════════════════════════════════
+      {/* ═══════════════════════════════════════════
+          POPULAR + RECENT
+          ═══════════════════════════════════════════ */}
+      <section className="relative mb-24 sm:mb-32 grid grid-cols-1 lg:grid-cols-5 gap-3">
+        {/* Popular pages */}
+        <div className="lg:col-span-3 relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-white/[0.025] to-transparent p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          <div className="flex items-center gap-2.5 mb-5">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+            <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.2em] text-indigo-200/70">
+              Most Read
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/15 to-transparent" />
+          </div>
+          <div className="space-y-1">
+            {popularPages.map((p, i) => (
+              <Link
+                key={p.id}
+                href={p.href}
+                className="group flex items-center justify-between px-3 py-2.5 -mx-3 rounded-lg hover:bg-indigo-500/[0.04] transition-all duration-200"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-[10px] font-mono text-white/20 tabular-nums w-4">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-[13px] font-medium text-white/60 group-hover:text-white transition-colors truncate">
+                    {p.label}
+                  </span>
+                </div>
+                <ArrowRight className="w-3 h-3 text-white/[0.1] group-hover:text-indigo-200 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent updates */}
+        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-white/[0.025] to-transparent p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          <div className="flex items-center gap-2.5 mb-5">
+            <Activity className="w-3.5 h-3.5 text-indigo-200" />
+            <span className="text-[9px] font-mono font-semibold uppercase tracking-[0.2em] text-indigo-200/70">
+              Recent Updates
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/15 to-transparent" />
+          </div>
+          <div className="space-y-3">
+            {recentUpdates.map((u, i) => (
+              <Link
+                key={i}
+                href={`/docs/${u.page}`}
+                className="group block"
+              >
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-[9px] font-mono text-white/25 tabular-nums">
+                    {u.date.slice(5)}
+                  </span>
+                  <p className="text-[12.5px] text-white/60 group-hover:text-white transition-colors leading-snug">
+                    {u.title}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
           CATEGORY SECTIONS
-          ══════════════════════════════════════════════════ */}
+          ═══════════════════════════════════════════ */}
       {categories.map((category, catIdx) => {
         const catSections = sections.filter((s) => s.category === category);
-        const style = SECTION_STYLES[category];
+        const catCount = catSections.length;
 
         return (
-          <motion.section
+          <section
             key={category}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.3 + catIdx * 0.08,
-              duration: 0.5,
-              ease: [0.22, 1, 0.36, 1],
+            id={`cat-${category.toLowerCase().replace(/\s+/g, "-")}`}
+            ref={(el) => {
+              sectionRefs.current[category] = el;
             }}
-            className="mb-16 sm:mb-20 last:mb-8"
+            className="relative mb-16 sm:mb-20 last:mb-8 scroll-mt-24"
           >
             {/* Category header */}
-            <div className="flex items-center gap-3 mb-6">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: style.accent, opacity: 0.6 }}
-              />
-              <h3
-                className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em]"
-                style={{ color: `${style.accent}80` }}
-              >
-                {category}
-              </h3>
-              <div
-                className="h-px flex-1"
-                style={{ background: `linear-gradient(to right, ${style.accent}18, transparent)` }}
-              />
-              <span className="text-[10px] font-mono text-white/15 tabular-nums">
-                {catSections.length}
+            <header className="flex items-center gap-3 mb-7">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg border border-indigo-500/15 bg-indigo-500/[0.06] flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                  <BookOpen className="w-3.5 h-3.5 text-indigo-200" />
+                </div>
+                <h2 className="text-[18px] sm:text-[22px] font-semibold tracking-[-0.025em] text-white">
+                  {category}
+                </h2>
+              </div>
+              <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/15 via-white/[0.05] to-transparent" />
+              <span className="text-[9px] font-mono text-white/30 tabular-nums tracking-[0.15em]">
+                {String(catCount).padStart(2, "0")} PAGES
               </span>
-            </div>
+            </header>
 
-            {/* Section cards grid */}
             <motion.div
-              variants={stagger}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-40px" }}
+              viewport={{ once: true, margin: "-50px" }}
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.04, delayChildren: catIdx * 0.05 },
+                },
+              }}
               className="grid grid-cols-1 sm:grid-cols-2 gap-2.5"
             >
-              {catSections.map((section) => (
-                <motion.div key={section.id} variants={fadeUp}>
-                  <Link
-                    href={`/docs/${section.id}`}
-                    className="group flex items-center gap-4 p-4 rounded-xl border bg-white/[0.01] hover:bg-white/[0.025] transition-all duration-300 cursor-pointer relative overflow-hidden"
-                    style={{
-                      borderColor: `${style.accent}0a`,
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = `${style.accent}20`;
-                      (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px -6px ${style.accent}10`;
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = `${style.accent}0a`;
-                      (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                    }}
-                  >
-                    {/* Hover glow */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                      style={{
-                        background: `radial-gradient(ellipse at 0% 50%, ${style.accent}06, transparent 60%)`,
-                      }}
-                    />
-
-                    {/* Icon */}
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-all duration-300 relative z-10"
-                      style={{
-                        backgroundColor: `${style.accent}06`,
-                        borderColor: `${style.accent}12`,
-                      }}
-                    >
-                      <section.icon
-                        className="w-4 h-4 transition-colors duration-300"
-                        style={{ color: `${style.accent}80` }}
-                      />
-                    </div>
-
-                    {/* Text */}
-                    <div className="min-w-0 flex-1 relative z-10">
-                      <p className="text-[13px] font-medium text-white/55 group-hover:text-white/90 transition-colors duration-200 truncate">
-                        {section.label}
-                      </p>
-                      <p className="text-[11px] text-white/25 truncate mt-0.5 group-hover:text-white/40 transition-colors">
-                        {section.desc}
-                      </p>
-                    </div>
-
-                    {/* Arrow */}
-                    <ArrowRight
-                      className="w-3.5 h-3.5 text-white/[0.08] group-hover:text-white/30 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0 relative z-10"
-                    />
-                  </Link>
-                </motion.div>
+              {catSections.map((section, idx) => (
+                <SectionCard key={section.id} section={section} idx={idx} />
               ))}
             </motion.div>
-          </motion.section>
+          </section>
         );
       })}
-    </motion.div>
+
+      {/* Bottom CTA */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="relative mt-16 mb-4 rounded-2xl overflow-hidden border border-indigo-500/20 bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.04] to-transparent p-8 sm:p-10"
+      >
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-indigo-500/[0.12] blur-3xl pointer-events-none" />
+        <div className="relative">
+          <h3 className="text-[24px] sm:text-[30px] font-semibold tracking-[-0.03em] text-white mb-3">
+            Ready to ship{" "}
+            <span className="font-display italic font-normal text-indigo-200/95">
+              faster
+            </span>
+            ?
+          </h3>
+          <p className="text-[14px] text-white/55 max-w-md leading-[1.7] mb-6">
+            Open the playground to test prompts against any model in your
+            browser, or grab a key and make your first call in 30 seconds.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/playground"
+              className={cn(
+                "flex items-center gap-2 px-5 py-2.5 rounded-xl",
+                "bg-white/[0.06] border border-white/[0.1] text-[13px] font-medium text-white/85",
+                "hover:bg-white/[0.1] hover:border-white/[0.18] hover:text-white",
+                "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]",
+                "transition-all duration-300",
+              )}
+            >
+              Open Playground
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href="/docs/quickstart"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium text-white/55 hover:text-white transition-colors"
+            >
+              Read the Quick Start
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </motion.section>
+    </div>
   );
 }
