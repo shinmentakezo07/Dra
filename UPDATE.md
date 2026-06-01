@@ -1977,5 +1977,35 @@ func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
 - CRLF in Subject bypasses Go's check because Subject is passed to `SMTP` as a single wire-format string.
 - A future change should HTML-escape the `resetURL`/`inviteURL` interpolated into `pkg/email/email.go` to prevent XSS in mail clients (H61).
 
+### 25.4 Remove global chi Timeout that killed streaming (C16)
+
+**Why**: `chiMiddleware.Timeout(cfg.RequestTimeout)` (default 30s) was applied globally on the chi router. It cancels the request context 30s after start, which kills all streaming endpoints mid-response:
+- `/v1/chat/completions` (OpenAI proxy)
+- `/v1/messages` (Anthropic proxy)
+- `/api/notifications/stream` (SSE)
+- `/ws` (WebSocket gateway)
+
+These are the *core* of the product. A long-running LLM stream is terminated by the global timeout before the model finishes.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/cmd/api/routes.go | 38 | deleted (global Timeout) |
+
+**Before**
+
+```go
+r.Use(chiMiddleware.Timeout(cfg.RequestTimeout))
+```
+
+**After**: line removed. Inline comment documents the rationale.
+
+**Notes**
+- The `http.Server.WriteTimeout: 120s` already in `next.config.ts`/`main.go` respects streaming (it only fires after the response is written).
+- `cfg.RequestTimeout` config field is kept (no breaking change to env), just no longer applied globally. A future change could apply it route-scoped to non-streaming endpoints if needed.
+- `TestRouter_RouteByCapability` in `pkg/llm/router` is a pre-existing failure unrelated to this change.
+
+
 
 

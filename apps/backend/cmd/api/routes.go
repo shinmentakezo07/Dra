@@ -35,7 +35,11 @@ func registerRoutes(
 	r.Use(chiMiddleware.Recoverer)
 	r.Use(chiMiddleware.RequestID)
 	r.Use(chiMiddleware.RealIP)
-	r.Use(chiMiddleware.Timeout(cfg.RequestTimeout))
+	// NOTE: chiMiddleware.Timeout is intentionally NOT applied globally.
+	// It cancels the request context after cfg.RequestTimeout (default 30s),
+	// which kills streaming endpoints mid-response:
+	//   /v1/chat/completions, /v1/messages, /api/notifications/stream, /ws.
+	// The http.Server already has WriteTimeout: 120s which respects streaming.
 	r.Use(appmiddleware.RequestContext)
 	r.Use(appmiddleware.TraceMiddleware)
 	r.Use(appmiddleware.BodyLimit(10 << 20)) // 10 MB
