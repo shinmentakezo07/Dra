@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  motion,
-  useInView,
-  useMotionValue,
-  useSpring,
-} from "framer-motion";
+import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
 import { useRef, useEffect, useState, useCallback } from "react";
 import {
   Terminal,
@@ -171,7 +166,10 @@ function GlassCard({
 /* ── Atmospheric background (shared) ── */
 function AtmosphericBackground() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      aria-hidden
+    >
       <motion.div
         className="absolute top-0 left-1/4 w-[800px] h-[800px] rounded-full"
         style={{
@@ -179,7 +177,9 @@ function AtmosphericBackground() {
             "radial-gradient(circle, rgba(99,102,241,0.16) 0%, transparent 65%)",
           mixBlendMode: "screen",
         }}
-        animate={{ scale: [1, 1.08, 1], y: [0, -30, 0] }}
+        initial={{ scale: 1, y: 0 }}
+        whileInView={{ scale: [1, 1.08, 1], y: [0, -30, 0] }}
+        viewport={{ amount: 0.05 }}
         transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
@@ -189,7 +189,9 @@ function AtmosphericBackground() {
             "radial-gradient(circle, rgba(139,92,246,0.13) 0%, transparent 65%)",
           mixBlendMode: "screen",
         }}
-        animate={{ scale: [1, 1.1, 1], x: [0, 30, 0] }}
+        initial={{ scale: 1, x: 0 }}
+        whileInView={{ scale: [1, 1.1, 1], x: [0, 30, 0] }}
+        viewport={{ amount: 0.05 }}
         transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
@@ -199,7 +201,9 @@ function AtmosphericBackground() {
             "radial-gradient(ellipse, rgba(56,189,248,0.08) 0%, transparent 65%)",
           mixBlendMode: "screen",
         }}
-        animate={{ scale: [1, 1.05, 1] }}
+        initial={{ scale: 1 }}
+        whileInView={{ scale: [1, 1.05, 1] }}
+        viewport={{ amount: 0.05 }}
         transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
       />
       <div
@@ -220,7 +224,10 @@ function TerminalBlock() {
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
   const terminalLines: { type: string; text: string }[] = [
-    { type: "cmd", text: '$ curl -X POST https://api.yapa.up/v1/chat/completions' },
+    {
+      type: "cmd",
+      text: "$ curl -X POST https://api.yapa.up/v1/chat/completions",
+    },
     { type: "header", text: '  -H "Authorization: Bearer sk-stz-..." ' },
     { type: "body", text: '  -d \'{"model":"auto","messages":[...]}\' ' },
     { type: "status", text: "routing to optimal model..." },
@@ -260,18 +267,29 @@ function TerminalBlock() {
         <div className="flex gap-1.5">
           <div
             className="w-2.5 h-2.5 rounded-full"
-            style={{ background: "radial-gradient(circle at 30% 30%, #ff8b8b 0%, #ef4444 70%, #991b1b 100%)" }}
+            style={{
+              background:
+                "radial-gradient(circle at 30% 30%, #ff8b8b 0%, #ef4444 70%, #991b1b 100%)",
+            }}
           />
           <div
             className="w-2.5 h-2.5 rounded-full"
-            style={{ background: "radial-gradient(circle at 30% 30%, #ffd87b 0%, #f59e0b 70%, #92400e 100%)" }}
+            style={{
+              background:
+                "radial-gradient(circle at 30% 30%, #ffd87b 0%, #f59e0b 70%, #92400e 100%)",
+            }}
           />
           <div
             className="w-2.5 h-2.5 rounded-full"
-            style={{ background: "radial-gradient(circle at 30% 30%, #7bf0a3 0%, #10b981 70%, #065f46 100%)" }}
+            style={{
+              background:
+                "radial-gradient(circle at 30% 30%, #7bf0a3 0%, #10b981 70%, #065f46 100%)",
+            }}
           />
         </div>
-        <span className="text-[9px] text-white/30 font-mono">api-request.sh</span>
+        <span className="text-[9px] text-white/30 font-mono">
+          api-request.sh
+        </span>
       </div>
       <div className="p-4 space-y-1 leading-relaxed min-h-[160px]">
         {lines.map((line, i) => {
@@ -285,11 +303,14 @@ function TerminalBlock() {
               className={cn(
                 type === "cmd" && "text-white/75",
                 (type === "header" || type === "body") && "text-white/35",
-                type === "status" && "text-indigo-300/80 flex items-center gap-2",
+                type === "status" &&
+                  "text-indigo-300/80 flex items-center gap-2",
                 type === "success" && "flex items-center gap-2",
                 type === "meta" && "text-white/35",
               )}
-              style={type === "success" ? { color: ACCENT.statusHex } : undefined}
+              style={
+                type === "success" ? { color: ACCENT.statusHex } : undefined
+              }
             >
               {type === "status" && (
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400/80 animate-pulse" />
@@ -324,7 +345,11 @@ function StatsBlock() {
 
   return (
     <div ref={ref} className="mt-auto space-y-3">
-      <svg className="w-full h-10" viewBox="0 0 240 40" preserveAspectRatio="none">
+      <svg
+        className="w-full h-10"
+        viewBox="0 0 240 40"
+        preserveAspectRatio="none"
+      >
         <defs>
           <linearGradient id="sparkAnalytics" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={ACCENT.hex} stopOpacity="0.35" />
@@ -354,11 +379,15 @@ function StatsBlock() {
             </span>
             <div className="flex-1 h-[3px] rounded-full bg-white/[0.05] overflow-hidden">
               <motion.div
-                className="h-full rounded-full"
+                className="h-full rounded-full origin-left"
                 style={{ backgroundColor: m.color }}
-                initial={{ width: 0 }}
-                animate={isInView ? { width: `${m.pct * 100}%` } : {}}
-                transition={{ duration: 1.2, delay: 0.3 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ scaleX: 0 }}
+                animate={isInView ? { scaleX: m.pct } : {}}
+                transition={{
+                  duration: 1.2,
+                  delay: 0.3 + i * 0.1,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
               />
             </div>
             <span
@@ -389,7 +418,13 @@ function GlobeVisual() {
   ];
 
   const connections: [number, number][] = [
-    [0, 1], [0, 2], [1, 3], [2, 4], [0, 5], [1, 2], [3, 4],
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [2, 4],
+    [0, 5],
+    [1, 2],
+    [3, 4],
   ];
 
   return (
@@ -424,18 +459,11 @@ function GlobeVisual() {
               strokeWidth="0.5"
               initial={{ scale: 0 }}
               animate={isInView ? { scale: 1 } : {}}
-              transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 300 }}
-            />
-            <motion.circle
-              cx={n.cx}
-              cy={n.cy}
-              r="2"
-              fill="none"
-              stroke="rgba(99,102,241,0.25)"
-              strokeWidth="0.3"
-              initial={{ r: 2, opacity: 0.5 }}
-              animate={{ r: 6, opacity: 0 }}
-              transition={{ duration: 2, repeat: Infinity, delay: i * 0.3, ease: "easeOut" }}
+              transition={{
+                delay: 0.3 + i * 0.08,
+                type: "spring",
+                stiffness: 300,
+              }}
             />
             <text
               x={n.cx}
@@ -558,7 +586,11 @@ function PricingBlock() {
             key={m.model}
             initial={{ opacity: 0, x: -16 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+              delay: i * 0.1,
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             className="group/row"
           >
             <div className="flex items-center gap-4">
@@ -567,21 +599,27 @@ function PricingBlock() {
               </span>
               <div className="flex-1 h-[6px] rounded-full bg-white/[0.05] overflow-hidden">
                 <motion.div
-                  className="h-full rounded-full"
+                  className="h-full rounded-full origin-left"
                   style={{
                     background: `linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.6) 30%, rgba(165,180,252,0.9) 70%, rgba(99,102,241,0.4) 100%)`,
                     boxShadow: "0 0 12px rgba(99,102,241,0.4)",
                   }}
-                  initial={{ width: 0 }}
-                  animate={isInView ? { width: `${Math.max(m.bar * 100, 2)}%` } : {}}
-                  transition={{ duration: 1, delay: 0.3 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  initial={{ scaleX: 0 }}
+                  animate={isInView ? { scaleX: Math.max(m.bar, 0.02) } : {}}
+                  transition={{
+                    duration: 1,
+                    delay: 0.3 + i * 0.1,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
                 />
               </div>
               <div className="text-right w-16 shrink-0">
                 <span className="text-[13px] font-semibold text-white font-mono tracking-tighter">
                   ${m.price}
                 </span>
-                <span className="text-[9px] font-mono text-white/20 ml-0.5">/1M</span>
+                <span className="text-[9px] font-mono text-white/20 ml-0.5">
+                  /1M
+                </span>
               </div>
             </div>
           </motion.div>
@@ -591,9 +629,8 @@ function PricingBlock() {
   );
 }
 
-/* ── Count-up hook ── */
+/* ── Count-up hook — writes directly to DOM, no React re-render ── */
 function useCountUp(end: number, duration = 2200, decimals = 0) {
-  const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-40px" });
 
@@ -606,34 +643,65 @@ function useCountUp(end: number, duration = 2200, decimals = 0) {
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(parseFloat((eased * end).toFixed(decimals)));
+      const node = ref.current;
+      if (node) node.textContent = (eased * end).toFixed(decimals);
       if (progress < 1) frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, [isInView, end, duration, decimals]);
 
-  return { count, ref };
+  return ref;
 }
 
 /* ── Stat strip ── */
 const STATS = [
-  { rawValue: 100, suffix: "+", label: "Models", delta: "+12 this month", trend: "up" as const, decimals: 0 },
-  { rawValue: 50, suffix: "+", label: "Regions", delta: "+4 this quarter", trend: "up" as const, decimals: 0 },
-  { rawValue: 99.99, suffix: "%", label: "Uptime", delta: "30-day rolling", trend: "up" as const, decimals: 2 },
-  { rawValue: 0, suffix: "", label: "SDK", delta: "OpenAI-compatible", trend: "neutral" as const, decimals: 0, customValue: "compat" },
+  {
+    rawValue: 100,
+    suffix: "+",
+    label: "Models",
+    delta: "+12 this month",
+    trend: "up" as const,
+    decimals: 0,
+  },
+  {
+    rawValue: 50,
+    suffix: "+",
+    label: "Regions",
+    delta: "+4 this quarter",
+    trend: "up" as const,
+    decimals: 0,
+  },
+  {
+    rawValue: 99.99,
+    suffix: "%",
+    label: "Uptime",
+    delta: "30-day rolling",
+    trend: "up" as const,
+    decimals: 2,
+  },
+  {
+    rawValue: 0,
+    suffix: "",
+    label: "SDK",
+    delta: "OpenAI-compatible",
+    trend: "neutral" as const,
+    decimals: 0,
+    customValue: "compat",
+  },
 ];
 
 function StatCounter({ stat }: { stat: (typeof STATS)[number] }) {
-  const { count, ref } = useCountUp(stat.rawValue, 2200, stat.decimals);
+  const ref = useCountUp(stat.rawValue, 2200, stat.decimals);
   const TrendIcon = stat.trend === "up" ? TrendingUp : null;
   return (
     <div className="flex flex-col items-start">
       <span
         ref={ref}
         className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-white font-display tabular-nums tracking-tight"
+        suppressHydrationWarning
       >
-        {stat.customValue ?? `${count}${stat.suffix}`}
+        {stat.customValue ?? `0${stat.suffix}`}
       </span>
       <span className="mt-1.5 text-[10px] font-mono tracking-[0.22em] uppercase text-white/30">
         {stat.label}
@@ -678,7 +746,7 @@ function FeatureCard({
           style={{
             background:
               "conic-gradient(from 0deg at 50% 50%, rgba(99,102,241,0.15) 0%, transparent 25%, transparent 75%, rgba(99,102,241,0.15) 100%)",
-            filter: "blur(20px)",
+            filter: "blur(12px)",
             zIndex: -1,
           }}
         />
@@ -711,16 +779,16 @@ function FeatureCard({
                   isHero ? "w-14 h-14" : "w-11 h-11",
                 )}
               >
-                <Icon
-                  className={cn(isHero ? "w-6 h-6" : "w-5 h-5")}
-                />
+                <Icon className={cn(isHero ? "w-6 h-6" : "w-5 h-5")} />
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] font-mono tracking-[0.2em] uppercase text-indigo-200/55">
                   {feature.category}
                 </span>
                 <span className="text-[9px] font-mono text-white/25">
-                  {String(FEATURES.findIndex((f) => f.id === feature.id) + 1).padStart(2, "0")}
+                  {String(
+                    FEATURES.findIndex((f) => f.id === feature.id) + 1,
+                  ).padStart(2, "0")}
                 </span>
               </div>
             </div>
@@ -820,7 +888,11 @@ export function GatewayFeatures() {
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.08, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              transition={{
+                delay: 0.08,
+                duration: 0.8,
+                ease: [0.16, 1, 0.3, 1],
+              }}
               className="text-[2.75rem] sm:text-6xl lg:text-[6.5rem] font-semibold text-white tracking-[-0.04em] leading-[0.9]"
             >
               One API,{" "}
@@ -856,8 +928,8 @@ export function GatewayFeatures() {
               transition={{ delay: 0.2, duration: 0.6 }}
               className="mt-8 text-base lg:text-lg text-white/50 max-w-xl leading-relaxed"
             >
-              Route requests to GPT-4o, Claude Opus 4.5, Gemini 2.5 Pro, Llama 4,
-              and 100+ models through a single OpenAI-compatible endpoint.{" "}
+              Route requests to GPT-4o, Claude Opus 4.5, Gemini 2.5 Pro, Llama
+              4, and 100+ models through a single OpenAI-compatible endpoint.{" "}
               <span className="font-display italic text-indigo-200/85">
                 No SDK lock-in, no migration pain.
               </span>
@@ -894,22 +966,27 @@ export function GatewayFeatures() {
                   { region: "eu-west-1", latency: "48ms" },
                   { region: "ap-south-1", latency: "41ms" },
                 ].map((r, i) => (
-                  <div key={r.region} className="flex items-center justify-between text-[11px] font-mono">
+                  <div
+                    key={r.region}
+                    className="flex items-center justify-between text-[11px] font-mono"
+                  >
                     <span className="text-white/55">{r.region}</span>
                     <span className="flex items-center gap-2">
                       <span className="w-12 h-[2px] rounded-full overflow-hidden bg-white/[0.06]">
                         <motion.span
-                          className="block h-full"
+                          className="block h-full origin-left"
                           style={{
                             background: `linear-gradient(90deg, ${ACCENT.statusHex} 0%, #6ee7b7 100%)`,
                           }}
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${30 + i * 12}%` }}
+                          initial={{ scaleX: 0 }}
+                          whileInView={{ scaleX: (30 + i * 12) / 100 }}
                           viewport={{ once: true }}
                           transition={{ delay: 0.5 + i * 0.1, duration: 0.8 }}
                         />
                       </span>
-                      <span style={{ color: ACCENT.statusHex }}>{r.latency}</span>
+                      <span style={{ color: ACCENT.statusHex }}>
+                        {r.latency}
+                      </span>
                     </span>
                   </div>
                 ))}
@@ -948,7 +1025,11 @@ export function GatewayFeatures() {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.1 + i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                transition={{
+                  delay: 0.1 + i * 0.08,
+                  duration: 0.6,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
               >
                 <StatCounter stat={s} />
               </motion.div>
