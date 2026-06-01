@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import "@xterm/xterm/css/xterm.css";
 import { MainLayout } from "@/components/MainLayout";
@@ -15,6 +15,12 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space",
+});
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument",
 });
 
 export const metadata: Metadata = {
@@ -54,6 +60,7 @@ export default async function RootLayout({
         className={cn(
           inter.variable,
           spaceGrotesk.variable,
+          instrumentSerif.variable,
           "bg-background font-sans min-h-screen antialiased",
         )}
         suppressHydrationWarning

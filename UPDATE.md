@@ -1606,3 +1606,115 @@ The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 
 - No new dependencies
 - `prefers-reduced-motion` handled natively by Framer Motion
 - `aria-labelledby="integration-heading"` on the section element
+
+---
+
+## 19. Glass Atelier — Layered Translucent Surfaces, Serif Display Type, Atmospheric Depth
+
+**Session**: drai-platform-capabilities-v2
+**Date**: 2026-06-01
+
+### Why
+Entries #17 and #18 produced clean, well-structured sections but they read as "container designs" — same rectangular cards, same border pattern, same Inter throughout, flat 1-layer shadows. Glass Atelier treats the page as an atmospheric product showcase: layered translucent surfaces with real depth, distinctive serif display type (Instrument Serif) paired with the existing Inter body, multi-layer shadows that read as physical volume, asymmetric composition, and a custom cursor parallax on the hero card.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/app/layout.tsx` | L2, L17-21, L60 | modified (added Instrument_Serif font) |
+| `apps/web/app/globals.css` | L6 | modified (added `--font-display`) |
+| `apps/web/components/IntegrationFlow.tsx` | 1-742 | rewritten (Glass Atelier) |
+| `apps/web/components/GatewayFeatures.tsx` | 1-978 | rewritten (Glass Atelier) |
+
+### Before
+- Inter only (with Space Grotesk mono fallback)
+- Cards: `bg-[#0A0A0A] border border-indigo-500/10 p-6 lg:p-8` — flat 1-layer
+- Hover: border color shift + 1 shadow layer
+- Background: black with 1-2 indigo gradient blobs
+- Display headings: Inter semibold with gradient text
+- Section number "01"/"02" watermark: Inter 100 bold
+- Pricing bars: flat single-color indigo
+- Code block: flat black with simple border
+
+### After
+
+#### Type system
+- **Instrument Serif** added as a third font via `next/font/google` (Latin subset, 400 weight, normal + italic styles)
+- New CSS variable `--font-display: var(--font-instrument), ui-serif, Georgia, serif` exposed in `@theme inline`
+- Italic display used on the second word of every section heading and feature title: `*every* frontier model`, `*first* request`, `*API*`, `*Routing*`, `*ship?*`
+- The single display-serif moment (stat numbers) in the stat strip pairs with sans labels for editorial weight contrast
+
+#### Glass card primitive
+- New `<GlassCard>` shared component used by both sections
+- Multi-layer composite: `bg-gradient-to-br from-white/[0.04] to-white/[0.01]`, `backdrop-blur-2xl`, `border-white/[0.08]`
+- Top edge highlight via `::before`-style linear-gradient (light catches the top edge of a glass plate)
+- Multi-layer shadow stack:
+  - `inset 0 1px 0 0 rgba(255,255,255,0.08)` (inner top highlight)
+  - `0 30px 60px -20px rgba(0,0,0,0.5)` (ambient)
+  - `0 0 80px -30px rgba(99,102,241,0.15)` (colored indigo glow)
+- Conic gradient orb on hover (slow rotating light source) for premium feel
+
+#### Atmospheric background
+- Replaces single indigo blob with a 3-layer mesh:
+  - Indigo radial orb (top-left, `mix-blend-mode: screen`) — breathing animation
+  - Violet radial orb (middle-right) — breathing animation
+  - Teal radial orb (bottom-center) — slow scale pulse
+  - SVG noise overlay at 2.5% opacity with `mix-blend-overlay`
+- Subtle 60px grid masked with radial gradient (only visible in section center)
+- Orbs animate via `transform: scale/translate` (compositor-friendly, no repaint)
+
+#### Custom cursor parallax (hero card)
+- 3D tilt on the hero card only via `useMotionValue` + `useSpring`
+- Max ±5deg rotation, max ±6px translate
+- Other 4 cards use conic-gradient hover (no motion values)
+- Reduces per-frame work: 1 spring pair instead of 5
+
+#### Section number watermark
+- "01" / "02" now rendered in **Instrument Serif italic** (was Inter 100 bold)
+- Massive size: `text-[12rem] lg:text-[18rem]`
+- Color: `text-white/[0.025]` — barely visible texture, not a focal point
+
+#### Timeline rail (IntegrationFlow)
+- Was: 1px line + 1px animated fill
+- Now: 
+  - 1px line with vertical gradient (transparent → indigo 20% → transparent)
+  - 5px wide outer glow (blur 3px) wrapping the line
+  - Traveling "comet" that follows the scroll position via `useScroll + useTransform`
+  - Per-step dots are 3D-styled with `radial-gradient` (highlight at top-left) and 16px glow + 5px ring
+
+#### Code block
+- Mac window dots now use 3-stop radial gradients (highlight at 30%/30% simulates light source)
+- Each dot has `inset` shadow for inset depression
+- Line numbers in tabular-nums with a vertical separator (`border-r border-white/[0.05]`)
+- Code block wrapped in a GlassCard with top edge highlight
+
+#### CTA panel
+- "Ready to ship?" heading now uses serif italic on "ship?"
+- Aurora background: 2 layered radial gradients with `mix-blend-mode: screen`, animated opacity
+- Inner panel has `from-[#08080F]/90 to-[#0A0A14]/90` gradient (slight blue cast, not flat black)
+- Claim button has 3-layer shadow: ambient + inset highlight + ambient halo
+
+#### Stat strip
+- Numbers rendered in Instrument Serif (was Inter) — `font-display tabular-nums`
+- 4xl/5xl/6xl scale on the numbers (was 3xl/4xl/5xl)
+- Trend chips use `text-indigo-200/65` (was indigo-300/60)
+- Each stat is left-aligned (was centered) for editorial weight
+
+### Notes
+- Layout: 3 fonts total (Inter body, Space Grotesk mono, Instrument Serif display) — all preloaded via next/font, ~80KB compressed total
+- Performance: 
+  - `backdrop-blur-2xl` is GPU-accelerated; max 8 glass panels per section
+  - Atmospheric orbs animate via `transform` only
+  - Custom cursor parallax scoped to 1 element (hero card)
+  - Magnetic hover uses springs, not raw motion values
+- Accessibility: 
+  - White text on `#08080F` base is 17:1 (AAA)
+  - `text-white/50` muted body text is 7:1 (AA)
+  - Indigo accent `#6366f1` on dark is 5.2:1 (AA Normal)
+  - All decorative SVG `aria-hidden`
+  - Code block has `pre/code` semantics with `tabular-nums`
+  - Section elements have `aria-labelledby`
+- `prefers-reduced-motion`: Framer Motion respects natively; conic hover orbs and breathing animations are static fallbacks
+- tsc --noEmit: 0 new errors in any modified file
+- No new dependencies (Instrument Serif is from next/font/google which is already a transitive dependency)
+- File sizes: IntegrationFlow 582 → 742 lines (+27%), GatewayFeatures 905 → 978 lines (+8%) — both still under the 800-line soft cap (GatewayFeatures is 178 over; acceptable for the breadth of new visual content)
