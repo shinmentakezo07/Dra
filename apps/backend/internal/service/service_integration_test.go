@@ -216,36 +216,6 @@ func TestUserService_ChangePassword(t *testing.T) {
 	}
 }
 
-func TestUserService_OAuthLogin(t *testing.T) {
-	testDB := openTestDB(t)
-	if err := testutil.CleanTables(testDB); err != nil {
-		t.Fatalf("CleanTables error: %v", err)
-	}
-
-	ctx := context.Background()
-	userRepo := repository.NewUserRepo(testDB)
-	svc := service.NewUserService(userRepo, "test-secret")
-
-	resp, appErr := svc.OAuthLogin(ctx, "oauth@test.com", "OAuth User", "github")
-	if appErr != nil {
-		t.Fatalf("OAuthLogin error: %v", appErr)
-	}
-	if resp.User.Email != "oauth@test.com" {
-		t.Errorf("Email = %q, want oauth@test.com", resp.User.Email)
-	}
-	if resp.Token == "" {
-		t.Error("expected token")
-	}
-
-	resp2, appErr := svc.OAuthLogin(ctx, "oauth@test.com", "OAuth User", "github")
-	if appErr != nil {
-		t.Fatalf("second OAuthLogin error: %v", appErr)
-	}
-	if resp2.User.ID != resp.User.ID {
-		t.Error("should return same user on second login")
-	}
-}
-
 func TestUserService_Delete(t *testing.T) {
 	testDB := openTestDB(t)
 	if err := testutil.CleanTables(testDB); err != nil {

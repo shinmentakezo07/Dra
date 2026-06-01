@@ -1832,3 +1832,58 @@ const ACCENT = {
 - **tsc --noEmit**: 0 new errors in any modified file. Pre-existing errors in `app/admin/**`, `app/dashboard/billing/**`, `app/dashboard/fine-tuning/**` are unrelated.
 - **No new dependencies**.
 - **Backwards compatibility**: Pages calling `<Section title="...">` without the new props render exactly as before. Only pages that opt into `eyebrow`/`italic` get the editorial treatment.
+
+---
+
+## 25. Backend Audit Batch 1 — 6 Critical Security/Data-Integrity Fixes
+
+**Session**: backend-audit-batch-1
+**Date**: 2026-06-01
+**Audit reference**: `docs/BACKEND_AUDIT_2026-06-01.md`
+
+Six isolated CRITICAL fixes from the 2026-06-01 backend audit. Each fix is one commit; tasks TDD-driven.
+
+### 25.1 Remove insecure OAuth login endpoint (C1)
+
+**Why**: `POST /auth/oauth` accepted `{email, name, provider}` with no OAuth code/state/id_token verification — full account takeover. The codebase has no real OAuth state store, so the safest fix is removal. Real OAuth (GitHub/Google) will be re-added in a follow-up plan with proper state store and code exchange.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/internal/handler/auth_handlers.go | 141-161 | deleted (OAuthLogin handler) |
+| apps/backend/internal/service/user.go | 155-178 | deleted (OAuthLogin method) |
+| apps/backend/internal/service/service_integration_test.go | 219-247 | deleted (TestUserService_OAuthLogin) |
+| apps/backend/cmd/api/routes.go | 152 | modified (route removed) |
+| apps/backend/internal/handler/handler_test.go | 95-122 | modified (TestOAuthRouteRemoved added) |
+
+**Before**
+
+```go
+// internal/handler/auth_handlers.go:141-161
+func (h *Handler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        Email    string `json:"email"`
+        Name     string `json:"name"`
+        Provider string `json:"provider"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        response.Error(w, 400, "Invalid JSON body")
+        return
+    }
+    if req.Email == "" || req.Name == "" {
+        response.Error(w, 400, "Email and name are required")
+        return
+    }
+    auth, appErr := h.userSvc.OAuthLogin(r.Context(), req.Email, req.Name, req.Provider)
+    ...
+    response.OK(w, auth)
+}
+```
+
+**After**: Endpoint, service method, route, and integration test all removed. `TestOAuthRouteRemoved` asserts `POST /auth/oauth` returns 404/405.
+
+**Notes**
+- Frontend must remove the OAuth login button OR a follow-up plan adds the real OAuth state store and code-exchange flow.
+- The Go SDK (`pkg/sdk/client.go:570`) still has its own `OAuthLogin` (with the correct `OAuthRequest{Provider, Code}` shape). It will 404 against the server until real OAuth is added.
+

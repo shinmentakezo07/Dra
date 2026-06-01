@@ -152,31 +152,6 @@ func (s *UserService) ChangePassword(ctx context.Context, id, currentPassword, n
 	return nil
 }
 
-// OAuthLogin creates or finds a user from OAuth and returns an auth token.
-func (s *UserService) OAuthLogin(ctx context.Context, email, name, provider string) (*domain.AuthResponse, *domain.AppError) {
-	user, err := s.repo.ByEmail(ctx, email)
-	if err != nil {
-		return nil, domain.Wrap(domain.ErrInternal, 500, "database error", err)
-	}
-
-	if user == nil {
-		// Create user with random password for OAuth users
-		randomPass, _ := password.Hash(domain.NewID() + "@oauth" + provider)
-		user, err = s.repo.Create(ctx, name, email, randomPass, "user")
-		if err != nil {
-			return nil, domain.Wrap(domain.ErrInternal, 500, "failed to create oauth user", err)
-		}
-	}
-
-	tokenStr, err := token.Generate(user.ID, user.Email, user.Role, s.secret)
-	if err != nil {
-		return nil, domain.Wrap(domain.ErrInternal, 500, "token generation failed", err)
-	}
-
-	user.Password = nil
-	return &domain.AuthResponse{User: *user, Token: tokenStr}, nil
-}
-
 func (s *UserService) Delete(ctx context.Context, id string) *domain.AppError {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return domain.Wrap(domain.ErrInternal, 500, "failed to delete user", err)

@@ -149,7 +149,6 @@ func registerRoutes(
 		r.Post("/auth/signup", h.Signup)
 		r.Post("/auth/login", h.Login)
 		r.Post("/auth/admin-login", h.AdminLogin)
-		r.Post("/auth/oauth", h.OAuthLogin)
 		r.Post("/auth/forgot-password", h.ForgotPassword)
 		r.Post("/auth/reset-password", h.ResetPassword)
 	})

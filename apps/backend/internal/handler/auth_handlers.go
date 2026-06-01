@@ -138,28 +138,6 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, map[string]bool{"updated": true})
 }
 
-func (h *Handler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Email    string `json:"email"`
-		Name     string `json:"name"`
-		Provider string `json:"provider"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, 400, "Invalid JSON body")
-		return
-	}
-	if req.Email == "" || req.Name == "" {
-		response.Error(w, 400, "Email and name are required")
-		return
-	}
-	auth, appErr := h.userSvc.OAuthLogin(r.Context(), req.Email, req.Name, req.Provider)
-	if appErr != nil {
-		response.JSON(w, appErr.Status, response.Body{Success: false, Error: appErr.Message})
-		return
-	}
-	response.OK(w, auth)
-}
-
 func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Email string `json:"email"`
