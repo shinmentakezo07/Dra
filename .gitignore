@@ -10,6 +10,19 @@ out
 build
 dist
 
+# Compiled binaries
+apps/backend/cmd/api/api
+apps/backend/bin/
+
+# TypeScript build cache
+*.tsbuildinfo
+apps/web/tsconfig.tsbuildinfo
+
+# Session artifacts
+.omo/
+.reports/
+opopoo.md
+
 # Misc
 .DS_Store
 *.pem
