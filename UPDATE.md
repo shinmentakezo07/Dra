@@ -2006,6 +2006,48 @@ r.Use(chiMiddleware.Timeout(cfg.RequestTimeout))
 - `cfg.RequestTimeout` config field is kept (no breaking change to env), just no longer applied globally. A future change could apply it route-scoped to non-streaming endpoints if needed.
 - `TestRouter_RouteByCapability` in `pkg/llm/router` is a pre-existing failure unrelated to this change.
 
+### 25.5 MarkInviteUsed is atomic and idempotent (C20)
+
+**Why**: `MarkInviteUsed` ran `UPDATE invites SET used_at = NOW() WHERE id = $1` with no `used_at IS NULL` guard and no `RowsAffected` check. Two concurrent accept-invite requests both passed the `UsedAt == nil` check in the service layer (organization.go:105) and both UPDATED, adding the user as a member twice. Compare with `MarkPasswordResetUsed` (user.go:181-189) which has the correct guard.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/internal/repository/organization.go | 143-147 | modified (atomic UPDATE with `used_at IS NULL` guard + RowsAffected check) |
+| apps/backend/internal/repository/repository_test.go | (new test) | modified (TestOrganizationRepo_MarkInviteUsed_Idempotent) |
+
+**Before**
+
+```go
+func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error {
+    _, err := r.db.Exec(ctx,
+        `UPDATE invites SET used_at = NOW() WHERE id = $1`, id)
+    return err
+}
+```
+
+**After**
+
+```go
+func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error {
+    tag, err := r.db.Exec(ctx,
+        `UPDATE invites SET used_at = NOW() WHERE id = $1 AND used_at IS NULL`, id)
+    if err != nil {
+        return fmt.Errorf("mark invite used: %w", err)
+    }
+    if tag.RowsAffected() == 0 {
+        return fmt.Errorf("invite already used or not found: %s", id)
+    }
+    return nil
+}
+```
+
+**Notes**
+- Caller `OrganizationService.AcceptInvite` (organization.go:97-133) should treat the new error as "already used" and return a 410 Gone or 409 Conflict. The current handler does not, but the repo fix is the data-integrity boundary; the HTTP mapping is a follow-up.
+- The test is skipped without `TEST_DATABASE_URL`; it runs in CI.
+
+
 
 
 

@@ -3,6 +3,7 @@ package repository_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"dra-platform/backend/internal/db"
 	"dra-platform/backend/internal/repository"
@@ -156,5 +157,38 @@ func TestOrganizationRepo_CreateAndFind(t *testing.T) {
 	}
 	if found == nil {
 		t.Error("should find created org")
+	}
+}
+
+// TestOrganizationRepo_MarkInviteUsed_Idempotent (C20) — MarkInviteUsed
+// must be atomic via WHERE used_at IS NULL. Without that guard, two
+// concurrent accept-invite requests both pass the UsedAt == nil check
+// in the service layer and both UPDATE, adding the user as a member
+// twice. The second call must return a non-nil error.
+func TestOrganizationRepo_MarkInviteUsed_Idempotent(t *testing.T) {
+	db, cleanup := newTestDB(t)
+	defer cleanup()
+
+	if err := testutil.CleanTables(db); err != nil {
+		t.Fatalf("CleanTables error: %v", err)
+	}
+
+	ctx := context.Background()
+	userRepo := repository.NewUserRepo(db)
+	user, _ := userRepo.Create(ctx, "Invitee", "invitee@test.com", "hash", "user")
+	orgRepo := repository.NewOrganizationRepo(db)
+	org, _ := orgRepo.Create(ctx, "TestOrg", user.ID, "free")
+	invite, err := orgRepo.CreateInvite(ctx, org.ID, "invitee@test.com", "member", "tok-123", time.Now().Add(time.Hour))
+	if err != nil {
+		t.Fatalf("CreateInvite error: %v", err)
+	}
+
+	if err := orgRepo.MarkInviteUsed(ctx, invite.ID); err != nil {
+		t.Fatalf("first MarkInviteUsed error: %v", err)
+	}
+
+	err = orgRepo.MarkInviteUsed(ctx, invite.ID)
+	if err == nil {
+		t.Fatal("expected second MarkInviteUsed to return an error (invite already used)")
 	}
 }
