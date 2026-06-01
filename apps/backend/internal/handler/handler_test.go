@@ -92,6 +92,36 @@ func TestAuthFlow(t *testing.T) {
 	}
 }
 
+// TestOAuthRouteRemoved (C1) — the unsafe /auth/oauth endpoint must be
+// unregistered. Previously it accepted any {email,name,provider} payload
+// and returned a valid session, allowing full account takeover.
+func TestOAuthRouteRemoved(t *testing.T) {
+	testutil.SkipIfNoDB(t)
+
+	ts, db, err := testutil.NewTestServer()
+	if err != nil {
+		t.Fatalf("failed to create test server: %v", err)
+	}
+	defer ts.Close()
+	defer db.Close()
+
+	body := strings.NewReader(`{"email":"a@b.com","name":"A","provider":"google"}`)
+	req, _ := http.NewRequest(http.MethodPost, ts.URL+"/auth/oauth", body)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("oauth request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		t.Fatalf("/auth/oauth still returns 200 — insecure endpoint not removed")
+	}
+	if resp.StatusCode != http.StatusNotFound && resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("expected 404 or 405 for removed /auth/oauth, got %d", resp.StatusCode)
+	}
+}
+
 func TestAuthFlow_InvalidLogin(t *testing.T) {
 	testutil.SkipIfNoDB(t)
 

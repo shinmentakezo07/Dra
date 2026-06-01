@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -183,5 +184,37 @@ func TestQuotaTracker_Cleanup(t *testing.T) {
 
 	if okDaily || okMonthly {
 		t.Error("expected old quotas to be cleaned up")
+	}
+}
+
+// TestQuotaCheck_RejectsOversizedBody (C5) — QuotaCheck must not buffer
+// request bodies beyond the configured limit. Without the fix, QuotaCheck
+// calls io.ReadAll(r.Body) which is unbounded; the subsequent replacement
+// with io.NopCloser(bytes.NewReader(body)) bypasses the upstream
+// http.MaxBytesReader set by BodyLimit, allowing memory DoS.
+func TestQuotaCheck_RejectsOversizedBody(t *testing.T) {
+	qt := NewQuotaTracker()
+	key := &ScopedAPIKey{Key: "k"}
+	getKey := func(*http.Request) *ScopedAPIKey { return key }
+	parseFn := func(*http.Request) (string, int) { return "gpt-4", 0 }
+
+	mw := QuotaCheck(qt, getKey, parseFn)
+
+	// Body larger than the 10 MB limit enforced inside QuotaCheck.
+	body := bytes.Repeat([]byte("A"), (10<<20)+1024)
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	rw := httptest.NewRecorder()
+
+	downstreamCalled := false
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		downstreamCalled = true
+	}))
+	handler.ServeHTTP(rw, req)
+
+	if downstreamCalled {
+		t.Fatal("downstream handler should not be reached for oversized body")
+	}
+	if rw.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf("expected 413, got %d: %s", rw.Code, rw.Body.String())
 	}
 }

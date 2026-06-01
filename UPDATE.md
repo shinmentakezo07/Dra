@@ -1832,3 +1832,268 @@ const ACCENT = {
 - **tsc --noEmit**: 0 new errors in any modified file. Pre-existing errors in `app/admin/**`, `app/dashboard/billing/**`, `app/dashboard/fine-tuning/**` are unrelated.
 - **No new dependencies**.
 - **Backwards compatibility**: Pages calling `<Section title="...">` without the new props render exactly as before. Only pages that opt into `eyebrow`/`italic` get the editorial treatment.
+
+---
+
+## 25. Backend Audit Batch 1 — 6 Critical Security/Data-Integrity Fixes
+
+**Session**: backend-audit-batch-1
+**Date**: 2026-06-01
+**Audit reference**: `docs/BACKEND_AUDIT_2026-06-01.md`
+
+Six isolated CRITICAL fixes from the 2026-06-01 backend audit. Each fix is one commit; tasks TDD-driven.
+
+### 25.1 Remove insecure OAuth login endpoint (C1)
+
+**Why**: `POST /auth/oauth` accepted `{email, name, provider}` with no OAuth code/state/id_token verification — full account takeover. The codebase has no real OAuth state store, so the safest fix is removal. Real OAuth (GitHub/Google) will be re-added in a follow-up plan with proper state store and code exchange.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/internal/handler/auth_handlers.go | 141-161 | deleted (OAuthLogin handler) |
+| apps/backend/internal/service/user.go | 155-178 | deleted (OAuthLogin method) |
+| apps/backend/internal/service/service_integration_test.go | 219-247 | deleted (TestUserService_OAuthLogin) |
+| apps/backend/cmd/api/routes.go | 152 | modified (route removed) |
+| apps/backend/internal/handler/handler_test.go | 95-122 | modified (TestOAuthRouteRemoved added) |
+
+**Before**
+
+```go
+// internal/handler/auth_handlers.go:141-161
+func (h *Handler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        Email    string `json:"email"`
+        Name     string `json:"name"`
+        Provider string `json:"provider"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        response.Error(w, 400, "Invalid JSON body")
+        return
+    }
+    if req.Email == "" || req.Name == "" {
+        response.Error(w, 400, "Email and name are required")
+        return
+    }
+    auth, appErr := h.userSvc.OAuthLogin(r.Context(), req.Email, req.Name, req.Provider)
+    ...
+    response.OK(w, auth)
+}
+```
+
+**After**: Endpoint, service method, route, and integration test all removed. `TestOAuthRouteRemoved` asserts `POST /auth/oauth` returns 404/405.
+
+**Notes**
+- Frontend must remove the OAuth login button OR a follow-up plan adds the real OAuth state store and code-exchange flow.
+- The Go SDK (`pkg/sdk/client.go:570`) still has its own `OAuthLogin` (with the correct `OAuthRequest{Provider, Code}` shape). It will 404 against the server until real OAuth is added.
+
+### 25.2 Quota middleware enforces body size limit (C5)
+
+**Why**: `QuotaCheck` called `io.ReadAll(r.Body)` — unbounded — then replaced `r.Body` with `io.NopCloser(bytes.NewReader(body))`. This bypassed the `http.MaxBytesReader` set by `BodyLimit(10<<20)` upstream. If `BodyLimit` was missing or bypassed (different route group, missing middleware), an attacker could POST multi-GB bodies to any quota-protected endpoint and exhaust memory.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/internal/middleware/quota.go | 246-254 | modified (cap read at maxBody+1, return 413 on overflow) |
+| apps/backend/internal/middleware/quota_test.go | (new test) | modified (TestQuotaCheck_RejectsOversizedBody) |
+
+**Before**
+
+```go
+body, readErr := io.ReadAll(r.Body)
+if readErr == nil {
+    r.Body.Close()
+    r.Body = io.NopCloser(bytes.NewReader(body))
+    model, tokens = parseRequest(r)
+    r.Body = io.NopCloser(bytes.NewReader(body))
+}
+```
+
+**After**
+
+```go
+const maxBody = 10 << 20 // 10 MB; must match BodyLimit in routes.go
+body, readErr := io.ReadAll(io.LimitReader(r.Body, maxBody+1))
+if readErr != nil {
+    response.Error(w, http.StatusRequestEntityTooLarge, "request body too large")
+    return
+}
+if len(body) > maxBody {
+    response.Error(w, http.StatusRequestEntityTooLarge, "request body too large")
+    return
+}
+r.Body.Close()
+r.Body = io.NopCloser(bytes.NewReader(body))
+model, tokens = parseRequest(r)
+if seeker, ok := r.Body.(io.Seeker); ok {
+    seeker.Seek(0, io.SeekStart)
+}
+```
+
+**Notes**
+- The cap is hardcoded as `10 << 20` to match the `BodyLimit(10 << 20)` call in `cmd/api/routes.go:41`. A future change should source both from a single constant.
+- `TestQuotaTracker_CheckRequest_MonthlyLimit` and `TestQuotaTracker_RecordUsage` are pre-existing failures unrelated to this change.
+
+### 25.3 Validate SMTP To/Subject to prevent CRLF injection (C8)
+
+**Why**: `msg.To` and `msg.Subject` were formatted directly into wire bytes via `fmt.Sprintf("To: %s\r\nSubject: %s\r\n...", msg.To, msg.Subject)`. An attacker who controls these fields (signup form, password-reset request) could inject `To: victim@target.com\r\nBcc: attacker@evil.com` and have the SMTP server accept the message with attacker-supplied Bcc or other injected headers.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/pkg/email/smtp.go | 1-43 | modified (add `mail.ParseAddress` + `strings.ContainsAny` validation) |
+| apps/backend/pkg/email/email_test.go | (new tests) | modified (TestSMTPSender_RejectsCRLFInTo/Subject, RejectsInvalidEmail) |
+
+**Before**
+
+```go
+func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
+    addr := fmt.Sprintf("%s:%s", s.host, s.port)
+    headers := fmt.Sprintf("To: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n", msg.To, msg.Subject)
+    ...
+}
+```
+
+**After**
+
+```go
+func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
+    if _, err := mail.ParseAddress(msg.To); err != nil {
+        return fmt.Errorf("invalid To address: %w", err)
+    }
+    if strings.ContainsAny(msg.Subject, "\r\n") {
+        return fmt.Errorf("invalid Subject: must not contain CR or LF")
+    }
+    addr := fmt.Sprintf("%s:%s", s.host, s.port)
+    headers := fmt.Sprintf("To: %s\r\nSubject: %s\r\n...", msg.To, msg.Subject)
+    ...
+}
+```
+
+**Notes**
+- Go's `net/smtp` library happens to reject `\r\n` in the body internally, so the CRLF-in-To case would surface as `smtp: A line must not contain CR or LF`. The fix short-circuits with a clear validation error before any SMTP call.
+- CRLF in Subject bypasses Go's check because Subject is passed to `SMTP` as a single wire-format string.
+- A future change should HTML-escape the `resetURL`/`inviteURL` interpolated into `pkg/email/email.go` to prevent XSS in mail clients (H61).
+
+### 25.4 Remove global chi Timeout that killed streaming (C16)
+
+**Why**: `chiMiddleware.Timeout(cfg.RequestTimeout)` (default 30s) was applied globally on the chi router. It cancels the request context 30s after start, which kills all streaming endpoints mid-response:
+- `/v1/chat/completions` (OpenAI proxy)
+- `/v1/messages` (Anthropic proxy)
+- `/api/notifications/stream` (SSE)
+- `/ws` (WebSocket gateway)
+
+These are the *core* of the product. A long-running LLM stream is terminated by the global timeout before the model finishes.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/cmd/api/routes.go | 38 | deleted (global Timeout) |
+
+**Before**
+
+```go
+r.Use(chiMiddleware.Timeout(cfg.RequestTimeout))
+```
+
+**After**: line removed. Inline comment documents the rationale.
+
+**Notes**
+- The `http.Server.WriteTimeout: 120s` already in `next.config.ts`/`main.go` respects streaming (it only fires after the response is written).
+- `cfg.RequestTimeout` config field is kept (no breaking change to env), just no longer applied globally. A future change could apply it route-scoped to non-streaming endpoints if needed.
+- `TestRouter_RouteByCapability` in `pkg/llm/router` is a pre-existing failure unrelated to this change.
+
+### 25.5 MarkInviteUsed is atomic and idempotent (C20)
+
+**Why**: `MarkInviteUsed` ran `UPDATE invites SET used_at = NOW() WHERE id = $1` with no `used_at IS NULL` guard and no `RowsAffected` check. Two concurrent accept-invite requests both passed the `UsedAt == nil` check in the service layer (organization.go:105) and both UPDATED, adding the user as a member twice. Compare with `MarkPasswordResetUsed` (user.go:181-189) which has the correct guard.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/internal/repository/organization.go | 143-147 | modified (atomic UPDATE with `used_at IS NULL` guard + RowsAffected check) |
+| apps/backend/internal/repository/repository_test.go | (new test) | modified (TestOrganizationRepo_MarkInviteUsed_Idempotent) |
+
+**Before**
+
+```go
+func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error {
+    _, err := r.db.Exec(ctx,
+        `UPDATE invites SET used_at = NOW() WHERE id = $1`, id)
+    return err
+}
+```
+
+**After**
+
+```go
+func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error {
+    tag, err := r.db.Exec(ctx,
+        `UPDATE invites SET used_at = NOW() WHERE id = $1 AND used_at IS NULL`, id)
+    if err != nil {
+        return fmt.Errorf("mark invite used: %w", err)
+    }
+    if tag.RowsAffected() == 0 {
+        return fmt.Errorf("invite already used or not found: %s", id)
+    }
+    return nil
+}
+```
+
+**Notes**
+- Caller `OrganizationService.AcceptInvite` (organization.go:97-133) should treat the new error as "already used" and return a 410 Gone or 409 Conflict. The current handler does not, but the repo fix is the data-integrity boundary; the HTTP mapping is a follow-up.
+- The test is skipped without `TEST_DATABASE_URL`; it runs in CI.
+
+### 25.6 LLM cache key now includes tenant identity (C9)
+
+**Why**: `CacheKey` hashed only `(model, system, messages, tools, temperature, max_tokens, thinking)`. Identical prompts from different users shared a cache entry:
+- User B received User A's response envelope.
+- A's quota was not decremented for B's request.
+- B's response envelope reflected A's data semantics.
+
+This is a cross-tenant data leak.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/pkg/llm/helper.go | 14-57 | modified (add `tenant|` prefix with user_id, virtual_key_id, tenant_id) |
+| apps/backend/pkg/llm/llm_test.go | (new tests) | modified (TestCacheKey_TenantIsolation, TestCacheKey_VirtualKeyIsolation) |
+
+**Before**
+
+```go
+h := sha256.New()
+h.Write([]byte(req.Model))
+// ... no user/team/identity ...
+```
+
+**After**
+
+```go
+h := sha256.New()
+h.Write([]byte("tenant|"))
+if req.Metadata != nil {
+    if uid, ok := req.Metadata["user_id"]; ok { h.Write([]byte(uid)) }
+    h.Write([]byte("|"))
+    if vk, ok := req.Metadata["virtual_key_id"]; ok { h.Write([]byte(vk)) }
+    h.Write([]byte("|"))
+    if tid, ok := req.Metadata["tenant_id"]; ok { h.Write([]byte(tid)) }
+}
+h.Write([]byte("|model|"))
+// ...
+```
+
+**Notes**
+- The hash now starts with a `tenant|` prefix. Legacy callers that do not populate `req.Metadata` will still produce stable, distinct keys from the new format (the prefix differs but the key is still unique per request).
+- **Follow-up required**: every chat-completion entry point (openai_proxy, anthropic_messages, websocket gateway) MUST populate `req.Metadata["user_id"]` for the fix to actually isolate tenants. The cache-key change is necessary but not sufficient.
+- `TestValidateRequest_ClampsValues` is a pre-existing failure unrelated to this change.
+
+
+
+
+
+

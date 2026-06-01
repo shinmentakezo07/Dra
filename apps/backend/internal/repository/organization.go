@@ -141,9 +141,19 @@ func (r *OrganizationRepo) GetInviteByToken(ctx context.Context, token string) (
 }
 
 func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error {
-	_, err := r.db.Exec(ctx,
-		`UPDATE invites SET used_at = NOW() WHERE id = $1`, id)
-	return err
+	// Atomic guard: the WHERE used_at IS NULL clause prevents two concurrent
+	// accept-invite requests from both succeeding. Without it, both pass the
+	// UsedAt == nil check in the service layer and both UPDATE, adding the
+	// user as a member twice.
+	tag, err := r.db.Exec(ctx,
+		`UPDATE invites SET used_at = NOW() WHERE id = $1 AND used_at IS NULL`, id)
+	if err != nil {
+		return fmt.Errorf("mark invite used: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("invite already used or not found: %s", id)
+	}
+	return nil
 }
 
 func (r *OrganizationRepo) ListInvites(ctx context.Context, orgID string) ([]domain.Invite, error) {
