@@ -244,12 +244,27 @@ func QuotaCheck(tracker QuotaTrackerInterface, getKey func(r *http.Request) *Sco
 			var model string
 			var tokens int
 			if parseRequest != nil {
-				body, readErr := io.ReadAll(r.Body)
-				if readErr == nil {
-					r.Body.Close()
-					r.Body = io.NopCloser(bytes.NewReader(body))
-					model, tokens = parseRequest(r)
-					r.Body = io.NopCloser(bytes.NewReader(body))
+				// Cap the read at the configured max so a missing or bypassed
+				// upstream BodyLimit cannot turn QuotaCheck into a memory DoS.
+				// Must stay in sync with BodyLimit in cmd/api/routes.go.
+				const maxBody = 10 << 20 // 10 MB
+				body, readErr := io.ReadAll(io.LimitReader(r.Body, maxBody+1))
+				if readErr != nil {
+					logger.Warn("quota_body_read_failed", "error", readErr.Error())
+					response.Error(w, http.StatusRequestEntityTooLarge, "request body too large")
+					return
+				}
+				if len(body) > maxBody {
+					response.Error(w, http.StatusRequestEntityTooLarge, "request body too large")
+					return
+				}
+				r.Body.Close()
+				r.Body = io.NopCloser(bytes.NewReader(body))
+				model, tokens = parseRequest(r)
+				if seeker, ok := r.Body.(io.Seeker); ok {
+					if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+						logger.Warn("quota_body_seek_failed", "error", err.Error())
+					}
 				}
 			}
 

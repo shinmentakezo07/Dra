@@ -1887,3 +1887,52 @@ func (h *Handler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
 - Frontend must remove the OAuth login button OR a follow-up plan adds the real OAuth state store and code-exchange flow.
 - The Go SDK (`pkg/sdk/client.go:570`) still has its own `OAuthLogin` (with the correct `OAuthRequest{Provider, Code}` shape). It will 404 against the server until real OAuth is added.
 
+### 25.2 Quota middleware enforces body size limit (C5)
+
+**Why**: `QuotaCheck` called `io.ReadAll(r.Body)` — unbounded — then replaced `r.Body` with `io.NopCloser(bytes.NewReader(body))`. This bypassed the `http.MaxBytesReader` set by `BodyLimit(10<<20)` upstream. If `BodyLimit` was missing or bypassed (different route group, missing middleware), an attacker could POST multi-GB bodies to any quota-protected endpoint and exhaust memory.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/internal/middleware/quota.go | 246-254 | modified (cap read at maxBody+1, return 413 on overflow) |
+| apps/backend/internal/middleware/quota_test.go | (new test) | modified (TestQuotaCheck_RejectsOversizedBody) |
+
+**Before**
+
+```go
+body, readErr := io.ReadAll(r.Body)
+if readErr == nil {
+    r.Body.Close()
+    r.Body = io.NopCloser(bytes.NewReader(body))
+    model, tokens = parseRequest(r)
+    r.Body = io.NopCloser(bytes.NewReader(body))
+}
+```
+
+**After**
+
+```go
+const maxBody = 10 << 20 // 10 MB; must match BodyLimit in routes.go
+body, readErr := io.ReadAll(io.LimitReader(r.Body, maxBody+1))
+if readErr != nil {
+    response.Error(w, http.StatusRequestEntityTooLarge, "request body too large")
+    return
+}
+if len(body) > maxBody {
+    response.Error(w, http.StatusRequestEntityTooLarge, "request body too large")
+    return
+}
+r.Body.Close()
+r.Body = io.NopCloser(bytes.NewReader(body))
+model, tokens = parseRequest(r)
+if seeker, ok := r.Body.(io.Seeker); ok {
+    seeker.Seek(0, io.SeekStart)
+}
+```
+
+**Notes**
+- The cap is hardcoded as `10 << 20` to match the `BodyLimit(10 << 20)` call in `cmd/api/routes.go:41`. A future change should source both from a single constant.
+- `TestQuotaTracker_CheckRequest_MonthlyLimit` and `TestQuotaTracker_RecordUsage` are pre-existing failures unrelated to this change.
+
+
