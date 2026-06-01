@@ -30,6 +30,45 @@ func TestCacheKey(t *testing.T) {
 	}
 }
 
+// TestCacheKey_TenantIsolation (C9) — identical prompts from different
+// users MUST produce different cache keys. Without tenant identity in
+// the hash, user B receives user A's cached response and A's quota is
+// not decremented for B's request.
+func TestCacheKey_TenantIsolation(t *testing.T) {
+	reqA := &ChatRequest{
+		Model:    "gpt-4o",
+		Messages: []Message{{Role: RoleUser, Content: "2+2?"}},
+		Metadata: map[string]string{"user_id": "u-1"},
+	}
+	reqB := &ChatRequest{
+		Model:    "gpt-4o",
+		Messages: []Message{{Role: RoleUser, Content: "2+2?"}},
+		Metadata: map[string]string{"user_id": "u-2"},
+	}
+	if CacheKey(reqA) == CacheKey(reqB) {
+		t.Error("cache key for different users must differ (cross-tenant isolation)")
+	}
+}
+
+// TestCacheKey_VirtualKeyIsolation (C9) — different virtual API keys
+// (e.g. multiple keys for the same user) must produce different cache
+// entries so per-key quotas are not collapsed.
+func TestCacheKey_VirtualKeyIsolation(t *testing.T) {
+	reqA := &ChatRequest{
+		Model:    "gpt-4o",
+		Messages: []Message{{Role: RoleUser, Content: "2+2?"}},
+		Metadata: map[string]string{"virtual_key_id": "vk-1"},
+	}
+	reqB := &ChatRequest{
+		Model:    "gpt-4o",
+		Messages: []Message{{Role: RoleUser, Content: "2+2?"}},
+		Metadata: map[string]string{"virtual_key_id": "vk-2"},
+	}
+	if CacheKey(reqA) == CacheKey(reqB) {
+		t.Error("cache key must differ across virtual keys")
+	}
+}
+
 func TestEstimateTokens(t *testing.T) {
 	tests := []struct {
 		input    string

@@ -16,13 +16,35 @@ func CacheKey(req *ChatRequest) string {
 	// Create a stable representation for caching
 	h := sha256.New()
 
+	// Tenant identity MUST be hashed first. Without it, identical prompts
+	// across users would share a cache entry (cross-tenant poisoning) and
+	// the wrong user would receive the wrong response, while the wrong
+	// user's quota would not be decremented.
+	h.Write([]byte("tenant|"))
+	if req.Metadata != nil {
+		if uid, ok := req.Metadata["user_id"]; ok {
+			h.Write([]byte(uid))
+		}
+		h.Write([]byte("|"))
+		if vk, ok := req.Metadata["virtual_key_id"]; ok {
+			h.Write([]byte(vk))
+		}
+		h.Write([]byte("|"))
+		if tid, ok := req.Metadata["tenant_id"]; ok {
+			h.Write([]byte(tid))
+		}
+	}
+
 	// Hash model
+	h.Write([]byte("|model|"))
 	h.Write([]byte(req.Model))
 
 	// Hash system prompt
+	h.Write([]byte("|system|"))
 	h.Write([]byte(req.System))
 
 	// Hash messages in order
+	h.Write([]byte("|messages|"))
 	for _, m := range req.Messages {
 		h.Write([]byte(m.Role))
 		h.Write([]byte(m.Content))
@@ -34,22 +56,24 @@ func CacheKey(req *ChatRequest) string {
 	// Hash tools if present
 	if len(req.Tools) > 0 {
 		toolJSON, _ := json.Marshal(req.Tools)
+		h.Write([]byte("|tools|"))
 		h.Write(toolJSON)
 	}
 
 	// Hash temperature if set
 	if req.Temperature != nil {
-		h.Write([]byte(fmt.Sprintf("%.4f", *req.Temperature)))
+		h.Write([]byte(fmt.Sprintf("|temp=%.4f", *req.Temperature)))
 	}
 
 	// Hash max_tokens if set
 	if req.MaxTokens != nil {
-		h.Write([]byte(fmt.Sprintf("%d", *req.MaxTokens)))
+		h.Write([]byte(fmt.Sprintf("|maxtok=%d", *req.MaxTokens)))
 	}
 
 	// Hash thinking config if present
 	if req.Thinking != nil {
 		thinkJSON, _ := json.Marshal(req.Thinking)
+		h.Write([]byte("|thinking|"))
 		h.Write(thinkJSON)
 	}
 

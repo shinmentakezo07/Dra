@@ -2047,6 +2047,52 @@ func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error 
 - Caller `OrganizationService.AcceptInvite` (organization.go:97-133) should treat the new error as "already used" and return a 410 Gone or 409 Conflict. The current handler does not, but the repo fix is the data-integrity boundary; the HTTP mapping is a follow-up.
 - The test is skipped without `TEST_DATABASE_URL`; it runs in CI.
 
+### 25.6 LLM cache key now includes tenant identity (C9)
+
+**Why**: `CacheKey` hashed only `(model, system, messages, tools, temperature, max_tokens, thinking)`. Identical prompts from different users shared a cache entry:
+- User B received User A's response envelope.
+- A's quota was not decremented for B's request.
+- B's response envelope reflected A's data semantics.
+
+This is a cross-tenant data leak.
+
+**Files Changed**
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/backend/pkg/llm/helper.go | 14-57 | modified (add `tenant|` prefix with user_id, virtual_key_id, tenant_id) |
+| apps/backend/pkg/llm/llm_test.go | (new tests) | modified (TestCacheKey_TenantIsolation, TestCacheKey_VirtualKeyIsolation) |
+
+**Before**
+
+```go
+h := sha256.New()
+h.Write([]byte(req.Model))
+// ... no user/team/identity ...
+```
+
+**After**
+
+```go
+h := sha256.New()
+h.Write([]byte("tenant|"))
+if req.Metadata != nil {
+    if uid, ok := req.Metadata["user_id"]; ok { h.Write([]byte(uid)) }
+    h.Write([]byte("|"))
+    if vk, ok := req.Metadata["virtual_key_id"]; ok { h.Write([]byte(vk)) }
+    h.Write([]byte("|"))
+    if tid, ok := req.Metadata["tenant_id"]; ok { h.Write([]byte(tid)) }
+}
+h.Write([]byte("|model|"))
+// ...
+```
+
+**Notes**
+- The hash now starts with a `tenant|` prefix. Legacy callers that do not populate `req.Metadata` will still produce stable, distinct keys from the new format (the prefix differs but the key is still unique per request).
+- **Follow-up required**: every chat-completion entry point (openai_proxy, anthropic_messages, websocket gateway) MUST populate `req.Metadata["user_id"]` for the fix to actually isolate tenants. The cache-key change is necessary but not sufficient.
+- `TestValidateRequest_ClampsValues` is a pre-existing failure unrelated to this change.
+
+
 
 
 
