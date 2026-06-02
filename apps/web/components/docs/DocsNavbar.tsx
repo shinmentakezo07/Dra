@@ -2,9 +2,25 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Menu, BookOpen, ChevronDown } from "lucide-react";
+import {
+  Search,
+  Menu,
+  BookOpen,
+  ChevronDown,
+  Sparkles,
+  Activity,
+  Rocket,
+  Building2,
+  Mail,
+  Newspaper,
+  Scale,
+  ArrowUpRight,
+  FileText,
+  Library,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface DocsNavbarProps {
   onSearchOpen: () => void;
@@ -19,14 +35,27 @@ const productLinks = [
   { label: "Dashboard", href: "/dashboard", desc: "Usage analytics & keys" },
 ];
 
+const resourcesLinks = [
+  { label: "Changelog", href: "/changelog", desc: "Every release, every fix", icon: FileText },
+  { label: "Blog", href: "/blog", desc: "Engineering deep dives", icon: Newspaper },
+  { label: "Status", href: "/status", desc: "Live system availability", icon: Activity },
+  { label: "Roadmap", href: "/roadmap", desc: "What we're building next", icon: Rocket },
+  { label: "About", href: "/about", desc: "Our team, story, investors", icon: Building2 },
+  { label: "Enterprise", href: "/enterprise", desc: "Dedicated, compliant, 24/7", icon: Sparkles },
+  { label: "Contact", href: "/contact", desc: "Talk to a human", icon: Mail },
+  { label: "Legal", href: "/legal", desc: "Terms, privacy, cookies", icon: Scale },
+];
+
 export function DocsNavbar({
   onSearchOpen,
   onMobileMenuClick,
   currentSectionLabel,
 }: DocsNavbarProps) {
   const [productOpen, setProductOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const productRef = useRef<HTMLDivElement>(null);
+  const resourcesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,17 +64,21 @@ export function DocsNavbar({
   }, []);
 
   useEffect(() => {
-    if (!productOpen) return;
+    if (!productOpen && !resourcesOpen) return;
     const onClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+      const target = e.target as Node;
+      if (productRef.current && !productRef.current.contains(target)) {
         setProductOpen(false);
+      }
+      if (resourcesRef.current && !resourcesRef.current.contains(target)) {
+        setResourcesOpen(false);
       }
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setProductOpen(false);
+      if (e.key === "Escape") {
+        setProductOpen(false);
+        setResourcesOpen(false);
+      }
     };
     document.addEventListener("mousedown", onClickOutside);
     document.addEventListener("keydown", onKeyDown);
@@ -53,7 +86,7 @@ export function DocsNavbar({
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [productOpen]);
+  }, [productOpen, resourcesOpen]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
@@ -191,9 +224,12 @@ export function DocsNavbar({
               ))}
             </nav>
 
-            <div className="relative hidden md:block" ref={dropdownRef}>
+            <div className="relative hidden md:block" ref={productRef}>
               <button
-                onClick={() => setProductOpen((v) => !v)}
+                onClick={() => {
+                  setProductOpen((v) => !v);
+                  setResourcesOpen(false);
+                }}
                 aria-expanded={productOpen}
                 aria-haspopup="true"
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-200 cursor-pointer ${
@@ -258,6 +294,101 @@ export function DocsNavbar({
                           </Link>
                         </motion.div>
                       ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Resources dropdown */}
+            <div className="relative hidden md:block" ref={resourcesRef}>
+              <button
+                onClick={() => {
+                  setResourcesOpen((v) => !v);
+                  setProductOpen(false);
+                }}
+                aria-expanded={resourcesOpen}
+                aria-haspopup="true"
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-200 cursor-pointer ${
+                  resourcesOpen
+                    ? "text-white/70 bg-white/[0.06]"
+                    : "text-white/35 hover:text-white/65 hover:bg-white/[0.04]"
+                }`}
+              >
+                <Library className="w-3 h-3" />
+                Resources
+                <ChevronDown
+                  className={`w-3 h-3 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                    resourcesOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {resourcesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute right-0 top-full mt-2 w-[420px] rounded-xl bg-[#0a0a0d]/97 backdrop-blur-2xl border border-white/[0.07] overflow-hidden z-50 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_8px_40px_-8px_rgba(0,0,0,0.7),0_0_40px_-8px_rgba(99,102,241,0.18)]"
+                  >
+                    <div
+                      className="absolute top-0 left-0 right-0 h-16 opacity-50 pointer-events-none"
+                      style={{
+                        background:
+                          "radial-gradient(ellipse at 50% -20%, rgba(99,102,241,0.22), transparent 70%)",
+                      }}
+                    />
+                    <div className="grid grid-cols-2 relative z-10">
+                      {resourcesLinks.map((link, i) => (
+                        <motion.div
+                          key={link.href}
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.025, duration: 0.2 }}
+                        >
+                          <Link
+                            href={link.href}
+                            onClick={() => setResourcesOpen(false)}
+                            className="group flex items-start gap-3 px-4 py-3 hover:bg-white/[0.04] transition-all duration-200 cursor-pointer border-b border-r border-white/[0.03] last:border-r-0 [&:nth-last-child(-n+2)]:border-b-0"
+                          >
+                            <div className="w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.04] group-hover:border-indigo-500/25 bg-indigo-500/[0.04] group-hover:bg-indigo-500/[0.08] transition-all duration-200 flex-shrink-0 mt-0.5">
+                              <link.icon className="w-3.5 h-3.5 text-indigo-200/70 group-hover:text-indigo-200 transition-colors" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12.5px] font-medium text-white/55 group-hover:text-white/95 transition-colors leading-tight flex items-center gap-1">
+                                {link.label}
+                                <ArrowUpRight className="w-2.5 h-2.5 opacity-0 group-hover:opacity-60 transition-opacity" />
+                              </p>
+                              <p className="text-[10.5px] text-white/25 mt-0.5 leading-snug group-hover:text-white/40 transition-colors">
+                                {link.desc}
+                              </p>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <div className="px-4 py-3 border-t border-white/[0.05] bg-white/[0.01] flex items-center justify-between relative z-10">
+                      <span className="text-[10px] font-mono text-white/25 uppercase tracking-[0.15em]">
+                        {resourcesLinks.length} pages
+                      </span>
+                      <a
+                        href="https://github.com/shinmentakezo07/owsiwa"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-mono text-white/30 hover:text-indigo-200 flex items-center gap-1 transition-colors"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 1.753.986A6.028 6.028 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404.912-1.255 1.753-.986 1.753-.986.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                        </svg>
+                        Star on GitHub
+                      </a>
                     </div>
                   </motion.div>
                 )}

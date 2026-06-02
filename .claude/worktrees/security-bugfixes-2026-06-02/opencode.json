@@ -1,0 +1,19 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "provider": {
+        "ptcider": {
+            "npm": "@ai-sdk/openai-compatible",
+            "options": {
+                "apiKey": "sk-ecc9bfbaf321b57a-420a50-921826ca",
+                "baseURL": "http://localhost:20128/v1"
+            },
+            "models": {
+                "zw/xiaomi/mimo-v2.5-pro-full": { "name": "mimo-v2.5-pro" },
+                "zw/zhipu/glm-5.1-full": { "name": "GLM-5.1" }
+            }
+        }
+    },
+    "plugin": [
+        "oh-my-openagent"
+    ]
+}

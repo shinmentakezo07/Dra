@@ -31,6 +31,11 @@ import {
   Clock,
   Activity,
   Search,
+  Rocket,
+  Building2,
+  Scale,
+  Mail,
+  Newspaper,
 } from "lucide-react";
 import type { NavItem } from "@/components/docs/types";
 import { cn } from "@/lib/utils";
@@ -258,6 +263,45 @@ const recentUpdates = [
     date: "2026-05-26",
     title: "Batch API async submissions",
     page: "batch",
+  },
+];
+
+const resourceLinks = [
+  {
+    label: "Changelog",
+    desc: "Every release, every fix, every breaking change.",
+    icon: FileText,
+    href: "/changelog",
+  },
+  {
+    label: "Blog",
+    desc: "Engineering deep dives and product decisions.",
+    icon: Newspaper,
+    href: "/blog",
+  },
+  {
+    label: "Status",
+    desc: "Live system availability and recent incidents.",
+    icon: Activity,
+    href: "/status",
+  },
+  {
+    label: "Roadmap",
+    desc: "What we’re building next, and what we’re exploring.",
+    icon: Rocket,
+    href: "/roadmap",
+  },
+  {
+    label: "Enterprise",
+    desc: "Dedicated clusters, SOC 2, BAA, 24/7 support.",
+    icon: Building2,
+    href: "/enterprise",
+  },
+  {
+    label: "About",
+    desc: "Our story, team, investors, and open roles.",
+    icon: Users,
+    href: "/about",
   },
 ];
 
@@ -734,6 +778,85 @@ export default function DocsIndexPage() {
           </section>
         );
       })}
+
+      {/* ═══════════════════════════════════════════
+          MORE FROM YAPAPA
+          ═══════════════════════════════════════════ */}
+      <section className="relative mb-16 sm:mb-20 scroll-mt-24">
+        <header className="flex items-center gap-3 mb-7">
+          <div className="w-8 h-8 rounded-lg border border-indigo-500/15 bg-indigo-500/[0.06] flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+          </div>
+          <h2 className="text-[18px] sm:text-[22px] font-semibold tracking-[-0.025em] text-white">
+            More from{" "}
+            <span className="font-display italic font-normal text-indigo-200/95">
+              Yapapa
+            </span>
+          </h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/15 via-white/[0.05] to-transparent" />
+          <span className="text-[9px] font-mono text-white/30 tabular-nums tracking-[0.15em]">
+            {resourceLinks.length} PAGES
+          </span>
+        </header>
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"
+        >
+          {resourceLinks.map((res, idx) => (
+            <motion.div
+              key={res.href}
+              variants={fadeUp}
+              custom={idx}
+            >
+              <Link
+                href={res.href}
+                className={cn(
+                  "group relative block p-5 rounded-2xl overflow-hidden h-full",
+                  "border border-white/[0.06] bg-gradient-to-br from-white/[0.02] via-white/[0.01] to-transparent",
+                  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
+                  "hover:border-indigo-500/25 hover:from-indigo-500/[0.04] hover:to-transparent",
+                  "hover:shadow-[0_8px_32px_-12px_rgba(99,102,241,0.2),inset_0_1px_0_0_rgba(255,255,255,0.06)]",
+                  "transition-all duration-300 cursor-pointer",
+                )}
+              >
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                <div className="relative flex items-start gap-3.5">
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border border-white/[0.06] bg-white/[0.02] relative overflow-hidden",
+                      "group-hover:border-indigo-500/25 group-hover:bg-indigo-500/[0.06]",
+                      "transition-all duration-300",
+                    )}
+                  >
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <res.icon
+                      className="w-4 h-4 text-white/45 group-hover:text-indigo-200 transition-colors"
+                      style={{ transform: "translateZ(20px)" }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-semibold text-white/70 group-hover:text-white transition-colors tracking-[-0.01em] flex items-center gap-1.5">
+                      {res.label}
+                      <ArrowUpRight className="w-3 h-3 text-white/0 group-hover:text-indigo-200 transition-all duration-200" />
+                    </p>
+                    <p className="text-[11.5px] text-white/35 mt-1 leading-[1.6] group-hover:text-white/50 transition-colors">
+                      {res.desc}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
 
       {/* Bottom CTA */}
       <motion.section
