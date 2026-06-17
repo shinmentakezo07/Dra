@@ -26,6 +26,13 @@
   --color-neon-blue: #00f3ff;
   --color-neon-pink: #ff00ff;
   --color-neon-green: #00ff00;
+  --color-ink-950: #0a0a0c;
+  --color-ink-900: #111114;
+  --color-ink-800: #18181b;
+  --color-bone: #e8e4dc;
+  --color-ash: #8a8a8f;
+  --color-hair: rgba(255, 255, 255, 0.08);
+  --color-amber: #f5a524;
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
