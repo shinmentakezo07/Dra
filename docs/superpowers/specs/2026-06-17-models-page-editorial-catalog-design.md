@@ -67,11 +67,11 @@ All sections sit inside `max-w-7xl`, left-aligned rhythm with hairline dividers 
    - All in `--ink-900` with `--hair` borders.
 
 3. **Spotlight + Leaderboard** (replaces "Featured" bento — the signature):
-   - **Left (~60%) — Spotlight:** one large card for the most popular model. Serif name (Instrument Serif), large amber output price, mono input price, a context-window bar (mono label + filled bar). Subtle ambient amber pulse on the price.
+   - **Left (~60%) — Spotlight:** one large card for the #1 most-popular model (same pick as the leaderboard's "MOST POPULAR" rank 01: popular first, newest `created`, then name). Serif name (Instrument Serif), large amber output price, mono input price, a context-window bar (mono label + filled bar, where the bar fills relative to the largest context length in the dataset, `Math.max` of all `context_length`). Subtle ambient amber pulse on the price.
    - **Right (~40%) — Leaderboard rail:** three stacked ranked lists, each a hairline-divided block with a mono header:
-     - `CHEAPEST OUTPUT` — top 3 by lowest output price.
-     - `LARGEST CONTEXT` — top 3 by context length.
-     - `MOST POPULAR` — top 3 popular (by `created`, then name).
+     - `CHEAPEST OUTPUT` — top 3 by lowest numeric output price (parse from `outputPrice`, `$` stripped). Ties broken by input price ascending.
+     - `LARGEST CONTEXT` — top 3 by `context_length` descending.
+     - `MOST POPULAR` — top 3 popular (popular first, then newest `created` descending, then name).
      Each row: amber rank numeral `01/02/03`, model name (Inter), provider (ash), value (mono). Rows are clickable → `/models/{id}`.
    - Computed via `useMemo` from the existing `models` array — no data-layer changes.
 

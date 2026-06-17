@@ -1,161 +1,34 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Search,
-  CheckCircle,
   ArrowRight,
-  TrendingUp,
   Cpu,
   Sparkles,
   Zap,
   Star,
   Brain,
   Activity,
+  Grid3x3,
+  List,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useState, useMemo, useDeferredValue } from "react";
 import { useRouter } from "next/navigation";
 import { ModelCard } from "./ModelCard";
+import { ModelSpotlight } from "./ModelSpotlight";
+import { ModelLeaderboard } from "./ModelLeaderboard";
 import { getProviderLogo } from "@/lib/provider-logos";
+import {
+  type CatalogModel,
+  cheapestOutput,
+  largestContext,
+  mostPopular,
+} from "./model-rankings";
 import type { OpenRouterModelData } from "@/types/model";
 
-interface Model {
-  id: string;
-  name: string;
-  provider: string;
-  inputPrice: string;
-  outputPrice: string;
-  context: string;
-  logo: string | null;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  gradient: string;
-  popular: boolean;
-  speed: string;
-  description?: string;
-}
-
-const providerConfig: Record<
-  string,
-  { icon: typeof Cpu; color: string; gradient: string }
-> = {
-  openai: {
-    icon: Sparkles,
-    color: "text-green-400",
-    gradient: "from-green-500/20 to-emerald-500/20",
-  },
-  anthropic: {
-    icon: Zap,
-    color: "text-orange-400",
-    gradient: "from-orange-500/20 to-amber-500/20",
-  },
-  google: {
-    icon: Star,
-    color: "text-blue-400",
-    gradient: "from-blue-500/20 to-cyan-500/20",
-  },
-  moonshot: {
-    icon: Brain,
-    color: "text-purple-400",
-    gradient: "from-purple-500/20 to-pink-500/20",
-  },
-  moonshotai: {
-    icon: Brain,
-    color: "text-purple-400",
-    gradient: "from-purple-500/20 to-pink-500/20",
-  },
-  zhipu: {
-    icon: Activity,
-    color: "text-cyan-400",
-    gradient: "from-cyan-500/20 to-teal-500/20",
-  },
-  zhipuai: {
-    icon: Activity,
-    color: "text-cyan-400",
-    gradient: "from-cyan-500/20 to-teal-500/20",
-  },
-  meta: {
-    icon: Cpu,
-    color: "text-indigo-400",
-    gradient: "from-indigo-500/20 to-blue-500/20",
-  },
-  mistral: {
-    icon: Activity,
-    color: "text-rose-400",
-    gradient: "from-rose-500/20 to-orange-500/20",
-  },
-  mistralai: {
-    icon: Activity,
-    color: "text-rose-400",
-    gradient: "from-rose-500/20 to-orange-500/20",
-  },
-  deepseek: {
-    icon: Cpu,
-    color: "text-teal-400",
-    gradient: "from-teal-500/20 to-emerald-500/20",
-  },
-  "deepseek-ai": {
-    icon: Cpu,
-    color: "text-teal-400",
-    gradient: "from-teal-500/20 to-emerald-500/20",
-  },
-  xai: {
-    icon: Cpu,
-    color: "text-red-400",
-    gradient: "from-red-500/20 to-orange-500/20",
-  },
-  alibaba: {
-    icon: Cpu,
-    color: "text-orange-400",
-    gradient: "from-orange-500/20 to-red-500/20",
-  },
-  qwen: {
-    icon: Cpu,
-    color: "text-orange-400",
-    gradient: "from-orange-500/20 to-red-500/20",
-  },
-  qw: {
-    icon: Brain,
-    color: "text-purple-400",
-    gradient: "from-purple-500/20 to-pink-500/20",
-  },
-  gpt: {
-    icon: Sparkles,
-    color: "text-green-400",
-    gradient: "from-green-500/20 to-emerald-500/20",
-  },
-  claude: {
-    icon: Zap,
-    color: "text-orange-400",
-    gradient: "from-orange-500/20 to-amber-500/20",
-  },
-  gemini: {
-    icon: Star,
-    color: "text-blue-400",
-    gradient: "from-blue-500/20 to-cyan-500/20",
-  },
-  llama: {
-    icon: Cpu,
-    color: "text-indigo-400",
-    gradient: "from-indigo-500/20 to-blue-500/20",
-  },
-  minimax: {
-    icon: Activity,
-    color: "text-pink-400",
-    gradient: "from-pink-500/20 to-rose-500/20",
-  },
-  minimaxai: {
-    icon: Activity,
-    color: "text-pink-400",
-    gradient: "from-pink-500/20 to-rose-500/20",
-  },
-  glm: {
-    icon: Activity,
-    color: "text-cyan-400",
-    gradient: "from-cyan-500/20 to-teal-500/20",
-  },
-};
-
+// ---- Provider display config ----
 function getProviderFromId(modelId: string): string {
   return modelId.split("/")[0].toLowerCase();
 }
@@ -183,7 +56,8 @@ function getProviderDisplayName(providerId: string): string {
     glm: "GLM",
   };
   return (
-    map[providerId] || providerId.charAt(0).toUpperCase() + providerId.slice(1)
+    map[providerId] ||
+    providerId.charAt(0).toUpperCase() + providerId.slice(1)
   );
 }
 
@@ -217,24 +91,24 @@ interface ModelsExplorerProps {
   initialModels: OpenRouterModelData[];
 }
 
+type SortOption = "popular" | "name" | "price-low" | "price-high" | "context";
+type ViewMode = "grid" | "list";
+
 export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("All");
+  const [sortBy, setSortBy] = useState<SortOption>("popular");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const deferredQuery = useDeferredValue(searchQuery);
   const deferredProvider = useDeferredValue(selectedProvider);
   const isSearchStale = searchQuery !== deferredQuery;
 
-  const models = useMemo(() => {
+  // ---- Build the catalog models (preserved logic) ----
+  const models = useMemo<CatalogModel[]>(() => {
     return initialModels.map((model) => {
       const providerId = getProviderFromId(model.id);
-      const config = providerConfig[providerId] || {
-        icon: Cpu,
-        color: "text-gray-400",
-        gradient: "from-gray-500/20 to-gray-500/20",
-      };
-
       const inputPrice = model.pricing?.prompt
         ? `$${(parseFloat(model.pricing.prompt) * 1000000).toFixed(2)}`
         : "$0.00";
@@ -247,25 +121,23 @@ export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
       const logo = getProviderLogo(model.id);
 
       return {
-        ...model,
         id: model.id,
         name: model.name,
         provider: getProviderDisplayName(providerId),
         inputPrice,
         outputPrice,
         context,
-        icon: config.icon,
-        color: config.color,
-        gradient: config.gradient,
+        context_length: model.context_length,
         logo,
         popular: model.created > 1743465600,
-        speed: model.context_length > 500000 ? "Fast" : "Very Fast",
+        created: model.created,
       };
     });
-  }, []);
+  }, [initialModels]);
 
-  const filteredModels = useMemo(() => {
-    return models.filter((model) => {
+  // ---- Filter + sort (preserved logic) ----
+  const filteredAndSortedModels = useMemo(() => {
+    const filtered = models.filter((model) => {
       const q = deferredQuery.toLowerCase();
       const matchesSearch =
         model.name.toLowerCase().includes(q) ||
@@ -276,11 +148,53 @@ export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
         model.provider.toLowerCase().includes(deferredProvider.toLowerCase());
       return matchesSearch && matchesProvider;
     });
-  }, [models, deferredQuery, deferredProvider]);
 
-  const featuredModels = useMemo(() => {
-    return models.filter((m) => m.popular).slice(0, 3);
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "price-low": {
+          const aPrice = parseFloat(a.inputPrice.replace("$", ""));
+          const bPrice = parseFloat(b.inputPrice.replace("$", ""));
+          return aPrice - bPrice;
+        }
+        case "price-high": {
+          const aPriceH = parseFloat(a.inputPrice.replace("$", ""));
+          const bPriceH = parseFloat(b.inputPrice.replace("$", ""));
+          return bPriceH - aPriceH;
+        }
+        case "context": {
+          const aCtx = parseInt(a.context.replace("K", "")) || 0;
+          const bCtx = parseInt(b.context.replace("K", "")) || 0;
+          return bCtx - aCtx;
+        }
+        case "popular":
+        default:
+          if (a.popular && !b.popular) return -1;
+          if (!a.popular && b.popular) return 1;
+          return a.name.localeCompare(b.name);
+      }
+    });
+  }, [models, deferredQuery, deferredProvider, sortBy]);
+
+  // ---- Leaderboard + spotlight (derived) ----
+  const maxContext = useMemo(
+    () => models.reduce((max, m) => Math.max(max, m.context_length ?? 0), 0),
+    [models],
+  );
+
+  const rankings = useMemo(() => {
+    return {
+      cheapest: cheapestOutput(models, 3),
+      largest: largestContext(models, 3),
+      popular: mostPopular(models, 3),
+    };
   }, [models]);
+
+  const spotlightModel = rankings.popular[0];
+  const spotlightIcon = spotlightModel
+    ? providerIcons[spotlightModel.provider]
+    : undefined;
 
   const hasActiveFilters = searchQuery !== "" || selectedProvider !== "All";
 
@@ -288,252 +202,285 @@ export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
     router.push(`/models/${encodeURIComponent(modelId)}`);
   };
 
+  const providerCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: models.length };
+    models.forEach((m) => {
+      counts[m.provider] = (counts[m.provider] || 0) + 1;
+    });
+    return counts;
+  }, [models]);
+
+  const providerCount = new Set(models.map((m) => m.provider)).size;
+
   return (
-    <section className="relative w-full pt-8 pb-24 md:pt-12 md:pb-32 px-4 bg-[#000000] overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[140px] animate-glow-pulse" />
-        <div
-          className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[140px] animate-glow-pulse"
-          style={{ animationDelay: "2s" }}
-        />
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_80%)]" />
-      </div>
+    <section className="relative w-full pt-10 pb-24 md:pt-16 md:pb-32 px-4 bg-ink-950 overflow-hidden">
+      {/* subtle hairline grid backdrop */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.025] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16">
+        {/* ===== Editorial hero ===== */}
+        <div className="mb-14 md:mb-20">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-blue-400 text-xs font-mono font-bold tracking-[0.2em] uppercase mb-8 backdrop-blur-md"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="font-mono text-[11px] tracking-[0.3em] uppercase text-ash mb-6"
           >
-            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-            Browse Models
-            <div
-              className="w-2 h-2 rounded-full bg-violet-400 animate-pulse"
-              style={{ animationDelay: "0.5s" }}
-            />
+            Model Registry · {models.length} models · {providerCount} providers
           </motion.div>
 
-          <motion.h2
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white mb-6 leading-[0.95]"
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+            className="font-display text-bone leading-[0.95] tracking-tight"
+            style={{ fontSize: "clamp(2.75rem, 7vw, 5.5rem)" }}
           >
-            Every Model,{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-purple-500 bg-clip-text text-transparent">
-              One Bill
-            </span>
-          </motion.h2>
+            Every model, one bill.
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="h-px w-full max-w-xs bg-hair my-7 origin-left"
+          />
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-gray-400 max-w-2xl mx-auto font-light"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg text-ash max-w-xl"
           >
-            Search and filter through{" "}
-            <span className="text-white font-medium">100+ AI models</span> from
-            leading providers. Compare pricing, context windows, and
-            capabilities.
+            Transparent per-token pricing across {providerCount} providers.
+            Search, compare, and route to the right model.
           </motion.p>
         </div>
 
-        {/* Search & Filters */}
+        {/* ===== Toolbar ===== */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="mb-16 space-y-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="mb-12 md:mb-16 rounded-2xl bg-ink-900 border border-hair overflow-hidden"
         >
-          {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-violet-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-            <div className="relative flex items-center gap-4 px-5 py-4 rounded-2xl bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 focus-within:border-blue-500/30 transition-all shadow-2xl">
-              <Search className="w-5 h-5 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search by name, provider, or model ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-gray-600 font-mono text-sm"
-              />
-              {(searchQuery || isSearchStale) && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className={`px-3 py-1.5 text-xs font-mono font-bold rounded-lg border ${
-                    isSearchStale
-                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                      : "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                  }`}
-                >
-                  {isSearchStale ? "..." : filteredModels.length}
-                </motion.div>
-              )}
-            </div>
+          {/* search row */}
+          <div className="flex items-center gap-4 px-5 py-4 border-b border-hair">
+            <Search className="w-4 h-4 text-ash shrink-0" />
+            <input
+              type="text"
+              placeholder="Search by name, provider, or model ID…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-transparent border-none outline-none text-bone placeholder:text-ash/60 font-mono text-sm"
+            />
+            {(searchQuery || isSearchStale) && (
+              <span
+                className={`font-mono text-xs tabular-nums px-2.5 py-1 rounded-md border ${
+                  isSearchStale
+                    ? "border-amber/20 text-amber bg-amber/5"
+                    : "border-hair text-bone bg-ink-800"
+                }`}
+              >
+                {isSearchStale ? "…" : filteredAndSortedModels.length}
+              </span>
+            )}
           </div>
 
-          {/* Provider Filter Pills */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {providers.map((provider) => {
-              const isActive = selectedProvider === provider;
-              const ProviderIcon = providerIcons[provider] || Cpu;
-              return (
-                <motion.button
-                  key={provider}
-                  onClick={() => setSelectedProvider(provider)}
-                  whileHover={{ scale: 1.05, y: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`relative px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider uppercase transition-all overflow-hidden ${
-                    isActive ? "text-black" : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <div
-                    className={`absolute inset-0 transition-all duration-300 ${
+          {/* filters row */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 px-5 py-4">
+            <div className="flex flex-wrap items-center gap-2 flex-1">
+              {providers.map((provider) => {
+                const isActive = selectedProvider === provider;
+                const count = providerCounts[provider] || 0;
+                return (
+                  <button
+                    key={provider}
+                    onClick={() => setSelectedProvider(provider)}
+                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-mono text-[11px] tracking-wider uppercase transition-colors ${
                       isActive
-                        ? "bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500 bg-[length:200%_100%] animate-gradient"
-                        : "bg-white/5 hover:bg-white/10 border border-white/10"
+                        ? "bg-amber text-ink-950"
+                        : "text-ash hover:text-bone hover:bg-ink-800 border border-hair"
                     }`}
-                  />
-                  {isActive && (
-                    <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] animate-shimmer" />
-                  )}
-                  <span className="relative z-10 flex items-center gap-2">
-                    {isActive && <CheckCircle className="w-3.5 h-3.5" />}
+                  >
                     {provider}
-                  </span>
-                </motion.button>
-              );
-            })}
+                    <span
+                      className={`text-[9px] tabular-nums ${
+                        isActive ? "text-ink-950/60" : "text-ash/60"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 lg:border-l lg:border-hair lg:pl-4">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-ash" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="bg-transparent border-none outline-none text-bone text-xs font-mono uppercase tracking-wider cursor-pointer"
+                >
+                  <option value="popular" className="bg-ink-900">
+                    Popular
+                  </option>
+                  <option value="name" className="bg-ink-900">
+                    Name
+                  </option>
+                  <option value="price-low" className="bg-ink-900">
+                    Price ↑
+                  </option>
+                  <option value="price-high" className="bg-ink-900">
+                    Price ↓
+                  </option>
+                  <option value="context" className="bg-ink-900">
+                    Context
+                  </option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1 border border-hair rounded-lg p-0.5">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    viewMode === "grid"
+                      ? "bg-ink-800 text-amber"
+                      : "text-ash hover:text-bone"
+                  }`}
+                  aria-label="Grid view"
+                >
+                  <Grid3x3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    viewMode === "list"
+                      ? "bg-ink-800 text-amber"
+                      : "text-ash hover:text-bone"
+                  }`}
+                  aria-label="List view"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </motion.div>
 
-        {/* Featured Bento (only when no filters active) */}
-        <AnimatePresence>
-          {!hasActiveFilters && featuredModels.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mb-20"
-            >
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <h3 className="text-xl font-bold tracking-tight text-white">
-                  Featured Models
-                </h3>
-                <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" />
-              </div>
+        {/* ===== Spotlight + Leaderboard (only when no filters active) ===== */}
+        {spotlightModel && !hasActiveFilters && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 mb-16 md:mb-20"
+          >
+            <ModelSpotlight
+              model={spotlightModel}
+              maxContext={maxContext}
+              icon={spotlightIcon}
+              onClick={() => handleModelClick(spotlightModel.id)}
+            />
+            <ModelLeaderboard
+              cheapest={rankings.cheapest}
+              largest={rankings.largest}
+              popular={rankings.popular}
+              onSelect={handleModelClick}
+            />
+          </motion.div>
+        )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {featuredModels.map((model, i) => (
+        {/* ===== Catalog header ===== */}
+        <div className="flex items-center justify-between mb-6 md:mb-8">
+          <div className="flex items-center gap-3">
+            <h2 className="font-sans text-xl font-semibold tracking-tight text-bone">
+              {hasActiveFilters ? "Results" : "All models"}
+            </h2>
+          </div>
+          <span className="font-mono text-xs tabular-nums text-ash">
+            {filteredAndSortedModels.length} model
+            {filteredAndSortedModels.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* ===== Catalog grid/list ===== */}
+        {filteredAndSortedModels.length > 0 ? (
+          viewMode === "grid" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+              {filteredAndSortedModels.map((model, i) => {
+                const Icon = providerIcons[model.provider];
+                return (
                   <ModelCard
                     key={model.id}
-                    model={model}
+                    model={{
+                      ...model,
+                      icon: Icon,
+                      color: "text-bone",
+                    }}
                     index={i}
                     onClick={() => handleModelClick(model.id)}
-                    featured={i === 0}
+                    viewMode="grid"
                   />
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* All Models Grid */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
-                <Cpu className="w-4 h-4" />
-              </div>
-              <h3 className="text-xl font-bold tracking-tight text-white">
-                {hasActiveFilters ? "Results" : "All Models"}
-              </h3>
+                );
+              })}
             </div>
-            <span className="text-xs font-mono text-gray-500">
-              {filteredModels.length} model
-              {filteredModels.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-
-          {filteredModels.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredModels.map((model, i) => (
+          ) : (
+            <div className="rounded-2xl bg-ink-900 border border-hair p-2 md:p-4">
+              {/* column header */}
+              <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 md:gap-6 px-4 py-2 border-b border-hair mb-1">
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ash">
+                  Model · ID
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ash text-right w-auto">
+                  Context
+                </span>
+                <span className="hidden md:block font-mono text-[10px] tracking-[0.2em] uppercase text-ash text-right w-20">
+                  In / 1M
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-amber text-right w-20">
+                  Out / 1M
+                </span>
+              </div>
+              {filteredAndSortedModels.map((model, i) => (
                 <ModelCard
                   key={model.id}
                   model={model}
                   index={i}
                   onClick={() => handleModelClick(model.id)}
+                  viewMode="list"
                 />
               ))}
             </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-24"
-            >
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/5 border border-white/10 mb-6">
-                <Search className="w-8 h-8 text-gray-600" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                No models found
-              </h3>
-              <p className="text-gray-500 font-mono text-sm mb-8">
-                Try adjusting your search or filters.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedProvider("All");
-                }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-sm font-mono transition-all"
-              >
-                Clear Filters
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Bottom Stats */}
-        {filteredModels.length > 0 && (
+          )
+        ) : (
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="mt-20 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-24"
           >
-            {[
-              { label: "Total Models", value: models.length },
-              {
-                label: "Providers",
-                value: new Set(models.map((m) => m.provider)).size,
-              },
-              {
-                label: "Popular Picks",
-                value: models.filter((m) => m.popular).length,
-              },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="flex items-center gap-2 text-xs text-gray-500 font-mono"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                {stat.label}:{" "}
-                <span className="text-white font-bold">{stat.value}</span>
-              </div>
-            ))}
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ink-900 border border-hair mb-6">
+              <Search className="w-6 h-6 text-ash" />
+            </div>
+            <h3 className="font-display text-2xl text-bone mb-2">
+              No models match.
+            </h3>
+            <p className="font-mono text-sm text-ash mb-8">
+              Try a different search or provider.
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedProvider("All");
+              }}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-amber/40 text-amber font-mono text-xs tracking-wider uppercase hover:bg-amber hover:text-ink-950 transition-colors"
+            >
+              Clear filters
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </motion.div>
         )}
       </div>

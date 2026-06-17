@@ -2544,3 +2544,201 @@ The docs navbar (`DocsNavbar.tsx`) had a solid foundation but lacked the visual 
 - **Type-check** (`tsc --noEmit -p apps/web/tsconfig.json`) — zero new errors in the modified file.
 - **Visual consistency**: all enhancements maintain the existing indigo accent system, glassmorphism aesthetic, and dark theme. The navbar now matches the visual richness of the enhanced docs landing page.
 - **Performance**: all animations use compositor-only properties (`opacity`, `transform`) or are scoped to hover states. No layout thrashing.
+
+## 26. Models Page UI/Visual Enhancement
+
+**Session**: Claude Code Enhancement Session
+**Date**: 2026-06-17 12:00
+
+### Why
+
+The /models page needed a visual upgrade to match the premium aesthetic of other pages. The original design was functional but lacked the polish, interactivity, and visual hierarchy expected in a modern AI platform. Users needed better ways to discover, filter, and compare models.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/web/app/models/page.tsx | L1-45 | modified |
+| apps/web/components/models/ModelsExplorer.tsx | L1-600 | modified |
+| apps/web/components/models/ModelCard.tsx | L1-250 | modified |
+
+### Before
+
+```typescript
+// apps/web/components/models/ModelsExplorer.tsx (L220-290)
+export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState("All");
+
+  const deferredQuery = useDeferredValue(searchQuery);
+  const deferredProvider = useDeferredValue(selectedProvider);
+  const isSearchStale = searchQuery !== deferredQuery;
+
+  const filteredModels = useMemo(() => {
+    return models.filter((model) => {
+      const q = deferredQuery.toLowerCase();
+      const matchesSearch =
+        model.name.toLowerCase().includes(q) ||
+        model.provider.toLowerCase().includes(q) ||
+        model.id.toLowerCase().includes(q);
+      const matchesProvider =
+        deferredProvider === "All" ||
+        model.provider.toLowerCase().includes(deferredProvider.toLowerCase());
+      return matchesSearch && matchesProvider;
+    });
+  }, [models, deferredQuery, deferredProvider]);
+```
+
+### After
+
+```typescript
+// apps/web/components/models/ModelsExplorer.tsx (L220-310)
+type SortOption = "popular" | "name" | "price-low" | "price-high" | "context";
+type ViewMode = "grid" | "list";
+
+export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState("All");
+  const [sortBy, setSortBy] = useState<SortOption>("popular");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+
+  const deferredQuery = useDeferredValue(searchQuery);
+  const deferredProvider = useDeferredValue(selectedProvider);
+  const isSearchStale = searchQuery !== deferredQuery;
+
+  const filteredAndSortedModels = useMemo(() => {
+    const filtered = models.filter((model) => {
+      const q = deferredQuery.toLowerCase();
+      const matchesSearch =
+        model.name.toLowerCase().includes(q) ||
+        model.provider.toLowerCase().includes(q) ||
+        model.id.toLowerCase().includes(q);
+      const matchesProvider =
+        deferredProvider === "All" ||
+        model.provider.toLowerCase().includes(deferredProvider.toLowerCase());
+      return matchesSearch && matchesProvider;
+    });
+
+    // Sort models
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "price-low":
+          const aPrice = parseFloat(a.inputPrice.replace("$", ""));
+          const bPrice = parseFloat(b.inputPrice.replace("$", ""));
+          return aPrice - bPrice;
+        case "price-high":
+          const aPriceH = parseFloat(a.inputPrice.replace("$", ""));
+          const bPriceH = parseFloat(b.inputPrice.replace("$", ""));
+          return bPriceH - aPriceH;
+        case "context":
+          const aCtx = parseInt(a.context.replace("K", "")) || 0;
+          const bCtx = parseInt(b.context.replace("K", "")) || 0;
+          return bCtx - aCtx;
+        case "popular":
+        default:
+          if (a.popular && !b.popular) return -1;
+          if (!a.popular && b.popular) return 1;
+          return a.name.localeCompare(b.name);
+      }
+    });
+  }, [models, deferredQuery, deferredProvider, sortBy]);
+```
+
+### Key Enhancements
+
+1. **Enhanced Hero Section**
+   - Larger, more impactful typography (5xl → 7xl responsive)
+   - Added quick stats bar showing total models, providers, and popular count
+   - Improved badge styling with gradient background and shadow effects
+   - Better visual hierarchy with enhanced spacing
+
+2. **Advanced Filtering & Sorting**
+   - Added sort controls: Popular, Name, Price (Low/High), Context Window
+   - Added view mode toggle: Grid vs List view
+   - Provider filter pills now show model counts
+   - Enhanced search bar with better visual feedback
+
+3. **Model Card Improvements**
+   - **Grid View**: Enhanced hover effects with animated gradients, better icon scaling, improved pricing display with tabular numbers
+   - **List View**: New compact horizontal layout for efficient browsing
+   - Better visual indicators: Zap icon for context, Eye icon for CTA
+   - Enhanced glow effects and border animations on hover
+   - Improved popular badge with motion animations
+
+4. **Loading State Enhancement**
+   - Larger, more prominent loader with blur effects
+   - Animated background orbs
+   - Bouncing dots animation
+   - Better visual feedback during data loading
+
+5. **Background Enhancements**
+   - Added third animated orb for more depth
+   - Better gradient layering
+   - Enhanced grid pattern visibility
+
+### Notes
+
+- **Performance**: All animations use framer-motion with optimized properties (opacity, transform). Deferred values prevent search input lag.
+- **Accessibility**: Maintained proper contrast ratios and focus states. Sort controls use native select for keyboard navigation.
+- **Responsive Design**: Grid/list views adapt to screen size. List view hides some details on mobile for better UX.
+- **Type Safety**: Added proper TypeScript types for SortOption and ViewMode. No `as any` or `@ts-ignore` used.
+- **Build Verification**: TypeScript compilation passes with zero errors. All changes follow Tailwind CSS v4 conventions.
+
+## [47]. Models Page "Editorial Catalog" Redesign
+
+**Session**: models-editorial-catalog
+**Date**: 2026-06-17 17:55
+
+### Why
+
+The `/models` listing used a generic neon-blue/violet/cyan glass aesthetic with a centered gradient-text hero and multi-blob glow background that read as templated. Redesigned it as an "editorial catalog" — pricing is the hero data, an Instrument Serif headline (a font already loaded in `layout.tsx` but previously unused), a single amber accent, mono tabular data throughout, and a ranked leaderboard rail as the signature element. Pure presentation work; the data layer is untouched (data still comes from `openrouter-models-2026.json`, filter/sort logic preserved).
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/app/globals.css` | L26-32 | modified (added design tokens) |
+| `apps/web/components/models/model-rankings.ts` | L1-58 | created |
+| `apps/web/tests/models/rankings.test.ts` | L1-95 | created |
+| `apps/web/components/models/ModelSpotlight.tsx` | L1-118 | created |
+| `apps/web/components/models/ModelLeaderboard.tsx` | L1-90 | created |
+| `apps/web/components/models/ModelCard.tsx` | L1-200 | rewritten |
+| `apps/web/components/models/ModelsExplorer.tsx` | L1-470 | rewritten |
+| `apps/web/app/models/page.tsx` | L1-43 | rewritten |
+
+### Before
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx — centered glass hero with multi-blob glow + gradient text
+<div className="text-center mb-20">
+  <motion.h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white mb-6 leading-[0.95]">
+    Every Model, <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-purple-500 bg-clip-text text-transparent">One Bill</span>
+  </motion.h2>
+  ...
+</div>
+```
+
+### After
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx — left-aligned editorial hero, Instrument Serif, amber accent
+<motion.h1
+  className="font-display text-bone leading-[0.95] tracking-tight"
+  style={{ fontSize: "clamp(2.75rem, 7vw, 5.5rem)" }}
+>
+  Every model, one bill.
+</motion.h1>
+```
+
+### Notes
+
+- New ranking helpers (`cheapestOutput`, `largestContext`, `mostPopular`) in `model-rankings.ts` derive the spotlight + three leaderboard lists from the existing models array — no data-layer or fetch changes. Covered by 6 unit tests in `tests/models/rankings.test.ts` (all passing).
+- New design tokens added to `globals.css` `@theme inline`: `--color-ink-950/900/800`, `--color-bone`, `--color-ash`, `--color-hair`, `--color-amber`. These generate matching Tailwind v4 utilities (`bg-ink-900`, `text-amber`, `border-hair`, etc.).
+- Spotlight card + leaderboard rail appear only when no search/provider filters are active.
+- Motion preserved (Framer Motion entrance reveals, hover micro-interactions, one ambient amber pulse via the existing `animate-glow-pulse`); `prefers-reduced-motion` respected via existing globals handling.
+- `ModelCard` retains its `featured` prop on the interface for backward compatibility but the new explorer no longer passes it (optional prop).
+- **Verification**: `npx tsc --noEmit -p apps/web/tsconfig.json` — no errors in any `components/models/*` or `app/models/*` file (pre-existing unrelated errors elsewhere in the repo are not affected); `tests/models/rankings.test.ts` — 6/6 pass. `scripts/smoke-test.sh` — the single failing check (`DashboardOverviewClient.tsx missing SDK import`) pre-exists this change (confirmed via `git stash` baseline) and is unrelated to the models page.

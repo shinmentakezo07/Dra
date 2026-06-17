@@ -11,15 +11,23 @@ export const metadata: Metadata = {
 
 function LoadingFallback() {
   return (
-    <div className="flex flex-col items-center w-full min-h-[60vh] justify-center bg-[#000000]">
-      <div className="w-8 h-8 rounded-full border-2 border-blue-500/30 border-t-blue-400 animate-spin" />
+    <div className="flex flex-col items-center w-full min-h-[80vh] justify-center bg-ink-950 relative overflow-hidden">
+      <div className="relative z-10 flex flex-col items-center gap-5">
+        {/* amber skeleton pulse */}
+        <div className="w-24 h-1.5 rounded-full bg-ink-800 overflow-hidden">
+          <div className="h-full w-1/2 rounded-full bg-amber/60 animate-glow-pulse" />
+        </div>
+        <p className="font-mono text-xs tracking-[0.3em] uppercase text-ash">
+          Loading registry
+        </p>
+      </div>
     </div>
   );
 }
 
 export default function ModelsPage() {
   return (
-    <div className="flex flex-col items-center w-full overflow-hidden bg-[#000000] text-foreground selection:bg-primary/30 selection:text-white">
+    <div className="flex flex-col items-center w-full overflow-hidden bg-ink-950 text-bone min-h-screen">
       <Suspense fallback={<LoadingFallback />}>
         <ModelsExplorer initialModels={modelData} />
       </Suspense>
