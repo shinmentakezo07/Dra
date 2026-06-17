@@ -103,9 +103,9 @@ export function DocsNavbar({
             : "bg-[#06060a]/60 backdrop-blur-xl"
         )}
       >
-        <header className="mx-auto max-w-6xl flex items-center h-[58px] px-4 sm:px-6">
+        <header className="mx-auto max-w-6xl flex items-center h-[58px] px-4 sm:px-6 gap-4">
           {/* ── Left cluster ── */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
             <button
               onClick={onMobileMenuClick}
               aria-label="Open navigation"
@@ -188,8 +188,61 @@ export function DocsNavbar({
             </div>
           </div>
 
+          {/* ── Center: Enhanced Search Bar ── */}
+          <div className="flex-1 flex justify-center min-w-0 hidden md:flex">
+            <button
+              onClick={onSearchOpen}
+              aria-label="Search documentation (Ctrl+K)"
+              className="group relative flex items-center gap-3 w-full max-w-[340px] lg:max-w-[400px] px-4 py-2.5 rounded-xl cursor-pointer transition-all duration-300"
+            >
+              {/* Animated border gradient */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/20 via-violet-500/15 to-indigo-500/20 opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-[1px] rounded-[11px] bg-[#0a0a0f]/95 group-hover:bg-[#0c0c14]/95 transition-colors duration-300" />
+
+              {/* Shimmer effect */}
+              <motion.div
+                className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none"
+                initial={false}
+              >
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent 0%, rgba(165,180,252,0.08) 50%, transparent 100%)",
+                    backgroundSize: "200% 100%",
+                  }}
+                />
+              </motion.div>
+
+              {/* Hover glow */}
+              <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-[0_0_20px_-4px_rgba(99,102,241,0.3)]" />
+
+              {/* Content */}
+              <div className="relative flex items-center gap-3 w-full z-10">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-white/30 group-hover:text-indigo-200 transition-colors duration-300" />
+                  {/* Subtle pulse on icon */}
+                  <div className="absolute inset-0 rounded-full bg-indigo-400/20 blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
+
+                <span className="flex-1 text-left text-[13px] text-white/35 group-hover:text-white/60 transition-colors duration-300 font-medium">
+                  Search documentation...
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <kbd className="flex items-center justify-center min-w-[20px] h-[22px] px-1.5 rounded-[5px] bg-white/[0.04] border border-white/[0.08] text-[10px] font-mono text-white/25 group-hover:border-indigo-500/30 group-hover:text-indigo-200/80 group-hover:bg-indigo-500/[0.06] transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+                    <span className="text-[11px] leading-none">&#8984;</span>
+                  </kbd>
+                  <kbd className="flex items-center justify-center min-w-[20px] h-[22px] px-1.5 rounded-[5px] bg-white/[0.04] border border-white/[0.08] text-[10px] font-mono text-white/25 group-hover:border-indigo-500/30 group-hover:text-indigo-200/80 group-hover:bg-indigo-500/[0.06] transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+                    K
+                  </kbd>
+                </div>
+              </div>
+            </button>
+          </div>
+
           {/* ── Right cluster ── */}
-          <div className="flex items-center gap-1.5 ml-auto">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <nav className="hidden lg:flex items-center mr-1" aria-label="Platform navigation">
               {productLinks.slice(0, 3).map((link) => (
                 <Link
@@ -301,27 +354,13 @@ export function DocsNavbar({
               </AnimatePresence>
             </div>
 
-            {/* Enhanced Search trigger */}
+            {/* Mobile search trigger (compact) */}
             <button
               onClick={onSearchOpen}
               aria-label="Search documentation (Ctrl+K)"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.07] text-white/40 hover:text-white/80 hover:border-indigo-500/25 hover:bg-indigo-500/[0.05] transition-all duration-300 cursor-pointer group relative overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]"
+              className="md:hidden p-2 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 cursor-pointer group"
             >
-              {/* Hover glow */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.12), transparent 70%)",
-                  }}
-                />
-              </div>
-              <Search className="w-3.5 h-3.5 group-hover:text-indigo-200 transition-colors relative z-10" />
-              <span className="hidden sm:inline text-[12px] font-medium relative z-10">Search</span>
-              <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-[2px] rounded-[4px] bg-white/[0.05] border border-white/[0.06] text-[9px] font-mono text-white/20 leading-none relative z-10 group-hover:border-indigo-500/20 group-hover:text-indigo-200/70 transition-all duration-200">
-                <span className="text-[10px]">&#8984;</span>K
-              </kbd>
+              <Search className="w-[18px] h-[18px] group-hover:text-indigo-200 transition-colors duration-200" />
             </button>
 
             {/* Enhanced GitHub */}
