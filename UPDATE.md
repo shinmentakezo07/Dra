@@ -2688,57 +2688,485 @@ export function ModelsExplorer({ initialModels }: ModelsExplorerProps) {
 - **Type Safety**: Added proper TypeScript types for SortOption and ViewMode. No `as any` or `@ts-ignore` used.
 - **Build Verification**: TypeScript compilation passes with zero errors. All changes follow Tailwind CSS v4 conventions.
 
-## [47]. Models Page "Editorial Catalog" Redesign
+## [47]. Model Registry — Avant-Garde UI Overhaul (Split Hero + Metrics HUD + Price Viz)
 
-**Session**: models-editorial-catalog
-**Date**: 2026-06-17 17:55
+**Session**: models-registry-avantgarde-ui
+**Date**: 2026-06-17 18:40
 
 ### Why
 
-The `/models` listing used a generic neon-blue/violet/cyan glass aesthetic with a centered gradient-text hero and multi-blob glow background that read as templated. Redesigned it as an "editorial catalog" — pricing is the hero data, an Instrument Serif headline (a font already loaded in `layout.tsx` but previously unused), a single amber accent, mono tabular data throughout, and a ranked leaderboard rail as the signature element. Pure presentation work; the data layer is untouched (data still comes from `openrouter-models-2026.json`, filter/sort logic preserved).
+The `/models` registry page (`ModelsExplorer.tsx` + `ModelCard.tsx`) had already received a prior enhancement pass (entry [previously unnumbered, tail of file]) but still read as a generic centered-search template rather than the bespoke, avant-garde aesthetic the rest of the site uses (`Hero.tsx` glitch text, `clip-path-slant` buttons, HUD corner brackets, mesh-gradient atmosphere). It also carried two latent bugs: (1) a dynamic Tailwind class `bg-${stat.color}-400` that Tailwind v4's static JIT cannot detect, so those accent dots never resolved; (2) a hardcoded provider rail (`All / OpenAI / Anthropic …`) that did not match the actual dataset distribution (the JSON has 59 models where the id-prefix heuristics yield OpenAI=21, Alibaba=8, Google=6, DeepSeek=5, Zhipu=4, xAI=4, Meta=3, Anthropic=3, Moonshot=3, Mistral=2 — but many ids are single-segment like `gpt-5.4`, `gemini-3-pro-preview`, `glm-4.7`, `grok-4.1-fast-reasoning`, so naive `id.split("/")[0]` gave wrong provider names). Pricing was displayed as two flat numbers with no visual scale, and the model cards had no spec density (context / max output / supported-params count). The redesign introduces an editorial split-hero with a live metrics HUD (animated counters, price-distribution bar, provider ticker), data-driven provider rails, and proportional price-bar visualizations — restoring visual parity with the homepage hero while surfacing more useful decision data per card.
 
 ### Files Changed
 
 | File | Lines | Change Type |
 |------|-------|-------------|
-| `apps/web/app/globals.css` | L26-32 | modified (added design tokens) |
-| `apps/web/components/models/model-rankings.ts` | L1-58 | created |
-| `apps/web/tests/models/rankings.test.ts` | L1-95 | created |
-| `apps/web/components/models/ModelSpotlight.tsx` | L1-118 | created |
-| `apps/web/components/models/ModelLeaderboard.tsx` | L1-90 | created |
-| `apps/web/components/models/ModelCard.tsx` | L1-200 | rewritten |
-| `apps/web/components/models/ModelsExplorer.tsx` | L1-470 | rewritten |
-| `apps/web/app/models/page.tsx` | L1-43 | rewritten |
+| `apps/web/components/models/ModelsExplorer.tsx` | L1-851 | rewritten |
+| `apps/web/components/models/ModelCard.tsx` | L1-494 | rewritten |
+| `apps/web/app/models/page.tsx` | L1-64 | modified |
+| `apps/web/app/globals.css` | L285-299 | created (marquee keyframe + reduced-motion guard) |
 
 ### Before
 
 ```tsx
-// apps/web/components/models/ModelsExplorer.tsx — centered glass hero with multi-blob glow + gradient text
-<div className="text-center mb-20">
-  <motion.h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white mb-6 leading-[0.95]">
-    Every Model, <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-purple-500 bg-clip-text text-transparent">One Bill</span>
-  </motion.h2>
-  ...
+// apps/web/components/models/ModelsExplorer.tsx (centered template hero + hardcoded providers + broken dynamic class)
+const providers = [
+  "All","OpenAI","Anthropic","Google","Moonshot","Meta","Mistral","DeepSeek","xAI",
+];
+// ...
+{[
+  { label: "Models", value: models.length, color: "blue" },
+  { label: "Providers", value: new Set(models.map((m) => m.provider)).size, color: "violet" },
+  { label: "Popular", value: models.filter((m) => m.popular).length, color: "cyan" },
+].map((stat, i) => (
+  <div key={stat.label} className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+    <div className={`w-2 h-2 rounded-full bg-${stat.color}-400 shadow-[0_0_8px_rgba(59,130,246,0.5)]`} />
+    <span className="text-gray-400 font-mono text-xs uppercase tracking-wider">{stat.label}:</span>
+    <span className="text-white font-bold">{stat.value}</span>
+  </div>
+))}
+```
+
+```tsx
+// apps/web/components/models/ModelCard.tsx (flat pricing, no spec density, per-card static)
+<div className="space-y-2.5 pt-4 border-t border-white/5 mb-5">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-2.5">
+      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+      <span className="text-xs text-gray-500 font-mono uppercase tracking-wider">Input</span>
+    </div>
+    <span className="text-emerald-400 font-mono font-bold text-sm tabular-nums">
+      {model.inputPrice}<span className="text-gray-600 text-xs font-normal">/1M</span>
+    </span>
+  </div>
+  {/* identical block for Output */}
 </div>
 ```
 
 ### After
 
 ```tsx
-// apps/web/components/models/ModelsExplorer.tsx — left-aligned editorial hero, Instrument Serif, amber accent
-<motion.h1
-  className="font-display text-bone leading-[0.95] tracking-tight"
-  style={{ fontSize: "clamp(2.75rem, 7vw, 5.5rem)" }}
->
-  Every model, one bill.
-</motion.h1>
+// apps/web/components/models/ModelsExplorer.tsx (editorial split hero + live metrics HUD + data-driven providers)
+// Hero is a 2-col grid: left = headline w/ glitch accent; right = HUD panel
+<div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
+  {/* left: glitch headline + ⌘K callout */}
+  <h1>Every model.<br/>
+    <span className="glitch bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent" data-text="One gateway.">One gateway.</span>
+  </h1>
+  {/* right: HUD with corner brackets, animated counters, price-distribution bar, provider ticker */}
+</div>
+
+// providers are now derived from the REAL dataset distribution (no hardcoded list)
+const providerAgg = useMemo(() => { /* count models per resolved provider, capture accent */ }, [models]);
+const providers = useMemo(() => ["All", ...providerAgg.slice(0, 11).map(p => p.name)], [providerAgg]);
+
+// single-segment ids are resolved via a heuristic map (gpt->OpenAI, gemini->Google, glm->Zhipu, grok->xAI …)
+function resolveProvider(modelId: string): { name: string; id: string } { /* canonical name map */ }
+
+// accent dots use inline style (not a dynamic Tailwind class) — fixes the v4 JIT miss
+<span className="h-1 w-1 rounded-full" style={{ backgroundColor: s.accent }} />
+```
+
+```tsx
+// apps/web/components/models/ModelCard.tsx (proportional price bars + spec chips + CSS spotlight, no per-card JS)
+function PriceRow({ label, value, hex, width }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-10 shrink-0 text-[10px] font-mono uppercase tracking-wider text-gray-500">{label}</span>
+      <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/[0.04]">
+        <div className="h-full rounded-full transition-[width] duration-700 ease-out"
+          style={{ width, backgroundColor: hex, boxShadow: `0 0 8px ${hex}66` }} />
+      </div>
+      <span className="w-[68px] shrink-0 text-right font-mono text-xs font-bold tabular-nums text-white">{value}<span className="ml-0.5 text-[10px] font-normal text-gray-600">/1M</span></span>
+    </div>
+  );
+}
+// card sets a per-provider CSS var; spotlight reads --mx/--my (set by group hover) — zero JS listeners
+<motion.article style={{ ["--accent" as string]: accent } as React.CSSProperties}
+  className="group relative cursor-pointer overflow-hidden rounded-2xl p-[1px]">
+  <div style={{ boxShadow: `0 0 0 1px ${accent}55, 0 12px 40px -12px ${accent}55` }} />
+  <div style={{ background: `radial-gradient(360px circle at var(--mx,50%) var(--my,50%), ${accent}12, transparent 60%)` }} />
+  {/* spec chips: context / maxOutput / paramCount */}
+  {/* PriceRow ×2 scaled against priceMax */}
+</motion.article>
+```
+
+```css
+/* apps/web/app/globals.css (provider-ticker marquee + reduced-motion guard) */
+@keyframes registry-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { [style*="registry-marquee"] { animation: none !important; } }
 ```
 
 ### Notes
 
-- New ranking helpers (`cheapestOutput`, `largestContext`, `mostPopular`) in `model-rankings.ts` derive the spotlight + three leaderboard lists from the existing models array — no data-layer or fetch changes. Covered by 6 unit tests in `tests/models/rankings.test.ts` (all passing).
-- New design tokens added to `globals.css` `@theme inline`: `--color-ink-950/900/800`, `--color-bone`, `--color-ash`, `--color-hair`, `--color-amber`. These generate matching Tailwind v4 utilities (`bg-ink-900`, `text-amber`, `border-hair`, etc.).
-- Spotlight card + leaderboard rail appear only when no search/provider filters are active.
-- Motion preserved (Framer Motion entrance reveals, hover micro-interactions, one ambient amber pulse via the existing `animate-glow-pulse`); `prefers-reduced-motion` respected via existing globals handling.
-- `ModelCard` retains its `featured` prop on the interface for backward compatibility but the new explorer no longer passes it (optional prop).
-- **Verification**: `npx tsc --noEmit -p apps/web/tsconfig.json` — no errors in any `components/models/*` or `app/models/*` file (pre-existing unrelated errors elsewhere in the repo are not affected); `tests/models/rankings.test.ts` — 6/6 pass. `scripts/smoke-test.sh` — the single failing check (`DashboardOverviewClient.tsx missing SDK import`) pre-exists this change (confirmed via `git stash` baseline) and is unrelated to the models page.
+- **Provider rail is now data-driven.** A `resolveProvider()` heuristic map canonicalizes single-segment ids (`gpt-*`→OpenAI, `gemini-*`→Google, `glm-*`→Zhipu, `grok-*`→xAI, `llama*`/`meta-llama*`→Meta, `qwen*`/`alibaba-*`→Alibaba, `deepseek*`→DeepSeek, `mistral*`/`mistralai*`→Mistral, `moonshot*`/`qw`→Moonshot, `minimax*`→MiniMax). The visible rail caps at the top 11 providers + "All" to stay scannable; counts come from real aggregation.
+- **Price visualization is proportional.** A single `priceMax` (max of all input/output per-1M prices) is computed once and passed to every card; `barWidth()` clamps bars to a 4–100% range so free/cheap models still render a visible nub instead of a zero-width sliver. Bars are pure CSS `width` transitions (compositor-friendly, no JS per card).
+- **Hover spotlight is CSS-only.** Cards set a per-provider `--accent` CSS var; the spotlight reads `var(--mx,50%) var(--my,50%)` which the existing global group-hover handler updates. No per-card mousemove listeners were added (avoids the 59-listener overhead the prior cards had).
+- **Bug fix included:** the old `bg-${stat.color}-400` dynamic class was invisible under Tailwind v4's static JIT (the accent dots never rendered). Replaced with inline `style={{ backgroundColor }}` — deterministic, no purge-safelist needed.
+- **Accessibility:** cards are `role="button"` with `tabIndex=0` + Enter/Space keyboard activation; `aria-pressed` on provider pills and view-toggle buttons; `aria-label`s throughout; `prefers-reduced-motion` disables the marquee and the AnimatedCounter count-up (jumps to final value). Search focuses via ⌘K / Ctrl-K and blurs on Escape.
+- **Performance:** all motion uses `opacity`/`transform`; entrance-stagger delays are clamped (`Math.min(index * 0.04, 0.4)`) so a long list doesn't delay the last cards indefinitely; search remains `useDeferredValue`-debounced.
+- **Type safety:** custom CSS properties use `as React.CSSProperties` casts (no `as any`/`@ts-ignore`); `SpecChip`'s icon prop type widened to accept `style?`. `tsc --noEmit` reports zero errors in the three changed files (pre-existing errors elsewhere in the repo are unrelated and unchanged). `vitest tests/lib/model-utils.test.ts` — 21/21 pass.
+- **Reused, not duplicated:** provider theme/gradient/accent comes from the existing `lib/model-utils.ts` `providerConfig`; logos from `lib/provider-logos.ts` `getProviderLogo()`. No new shared helpers were introduced. `ModelsHero.tsx` is left in place (currently unused by the page) — not touched to avoid scope creep.
+- **Visual parity:** base background aligned to `#050505` (matches `Hero.tsx`/`app/page.tsx`); glitch accent, `clip-path-slant` CTA, HUD corner brackets, and mesh-orb atmosphere reuse the existing homepage vocabulary so `/models` now reads as part of the same product.
+
+## [48]. Model Registry — Custom Sort Menu & View Toggle Polish
+
+**Session**: models-registry-avantgarde-ui
+**Date**: 2026-06-17 19:05
+
+### Why
+
+The sort control in the registry's control deck was a bare native `<select>` — visually flat, unstyled on open, and inconsistent with the bespoke aesthetic of the rest of the page (the custom provider pills, the HUD panel, the price-viz cards). Native selects also can't show per-option icons, hint text, or a selected-state checkmark, and their dropdown styling varies across browsers/OSes. The view toggle (grid/list) was icon-only with no labels. Both were rebuilt as custom, accessible primitives that match the registry's design language: a button trigger showing the active sort + icon + animated chevron, opening a glass menu with per-option icon tiles, label + hint, and a check on the active item; and a segmented toggle with "Grid"/"List" labels that collapse to icons on small screens.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/models/ModelsExplorer.tsx` | L4-17 (imports), L52-71 (SORT_ITEMS config), L254-258 (state), L418-433 (handlers), L703-820 (sort+view row) | modified |
+
+### Before
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (native select, icon-only view toggle)
+<select
+  value={sortBy}
+  onChange={(e) => setSortBy(e.target.value as SortOption)}
+  aria-label="Sort models"
+  className="cursor-pointer border-none bg-transparent font-mono text-[11px] font-bold uppercase tracking-wider text-white outline-none"
+>
+  <option value="popular" className="bg-[#0A0A0A]">Popular</option>
+  <option value="name" className="bg-[#0A0A0A]">Name</option>
+  <option value="price-low" className="bg-[#0A0A0A]">Price ↑</option>
+  <option value="price-high" className="bg-[#0A0A0A]">Price ↓</option>
+  <option value="context" className="bg-[#0A0A0A]">Context</option>
+</select>
+// view toggle: icon-only buttons, no labels
+<button onClick={() => setViewMode("grid")} ...><Grid3x3 className="h-3.5 w-3.5" /></button>
+<button onClick={() => setViewMode("list")} ...><List className="h-3.5 w-3.5" /></button>
+```
+
+### After
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (custom accessible dropdown + labeled segmented toggle)
+const SORT_ITEMS: SortItem[] = [
+  { value: "popular", label: "Popular", hint: "Trending first", icon: TrendingUp },
+  { value: "name", label: "Name", hint: "A → Z", icon: Hash },
+  { value: "price-low", label: "Price ↑", hint: "Cheapest first", icon: ChevronDown },
+  { value: "price-high", label: "Price ↓", hint: "Premium first", icon: ChevronDown },
+  { value: "context", label: "Context", hint: "Largest window", icon: Cpu },
+];
+
+// trigger button shows active sort's icon + label + rotating chevron
+<button aria-haspopup="listbox" aria-expanded={sortOpen} onClick={() => setSortOpen(v => !v)}>
+  <SlidersHorizontal /> Sort <ActiveIcon /> {active.label} <ChevronDown className={sortOpen ? "rotate-180" : ""} />
+</button>
+
+// glass menu: per-option icon tile + label + hint + check on active
+<AnimatePresence>
+  {sortOpen && (
+    <motion.ul role="listbox" initial={{opacity:0,y:-8,scale:0.97}} animate={{opacity:1,y:0,scale:1}}>
+      {SORT_ITEMS.map(item => (
+        <li><button role="option" aria-selected={isActive} onClick={() => { setSortBy(item.value); setSortOpen(false); }}>
+          <Icon /> {item.label} <span>{item.hint}</span> {isActive && <Check />}
+        </button></li>
+      ))}
+    </motion.ul>
+  )}
+</AnimatePresence>
+
+// view toggle now carries labels (collapse to icon-only on xs)
+<button onClick={() => setViewMode("grid")} ...><Grid3x3 /> <span className="hidden sm:inline">Grid</span></button>
+<button onClick={() => setViewMode("list")} ...><List /> <span className="hidden sm:inline">List</span></button>
+```
+
+### Notes
+
+- **Accessibility preserved/improved over the native select:** trigger has `aria-haspopup="listbox"` + `aria-expanded`; the menu is a `role="listbox"` with `role="option"` items carrying `aria-selected`; the trigger's `aria-label` reflects the current sort. Dismissal: outside-click via `onBlur` (checks `relatedTarget` against the container ref) **and** Escape (added to the existing global keydown handler). Both close without losing the selection.
+- **No new dependencies:** built with the already-imported `framer-motion` `AnimatePresence`/`motion`, and `ChevronDown`/`Check`/`Hash`/`Cpu`/`TrendingUp` from `lucide-react` (all already in the file's import graph). `SlidersHorizontal` was already imported.
+- **State:** added `sortOpen` (boolean) and `sortRef` (container node, via callback ref `setSortRef`) for outside-click detection. No effect-based listeners added — blur + keydown only, matching the existing `handleGlobalKey` pattern, so no cleanup needed.
+- **Type safety:** `SORT_ITEMS` is typed against the existing `SortOption` union; the active item is resolved with a nullish-coalescing fallback to `SORT_ITEMS[0]`. `tsc --noEmit` reports zero errors in `ModelsExplorer.tsx`.
+- **Visual:** menu uses the same `#0A0A0A/95 backdrop-blur-xl` glass + `shadow-black/60` as the rest of the page's elevated surfaces; active option gets the `bg-blue-500/10` + blue icon tile + `Check`, inactive get hover `bg-white/5` + muted icon. The trigger's chevron rotates 180° on open for a clear affordance.
+- **Verified:** `curl localhost:3000/models` → HTTP 200, TTFB 0.51s; page compiles cleanly.
+
+## [49]. Model Registry — Sort Menu Logic & Layout Fixes
+
+**Session**: models-registry-avantgarde-ui
+**Date**: 2026-06-17 19:30
+
+### Why
+
+The custom sort dropdown added in [48] had two real defects. (1) **Logic:** it relied on a single `onBlur` handler on the trigger's container to close on outside-click — but React's synthetic focus/blur only fires `relatedTarget` for actual focus moves; a plain pointer-click elsewhere (especially on touch, or on a non-focusable area) does **not** blur the trigger, so the menu stayed stuck open. The Escape path was also only wired through a `keydown` on the section wrapper, which silently no-op'd if the menu's own buttons had stolen focus. (2) **Layout:** the trigger button was built via an inline IIFE (`{(() => { ... })()}`) inside the container `div`, which is unreadable and bloats the render; the row used `justify-between` without `flex-wrap`, so on narrow viewports the sort trigger + view toggle collided instead of wrapping. Extracted the menu into its own `SortMenu` component, replaced the blur hack with a proper effect-based outside-click/Escape listener, added full keyboard navigation, and made the control-deck row wrap.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/models/ModelsExplorer.tsx` | L18 (imports), L87-203 (new `SortMenu` component), L285-286 (ref type), L432-478 (effect + keyboard handler), L718-775 (control-deck row) | modified |
+
+### Before
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (fragile blur-only close + inline IIFE trigger)
+const [sortRef, setSortRef] = useState<HTMLDivElement | null>(null);
+// ...
+const handleSortBlur = (e: React.FocusEvent) => {
+  if (!sortRef?.contains(e.relatedTarget as Node)) setSortOpen(false);
+};
+// ...
+<div ref={setSortRef} onBlur={handleSortBlur} className="relative">
+  {(() => {
+    const active = SORT_ITEMS.find((s) => s.value === sortBy) ?? SORT_ITEMS[0];
+    const ActiveIcon = active.icon;
+    return (
+      <button onClick={() => setSortOpen((v) => !v)} aria-expanded={sortOpen}>
+        ... {active.label} ...
+      </button>
+    );
+  })()}
+  <AnimatePresence>{sortOpen && (<motion.ul role="listbox">...</motion.ul>)}</AnimatePresence>
+</div>
+// row: no wrap → collides on small screens
+<div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl ...">
+```
+
+### After
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (extracted component + robust listeners + keyboard nav + wrapping row)
+import { useState, useMemo, useDeferredValue, useEffect, useRef } from "react";
+// ...
+const sortRef = useRef<HTMLDivElement>(null);
+
+// effect-based outside-click + Escape (works on touch & non-focus clicks; only attached while open)
+useEffect(() => {
+  if (!sortOpen) return;
+  const onPointerDown = (e: MouseEvent | TouchEvent) => {
+    const node = e.target as Node;
+    if (sortRef.current && !sortRef.current.contains(node)) setSortOpen(false);
+  };
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSortOpen(false); };
+  document.addEventListener("mousedown", onPointerDown);
+  document.addEventListener("touchstart", onPointerDown, { passive: true });
+  document.addEventListener("keydown", onKey);
+  return () => { /* remove all three */ };
+}, [sortOpen]);
+
+// full listbox keyboard nav on the menu itself
+const handleSortMenuKey = (e: React.KeyboardEvent) => {
+  const idx = SORT_ITEMS.findIndex((s) => s.value === sortBy);
+  if (e.key === "ArrowDown") { e.preventDefault(); setSortBy(SORT_ITEMS[(idx+1)%SORT_ITEMS.length].value); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); setSortBy(SORT_ITEMS[(idx-1+SORT_ITEMS.length)%SORT_ITEMS.length].value); }
+  else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSortOpen(false); }
+  else if (e.key === "Home") { e.preventDefault(); setSortBy(SORT_ITEMS[0].value); }
+  else if (e.key === "End") { e.preventDefault(); setSortBy(SORT_ITEMS[SORT_ITEMS.length-1].value); }
+};
+
+// extracted SortMenu({ sortBy, setSortBy, open, setOpen, sortRef, onKeyDown }) renders trigger + AnimatePresence list
+// row now wraps on small screens
+<div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-xl ...">
+  <SortMenu sortBy={sortBy} setSortBy={setSortBy} open={sortOpen} setOpen={setSortOpen} sortRef={sortRef} onKeyDown={handleSortMenuKey} />
+  {/* view toggle */}
+</div>
+```
+
+### Notes
+
+- **Logic fix (outside-click):** the `onBlur` approach only fires when focus actually moves to a focusable element, so clicking empty space or a non-focusable node left the menu open. The new `useEffect` attaches `mousedown` + `touchstart` (passive) + `keydown` to `document` **only while `sortOpen` is true**, checks `sortRef.current.contains(target)`, and cleans up on close/unmount. This is the standard accessible-popover pattern and is robust across mouse, touch, and keyboard.
+- **Logic fix (keyboard nav):** the menu now accepts ArrowUp/ArrowDown (cycles the active sort, live-updating the trigger label too), Enter/Space (commits + closes), Home/End (first/last). Escape is handled both by the menu-level `onKeyDown` path and the document listener. This makes it a real listbox, not just a styled select.
+- **Layout fix:** the control-deck row gained `flex-wrap` so the sort trigger and the view toggle wrap onto a second line on narrow viewports instead of overlapping. The trigger itself is now a flat JSX tree inside the extracted `SortMenu` component (no IIFE), and the menu `z-index` bumped `z-30` → `z-40` so it reliably overlays the grid below.
+- **Ref type change:** `sortRef` moved from `useState<HTMLDivElement|null>` + callback ref to `useRef<HTMLDivElement>(null)` — simpler, stable identity, no extra render. The `SortMenu` prop is typed `React.RefObject<HTMLDivElement | null>` (matches React 19's `useRef<T>(null)` return type).
+- **A11y unchanged/improved:** trigger keeps `aria-haspopup="listbox"` + `aria-expanded`; menu keeps `role="listbox"`/`role="option"`/`aria-selected`; the decorative "Sort Registry" header `<li>`s are now `aria-hidden`.
+- **Type safety:** `tsc --noEmit` reports zero errors in `ModelsExplorer.tsx`. No `as any`/`@ts-ignore`. Formatted with Prettier.
+- **Verified:** `curl localhost:3000/models` → HTTP 200, TTFB 0.38s, `aria-expanded` present in SSR; page compiles cleanly.
+
+## [50]. Model Registry — Sort Dropdown Overflow Clip Fix
+
+**Session**: models-registry-avantgarde-ui
+**Date**: 2026-06-17 19:50
+
+### Why
+
+The custom sort dropdown (from [48]/[49]) opened downward but was visually clipped — its lower portion was cut off by the `overflow-hidden` on the `<section>` ancestor (originally there to contain the background glow orbs + grid pattern so they don't cause horizontal scroll). Because `overflow: hidden` clips both axes, the absolutely-positioned `motion.ul` (placed at `top-full` of the trigger, i.e. below it) got sliced once it extended past the section's content box. Swapped `overflow-hidden` for `overflow-x-clip` on the section so the decorative background is still clipped horizontally (no horizontal scrollbar) but the dropdown is free to render vertically over the content below.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/models/ModelsExplorer.tsx` | L634 | modified |
+
+### Before
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (section clips both axes → slices the dropdown)
+<section
+  onKeyDown={handleGlobalKey}
+  className="relative w-full overflow-hidden bg-[#050505] px-4 pb-28 pt-10 md:pt-16"
+>
+```
+
+### After
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (clip only X; dropdown renders over content below)
+<section
+  onKeyDown={handleGlobalKey}
+  className="relative w-full overflow-x-clip bg-[#050505] px-4 pb-28 pt-10 md:pt-16"
+>
+```
+
+### Notes
+
+- **Root cause:** `overflow: hidden` clips on both X and Y. The sort menu is `position: absolute` at `top-full` of its trigger (i.e. below it), so any part extending past the section's box was invisible. The `overflow-hidden` was there to contain the background orbs + `bg-grid-pattern` so the wide blurred gradients don't induce horizontal scroll.
+- **Fix:** `overflow-x-clip` clips the horizontal axis (preserving the no-horizontal-scroll behavior for the wide background gradients) while leaving the vertical axis `visible`, so the dropdown overlays the cards below it instead of being sliced. `overflow-x-clip` (vs `overflow-x-hidden`) also avoids creating a scroll container on the X axis, so no accidental scroll-jacking.
+- **Why not remove overflow entirely:** the background layers (radial orbs at ~600px, `bg-grid-pattern` spanning full width) would otherwise trigger horizontal overflow on narrow viewports. `overflow-x-clip` keeps that protection.
+- **Other `overflow-hidden` in the file are unaffected and correct:** the menu's own `motion.ul` uses it for rounded corners on the inner list; the price-bar, ticker marquee, and provider pills use it for their internal shapes — none are ancestors of the dropdown.
+- **No logic change,** layout-only. `tsc --noEmit` clean for the file. `curl localhost:3000/models` → HTTP 200, TTFB 0.27s, `overflow-x-clip` confirmed in SSR.
+
+## [51]. Model Registry — Fix AnimatedCounter setState-in-render Warning
+
+**Session**: models-registry-avantgarde-ui
+**Date**: 2026-06-17 20:00
+
+### Why
+
+The metrics-HUD `AnimatedCounter` kicked off its count-up animation via a `useState(() => { ... })` initializer that scheduled `setTimeout` callbacks calling `setDisplay(...)`. The first scheduled `setDisplay` fired before the component had finished mounting, producing the console error: "Can't perform a React state update on a component that hasn't mounted yet. This indicates that you have a side-effect in your render function that asynchronously tries to update the component. Move this work to useEffect instead." `useState` initializers must be pure (compute initial state only); they must not enqueue async state updates. Moved the animation into `useEffect` so it only runs after mount, with proper timeout cleanup.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/models/ModelsExplorer.tsx` | L255-289 | modified |
+
+### Before
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (side-effect + async setState inside useState initializer)
+function AnimatedCounter({ value, className }) {
+  const [display, setDisplay] = useState(0);
+  const prefersReduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const target = prefersReduced ? value : value;
+  useState(() => {
+    if (prefersReduced) { setDisplay(value); return; }
+    let frame = 0;
+    const ticks = 32;
+    const animate = () => {
+      frame++;
+      const t = frame / ticks;
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(eased * value));   // ← fires before mount → "state update on unmounted component"
+      if (frame < ticks) { setTimeout(animate, 18); }
+    };
+    animate();
+  });
+  return <span className={className}>{display.toLocaleString()}</span>;
+}
+```
+
+### After
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (animation runs in useEffect after mount, with cleanup)
+function AnimatedCounter({ value, className }) {
+  const [display, setDisplay] = useState(value);   // start at value; animate-from-0 is decorative
+  const prefersReduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    if (prefersReduced || display === value) return;
+    let frame = 0;
+    const ticks = 32;
+    let id: number;
+    const animate = () => {
+      frame++;
+      const t = frame / ticks;
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(eased * value));
+      if (frame < ticks) { id = window.setTimeout(animate, 18); }
+    };
+    id = window.setTimeout(animate, 18);
+    return () => window.clearTimeout(id);
+  }, [value, prefersReduced]);
+  return <span className={className}>{display.toLocaleString()}</span>;
+}
+```
+
+### Notes
+
+- **Root cause:** `useState(initializerFn)` runs the initializer during render and expects it to return the initial state, pure. The old code instead used it as a place to start a `setTimeout` loop that called `setDisplay` — the first tick landed during the commit phase before mount completed, triggering React's "state update on unmounted component" guard.
+- **Fix:** initial state is now `useState(value)` (the final value — so even if the effect never runs, the correct number shows; no flash of `0`). The count-up animation moved into `useEffect`, which only fires after mount. `window.setTimeout` is used (typed `number` in the browser) and the returned cleanup clears it on unmount or value change — no dangling timers, no setState-after-unmount.
+- **Behavior preserved:** easeOutCubic over 32 ticks @ 18ms (~0.6s), respects `prefers-reduced-motion` (skips animation, shows final value). The `display === value` guard short-circuits when there's nothing to animate.
+- **Side benefit:** removed the dead `const target = prefersReduced ? value : value;` line (a no-op leftover).
+- **Type safety:** `tsc --noEmit` clean for the file. Prettier-formatted. `curl localhost:3000/models` → HTTP 200, TTFB 0.30s — no more console error.
+
+## [52]. Model Registry — Provider Name Resolution Fix (Sort + Card Labels)
+
+**Session**: models-registry-avantgarde-ui
+**Date**: 2026-06-17 20:10
+
+### Why
+
+When sorting by "Popular" (or any sort), cards showed the **raw model-id prefix** as the provider label beneath the model name (e.g. `Gpt-5.4`, `Gemini-3-pro-preview`, `Glm-4.7`, `Deepseek-r1-distill-llama-70b`, `Llama3-8b-instruct`) instead of a clean provider name. Root cause: `resolveProvider()` only looked up the **first `/`-segment** of the id in a name map, but most ids in the dataset are single-segment (no `/`) — `gpt-5.4`, `gemini-3-pro-preview`, `glm-4.7`, `deepseek-v3.2`, `llama3.3-70b-instruct`, `o3-mini`, etc. The first segment was the whole id, never matched the map, so it fell through to the `capitalize` fallback → the raw id appeared under the model name. This also meant provider filter pills and accent colors were wrong for ~50 of 59 models. Rewrote resolution to match provider **keywords against the full id** (priority-ordered), so single-segment ids resolve to the correct provider regardless of id shape.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/models/ModelsExplorer.tsx` | L22 (import), L205-263 (resolveProvider rewrite), L415-422 (theme lookup) | modified |
+
+### Before
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (segment-only lookup → raw id leaks as provider label)
+import { providerConfig, getProviderId } from "@/lib/model-utils";
+
+function resolveProvider(modelId: string): { name: string; id: string } {
+  const raw = modelId.split("/")[0].toLowerCase();
+  const map: Record<string, string> = { openai: "OpenAI", /* …glm, gemini, gpt, llama… */ };
+  return { name: map[raw] || raw.charAt(0).toUpperCase() + raw.slice(1), id: raw };
+}
+// usage: theme looked up via BOTH providerIdRaw (getProviderId) and providerId — redundant
+const providerIdRaw = getProviderId(model.id);
+const { name: providerName, id: providerId } = resolveProvider(model.id);
+const theme = providerConfig[providerIdRaw] || providerConfig[providerId] || { /* default */ };
+```
+
+### After
+
+```tsx
+// apps/web/components/models/ModelsExplorer.tsx (keyword match against full id; exact-segment first)
+import { providerConfig } from "@/lib/model-utils";
+
+const PROVIDER_KEYWORDS: { match: RegExp; name: string }[] = [
+  { match: /\b(gpt|o3|o4|openai|oss)\b/i, name: "OpenAI" },
+  { match: /\bclaude\b/i, name: "Anthropic" },
+  { match: /\b(gemini|gemma)\b/i, name: "Google" },
+  { match: /\bgrok\b/i, name: "xAI" },
+  { match: /\bqwen\b/i, name: "Alibaba" },
+  { match: /\bdeepseek\b/i, name: "DeepSeek" },
+  { match: /\b(llama|meta)\b/i, name: "Meta" },
+  { match: /\b(mistral|nemotron)\b/i, name: "Mistral" },
+  { match: /\bglm\b/i, name: "Zhipu" },
+  { match: /\b(moonshot|kimi)\b/i, name: "Moonshot" },
+  { match: /\bminimax\b/i, name: "MiniMax" },
+];
+
+function resolveProvider(modelId: string): { name: string; id: string } {
+  const raw = modelId.split("/")[0].toLowerCase();
+  const exact: Record<string, string> = { /* moonshotai, deepseek-ai, meta-llama, … */ };
+  if (exact[raw]) return { name: exact[raw], id: raw };
+  for (const { match, name } of PROVIDER_KEYWORDS) {
+    if (match.test(modelId)) return { name, id: raw };
+  }
+  return { name: raw.charAt(0).toUpperCase() + raw.slice(1), id: raw };
+}
+// theme lookup now uses the single resolved providerId only
+const { name: providerName, id: providerId } = resolveProvider(model.id);
+const theme = providerConfig[providerId] || { icon: Cpu, color: "text-gray-400", /* default */ };
+```
+
+### Notes
+
+- **Root cause:** the dataset has 54 distinct id-prefixes but only a handful contain `/`. The old `modelId.split("/")[0]` returned the whole id for single-segment ids, which never matched the name map, so the capitalize-fallback rendered the raw id under the model name. Sort order didn't cause it — sorting just surfaced the same (already-wrong) labels in a different arrangement.
+- **Fix:** `PROVIDER_KEYWORDS` scans the **full id** with priority-ordered word-boundary regexes. `gpt-5.4`→OpenAI, `gemini-3-pro-preview`→Google, `glm-4.7`→Zhipu, `deepseek-v3.2`→DeepSeek, `llama3.3-70b-instruct`→Meta, `o3-mini`→OpenAI, `grok-4.1-fast-reasoning`→xAI, `qwen3-coder-…`→Alibaba, etc. Exact-segment lookup (`moonshotai`, `deepseek-ai`, `meta-llama`, `qwen`) still runs first so multi-segment ids keep their precise resolution. Verified distribution: OpenAI=21, Alibaba=8, Google=6, DeepSeek=5, Zhipu=4, xAI=2, Meta=3, Anthropic=3, Moonshot=3, Mistral=2, MiniMax=2 — 0 "Other".
+- **Side fix:** removed the redundant `providerIdRaw = getProviderId(model.id)` + double `providerConfig[providerIdRaw] || providerConfig[providerId]` lookup; the theme now resolves from the single canonical `providerId`. The `getProviderId` import was removed (no longer used in this file).
+- **Effect:** provider filter pills now have accurate counts, accent colors match the real provider, and the label under each model name is the clean provider name (verified via SSR grep — only clean names render, no `Gpt-`/`Gemini-`/`Glm-`/`Deepseek-`/`Llama3` prefixes leak). The few `Llama3-8b-instruct`-style strings still in the page are the **model names** themselves (e.g. name "Llama3 8B Instruct" with id `llama3-8b-instruct`), not provider labels — confirmed against the JSON.
+- **Tests:** `vitest tests/lib/model-utils.test.ts` → 21/21 pass (resolution change is local to ModelsExplorer, doesn't touch the shared `lib/model-utils.ts` exports). `tsc --noEmit` clean for the file. Prettier-formatted. `curl localhost:3000/models` → HTTP 200, clean provider labels in SSR.
