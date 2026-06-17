@@ -295,12 +295,12 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/components/MobileBottomNav.tsx` | L1-L93 | created |
-| `apps/web/components/Header.tsx` | L67-L225 | modified |
-| `apps/web/components/MainLayout.tsx` | L1-L185 | modified |
-| `UPDATE.md` | L289 | modified |
+| File                                      | Lines    | Change type |
+| ----------------------------------------- | -------- | ----------- |
+| `apps/web/components/MobileBottomNav.tsx` | L1-L93   | created     |
+| `apps/web/components/Header.tsx`          | L67-L225 | modified    |
+| `apps/web/components/MainLayout.tsx`      | L1-L185  | modified    |
+| `UPDATE.md`                               | L289     | modified    |
 
 **Before** (`apps/web/components/Header.tsx` L67):
 
@@ -344,10 +344,10 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `AGENTS.md` | L66-L78 | modified |
-| `CLAUDE.md` | L125, L141 | modified |
+| File        | Lines      | Change type |
+| ----------- | ---------- | ----------- |
+| `AGENTS.md` | L66-L78    | modified    |
+| `CLAUDE.md` | L125, L141 | modified    |
 
 **Before** (`AGENTS.md` L66):
 
@@ -414,10 +414,10 @@ Frontend (npx vitest run):  87/87 pass across 4 files
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/components/MobileBottomNav.tsx` | L1-L133 | modified |
-| `UPDATE.md` | L408 | modified |
+| File                                      | Lines   | Change type |
+| ----------------------------------------- | ------- | ----------- |
+| `apps/web/components/MobileBottomNav.tsx` | L1-L133 | modified    |
+| `UPDATE.md`                               | L408    | modified    |
 
 **Before** (`apps/web/components/MobileBottomNav.tsx`):
 
@@ -458,12 +458,12 @@ const rightItems = [
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/components/MobileSidebar.tsx` | L1-L267 | created |
-| `apps/web/components/Header.tsx` | L1-L288 | modified |
-| `apps/web/components/MainLayout.tsx` | L1-L55 | modified |
-| `UPDATE.md` | L452 | modified |
+| File                                    | Lines   | Change type |
+| --------------------------------------- | ------- | ----------- |
+| `apps/web/components/MobileSidebar.tsx` | L1-L267 | created     |
+| `apps/web/components/Header.tsx`        | L1-L288 | modified    |
+| `apps/web/components/MainLayout.tsx`    | L1-L55  | modified    |
+| `UPDATE.md`                             | L452    | modified    |
 
 **Before** (`apps/web/components/MainLayout.tsx`):
 
@@ -476,7 +476,11 @@ const rightItems = [
 
 ```tsx
 // Clean 55-line component, sidebar extracted to MobileSidebar
-<MobileSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} user={user} />
+<MobileSidebar
+  open={sidebarOpen}
+  onClose={() => setSidebarOpen(false)}
+  user={user}
+/>
 ```
 
 **Before** (`apps/web/components/Header.tsx` hamburger button):
@@ -495,6 +499,7 @@ const rightItems = [
 ```
 
 **Notes**:
+
 - `MobileSidebar.tsx` features: glass panel with tech grid background, right-edge gradient accent, rotating tech rings on the logo, active page indicator with `layoutId` animation, icon badges in rounded containers, description text per nav item, gradient user card.
 - `MainLayout.tsx` reduced from ~180 lines to ~55 lines by extracting sidebar logic.
 - Hamburger button now has three custom animated lines (top=20px, middle=14px, bottom=20px) that smoothly morph into an X when the sidebar opens.
@@ -508,10 +513,10 @@ const rightItems = [
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/components/MobileSidebar.tsx` | L1-L260 | modified |
-| `UPDATE.md` | L502 | modified |
+| File                                    | Lines   | Change type |
+| --------------------------------------- | ------- | ----------- |
+| `apps/web/components/MobileSidebar.tsx` | L1-L260 | modified    |
+| `UPDATE.md`                             | L502    | modified    |
 
 **Before** (`apps/web/components/MobileSidebar.tsx`):
 
@@ -534,6 +539,7 @@ const rightItems = [
 ```
 
 **Notes**:
+
 - Nav items reduced from icon+label+desc+arrow to label+kana only. Cognitive load dropped ~60%.
 - `panelVariants` uses `clipPath: "inset(0 100% 0 0)"` for GPU-composited reveal. No layout shift.
 - All `ease` arrays typed `as const` to satisfy Framer Motion's `Variants` type.
@@ -549,9 +555,9 @@ const rightItems = [
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/app/login/page.tsx` | L15-22 | modified |
+| File                          | Lines  | Change type |
+| ----------------------------- | ------ | ----------- |
+| `apps/web/app/login/page.tsx` | L15-22 | modified    |
 
 **Before** (`apps/web/app/login/page.tsx` L15-22):
 
@@ -571,14 +577,7 @@ import {
 **After** (`apps/web/app/login/page.tsx` L15-22):
 
 ```tsx
-import {
-  Mail,
-  Lock,
-  Loader2,
-  Eye,
-  EyeOff,
-  AlertCircle,
-} from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 ```
 
 Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home" text from both the desktop left panel header and the mobile logo section.
@@ -591,9 +590,9 @@ Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home"
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/app/signup/page.tsx` | L16-27 | modified |
+| File                           | Lines  | Change type |
+| ------------------------------ | ------ | ----------- |
+| `apps/web/app/signup/page.tsx` | L16-27 | modified    |
 
 **Before** (`apps/web/app/signup/page.tsx` L16-27):
 
@@ -615,16 +614,7 @@ import {
 **After** (`apps/web/app/signup/page.tsx` L16-27):
 
 ```tsx
-import {
-  Mail,
-  Lock,
-  User,
-  Loader2,
-  Eye,
-  EyeOff,
-  Check,
-  X,
-} from "lucide-react";
+import { Mail, Lock, User, Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 ```
 
 Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home" text from both the desktop left panel header and the mobile logo section.
@@ -636,6 +626,7 @@ Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home"
 **Why**: The previous version still looked generic: standard split-screen with a card wrapper, identical step cards, icon-left inputs, and "or continue with email" divider. Rebuilt with an anti-generic editorial approach: no card wrapper on the form, terminal-styled inputs with `>` prompt prefix, vertical timeline with connector line replacing identical cards, animated stat counters, and an asymmetric column layout with a glowing separator.
 
 **What was removed (anti-generic decisions)**:
+
 - Card wrapper around the form: form now sits directly on the background, only the page provides structure
 - Identical step cards: replaced with a vertical timeline using a gradient connector line and dot indicators
 - Icon-left inputs: replaced with terminal-styled inputs showing `name>`, `mail>`, `pass>` prompt prefixes
@@ -646,12 +637,13 @@ Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home"
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/app/signup/page.tsx` | full rewrite | modified |
-| `apps/web/app/globals.css` | +55 lines | modified |
+| File                           | Lines        | Change type |
+| ------------------------------ | ------------ | ----------- |
+| `apps/web/app/signup/page.tsx` | full rewrite | modified    |
+| `apps/web/app/globals.css`     | +55 lines    | modified    |
 
 **Key design components**:
+
 - `TerminalInput` — terminal-styled input with `icon prefix > prompt` layout, focus glow, error display
 - `GlitchText` — CSS glitch effect with `::before`/`::after` pseudo-elements
 - `TypewriterText` — character-by-character spring animation
@@ -674,11 +666,12 @@ Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home"
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/app/login/page.tsx` | full rewrite | modified |
+| File                          | Lines        | Change type |
+| ----------------------------- | ------------ | ----------- |
+| `apps/web/app/login/page.tsx` | full rewrite | modified    |
 
 **Key differences from signup**:
+
 - No name field (login only needs email + password)
 - "GATEWAY ACCESS" badge instead of "STEP 01"
 - "Welcome BACK" headline (Typewriter + Glitch) vs "Universal LLM GATEWAY"
@@ -699,37 +692,41 @@ Also removed two `<Link href="/">` blocks containing `ArrowLeft` icon and "Home"
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/backend/migrations/008_rbac.sql` | ~10 lines | modified — `CREATE INDEX IF NOT EXISTS`, `ON CONFLICT DO NOTHING` on all INSERTs |
-| `apps/backend/migrations/009_rate_limits.sql` | 1 line | modified — `CREATE INDEX IF NOT EXISTS`, `ON CONFLICT (name) DO NOTHING` |
-| `apps/backend/migrations/010_budget_alerts.sql` | 2 lines | modified — `CREATE INDEX IF NOT EXISTS` |
-| `apps/backend/migrations/011_ab_comparison.sql` | 2 lines | modified — `CREATE INDEX IF NOT EXISTS` |
-| `apps/backend/migrations/012_fine_tuning.sql` | 3 lines | modified — `CREATE INDEX IF NOT EXISTS` |
-| `apps/backend/migrations/013_provider_plugins.sql` | 1 line | modified — `CREATE INDEX IF NOT EXISTS` |
-| `apps/backend/migrations/014_exports.sql` | 2 lines | modified — `CREATE INDEX IF NOT EXISTS` |
-| `apps/backend/migrations/019_docs_base_url.sql` | 1 line | modified — `''` → `'""'` for valid JSONB |
+| File                                                      | Lines     | Change type                                                                                                |
+| --------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
+| `apps/backend/migrations/008_rbac.sql`                    | ~10 lines | modified — `CREATE INDEX IF NOT EXISTS`, `ON CONFLICT DO NOTHING` on all INSERTs                           |
+| `apps/backend/migrations/009_rate_limits.sql`             | 1 line    | modified — `CREATE INDEX IF NOT EXISTS`, `ON CONFLICT (name) DO NOTHING`                                   |
+| `apps/backend/migrations/010_budget_alerts.sql`           | 2 lines   | modified — `CREATE INDEX IF NOT EXISTS`                                                                    |
+| `apps/backend/migrations/011_ab_comparison.sql`           | 2 lines   | modified — `CREATE INDEX IF NOT EXISTS`                                                                    |
+| `apps/backend/migrations/012_fine_tuning.sql`             | 3 lines   | modified — `CREATE INDEX IF NOT EXISTS`                                                                    |
+| `apps/backend/migrations/013_provider_plugins.sql`        | 1 line    | modified — `CREATE INDEX IF NOT EXISTS`                                                                    |
+| `apps/backend/migrations/014_exports.sql`                 | 2 lines   | modified — `CREATE INDEX IF NOT EXISTS`                                                                    |
+| `apps/backend/migrations/019_docs_base_url.sql`           | 1 line    | modified — `''` → `'""'` for valid JSONB                                                                   |
 | `apps/backend/internal/repository/admin_security_repo.go` | ~20 lines | modified — regex allows parens/quotes, `validateColumns` splits by top-level commas respecting parentheses |
 
 **Before** (migration 010):
+
 ```sql
 CREATE INDEX idx_budget_alerts_user ON budget_alerts(user_id, is_active);
 CREATE INDEX idx_budget_caps_user ON budget_caps(user_id, is_active);
 ```
 
 **After** (migration 010):
+
 ```sql
 CREATE INDEX IF NOT EXISTS idx_budget_alerts_user ON budget_alerts(user_id, is_active);
 CREATE INDEX IF NOT EXISTS idx_budget_caps_user ON budget_caps(user_id, is_active);
 ```
 
 **Before** (admin_security_repo.go):
+
 ```go
 var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.* ]*$`)
 // validateColumns used strings.Split(cols, ",") which broke COALESCE(a,'b')
 ```
 
 **After** (admin_security_repo.go):
+
 ```go
 var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
 // validateColumns now splits by top-level commas only (respects parentheses depth)
@@ -745,16 +742,18 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
+| File                                                      | Lines  | Change type                                    |
+| --------------------------------------------------------- | ------ | ---------------------------------------------- |
 | `apps/backend/internal/repository/admin_security_repo.go` | 1 line | modified — added `{}` to regex character class |
 
 **Before**:
+
 ```go
 var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.()'",* ]*$`)
 ```
 
 **After**:
+
 ```go
 var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 ```
@@ -769,12 +768,13 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/app/admin/(protected)/dashboard/page.tsx` | ~520 lines | modified — complete rewrite of dashboard layout and components |
-| `apps/web/app/globals.css` | ~65 lines | modified — added dashboard-specific design tokens and responsive styles |
+| File                                                | Lines      | Change type                                                             |
+| --------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| `apps/web/app/admin/(protected)/dashboard/page.tsx` | ~520 lines | modified — complete rewrite of dashboard layout and components          |
+| `apps/web/app/globals.css`                          | ~65 lines  | modified — added dashboard-specific design tokens and responsive styles |
 
 **Design decisions**:
+
 - **Hero metric**: Revenue as the dominant element (42px monospace numeral, 24-hour bar visualization) — the metric that matters most gets the most space
 - **System status strip**: Full-width health bar showing provider status at a glance — operators need system health visible without scrolling
 - **Compact stats**: Users, Requests, Providers as 3 stacked cards with colored dots — supporting metrics that don't compete with the hero
@@ -784,6 +784,7 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 - **Removed**: Generic `StatCard` component (hero-metric anti-pattern), `QuickActionCard` (replaced with command grid)
 
 **Before** (page.tsx structure):
+
 ```tsx
 // 4-column generic stat cards
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -796,6 +797,7 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 ```
 
 **After** (page.tsx structure):
+
 ```tsx
 // System status strip (full width)
 <SystemStatusStrip stats={stats} />
@@ -811,6 +813,7 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 ```
 
 **New CSS** (globals.css):
+
 ```css
 .admin-hero-metric { border-color: rgba(59, 130, 246, 0.06); background: linear-gradient(135deg, var(--admin-surface) 0%, rgba(59, 130, 246, 0.015) 100%); }
 .admin-hero-value { font-size: 42px; font-weight: 700; letter-spacing: -0.035em; }
@@ -830,30 +833,31 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 
 **Files changed**:
 
-| File | Lines | Change type |
-|------|-------|-------------|
-| `apps/web/components/admin/AdminUI.tsx` | ~280 lines | created — shared admin UI components |
-| `apps/web/app/globals.css` | ~50 lines | modified — added enhanced admin CSS tokens |
-| `apps/web/app/admin/(protected)/users/page.tsx` | ~20 lines | modified — uses AdminTableLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/providers/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/models/page.tsx` | ~30 lines | modified — uses AdminTabNav, AdminTableLoading |
-| `apps/web/app/admin/(protected)/billing/page.tsx` | ~40 lines | modified — uses AdminSection, AdminEmptyState |
-| `apps/web/app/admin/(protected)/cost/page.tsx` | ~30 lines | modified — uses AdminStat, AdminCenterLoading |
-| `apps/web/app/admin/(protected)/security/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/audit/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/logs/page.tsx` | ~15 lines | modified — uses AdminTableLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/settings/page.tsx` | ~30 lines | modified — uses AdminTabNav, AdminCenterLoading |
-| `apps/web/app/admin/(protected)/operations/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/messages/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/promos/page.tsx` | ~10 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/ip/page.tsx` | ~20 lines | modified — uses AdminTabNav, AdminCenterLoading |
-| `apps/web/app/admin/(protected)/announcements/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/changelog/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/reports/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/admins/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
-| `apps/web/app/admin/(protected)/sso/page.tsx` | ~15 lines | modified — uses AdminCenterLoading, AdminEmptyState |
+| File                                                    | Lines      | Change type                                         |
+| ------------------------------------------------------- | ---------- | --------------------------------------------------- |
+| `apps/web/components/admin/AdminUI.tsx`                 | ~280 lines | created — shared admin UI components                |
+| `apps/web/app/globals.css`                              | ~50 lines  | modified — added enhanced admin CSS tokens          |
+| `apps/web/app/admin/(protected)/users/page.tsx`         | ~20 lines  | modified — uses AdminTableLoading, AdminEmptyState  |
+| `apps/web/app/admin/(protected)/providers/page.tsx`     | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/models/page.tsx`        | ~30 lines  | modified — uses AdminTabNav, AdminTableLoading      |
+| `apps/web/app/admin/(protected)/billing/page.tsx`       | ~40 lines  | modified — uses AdminSection, AdminEmptyState       |
+| `apps/web/app/admin/(protected)/cost/page.tsx`          | ~30 lines  | modified — uses AdminStat, AdminCenterLoading       |
+| `apps/web/app/admin/(protected)/security/page.tsx`      | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/audit/page.tsx`         | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/logs/page.tsx`          | ~15 lines  | modified — uses AdminTableLoading, AdminEmptyState  |
+| `apps/web/app/admin/(protected)/settings/page.tsx`      | ~30 lines  | modified — uses AdminTabNav, AdminCenterLoading     |
+| `apps/web/app/admin/(protected)/operations/page.tsx`    | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/messages/page.tsx`      | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/promos/page.tsx`        | ~10 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/ip/page.tsx`            | ~20 lines  | modified — uses AdminTabNav, AdminCenterLoading     |
+| `apps/web/app/admin/(protected)/announcements/page.tsx` | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/changelog/page.tsx`     | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/reports/page.tsx`       | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/admins/page.tsx`        | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
+| `apps/web/app/admin/(protected)/sso/page.tsx`           | ~15 lines  | modified — uses AdminCenterLoading, AdminEmptyState |
 
 **New shared components** (`components/admin/AdminUI.tsx`):
+
 - `AdminLoading` / `AdminTableLoading` / `AdminCenterLoading` — skeleton loaders with consistent animation
 - `AdminEmptyState` — dashed-border empty state with icon, title, description, optional action
 - `AdminError` — error state with retry button
@@ -866,15 +870,34 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 - Exported animation presets: `stagger`, `fadeUp`, `fadeIn`
 
 **New CSS** (`globals.css`):
+
 ```css
-.admin-stat-highlight { /* blue-tinted gradient background */ }
-.admin-empty-state { /* dashed border, subtle background */ }
-.admin-tab-nav { backdrop-filter: blur(8px); }
-.admin-tab-active { box-shadow: 0 0 12px -4px rgba(59,130,246,0.15); }
-.admin-table thead { position: sticky; top: 0; z-index: 2; }
-.admin-form-section { /* blue/violet gradient background */ }
-.admin-info-banner { /* blue-tinted info banner */ }
-.admin-kbd { /* keyboard shortcut badge */ }
+.admin-stat-highlight {
+  /* blue-tinted gradient background */
+}
+.admin-empty-state {
+  /* dashed border, subtle background */
+}
+.admin-tab-nav {
+  backdrop-filter: blur(8px);
+}
+.admin-tab-active {
+  box-shadow: 0 0 12px -4px rgba(59, 130, 246, 0.15);
+}
+.admin-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.admin-form-section {
+  /* blue/violet gradient background */
+}
+.admin-info-banner {
+  /* blue-tinted info banner */
+}
+.admin-kbd {
+  /* keyboard shortcut badge */
+}
 ```
 
 **Verification**: `npm run build` passes (35.5s), `npm run test:web` passes (296 tests, 24 files).
@@ -887,21 +910,23 @@ var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.(){}'",* ]*$`)
 **Date**: 2026-05-31
 
 ### Why
+
 The existing streaming infrastructure was fragmented: `openai.StreamFormatter` only supported content deltas (no tool calls, thinking, or errors), the Anthropic formatter was a separate implementation in `anthropic/formatter.go`, and there was no unified abstraction for writing SSE in any format. The frontend SDK's `chatStream()` only parsed content deltas, ignoring tool calls and thinking. This created a maintenance burden and made it impossible to add new streaming features without touching multiple disconnected implementations.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/backend/pkg/llm/streaming/writer.go` | L1-390 | created |
-| `apps/backend/pkg/llm/streaming/relay.go` | L1-190 | created |
-| `apps/backend/pkg/llm/streaming/streaming_test.go` | L1-310 | created |
-| `apps/backend/pkg/llm/openai/stream_formatter.go` | L1-180 | modified |
-| `apps/backend/pkg/llm/openai/schema.go` | L55 | modified |
-| `apps/web/lib/streaming/index.ts` | L1-430 | created |
-| `apps/web/tests/lib/streaming.test.ts` | L1-250 | created |
+| File                                               | Lines  | Change Type |
+| -------------------------------------------------- | ------ | ----------- |
+| `apps/backend/pkg/llm/streaming/writer.go`         | L1-390 | created     |
+| `apps/backend/pkg/llm/streaming/relay.go`          | L1-190 | created     |
+| `apps/backend/pkg/llm/streaming/streaming_test.go` | L1-310 | created     |
+| `apps/backend/pkg/llm/openai/stream_formatter.go`  | L1-180 | modified    |
+| `apps/backend/pkg/llm/openai/schema.go`            | L55    | modified    |
+| `apps/web/lib/streaming/index.ts`                  | L1-430 | created     |
+| `apps/web/tests/lib/streaming.test.ts`             | L1-250 | created     |
 
 ### Before
+
 ```go
 // apps/backend/pkg/llm/openai/stream_formatter.go
 type StreamFormatter struct {
@@ -928,6 +953,7 @@ async *chatStream(data: { model: string; messages: ChatMessage[] }): AsyncGenera
 ```
 
 ### After
+
 ```go
 // apps/backend/pkg/llm/streaming/writer.go — Unified StreamWriter interface
 type StreamWriter interface {
@@ -957,6 +983,7 @@ type StreamWriter interface {
 ```
 
 ### Notes
+
 - `openai.StreamFormatter` enhanced with `WriteToolCallStart`, `WriteToolCallDelta`, `WriteReasoning`, `WriteError`, `WriteFinishWithUsage` methods. Old methods preserved for backward compatibility.
 - `openai.ToolCall` struct gained `Index` field for streaming delta support.
 - Backend `pkg/llm/streaming/` tests: 74.8% coverage, all passing.
@@ -971,26 +998,28 @@ type StreamWriter interface {
 **Date**: 2026-05-31
 
 ### Why
+
 The platform needed LiteLLM-style dynamic model management: model groups for load balancing across multiple deployments of the same model, fallback chains for resilience, per-model pricing from the DB instead of flat formulas, wildcard model routing, and credential vault references. Previously, each model mapped 1:1 to a provider with no grouping, no fallbacks, and hardcoded billing at `(input+output) * 2` cents.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/backend/migrations/021_model_groups_and_routing.sql` | L1-42 | created |
-| `apps/backend/internal/domain/admin.go` | L78-96, L108-118 | modified |
-| `apps/backend/pkg/llm/router/groups.go` | L1-270 | created |
-| `apps/backend/internal/service/pricing.go` | L1-110 | created |
-| `apps/backend/internal/service/provider.go` | L28, L82-85, L93-160 | modified |
-| `apps/backend/internal/handler/handler.go` | L57, L106, L325 | modified |
-| `apps/backend/internal/handler/openai_proxy.go` | L261-275 | modified |
-| `apps/backend/internal/handler/anthropic_messages.go` | L268 | modified |
-| `apps/backend/internal/repository/admin_model_repo.go` | L27-75, L105-135, L137-175 | modified |
-| `apps/backend/cmd/api/services.go` | L115-126, L141 | modified |
-| `apps/web/types/admin.ts` | L122-140 | modified |
-| `apps/web/app/admin/(protected)/models/page.tsx` | L93-100, L108-115, L232-270, L310-315 | modified |
+| File                                                       | Lines                                 | Change Type |
+| ---------------------------------------------------------- | ------------------------------------- | ----------- |
+| `apps/backend/migrations/021_model_groups_and_routing.sql` | L1-42                                 | created     |
+| `apps/backend/internal/domain/admin.go`                    | L78-96, L108-118                      | modified    |
+| `apps/backend/pkg/llm/router/groups.go`                    | L1-270                                | created     |
+| `apps/backend/internal/service/pricing.go`                 | L1-110                                | created     |
+| `apps/backend/internal/service/provider.go`                | L28, L82-85, L93-160                  | modified    |
+| `apps/backend/internal/handler/handler.go`                 | L57, L106, L325                       | modified    |
+| `apps/backend/internal/handler/openai_proxy.go`            | L261-275                              | modified    |
+| `apps/backend/internal/handler/anthropic_messages.go`      | L268                                  | modified    |
+| `apps/backend/internal/repository/admin_model_repo.go`     | L27-75, L105-135, L137-175            | modified    |
+| `apps/backend/cmd/api/services.go`                         | L115-126, L141                        | modified    |
+| `apps/web/types/admin.ts`                                  | L122-140                              | modified    |
+| `apps/web/app/admin/(protected)/models/page.tsx`           | L93-100, L108-115, L232-270, L310-315 | modified    |
 
 ### Before
+
 ```go
 // ProviderService.Chat — direct 1:1 provider lookup, no groups, no fallbacks
 provName, modelID := llm.ParseModelID(req.Model)
@@ -1005,12 +1034,15 @@ if cost < 100 { cost = 100 }
 ```typescript
 // Frontend ModelRegistry type — no group/fallback/credential fields
 export interface ModelRegistry {
-  id: string; modelId: string; providerId: string;
+  id: string;
+  modelId: string;
+  providerId: string;
   // ... no modelGroup, fallbackModels, routingWeight, etc.
 }
 ```
 
 ### After
+
 ```go
 // ProviderService.Chat — model group resolution + fallback chains
 modelID := req.Model
@@ -1035,6 +1067,7 @@ type ModelRegistry struct {
 ```
 
 ### Notes
+
 - Migration `021_model_groups_and_routing.sql` adds 5 columns to `model_registry` + `credential_vault` table. Run manually.
 - `GroupRouter` does weighted random selection within a group. Fallback chains try models in order on failure.
 - `PricingService` caches pricing from DB, refreshed on admin model CRUD. Falls back to flat formula if no DB pricing.
@@ -1047,34 +1080,36 @@ type ModelRegistry struct {
 **Date**: 2026-05-31
 
 ### Why
+
 CLIProxyAPI (35k stars) uses a mature architecture with unified thinking/reasoning config, init()-based translator self-registration, shared utility functions, file-based config hot-reload with debouncing, and thinking signature caching for multi-turn conversations. We implemented equivalent capabilities to bring Yapapa's backend to the same level of provider-agnostic design.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| pkg/llm/thinking/types.go | L1-108 | created |
-| pkg/llm/thinking/suffix.go | L1-95 | created |
-| pkg/llm/thinking/convert.go | L1-110 | created |
-| pkg/llm/thinking/errors.go | L1-52 | created |
-| pkg/llm/thinking/extract.go | L1-140 | created |
-| pkg/llm/thinking/validate.go | L1-140 | created |
-| pkg/llm/thinking/strip.go | L1-38 | created |
-| pkg/llm/thinking/apply.go | L1-105 | created |
-| pkg/llm/thinking/provider_openai.go | L1-32 | created |
-| pkg/llm/thinking/provider_anthropic.go | L1-40 | created |
-| pkg/llm/thinking/provider_gemini.go | L1-35 | created |
-| pkg/llm/thinking/thinking_test.go | L1-250 | created |
-| pkg/llm/util/util.go | L1-210 | created |
-| pkg/llm/util/util_test.go | L1-150 | created |
-| pkg/llm/translator/translator.go | L37-90 | modified |
-| pkg/llm/cache/signature_cache.go | L1-180 | created |
-| pkg/llm/cache/signature_cache_test.go | L1-110 | created |
-| pkg/llm/watcher/config_watcher.go | L1-140 | created |
-| pkg/llm/watcher/config_watcher_test.go | L1-75 | created |
-| pkg/llm/watcher/provider_health.go | L1-175 | created |
+| File                                   | Lines  | Change Type |
+| -------------------------------------- | ------ | ----------- |
+| pkg/llm/thinking/types.go              | L1-108 | created     |
+| pkg/llm/thinking/suffix.go             | L1-95  | created     |
+| pkg/llm/thinking/convert.go            | L1-110 | created     |
+| pkg/llm/thinking/errors.go             | L1-52  | created     |
+| pkg/llm/thinking/extract.go            | L1-140 | created     |
+| pkg/llm/thinking/validate.go           | L1-140 | created     |
+| pkg/llm/thinking/strip.go              | L1-38  | created     |
+| pkg/llm/thinking/apply.go              | L1-105 | created     |
+| pkg/llm/thinking/provider_openai.go    | L1-32  | created     |
+| pkg/llm/thinking/provider_anthropic.go | L1-40  | created     |
+| pkg/llm/thinking/provider_gemini.go    | L1-35  | created     |
+| pkg/llm/thinking/thinking_test.go      | L1-250 | created     |
+| pkg/llm/util/util.go                   | L1-210 | created     |
+| pkg/llm/util/util_test.go              | L1-150 | created     |
+| pkg/llm/translator/translator.go       | L37-90 | modified    |
+| pkg/llm/cache/signature_cache.go       | L1-180 | created     |
+| pkg/llm/cache/signature_cache_test.go  | L1-110 | created     |
+| pkg/llm/watcher/config_watcher.go      | L1-140 | created     |
+| pkg/llm/watcher/config_watcher_test.go | L1-75  | created     |
+| pkg/llm/watcher/provider_health.go     | L1-175 | created     |
 
 ### Before
+
 ```go
 // Translator registry: only Direction enum, manual registration in DefaultRegistry()
 type Registry struct {
@@ -1089,6 +1124,7 @@ func DefaultRegistry() *Registry {
 ```
 
 ### After
+
 ```go
 // Translator registry: init()-based self-registration + struct-based backward compat
 var globalRegistry []translatorEntry
@@ -1107,6 +1143,7 @@ type Registry struct { ... }
 ```
 
 ### New Capabilities
+
 1. **Thinking Package** (`pkg/llm/thinking/`): Unified thinking/reasoning config across providers. Supports suffix parsing (`model(high)`), config extraction from OpenAI/Anthropic/Gemini formats, level-budget auto-conversion, validation with clamping, and provider-specific appliers via init() registration.
 2. **Translator Registry**: Added init()-based self-registration pattern (`RegisterTranslator("openai", "anthropic", fn)`) alongside existing struct-based registry. Translators can register themselves from init() functions.
 3. **Util Package** (`pkg/llm/util/`): Shared utilities including `SanitizeFunctionName` for Gemini compatibility, `FixJSON` for single-quote JSON, tool name mapping (`CanonicalToolName`, `ToolNameMap`, `SanitizedToolNameMap`), model family detection, and JSON tree walking.
@@ -1115,6 +1152,7 @@ type Registry struct { ... }
 6. **Provider Health Watcher** (`pkg/llm/watcher/provider_health.go`): Periodic provider health checks with success/failure tracking, degraded/unhealthy status thresholds, and rolling latency averages.
 
 ### Notes
+
 - All 4 new packages compile and pass tests (`go test -race -cover`, `go vet`).
 - Backward compatible: existing `translator.Registry` and `watcher.Watcher` unchanged.
 - The thinking package's `ProviderApplier` interface uses `map[string]interface{}` for ergonomic JSON manipulation. Raw-byte translators can be added via `RegisterTranslator()`.
@@ -1126,18 +1164,20 @@ type Registry struct { ... }
 **Date**: 2026-05-31
 
 ### Why
+
 CLIProxyAPI's architecture has a sophisticated model registry with reference counting, quota tracking, per-client suspension, provider-specific model info, hooks for registration events, and a middleware chain pipeline with interceptors. We implemented these patterns to complete Yapapa's pipeline architecture.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| pkg/llm/registry/registry.go | L1-680 | created |
-| pkg/llm/registry/registry_test.go | L1-230 | created |
-| pkg/llm/interfaces/interfaces.go | L1-65 | created |
-| pkg/llm/pipeline/pipeline.go | L165-340 | modified |
+| File                              | Lines    | Change Type |
+| --------------------------------- | -------- | ----------- |
+| pkg/llm/registry/registry.go      | L1-680   | created     |
+| pkg/llm/registry/registry_test.go | L1-230   | created     |
+| pkg/llm/interfaces/interfaces.go  | L1-65    | created     |
+| pkg/llm/pipeline/pipeline.go      | L165-340 | modified    |
 
 ### Before
+
 ```go
 // Pipeline only had Step-based before/after processing
 type Pipeline struct {
@@ -1147,6 +1187,7 @@ type Pipeline struct {
 ```
 
 ### After
+
 ```go
 // ChainPipeline adds middleware chain, interceptors, and full execution flow
 type ChainPipeline struct {
@@ -1169,12 +1210,14 @@ func (r *ModelRegistry) SuspendClientModel(clientID, modelID, reason)
 ```
 
 ### New Capabilities
+
 1. **Model Registry** (`pkg/llm/registry/`): Reference-counted model registration with per-client quota tracking, suspension, provider-specific model info, registration hooks, reconciliation on re-registration, and format-specific model serialization (OpenAI/Anthropic/Gemini).
 2. **Pipeline Chain** (`pkg/llm/pipeline/`): `ChainPipeline` extends Pipeline with request/response interceptors and `Execute()` that runs the full before→interceptors→handler→interceptors→after flow.
 3. **Interfaces** (`pkg/llm/interfaces/`): Core type definitions for `TranslateRequestFunc`, `TranslateResponseFunc`, `ProviderExecutor`, `MiddlewareFunc`, `RequestHandler`, `InterceptorFunc`, `ResponseInterceptorFunc`.
 4. **Built-in Interceptors**: `ModelValidationInterceptor`, `RateLimitInterceptor`, `GuardrailInterceptor`, `TelemetryInterceptor`.
 
 ### Notes
+
 - Model registry test covers: register/unregister, multiple clients, quota exceeded, suspend/resume, reconciliation, hooks.
 - All hooks run asynchronously with panic recovery and 5-second timeout.
 - Pipeline chain is backward-compatible — existing `Step` interface works unchanged.
@@ -1187,21 +1230,24 @@ func (r *ModelRegistry) SuspendClientModel(clientID, modelID, reason)
 **Date**: 2026-05-31
 
 ### Why
+
 User requested deep web research (25+ searches) to identify every missing feature compared to CLIProxyAPI, LiteLLM, OpenRouter, and other LLM gateway platforms, then produce a single comprehensive analysis document.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `SONAOP.md` | 1-520 | created |
+| File        | Lines | Change Type |
+| ----------- | ----- | ----------- |
+| `SONAOP.md` | 1-520 | created     |
 
 ### Before
+
 ```code
 // No comprehensive gap analysis existed
 // Only scattered notes in ops.md and osa.md
 ```
 
 ### After
+
 ```code
 // SONAOP.md — 67 feature gaps across 12 categories:
 // - Part 1: What Yapapa already has (18+ subpackages)
@@ -1222,6 +1268,7 @@ User requested deep web research (25+ searches) to identify every missing featur
 ```
 
 ### Notes
+
 - Research covered 25+ web searches across CLIProxyAPI, LiteLLM, OpenRouter, LLM gateway best practices
 - 67 distinct feature gaps identified, prioritized as Critical/High/Medium/Nice-to-have
 - Database schema includes 8 new tables for virtual keys, teams, credentials, usage tracking, audit logs
@@ -1235,15 +1282,17 @@ User requested deep web research (25+ searches) to identify every missing featur
 **Date**: 2026-05-31 05:00
 
 ### Why
+
 The Platform Capabilities section (GatewayFeatures) had functional but static visuals. Cards lacked depth, hover states were minimal, and the in-card data visualizations (terminal, stats, edge, routing, pricing) were plain. This overhaul adds magnetic cursor tracking, particle fields, animated data streams, and micro-interactions that match the site's dark cyberpunk aesthetic.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/web/components/GatewayFeatures.tsx` | L1-680 | rewritten |
+| File                                      | Lines  | Change Type |
+| ----------------------------------------- | ------ | ----------- |
+| `apps/web/components/GatewayFeatures.tsx` | L1-680 | rewritten   |
 
 ### Before
+
 ```code
 // GatewayFeatures.tsx — static cards with simple hover opacity transitions
 // Terminal: plain pre-formatted text, no animation
@@ -1255,6 +1304,7 @@ The Platform Capabilities section (GatewayFeatures) had functional but static vi
 ```
 
 ### After
+
 ```code
 // GatewayFeatures.tsx — fully interactive bento grid with:
 // - useMagneticHover() hook: cards tilt toward cursor via useMotionValue + useSpring
@@ -1273,6 +1323,7 @@ The Platform Capabilities section (GatewayFeatures) had functional but static vi
 ```
 
 ### Notes
+
 - All animations respect `prefers-reduced-motion` (Framer Motion handles this natively)
 - No new dependencies added — uses existing framer-motion, lucide-react, tailwind-merge
 - Build verified: `next build` passes cleanly
@@ -1286,44 +1337,45 @@ The Platform Capabilities section (GatewayFeatures) had functional but static vi
 **Date**: 2026-05-31
 
 ### Why
+
 SONAOP.md identified 67 feature gaps vs CLIProxyAPI/LiteLLM/OpenRouter. This implements the Phase 1 (Critical) and Phase 2 (High Priority) features as 9 new Go packages under `pkg/llm/`, plus database migration 022.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/backend/migrations/022_enterprise_features.sql` | 1-230 | created |
-| `apps/backend/pkg/llm/credentials/vault.go` | 1-310 | created |
-| `apps/backend/pkg/llm/credentials/vault_test.go` | 1-170 | created |
-| `apps/backend/pkg/llm/virtualkeys/manager.go` | 1-230 | created |
-| `apps/backend/pkg/llm/virtualkeys/manager_test.go` | 1-190 | created |
-| `apps/backend/pkg/llm/budget/budget.go` | 1-230 | created |
-| `apps/backend/pkg/llm/budget/budget_test.go` | 1-195 | created |
-| `apps/backend/pkg/llm/security/guardrails.go` | 1-310 | created |
-| `apps/backend/pkg/llm/security/guardrails_test.go` | 1-165 | created |
-| `apps/backend/pkg/llm/usage/tracker.go` | 1-210 | created |
-| `apps/backend/pkg/llm/usage/tracker_test.go` | 1-230 | created |
-| `apps/backend/pkg/llm/audit/audit.go` | 1-265 | created |
-| `apps/backend/pkg/llm/audit/audit_test.go` | 1-135 | created |
-| `apps/backend/pkg/llm/loadbalancer/balancer.go` | 1-260 | created |
-| `apps/backend/pkg/llm/loadbalancer/balancer_test.go` | 1-135 | created |
-| `apps/backend/pkg/llm/otel/otel.go` | 1-220 | created |
-| `apps/backend/pkg/llm/otel/otel_test.go` | 1-90 | created |
-| `apps/backend/pkg/llm/ws/gateway.go` | 1-310 | created |
-| `apps/backend/pkg/llm/ws/gateway_test.go` | 1-150 | created |
-| `apps/backend/pkg/llm/router/ab_testing.go` | 1-200 | created |
-| `apps/backend/pkg/llm/router/ab_testing_test.go` | 1-135 | created |
+| File                                                  | Lines | Change Type |
+| ----------------------------------------------------- | ----- | ----------- |
+| `apps/backend/migrations/022_enterprise_features.sql` | 1-230 | created     |
+| `apps/backend/pkg/llm/credentials/vault.go`           | 1-310 | created     |
+| `apps/backend/pkg/llm/credentials/vault_test.go`      | 1-170 | created     |
+| `apps/backend/pkg/llm/virtualkeys/manager.go`         | 1-230 | created     |
+| `apps/backend/pkg/llm/virtualkeys/manager_test.go`    | 1-190 | created     |
+| `apps/backend/pkg/llm/budget/budget.go`               | 1-230 | created     |
+| `apps/backend/pkg/llm/budget/budget_test.go`          | 1-195 | created     |
+| `apps/backend/pkg/llm/security/guardrails.go`         | 1-310 | created     |
+| `apps/backend/pkg/llm/security/guardrails_test.go`    | 1-165 | created     |
+| `apps/backend/pkg/llm/usage/tracker.go`               | 1-210 | created     |
+| `apps/backend/pkg/llm/usage/tracker_test.go`          | 1-230 | created     |
+| `apps/backend/pkg/llm/audit/audit.go`                 | 1-265 | created     |
+| `apps/backend/pkg/llm/audit/audit_test.go`            | 1-135 | created     |
+| `apps/backend/pkg/llm/loadbalancer/balancer.go`       | 1-260 | created     |
+| `apps/backend/pkg/llm/loadbalancer/balancer_test.go`  | 1-135 | created     |
+| `apps/backend/pkg/llm/otel/otel.go`                   | 1-220 | created     |
+| `apps/backend/pkg/llm/otel/otel_test.go`              | 1-90  | created     |
+| `apps/backend/pkg/llm/ws/gateway.go`                  | 1-310 | created     |
+| `apps/backend/pkg/llm/ws/gateway_test.go`             | 1-150 | created     |
+| `apps/backend/pkg/llm/router/ab_testing.go`           | 1-200 | created     |
+| `apps/backend/pkg/llm/router/ab_testing_test.go`      | 1-135 | created     |
 
 ### New Packages
 
 1. **`pkg/llm/credentials/`** — Encrypted credential vault with AES-256-GCM encryption, health-based key rotation, per-provider credential pools, automatic failover to backup keys on 401/403.
-2. **`pkg/llm/virtualkeys/`** — Virtual API key management (sk-* format) with SHA-256 hash storage, team/user scoping, model access control with wildcards, rate limits (RPM/RPD/TPM), budget limits, IP allowlisting, expiration.
+2. **`pkg/llm/virtualkeys/`** — Virtual API key management (sk-\* format) with SHA-256 hash storage, team/user scoping, model access control with wildcards, rate limits (RPM/RPD/TPM), budget limits, IP allowlisting, expiration.
 3. **`pkg/llm/budget/`** — Hierarchical budget management (team → user → key) with daily/weekly/monthly/total reset periods, soft limits with alert callbacks, hard limits with rejection, background periodic reset.
 4. **`pkg/llm/security/`** — Prompt injection detection (13 patterns), jailbreak defense (10 patterns including DAN/roleplay/token smuggling), PII detection (SSN/CC/email/phone/IP with redaction), secret detection (OpenAI/Anthropic/AWS/GitHub keys, bearer tokens, private keys), topic restriction.
 5. **`pkg/llm/usage/`** — Per-request usage tracking with cost calculation in microcents, built-in pricing for 16 models (GPT-4o, Claude 3.5, Gemini 2.0, Llama 3.1, Mixtral), custom pricing overrides, aggregation by user/model/provider/team.
 6. **`pkg/llm/audit/`** — Comprehensive audit logging for all operations (key CRUD, model access, budget events, security events, credential changes, provider health changes, team management) with async persistence and query filtering.
 7. **`pkg/llm/loadbalancer/`** — 6 routing strategies: round-robin, least-busy, latency-based, cost-optimized, weighted, random. Per-endpoint health/active status, active request tracking, success rate calculation, model-based filtering.
-8. **`pkg/llm/otel/`** — OpenTelemetry integration with GenAI semantic conventions (gen_ai.system, gen_ai.request.model, gen_ai.usage.*), gateway-specific attributes, span lifecycle management, metric recording, noop and logging exporters.
+8. **`pkg/llm/otel/`** — OpenTelemetry integration with GenAI semantic conventions (gen_ai.system, gen_ai.request.model, gen_ai.usage.\*), gateway-specific attributes, span lifecycle management, metric recording, noop and logging exporters.
 9. **`pkg/llm/ws/`** — WebSocket gateway with connection management, topic-based pub/sub, per-user message delivery, ping/pong keepalive, connection limits, SSE fallback with keepalive, message routing.
 10. **`pkg/llm/router/ab_testing.go`** — A/B testing with configurable traffic split percentages, start/end time windows, traffic counting. Canary deployments with error-based auto-disable, success recovery.
 
@@ -1332,6 +1384,7 @@ SONAOP.md identified 67 feature gaps vs CLIProxyAPI/LiteLLM/OpenRouter. This imp
 13 new tables: `teams`, `team_members`, `virtual_keys`, `credentials`, `usage_records`, `audit_logs`, `model_access_groups`, `model_pricing`, `fallback_configs`, `security_events`, `budget_alerts`, `ab_test_configs`, `provider_health_history`.
 
 ### Notes
+
 - All packages compile cleanly (`go build ./...`)
 - `go vet ./pkg/llm/...` clean
 - 9 new test suites with 70+ test cases, all passing with `-race -cover`
@@ -1348,17 +1401,18 @@ SONAOP.md identified 67 feature gaps vs CLIProxyAPI/LiteLLM/OpenRouter. This imp
 **Date**: 2026-05-31
 
 ### Why
+
 Entry #15 created 9 enterprise packages but they were all dead code — never imported by production code. This entry wires them into the actual backend: PostgreSQL store implementations, handler methods, HTTP routes, and service initialization.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/backend/pkg/llm/stores/postgres.go` | 1-630 | created |
-| `apps/backend/internal/handler/enterprise.go` | 1-290 | created |
-| `apps/backend/internal/handler/handler.go` | L26-55 | modified |
-| `apps/backend/cmd/api/services.go` | L1-180 | modified |
-| `apps/backend/cmd/api/routes.go` | L361-403 | modified |
+| File                                          | Lines    | Change Type |
+| --------------------------------------------- | -------- | ----------- |
+| `apps/backend/pkg/llm/stores/postgres.go`     | 1-630    | created     |
+| `apps/backend/internal/handler/enterprise.go` | 1-290    | created     |
+| `apps/backend/internal/handler/handler.go`    | L26-55   | modified    |
+| `apps/backend/cmd/api/services.go`            | L1-180   | modified    |
+| `apps/backend/cmd/api/routes.go`              | L361-403 | modified    |
 
 ### New Capabilities
 
@@ -1391,6 +1445,7 @@ Entry #15 created 9 enterprise packages but they were all dead code — never im
 4. **Service Wiring** (`services.go`): All 9 enterprise packages initialized with PostgreSQL stores and wired into handler via setter methods.
 
 ### Notes
+
 - All enterprise packages now have production-grade PostgreSQL persistence
 - Credential vault uses AES-256-GCM encryption with AUTH_SECRET as key base
 - Security guard runs in blocking mode by default (prompt injection/jailbreak/PII/secrets)
@@ -1406,110 +1461,128 @@ Entry #15 created 9 enterprise packages but they were all dead code — never im
 **Date**: 2026-05-31
 
 ### Why
+
 Deep codebase analysis identified 60 bugs across the backend. This pass fixes the 16 most impactful issues spanning repository cache, LLM enterprise packages, security guardrails, stream handling, and WebSocket gateway.
 
 ### Files Changed
 
-| File | Change Type |
-|------|-------------|
-| `apps/backend/internal/repository/user.go` | modified |
-| `apps/backend/internal/repository/cache.go` | modified |
-| `apps/backend/internal/repository/apikey.go` | modified |
-| `apps/backend/internal/repository/user_by_key.go` | modified |
-| `apps/backend/pkg/llm/cache/cache.go` | modified |
-| `apps/backend/pkg/llm/circuitbreaker/circuitbreaker.go` | modified |
-| `apps/backend/pkg/llm/budget/budget.go` | modified |
-| `apps/backend/pkg/llm/virtualkeys/manager.go` | modified |
-| `apps/backend/pkg/llm/security/guardrails.go` | modified |
-| `apps/backend/pkg/llm/helper.go` | modified |
-| `apps/backend/pkg/llm/router/router.go` | modified |
-| `apps/backend/pkg/llm/provider/openai_sdk.go` | modified |
-| `apps/backend/pkg/llm/ws/gateway.go` | modified |
+| File                                                    | Change Type |
+| ------------------------------------------------------- | ----------- |
+| `apps/backend/internal/repository/user.go`              | modified    |
+| `apps/backend/internal/repository/cache.go`             | modified    |
+| `apps/backend/internal/repository/apikey.go`            | modified    |
+| `apps/backend/internal/repository/user_by_key.go`       | modified    |
+| `apps/backend/pkg/llm/cache/cache.go`                   | modified    |
+| `apps/backend/pkg/llm/circuitbreaker/circuitbreaker.go` | modified    |
+| `apps/backend/pkg/llm/budget/budget.go`                 | modified    |
+| `apps/backend/pkg/llm/virtualkeys/manager.go`           | modified    |
+| `apps/backend/pkg/llm/security/guardrails.go`           | modified    |
+| `apps/backend/pkg/llm/helper.go`                        | modified    |
+| `apps/backend/pkg/llm/router/router.go`                 | modified    |
+| `apps/backend/pkg/llm/provider/openai_sdk.go`           | modified    |
+| `apps/backend/pkg/llm/ws/gateway.go`                    | modified    |
 
 ### Fixes Applied
 
 #### Bug #37 — UserRepo.UpdateProfile stale email cache
+
 **File**: `internal/repository/user.go`
 **Problem**: When a user changed their email, the old email cache key was never invalidated. Subsequent lookups by old email returned stale data.
 **Fix**: Fetch old email before update, invalidate both old and new email cache keys.
 
 #### Bug #40 — LLM MemoryCache.Get holds write lock during deep copy
+
 **File**: `pkg/llm/cache/cache.go`
 **Problem**: `Get()` held a write lock for the entire operation including the expensive `deepCopyResponse()`, serializing all cache reads.
 **Fix**: Release the write lock before the deep copy, only holding it for counter updates.
 
 #### Bug #41 — Circuit breaker 5s stream timeout kills reasoning models
+
 **File**: `pkg/llm/circuitbreaker/circuitbreaker.go`
 **Problem**: `wrapStream()` used a 5-second timeout between chunks. Reasoning models (o1, deepseek-r1) can pause 10-30s during thinking, causing silent stream termination.
 **Fix**: Increased timeout to 120s. Added error recording on timeout so circuit breaker tracks the failure.
 
 #### Bug #42 — Budget TOCTOU race condition
+
 **File**: `pkg/llm/budget/budget.go`
 **Problem**: `CheckAndRecord()` read `UsedCents`, checked the limit, then wrote the new total without synchronization. Concurrent requests could both pass the hard limit check.
 **Fix**: Hold mutex for the entire check-and-record operation.
 
 #### Bug #43 — Virtual key cache O(N) lookup in RecordUsage
+
 **File**: `pkg/llm/virtualkeys/manager.go`
 **Problem**: `RecordUsage()` iterated all cache entries to find by ID (O(N)). Cache was keyed only by hash.
 **Fix**: Cache entries indexed by both hash and ID (`"id:"+vk.ID`). `RecordUsage()` now does O(1) lookup.
 
 #### Bug #49/#50 — PII redaction corrupts text with multiple detections
+
 **File**: `pkg/llm/security/guardrails.go`
 **Problem**: `Redact()` applied detections in arbitrary order. When the first redaction changed string length, all subsequent position-based redactions hit wrong offsets.
 **Fix**: Sort detections by position descending before redacting, so earlier positions remain valid.
 
 #### Bug #51 — MemoryRepoCache evicts by expiry time, not access time
+
 **File**: `internal/repository/cache.go`
 **Problem**: Eviction policy removed entries with the soonest expiry, not the least recently used. Frequently-accessed entries with short TTLs were evicted while stale entries with long TTLs persisted.
 **Fix**: Added `lastAccess` field to cache entries. Eviction now uses LRU policy. `Get()` updates `lastAccess` on successful reads.
 
 #### Bug #52 — MemoryRepoCache deadlock on expired entry cleanup
+
 **File**: `internal/repository/cache.go`
 **Problem**: `Get()` held a read lock, then tried to acquire a write lock to delete expired entries. This is a deadlock if another goroutine holds a read lock and needs a write lock.
 **Fix**: Release the read lock before acquiring the write lock for the delete operation.
 
 #### Bug #54 — Reasoning effort not propagated to OpenAI SDK
+
 **File**: `pkg/llm/provider/openai_sdk.go`
 **Problem**: `toOpenAIRequest()` didn't map `Thinking` config to the OpenAI SDK's `ReasoningEffort` field. Thinking configuration was silently lost for o1/o3 models.
 **Fix**: Added `ReasoningEffort` mapping based on `Thinking.BudgetTokens` thresholds (low/medium/high).
 
 #### Bug #57 — Router calls ListModels on every request
+
 **File**: `pkg/llm/router/router.go`
 **Problem**: `routeByCost()` called `ListModels()` on every provider for every request. If providers are remote APIs, this adds significant latency.
 **Fix**: Added per-provider model cache with 5-minute TTL. `getCachedModels()` returns cached results or fetches fresh ones.
 
 #### Bug #58 — DeepCopyRequest shallow-copies ContentBlocks and Metadata
+
 **File**: `pkg/llm/helper.go`
 **Problem**: `copy()` on structs copies by value, but `ContentBlocks []ContentBlock` and `Metadata map[string]any` are reference types. Modifying them on the copy affected the original.
 **Fix**: Deep copy `ContentBlocks` slice and `Metadata` map for each message.
 
 #### Bug #59 — Virtual key cache single cacheTime for all entries
+
 **File**: `pkg/llm/virtualkeys/manager.go`
 **Problem**: One `cacheTime` for the entire cache meant one miss refreshed all entries.
 **Fix**: Per-entry `expiresAt` via `cacheEntry` wrapper struct. Each entry has its own TTL.
 
 #### Bug #60 — Budget periodicReset holds write lock during store calls
+
 **File**: `pkg/llm/budget/budget.go`
 **Problem**: `periodicReset()` held a write lock while iterating cached budgets AND making store calls (DB queries). Blocked all `CheckAndRecord` calls.
 **Fix**: Two-phase approach: collect budgets needing reset under lock, then release lock before persisting resets.
 
 #### Bug #47 — WebSocket gateway has no per-user connection limit
+
 **File**: `pkg/llm/ws/gateway.go`
 **Problem**: A single user could consume all connection slots by opening many tabs.
 **Fix**: Added `maxPerUser` (default: 10) with per-user connection counting in `HandleHTTP()`.
 
 #### Bug #48 — WebSocket pingLoop updates lastPing on send, not on pong
+
 **File**: `pkg/llm/ws/gateway.go`
-**Problem**: `lastPing` was updated when the ping was *sent*, not when the pong was *received*. The timeout check never triggered.
+**Problem**: `lastPing` was updated when the ping was _sent_, not when the pong was _received_. The timeout check never triggered.
 **Fix**: Added pong handler that updates `lastPing`. Removed `lastPing` update from ping send. Ping loop now correctly detects dead connections.
 
 ### Known Debt (Not Fixed — Requires Interface Changes)
+
 - **Bugs #44/#46**: `PostgresCredentialStore` and `PostgresAuditStore` use `context.Background()` instead of request-scoped contexts. Fix requires changing the `Store` interface signatures, which is a breaking change affecting all implementations.
 - **Bug #45**: Budget store reuses `budget_alerts` table with `threshold_percent=0` sentinel. Requires schema migration to add a `type` column.
 - **Bug #55**: Dashboard stats query `usage_records` while billing writes to `api_logs`. Requires data pipeline unification.
 - **Bug #38**: Plaintext API key fallback now logs warnings but is still supported for backward compatibility. Should be migrated and removed.
 
 ### Verification
+
 - `go build ./...` — passes clean
 - `go test -race -short ./...` — all pre-existing passing tests continue to pass
 - No new test failures introduced
@@ -1523,15 +1596,17 @@ Deep codebase analysis identified 60 bugs across the backend. This pass fixes th
 **Date**: 2026-06-01
 
 ### Why
+
 The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 different accent colors (blue/cyan/purple/amber/emerald), a 30-particle field, a mouse-tracking radial spotlight, and per-card magnetic 3D tilt on every card competed for attention. The result was "everything moves, nothing anchors the eye." This pass collapses the palette to a single brand indigo (with green reserved for live status), removes particle/spin gimmicks, and adopts an editorial layout: a massive "01" section watermark, asymmetric header with a live system-status panel, category labels (Protocol / Policy / Infrastructure / Observability / Billing) per card, and stat deltas.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/web/components/GatewayFeatures.tsx` | L1-905 | rewritten |
+| File                                      | Lines  | Change Type |
+| ----------------------------------------- | ------ | ----------- |
+| `apps/web/components/GatewayFeatures.tsx` | L1-905 | rewritten   |
 
 ### Before
+
 - 5 different accent palettes (blue / cyan / purple / amber / emerald) for 5 features
 - `ParticleField` with 30 randomized floating particles
 - `MouseSpotlight` following cursor with multi-stop radial gradient
@@ -1541,6 +1616,7 @@ The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 d
 - Pricing bars used 5 different brand colors per model
 
 ### After
+
 - **Single indigo accent** throughout (`#6366f1` / `rgb(99,102,241)`); green (`#10b981`) reserved for status/uptime only
 - Removed `ParticleField` and parallax atmosphere
 - Simplified `MouseSpotlight` to subtle 500px indigo glow (no 600px multi-stop)
@@ -1554,6 +1630,7 @@ The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 d
 - Added `aria-labelledby` for accessibility; reduced-motion respected via Framer Motion defaults
 
 ### Notes
+
 - File: 953 lines → 905 lines (5% reduction) while adding new structural pieces
 - Build: no new TS errors introduced (`tsc --noEmit` clean for `GatewayFeatures.tsx`; pre-existing errors in unrelated files unchanged)
 - No new dependencies — uses existing `framer-motion`, `lucide-react`, `tailwind-merge`, `clsx`
@@ -1567,16 +1644,18 @@ The Platform Capabilities section (GatewayFeatures) had grown visually busy: 5 d
 **Date**: 2026-06-01
 
 ### Why
+
 The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 different accent colors (emerald/blue/violet/amber) per step and a string-replacement-based code highlighter that produced broken output. This entry extracts the section into its own component, applies the same editorial language as Platform Capabilities v2, and replaces the hacky syntax highlighter with a real token-based one.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/web/components/IntegrationFlow.tsx` | 1-582 | created |
-| `apps/web/app/page.tsx` | 1-32 | rewritten (extraction) |
+| File                                      | Lines | Change Type            |
+| ----------------------------------------- | ----- | ---------------------- |
+| `apps/web/components/IntegrationFlow.tsx` | 1-582 | created                |
+| `apps/web/app/page.tsx`                   | 1-32  | rewritten (extraction) |
 
 ### Before
+
 - Section inline in `page.tsx` (366 lines total)
 - 4 different accent colors per step (emerald, blue, violet, amber)
 - String-replacement-based syntax highlighting (`line.replace("const", "").replace("{", "")...`)
@@ -1586,6 +1665,7 @@ The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 
 - No time-to-complete metadata per step
 
 ### After
+
 - **Extracted to `IntegrationFlow.tsx`** — `page.tsx` is now a 32-line orchestrator
 - **Single indigo accent** throughout; green reserved for live status (Beta badge, guarantees, CTA dot)
 - **Editorial section number "02"** matching the "01" watermark from Platform Capabilities v2
@@ -1599,6 +1679,7 @@ The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 
 - Uses project's `cn` utility from `@/lib/utils`
 
 ### Notes
+
 - `page.tsx`: 366 → 32 lines (91% reduction)
 - `IntegrationFlow.tsx`: 582 lines, well under the 800-line soft cap
 - `tsc --noEmit`: 0 new errors in `IntegrationFlow.tsx` and `page.tsx`
@@ -1615,18 +1696,20 @@ The "Integration Flow" section was inline in `app/page.tsx` (~335 lines) with 4 
 **Date**: 2026-06-01
 
 ### Why
+
 Entries #17 and #18 produced clean, well-structured sections but they read as "container designs" — same rectangular cards, same border pattern, same Inter throughout, flat 1-layer shadows. Glass Atelier treats the page as an atmospheric product showcase: layered translucent surfaces with real depth, distinctive serif display type (Instrument Serif) paired with the existing Inter body, multi-layer shadows that read as physical volume, asymmetric composition, and a custom cursor parallax on the hero card.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/web/app/layout.tsx` | L2, L17-21, L60 | modified (added Instrument_Serif font) |
-| `apps/web/app/globals.css` | L6 | modified (added `--font-display`) |
-| `apps/web/components/IntegrationFlow.tsx` | 1-742 | rewritten (Glass Atelier) |
-| `apps/web/components/GatewayFeatures.tsx` | 1-978 | rewritten (Glass Atelier) |
+| File                                      | Lines           | Change Type                            |
+| ----------------------------------------- | --------------- | -------------------------------------- |
+| `apps/web/app/layout.tsx`                 | L2, L17-21, L60 | modified (added Instrument_Serif font) |
+| `apps/web/app/globals.css`                | L6              | modified (added `--font-display`)      |
+| `apps/web/components/IntegrationFlow.tsx` | 1-742           | rewritten (Glass Atelier)              |
+| `apps/web/components/GatewayFeatures.tsx` | 1-978           | rewritten (Glass Atelier)              |
 
 ### Before
+
 - Inter only (with Space Grotesk mono fallback)
 - Cards: `bg-[#0A0A0A] border border-indigo-500/10 p-6 lg:p-8` — flat 1-layer
 - Hover: border color shift + 1 shadow layer
@@ -1639,12 +1722,14 @@ Entries #17 and #18 produced clean, well-structured sections but they read as "c
 ### After
 
 #### Type system
+
 - **Instrument Serif** added as a third font via `next/font/google` (Latin subset, 400 weight, normal + italic styles)
 - New CSS variable `--font-display: var(--font-instrument), ui-serif, Georgia, serif` exposed in `@theme inline`
 - Italic display used on the second word of every section heading and feature title: `*every* frontier model`, `*first* request`, `*API*`, `*Routing*`, `*ship?*`
 - The single display-serif moment (stat numbers) in the stat strip pairs with sans labels for editorial weight contrast
 
 #### Glass card primitive
+
 - New `<GlassCard>` shared component used by both sections
 - Multi-layer composite: `bg-gradient-to-br from-white/[0.04] to-white/[0.01]`, `backdrop-blur-2xl`, `border-white/[0.08]`
 - Top edge highlight via `::before`-style linear-gradient (light catches the top edge of a glass plate)
@@ -1655,6 +1740,7 @@ Entries #17 and #18 produced clean, well-structured sections but they read as "c
 - Conic gradient orb on hover (slow rotating light source) for premium feel
 
 #### Atmospheric background
+
 - Replaces single indigo blob with a 3-layer mesh:
   - Indigo radial orb (top-left, `mix-blend-mode: screen`) — breathing animation
   - Violet radial orb (middle-right) — breathing animation
@@ -1664,50 +1750,57 @@ Entries #17 and #18 produced clean, well-structured sections but they read as "c
 - Orbs animate via `transform: scale/translate` (compositor-friendly, no repaint)
 
 #### Custom cursor parallax (hero card)
+
 - 3D tilt on the hero card only via `useMotionValue` + `useSpring`
 - Max ±5deg rotation, max ±6px translate
 - Other 4 cards use conic-gradient hover (no motion values)
 - Reduces per-frame work: 1 spring pair instead of 5
 
 #### Section number watermark
+
 - "01" / "02" now rendered in **Instrument Serif italic** (was Inter 100 bold)
 - Massive size: `text-[12rem] lg:text-[18rem]`
 - Color: `text-white/[0.025]` — barely visible texture, not a focal point
 
 #### Timeline rail (IntegrationFlow)
+
 - Was: 1px line + 1px animated fill
-- Now: 
+- Now:
   - 1px line with vertical gradient (transparent → indigo 20% → transparent)
   - 5px wide outer glow (blur 3px) wrapping the line
   - Traveling "comet" that follows the scroll position via `useScroll + useTransform`
   - Per-step dots are 3D-styled with `radial-gradient` (highlight at top-left) and 16px glow + 5px ring
 
 #### Code block
+
 - Mac window dots now use 3-stop radial gradients (highlight at 30%/30% simulates light source)
 - Each dot has `inset` shadow for inset depression
 - Line numbers in tabular-nums with a vertical separator (`border-r border-white/[0.05]`)
 - Code block wrapped in a GlassCard with top edge highlight
 
 #### CTA panel
+
 - "Ready to ship?" heading now uses serif italic on "ship?"
 - Aurora background: 2 layered radial gradients with `mix-blend-mode: screen`, animated opacity
 - Inner panel has `from-[#08080F]/90 to-[#0A0A14]/90` gradient (slight blue cast, not flat black)
 - Claim button has 3-layer shadow: ambient + inset highlight + ambient halo
 
 #### Stat strip
+
 - Numbers rendered in Instrument Serif (was Inter) — `font-display tabular-nums`
 - 4xl/5xl/6xl scale on the numbers (was 3xl/4xl/5xl)
 - Trend chips use `text-indigo-200/65` (was indigo-300/60)
 - Each stat is left-aligned (was centered) for editorial weight
 
 ### Notes
+
 - Layout: 3 fonts total (Inter body, Space Grotesk mono, Instrument Serif display) — all preloaded via next/font, ~80KB compressed total
-- Performance: 
+- Performance:
   - `backdrop-blur-2xl` is GPU-accelerated; max 8 glass panels per section
   - Atmospheric orbs animate via `transform` only
   - Custom cursor parallax scoped to 1 element (hero card)
   - Magnetic hover uses springs, not raw motion values
-- Accessibility: 
+- Accessibility:
   - White text on `#08080F` base is 17:1 (AAA)
   - `text-white/50` muted body text is 7:1 (AA)
   - Indigo accent `#6366f1` on dark is 5.2:1 (AA Normal)
@@ -1725,37 +1818,39 @@ Entries #17 and #18 produced clean, well-structured sections but they read as "c
 **Date**: 2026-06-01 12:00
 
 ### Why
+
 The docs section used a 4-color accent system (emerald/blue/amber/violet) split across the four nav groups. Sidebar items, navbar strip, scroll progress, code block tabs, search modal, prev/next nav, and section headers all carried those colors. The result was visually fragmented and inconsistent with the home page's single-indigo Glass Atelier language. A redesign needed a unified indigo system that all 19 docs pages automatically inherit through shared components, plus an editorial index hero and richer content on key pages.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/web/components/docs/Section.tsx | L1-96 | modified |
-| apps/web/components/docs/TipBox.tsx | L1-88 | modified |
-| apps/web/components/docs/EndpointCard.tsx | L1-96 | modified |
-| apps/web/components/docs/CodeBlock.tsx | L1-381 | modified |
-| apps/web/components/docs/ScrollProgress.tsx | L1-27 | modified |
-| apps/web/components/docs/SearchModal.tsx | L1-128 | modified |
-| apps/web/components/docs/PrevNextNav.tsx | L1-112 | modified |
-| apps/web/components/docs/DocsNavbar.tsx | L1-372 | modified |
-| apps/web/app/docs/layout.tsx | L1-424 | modified |
-| apps/web/app/docs/page.tsx | L1-581 | modified |
-| apps/web/app/docs/quickstart/page.tsx | L1-148 | modified |
-| apps/web/app/docs/authentication/page.tsx | L1-158 | modified |
-| apps/web/app/docs/chat/page.tsx | L1-298 | modified |
-| apps/web/app/docs/error-handling/page.tsx | L1-190 | modified |
-| apps/web/app/globals.css | L1020-1041 | modified |
-| apps/web/app/docs/*/page.tsx (16 pages) | various | modified (stripped `accent="..."` prop) |
+| File                                        | Lines      | Change Type                             |
+| ------------------------------------------- | ---------- | --------------------------------------- |
+| apps/web/components/docs/Section.tsx        | L1-96      | modified                                |
+| apps/web/components/docs/TipBox.tsx         | L1-88      | modified                                |
+| apps/web/components/docs/EndpointCard.tsx   | L1-96      | modified                                |
+| apps/web/components/docs/CodeBlock.tsx      | L1-381     | modified                                |
+| apps/web/components/docs/ScrollProgress.tsx | L1-27      | modified                                |
+| apps/web/components/docs/SearchModal.tsx    | L1-128     | modified                                |
+| apps/web/components/docs/PrevNextNav.tsx    | L1-112     | modified                                |
+| apps/web/components/docs/DocsNavbar.tsx     | L1-372     | modified                                |
+| apps/web/app/docs/layout.tsx                | L1-424     | modified                                |
+| apps/web/app/docs/page.tsx                  | L1-581     | modified                                |
+| apps/web/app/docs/quickstart/page.tsx       | L1-148     | modified                                |
+| apps/web/app/docs/authentication/page.tsx   | L1-158     | modified                                |
+| apps/web/app/docs/chat/page.tsx             | L1-298     | modified                                |
+| apps/web/app/docs/error-handling/page.tsx   | L1-190     | modified                                |
+| apps/web/app/globals.css                    | L1020-1041 | modified                                |
+| apps/web/app/docs/\*/page.tsx (16 pages)    | various    | modified (stripped `accent="..."` prop) |
 
 ### Before
+
 ```ts
 // apps/web/components/docs/Section.tsx (lines 5-39) — 4-color system
 const ACCENTS = {
-  default: { iconBg: "bg-blue-500/[0.1] border-blue-500/20", /* ... */ },
-  emerald: { iconBg: "bg-emerald-500/[0.1] border-emerald-500/20", /* ... */ },
-  amber: { iconBg: "bg-amber-500/[0.1] border-amber-500/20", /* ... */ },
-  violet: { iconBg: "bg-violet-500/[0.1] border-violet-500/20", /* ... */ },
+  default: { iconBg: "bg-blue-500/[0.1] border-blue-500/20" /* ... */ },
+  emerald: { iconBg: "bg-emerald-500/[0.1] border-emerald-500/20" /* ... */ },
+  amber: { iconBg: "bg-amber-500/[0.1] border-amber-500/20" /* ... */ },
+  violet: { iconBg: "bg-violet-500/[0.1] border-violet-500/20" /* ... */ },
 };
 // ...pages called <Section accent="emerald" title="Quick Start">
 ```
@@ -1763,10 +1858,10 @@ const ACCENTS = {
 ```ts
 // apps/web/app/docs/layout.tsx (lines 39-72) — 4-color SECTION_COLORS
 const SECTION_COLORS = {
-  "Getting Started": { accent: "emerald", /* ... */ },
-  "Core Features": { accent: "blue", /* ... */ },
-  Platform: { accent: "amber", /* ... */ },
-  Reference: { accent: "violet", /* ... */ },
+  "Getting Started": { accent: "emerald" /* ... */ },
+  "Core Features": { accent: "blue" /* ... */ },
+  Platform: { accent: "amber" /* ... */ },
+  Reference: { accent: "violet" /* ... */ },
 };
 ```
 
@@ -1775,6 +1870,7 @@ const SECTION_COLORS = {
 ```
 
 ### After
+
 ```ts
 // apps/web/components/docs/Section.tsx — single indigo, eyebrow + italic
 export const Section = ({
@@ -1815,15 +1911,25 @@ const ACCENT = {
 ```css
 /* apps/web/app/globals.css — keyframe moved to global stylesheet */
 @keyframes breathe {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  [class*="animate-\\[breathe"] { animation: none !important; }
+  [class*="animate-\\[breathe"] {
+    animation: none !important;
+  }
 }
 ```
 
 ### Notes
+
 - **Section API change**: `<Section title="...">` is unchanged. New optional props are `eyebrow` (small monospace tag above title), `italic` (Instrument Serif italic word after title), and `description` (lead paragraph). All 19 pages use the new signature with `eyebrow` set to their nav group.
 - **Stripped `accent="..."` prop** from 14 pages via `sed` bulk edit — no other behavior change.
 - **Index page redesign**: editorial hero with Instrument Serif italic on "Yapapa", breathing 3-orb atmosphere, 3-step Quick Start rail with 3D cursor parallax, "Most Read" + "Recent Updates" two-column rail, 4 category sections with hover-conic-gradient section cards, and a "Ready to ship faster?" closing CTA.
@@ -1849,13 +1955,13 @@ Six isolated CRITICAL fixes from the 2026-06-01 backend audit. Each fix is one c
 
 **Files Changed**
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/backend/internal/handler/auth_handlers.go | 141-161 | deleted (OAuthLogin handler) |
-| apps/backend/internal/service/user.go | 155-178 | deleted (OAuthLogin method) |
-| apps/backend/internal/service/service_integration_test.go | 219-247 | deleted (TestUserService_OAuthLogin) |
-| apps/backend/cmd/api/routes.go | 152 | modified (route removed) |
-| apps/backend/internal/handler/handler_test.go | 95-122 | modified (TestOAuthRouteRemoved added) |
+| File                                                      | Lines   | Change Type                            |
+| --------------------------------------------------------- | ------- | -------------------------------------- |
+| apps/backend/internal/handler/auth_handlers.go            | 141-161 | deleted (OAuthLogin handler)           |
+| apps/backend/internal/service/user.go                     | 155-178 | deleted (OAuthLogin method)            |
+| apps/backend/internal/service/service_integration_test.go | 219-247 | deleted (TestUserService_OAuthLogin)   |
+| apps/backend/cmd/api/routes.go                            | 152     | modified (route removed)               |
+| apps/backend/internal/handler/handler_test.go             | 95-122  | modified (TestOAuthRouteRemoved added) |
 
 **Before**
 
@@ -1884,6 +1990,7 @@ func (h *Handler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
 **After**: Endpoint, service method, route, and integration test all removed. `TestOAuthRouteRemoved` asserts `POST /auth/oauth` returns 404/405.
 
 **Notes**
+
 - Frontend must remove the OAuth login button OR a follow-up plan adds the real OAuth state store and code-exchange flow.
 - The Go SDK (`pkg/sdk/client.go:570`) still has its own `OAuthLogin` (with the correct `OAuthRequest{Provider, Code}` shape). It will 404 against the server until real OAuth is added.
 
@@ -1893,10 +2000,10 @@ func (h *Handler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
 
 **Files Changed**
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/backend/internal/middleware/quota.go | 246-254 | modified (cap read at maxBody+1, return 413 on overflow) |
-| apps/backend/internal/middleware/quota_test.go | (new test) | modified (TestQuotaCheck_RejectsOversizedBody) |
+| File                                           | Lines      | Change Type                                              |
+| ---------------------------------------------- | ---------- | -------------------------------------------------------- |
+| apps/backend/internal/middleware/quota.go      | 246-254    | modified (cap read at maxBody+1, return 413 on overflow) |
+| apps/backend/internal/middleware/quota_test.go | (new test) | modified (TestQuotaCheck_RejectsOversizedBody)           |
 
 **Before**
 
@@ -1932,6 +2039,7 @@ if seeker, ok := r.Body.(io.Seeker); ok {
 ```
 
 **Notes**
+
 - The cap is hardcoded as `10 << 20` to match the `BodyLimit(10 << 20)` call in `cmd/api/routes.go:41`. A future change should source both from a single constant.
 - `TestQuotaTracker_CheckRequest_MonthlyLimit` and `TestQuotaTracker_RecordUsage` are pre-existing failures unrelated to this change.
 
@@ -1941,9 +2049,9 @@ if seeker, ok := r.Body.(io.Seeker); ok {
 
 **Files Changed**
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/backend/pkg/email/smtp.go | 1-43 | modified (add `mail.ParseAddress` + `strings.ContainsAny` validation) |
+| File                                 | Lines       | Change Type                                                            |
+| ------------------------------------ | ----------- | ---------------------------------------------------------------------- |
+| apps/backend/pkg/email/smtp.go       | 1-43        | modified (add `mail.ParseAddress` + `strings.ContainsAny` validation)  |
 | apps/backend/pkg/email/email_test.go | (new tests) | modified (TestSMTPSender_RejectsCRLFInTo/Subject, RejectsInvalidEmail) |
 
 **Before**
@@ -1973,6 +2081,7 @@ func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
 ```
 
 **Notes**
+
 - Go's `net/smtp` library happens to reject `\r\n` in the body internally, so the CRLF-in-To case would surface as `smtp: A line must not contain CR or LF`. The fix short-circuits with a clear validation error before any SMTP call.
 - CRLF in Subject bypasses Go's check because Subject is passed to `SMTP` as a single wire-format string.
 - A future change should HTML-escape the `resetURL`/`inviteURL` interpolated into `pkg/email/email.go` to prevent XSS in mail clients (H61).
@@ -1980,18 +2089,19 @@ func (s *SMTPSender) Send(ctx context.Context, msg Message) error {
 ### 25.4 Remove global chi Timeout that killed streaming (C16)
 
 **Why**: `chiMiddleware.Timeout(cfg.RequestTimeout)` (default 30s) was applied globally on the chi router. It cancels the request context 30s after start, which kills all streaming endpoints mid-response:
+
 - `/v1/chat/completions` (OpenAI proxy)
 - `/v1/messages` (Anthropic proxy)
 - `/api/notifications/stream` (SSE)
 - `/ws` (WebSocket gateway)
 
-These are the *core* of the product. A long-running LLM stream is terminated by the global timeout before the model finishes.
+These are the _core_ of the product. A long-running LLM stream is terminated by the global timeout before the model finishes.
 
 **Files Changed**
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/backend/cmd/api/routes.go | 38 | deleted (global Timeout) |
+| File                           | Lines | Change Type              |
+| ------------------------------ | ----- | ------------------------ |
+| apps/backend/cmd/api/routes.go | 38    | deleted (global Timeout) |
 
 **Before**
 
@@ -2002,6 +2112,7 @@ r.Use(chiMiddleware.Timeout(cfg.RequestTimeout))
 **After**: line removed. Inline comment documents the rationale.
 
 **Notes**
+
 - The `http.Server.WriteTimeout: 120s` already in `next.config.ts`/`main.go` respects streaming (it only fires after the response is written).
 - `cfg.RequestTimeout` config field is kept (no breaking change to env), just no longer applied globally. A future change could apply it route-scoped to non-streaming endpoints if needed.
 - `TestRouter_RouteByCapability` in `pkg/llm/router` is a pre-existing failure unrelated to this change.
@@ -2012,10 +2123,10 @@ r.Use(chiMiddleware.Timeout(cfg.RequestTimeout))
 
 **Files Changed**
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/backend/internal/repository/organization.go | 143-147 | modified (atomic UPDATE with `used_at IS NULL` guard + RowsAffected check) |
-| apps/backend/internal/repository/repository_test.go | (new test) | modified (TestOrganizationRepo_MarkInviteUsed_Idempotent) |
+| File                                                | Lines      | Change Type                                                                |
+| --------------------------------------------------- | ---------- | -------------------------------------------------------------------------- |
+| apps/backend/internal/repository/organization.go    | 143-147    | modified (atomic UPDATE with `used_at IS NULL` guard + RowsAffected check) |
+| apps/backend/internal/repository/repository_test.go | (new test) | modified (TestOrganizationRepo_MarkInviteUsed_Idempotent)                  |
 
 **Before**
 
@@ -2044,12 +2155,14 @@ func (r *OrganizationRepo) MarkInviteUsed(ctx context.Context, id string) error 
 ```
 
 **Notes**
+
 - Caller `OrganizationService.AcceptInvite` (organization.go:97-133) should treat the new error as "already used" and return a 410 Gone or 409 Conflict. The current handler does not, but the repo fix is the data-integrity boundary; the HTTP mapping is a follow-up.
 - The test is skipped without `TEST_DATABASE_URL`; it runs in CI.
 
 ### 25.6 LLM cache key now includes tenant identity (C9)
 
 **Why**: `CacheKey` hashed only `(model, system, messages, tools, temperature, max_tokens, thinking)`. Identical prompts from different users shared a cache entry:
+
 - User B received User A's response envelope.
 - A's quota was not decremented for B's request.
 - B's response envelope reflected A's data semantics.
@@ -2058,9 +2171,9 @@ This is a cross-tenant data leak.
 
 **Files Changed**
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| apps/backend/pkg/llm/helper.go | 14-57 | modified (add `tenant|` prefix with user_id, virtual_key_id, tenant_id) |
+| File                             | Lines       | Change Type                                                               |
+| -------------------------------- | ----------- | ------------------------------------------------------------------------- | ------------------------------------------------- |
+| apps/backend/pkg/llm/helper.go   | 14-57       | modified (add `tenant                                                     | ` prefix with user_id, virtual_key_id, tenant_id) |
 | apps/backend/pkg/llm/llm_test.go | (new tests) | modified (TestCacheKey_TenantIsolation, TestCacheKey_VirtualKeyIsolation) |
 
 **Before**
@@ -2088,6 +2201,7 @@ h.Write([]byte("|model|"))
 ```
 
 **Notes**
+
 - The hash now starts with a `tenant|` prefix. Legacy callers that do not populate `req.Metadata` will still produce stable, distinct keys from the new format (the prefix differs but the key is still unique per request).
 - **Follow-up required**: every chat-completion entry point (openai_proxy, anthropic_messages, websocket gateway) MUST populate `req.Metadata["user_id"]` for the fix to actually isolate tenants. The cache-key change is necessary but not sufficient.
 - `TestValidateRequest_ClampsValues` is a pre-existing failure unrelated to this change.
@@ -2100,15 +2214,17 @@ h.Write([]byte("|model|"))
 **Date**: 2026-06-01 18:10
 
 ### Why
+
 Section 02 (`IntegrationFlow`) was structurally correct but visually uniform: four near-identical cards with a small static step counter, a single-language code block, and a single CTA. A user landing here is in "evaluation mode" and needs to see at a glance that signup is fast, provisioning is instant, integration is one-line, and shipping scales. Uniform cards answered only one of those questions. We replaced the uniform grid with an asymmetric bento: a sticky scroll-spy tracker on the left, per-step micro-visualizations on the right, a trust-strip proving reliability before the user even reads the steps, and a dual-action CTA. The result turns a 4-step static page into a designed information architecture that signals "engineered product," not "marketing page."
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
+| File                                      | Lines   | Change Type                            |
+| ----------------------------------------- | ------- | -------------------------------------- |
 | `apps/web/components/IntegrationFlow.tsx` | L1–1340 | modified (wholesale rewrite, +597 net) |
 
 ### Before
+
 ```code
 // apps/web/components/IntegrationFlow.tsx (original imports)
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
@@ -2126,6 +2242,7 @@ import {
 ```
 
 ### After
+
 ```code
 // apps/web/components/IntegrationFlow.tsx (new imports)
 import {
@@ -2148,6 +2265,7 @@ import {
 ```
 
 ### Notes
+
 - **Asymmetric layout**: 12-col grid splits the steps area into a sticky `lg:col-span-3` tracker and `lg:col-span-9` step column.
 - **Per-step micro-visualizations** (one per step, no two alike):
   - **Step 01 — Live signup**: Animated avatar list with `AnimatePresence` enter/exit, `aria-live="polite"`.
@@ -2168,14 +2286,15 @@ import {
 **Date**: 2026-06-01 18:20
 
 ### Why
+
 Sections 01 (`GatewayFeatures`) and 02 (`IntegrationFlow`) on the homepage felt laggy. Profiling found six high-impact sources: a scroll-spy handler calling `setState` 60×/sec on every scroll (the single biggest culprit), a count-up hook calling `setCount` 60×/sec for 2.2s × 4 stats (~960 React re-renders), 6 `motion.div`s with `repeat: Infinity` running even when the section was off-screen, 8 width-animated progress bars triggering layout (not compositor), 12 infinite ripple circles in `GlobeVisual`, and a real bug in `LiveSignupViz` where `Math.random()` was called in the render path. Each fix targets one cause. None alter the visual design.
 
 ### Files Changed
 
-| File | Lines | Change Type |
-|------|-------|-------------|
-| `apps/web/components/IntegrationFlow.tsx` | scroll-spy, AtmosphericBackground, LiveSignupViz, MiniDashViz, conic-glow | modified |
-| `apps/web/components/GatewayFeatures.tsx` | AtmosphericBackground, useCountUp, StatCounter, StatsBlock, PricingBlock, system status, GlobeVisual, conic-glow | modified |
+| File                                      | Lines                                                                                                            | Change Type |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------- |
+| `apps/web/components/IntegrationFlow.tsx` | scroll-spy, AtmosphericBackground, LiveSignupViz, MiniDashViz, conic-glow                                        | modified    |
+| `apps/web/components/GatewayFeatures.tsx` | AtmosphericBackground, useCountUp, StatCounter, StatsBlock, PricingBlock, system status, GlobeVisual, conic-glow | modified    |
 
 ### Before — the #1 culprit (IntegrationFlow scroll-spy)
 
@@ -2183,7 +2302,7 @@ Sections 01 (`GatewayFeatures`) and 02 (`IntegrationFlow`) on the homepage felt 
 // apps/web/components/IntegrationFlow.tsx (original scroll-spy)
 useEffect(() => {
   const compute = () => {
-    setActiveId(bestId);  // fires on every scroll event (60+/sec)
+    setActiveId(bestId); // fires on every scroll event (60+/sec)
   };
   window.addEventListener("scroll", compute, { passive: true });
   // ...
@@ -2241,30 +2360,187 @@ function useCountUp(end: number, duration = 2200, decimals = 0) {
 
 ### Summary of all changes
 
-| # | Section | Fix | Impact |
-|---|---------|-----|--------|
-| 1 | IntegrationFlow | RAF-throttle scroll-spy + skip setState when unchanged | **Eliminates 60 React re-renders/sec of the whole section** during scroll |
-| 2 | IntegrationFlow | `Math.random()` in `LiveSignupViz` render path → stable per-entry `age` field | **Fixes text-flicker bug** + removes broken reconciliation |
-| 3 | IntegrationFlow | `LiveSignupViz` interval 2800ms → 4000ms; new 1s age tick | Reduces re-render frequency ~30% |
-| 4 | IntegrationFlow | `MiniDashViz` interval 1100ms → 2500ms; `spark` + `sparkPath` memoized | Reduces re-render frequency ~55% |
-| 5 | IntegrationFlow | `AtmosphericBackground` (3 orbs) + CTA aurora: `animate` → `whileInView` (paused off-screen) | Eliminates 4 background infinite animations when scrolled out |
-| 6 | IntegrationFlow | Conic-glow `filter: blur(20px)` → `blur(12px)` | ~4× cheaper GPU paint on hover |
-| 7 | GatewayFeatures | `useCountUp`: `setCount` → direct `textContent` write | **Eliminates ~240 React re-renders per stat** (60fps × 2.2s × 4 stats) |
-| 8 | GatewayFeatures | `AtmosphericBackground` (3 orbs): `animate` → `whileInView` | Pauses 3 background infinite animations when off-screen |
-| 9 | GatewayFeatures | Width animations → `scaleX` with `transform-origin: left` on 4 progress bars (StatsBlock) | Compositor-only, no layout |
-| 10 | GatewayFeatures | Width animations → `scaleX` on 5 pricing bars | Compositor-only, no layout |
-| 11 | GatewayFeatures | Width animations → `scaleX` on 3 system-status bars | Compositor-only, no layout |
-| 12 | GatewayFeatures | `GlobeVisual`: removed 6 per-node infinite ripple circles | −12 infinite animations |
-| 13 | GatewayFeatures | Conic-glow `filter: blur(20px)` → `blur(12px)` | ~4× cheaper GPU paint on hover |
+| #   | Section         | Fix                                                                                          | Impact                                                                    |
+| --- | --------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 1   | IntegrationFlow | RAF-throttle scroll-spy + skip setState when unchanged                                       | **Eliminates 60 React re-renders/sec of the whole section** during scroll |
+| 2   | IntegrationFlow | `Math.random()` in `LiveSignupViz` render path → stable per-entry `age` field                | **Fixes text-flicker bug** + removes broken reconciliation                |
+| 3   | IntegrationFlow | `LiveSignupViz` interval 2800ms → 4000ms; new 1s age tick                                    | Reduces re-render frequency ~30%                                          |
+| 4   | IntegrationFlow | `MiniDashViz` interval 1100ms → 2500ms; `spark` + `sparkPath` memoized                       | Reduces re-render frequency ~55%                                          |
+| 5   | IntegrationFlow | `AtmosphericBackground` (3 orbs) + CTA aurora: `animate` → `whileInView` (paused off-screen) | Eliminates 4 background infinite animations when scrolled out             |
+| 6   | IntegrationFlow | Conic-glow `filter: blur(20px)` → `blur(12px)`                                               | ~4× cheaper GPU paint on hover                                            |
+| 7   | GatewayFeatures | `useCountUp`: `setCount` → direct `textContent` write                                        | **Eliminates ~240 React re-renders per stat** (60fps × 2.2s × 4 stats)    |
+| 8   | GatewayFeatures | `AtmosphericBackground` (3 orbs): `animate` → `whileInView`                                  | Pauses 3 background infinite animations when off-screen                   |
+| 9   | GatewayFeatures | Width animations → `scaleX` with `transform-origin: left` on 4 progress bars (StatsBlock)    | Compositor-only, no layout                                                |
+| 10  | GatewayFeatures | Width animations → `scaleX` on 5 pricing bars                                                | Compositor-only, no layout                                                |
+| 11  | GatewayFeatures | Width animations → `scaleX` on 3 system-status bars                                          | Compositor-only, no layout                                                |
+| 12  | GatewayFeatures | `GlobeVisual`: removed 6 per-node infinite ripple circles                                    | −12 infinite animations                                                   |
+| 13  | GatewayFeatures | Conic-glow `filter: blur(20px)` → `blur(12px)`                                               | ~4× cheaper GPU paint on hover                                            |
 
 ### Notes
+
 - **Library discipline preserved**: all fixes use framer-motion primitives (`whileInView`, `viewport`, `requestAnimationFrame`, direct DOM mutation) and Tailwind v4 utility classes. No new dependencies.
 - **Reduced-motion respected**: `whileInView` with `viewport.amount: 0.05` triggers as soon as 5% of the section is visible — the animations are off when the user can't see them.
 - **Type-check** (`tsc --noEmit -p apps/web/tsconfig.json`) — zero new errors in either modified file.
 - **What was NOT changed**: the visual design. Every pixel that the user sees is the same — only the rendering cost has been reduced.
 
+---
 
+## [46]. Docs Navbar Enhancement — Enhanced Visual Polish & Interactive Depth
 
+**Session**: docs-navbar-enhancement
+**Date**: 2026-06-17 12:45
 
+### Why
 
+The docs navbar (`DocsNavbar.tsx`) had a solid foundation but lacked the visual richness and interactive depth of the rest of the docs pages. The goal was to elevate the navbar with enhanced visual polish: a more dynamic accent strip with layered shimmer effects, improved logo hover state with corner accent and scale animation, enhanced section indicator with animated background glow, a more polished Product dropdown with per-link icons and hover spotlights, and refined search/GitHub buttons with radial glow effects. All enhancements maintain the existing indigo accent system and glassmorphism aesthetic while adding subtle interactive depth.
 
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/components/docs/DocsNavbar.tsx` | L1-340 | modified |
+
+### Before — basic accent strip with single shimmer
+
+```tsx
+// apps/web/components/docs/DocsNavbar.tsx (original accent strip)
+<div className="relative h-[2px] w-full overflow-hidden">
+  <motion.div
+    className="absolute inset-0 bg-gradient-to-r from-indigo-400/60 via-violet-400/40 to-indigo-300/30"
+    initial={false}
+    animate={{ opacity: scrolled ? 0.85 : 0.5 }}
+    transition={{ duration: 0.4 }}
+  />
+  <motion.div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(90deg, transparent 0%, rgba(165,180,252,0.5) 50%, transparent 100%)",
+    }}
+    animate={{ x: scrolled ? ["-100%", "200%"] : "-100%" }}
+    transition={{
+      duration: 3,
+      repeat: scrolled ? Infinity : 0,
+      repeatDelay: 4,
+      ease: "linear",
+    }}
+  />
+</div>
+```
+
+### After — layered accent strip with dual shimmer effects
+
+```tsx
+// apps/web/components/docs/DocsNavbar.tsx (enhanced accent strip)
+<div className="relative h-[2px] w-full overflow-hidden">
+  <motion.div
+    className="absolute inset-0 bg-gradient-to-r from-indigo-500/70 via-violet-400/50 to-indigo-400/40"
+    initial={false}
+    animate={{ opacity: scrolled ? 1 : 0.6 }}
+    transition={{ duration: 0.4 }}
+  />
+  <motion.div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(90deg, transparent 0%, rgba(165,180,252,0.7) 50%, transparent 100%)",
+    }}
+    animate={{ x: scrolled ? ["-100%", "200%"] : "-100%" }}
+    transition={{
+      duration: 2.5,
+      repeat: scrolled ? Infinity : 0,
+      repeatDelay: 3,
+      ease: "linear",
+    }}
+  />
+  {/* Secondary shimmer for depth */}
+  <motion.div
+    className="absolute inset-0 opacity-50"
+    style={{
+      background:
+        "linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.4) 50%, transparent 100%)",
+    }}
+    animate={{ x: scrolled ? ["-150%", "250%"] : "-150%" }}
+    transition={{
+      duration: 3.5,
+      repeat: scrolled ? Infinity : 0,
+      repeatDelay: 5,
+      ease: "linear",
+    }}
+  />
+</div>
+```
+
+### Before — basic Product dropdown with dot indicators
+
+```tsx
+// apps/web/components/docs/DocsNavbar.tsx (original dropdown items)
+{productLinks.map((link, i) => (
+  <motion.div key={link.href} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.2 }}>
+    <Link href={link.href} onClick={() => setProductOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-all duration-200 cursor-pointer group">
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center border border-white/[0.04] group-hover:border-indigo-500/25 bg-indigo-500/[0.04] group-hover:bg-indigo-500/[0.08] transition-all duration-200">
+        <span className="w-2 h-2 rounded-full bg-indigo-300/60 group-hover:bg-indigo-200 transition-colors" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[13px] font-medium text-white/50 group-hover:text-white/90 transition-colors leading-tight">{link.label}</p>
+        <p className="text-[11px] text-white/20 mt-0.5 leading-snug group-hover:text-white/35 transition-colors">{link.desc}</p>
+      </div>
+    </Link>
+  </motion.div>
+))}
+```
+
+### After — enhanced dropdown with per-link icons and hover spotlights
+
+```tsx
+// apps/web/components/docs/DocsNavbar.tsx (enhanced dropdown items)
+{productLinks.map((link, i) => {
+  const Icon = link.icon;
+  return (
+    <motion.div key={link.href} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.2 }}>
+      <Link href={link.href} onClick={() => setProductOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 cursor-pointer group relative overflow-hidden">
+        {/* Hover spotlight */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/[0.08] to-transparent" />
+        </div>
+        <div className="relative w-8 h-8 rounded-lg flex items-center justify-center border border-white/[0.05] group-hover:border-indigo-500/30 bg-indigo-500/[0.05] group-hover:bg-indigo-500/[0.1] transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+          <Icon className="w-4 h-4 text-indigo-200/70 group-hover:text-indigo-200 transition-colors duration-200" />
+        </div>
+        <div className="relative min-w-0 flex-1">
+          <p className="text-[13px] font-medium text-white/60 group-hover:text-white/95 transition-colors leading-tight">{link.label}</p>
+          <p className="text-[11px] text-white/25 mt-0.5 leading-snug group-hover:text-white/40 transition-colors">{link.desc}</p>
+        </div>
+        <div className="relative opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <svg className="w-3.5 h-3.5 text-indigo-200/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </Link>
+    </motion.div>
+  );
+})}
+```
+
+### Summary of all enhancements
+
+| # | Element | Enhancement | Impact |
+|---|---------|-------------|--------|
+| 1 | Accent strip | Added secondary shimmer layer with offset timing | Creates depth and visual richness |
+| 2 | Navbar backdrop | Enhanced border-bottom on scroll state | Subtle separation from content |
+| 3 | Logo | Added corner accent, scale animation on hover, enhanced glow | More engaging brand interaction |
+| 4 | Section indicator | Added animated background glow with pulse | Living, breathing indicator |
+| 5 | Product dropdown | Added per-link icons (Sparkles, Zap, BarChart3, Layout) | Visual hierarchy and recognition |
+| 6 | Product dropdown | Added hover spotlight gradient overlay | Premium interactive feel |
+| 7 | Product dropdown | Added chevron arrow on hover | Clear affordance |
+| 8 | Product dropdown | Enhanced backdrop blur and border | More polished glass effect |
+| 9 | Search button | Added radial glow on hover, enhanced border state | Premium interactive feel |
+| 10 | GitHub icon | Added radial glow on hover, scale animation | More engaging external link |
+| 11 | Mobile menu | Added scale animation on hover | Subtle feedback |
+
+### Notes
+
+- **New icons added**: `Sparkles`, `Zap`, `Layout`, `BarChart3` from lucide-react for the Product dropdown links.
+- **Library discipline preserved**: all enhancements use framer-motion primitives (`motion.div`, `AnimatePresence`), Tailwind v4 utility classes, and the project's `cn()` helper. No new dependencies.
+- **Type-check** (`tsc --noEmit -p apps/web/tsconfig.json`) — zero new errors in the modified file.
+- **Visual consistency**: all enhancements maintain the existing indigo accent system, glassmorphism aesthetic, and dark theme. The navbar now matches the visual richness of the enhanced docs landing page.
+- **Performance**: all animations use compositor-only properties (`opacity`, `transform`) or are scoped to hover states. No layout thrashing.

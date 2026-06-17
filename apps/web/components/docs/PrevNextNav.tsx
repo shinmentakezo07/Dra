@@ -10,7 +10,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Getting Started",
     items: [
       { id: "quickstart", label: "Quick Start", icon: undefined as never },
-      { id: "authentication", label: "Authentication", icon: undefined as never },
+      {
+        id: "authentication",
+        label: "Authentication",
+        icon: undefined as never,
+      },
       { id: "api-reference", label: "API Reference", icon: undefined as never },
       { id: "self-hosting", label: "Self-Hosting", icon: undefined as never },
     ],
@@ -31,7 +35,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { id: "files", label: "File Upload", icon: undefined as never },
       { id: "webhooks", label: "Webhooks", icon: undefined as never },
       { id: "rate-limits", label: "Rate Limits", icon: undefined as never },
-      { id: "error-handling", label: "Error Handling", icon: undefined as never },
+      {
+        id: "error-handling",
+        label: "Error Handling",
+        icon: undefined as never,
+      },
       { id: "organizations", label: "Organizations", icon: undefined as never },
     ],
   },
@@ -54,7 +62,8 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
   if (currentIndex === -1) return null;
 
   const prev = currentIndex > 0 ? ALL_ITEMS[currentIndex - 1] : null;
-  const next = currentIndex < ALL_ITEMS.length - 1 ? ALL_ITEMS[currentIndex + 1] : null;
+  const next =
+    currentIndex < ALL_ITEMS.length - 1 ? ALL_ITEMS[currentIndex + 1] : null;
 
   const Card = ({
     href,
@@ -120,10 +129,26 @@ export function PrevNextNav({ currentId }: { currentId: string }) {
     >
       <div className="flex items-stretch justify-between gap-4">
         <div className="flex-1 min-w-0 flex">
-          {prev ? <Card href={`/docs/${prev.id}`} label={prev.label} direction="prev" /> : <div className="flex-1" />}
+          {prev ? (
+            <Card
+              href={`/docs/${prev.id}`}
+              label={prev.label}
+              direction="prev"
+            />
+          ) : (
+            <div className="flex-1" />
+          )}
         </div>
         <div className="flex-1 min-w-0 flex justify-end">
-          {next ? <Card href={`/docs/${next.id}`} label={next.label} direction="next" /> : <div className="flex-1" />}
+          {next ? (
+            <Card
+              href={`/docs/${next.id}`}
+              label={next.label}
+              direction="next"
+            />
+          ) : (
+            <div className="flex-1" />
+          )}
         </div>
       </div>
     </nav>

@@ -18,21 +18,15 @@ const colors = {
 };
 
 const TOKEN_RE = {
-  json:
-    /("(?:[^"\\]|\\.)*")(\s*:)?|(\btrue\b|\bfalse\b|\bnull\b)|(\b-?\d+\.?\d*\b)|(\/\/.*$)/gm,
-  bash:
-    /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go|pip|brew|git|docker)(\s|$)|("(?:[^"\\]|\\.)*")|(-{1,2}[a-zA-Z][\w-]*)|((?:https?:\/\/|localhost)\S*)/gm,
+  json: /("(?:[^"\\]|\\.)*")(\s*:)?|(\btrue\b|\bfalse\b|\bnull\b)|(\b-?\d+\.?\d*\b)|(\/\/.*$)/gm,
+  bash: /(^|\s)(curl|echo|export|cd|mkdir|npm|node|python|go|pip|brew|git|docker)(\s|$)|("(?:[^"\\]|\\.)*")|(-{1,2}[a-zA-Z][\w-]*)|((?:https?:\/\/|localhost)\S*)/gm,
   python:
     /("[^"]*"|'[^']*')|(\b(?:def|import|from|class|return|if|else|elif|for|while|print|try|except|as|with|in|not|and|or|True|False|None|async|await|yield|lambda|pass|break|continue|self)\b)|(#.*$)|(\b\d+\.?\d*\b)/gm,
-  go:
-    /("(?:[^"\\]|\\.)*"|`[^`]*`)|(\b(?:func|package|import|return|if|else|for|range|var|type|struct|interface|map|chan|go|defer|select|case|switch|break|continue|nil|true|false|err|error|string|int|bool|float64|byte|any)\b)|(\/\/.*$)|(\b\d+\.?\d*\b)/gm,
+  go: /("(?:[^"\\]|\\.)*"|`[^`]*`)|(\b(?:func|package|import|return|if|else|for|range|var|type|struct|interface|map|chan|go|defer|select|case|switch|break|continue|nil|true|false|err|error|string|int|bool|float64|byte|any)\b)|(\/\/.*$)|(\b\d+\.?\d*\b)/gm,
   js: /("[^"]*"|'[^']*'|`[^`]*`)|(\b(?:const|let|var|function|async|await|return|import|from|export|default|if|else|for|of|in|try|catch|throw|new|class|extends|this|typeof|instanceof|true|false|null|undefined|Promise|console|fetch)\b)|(\/\/.*$)|(\b\d+\.?\d*\b)/gm,
 };
 
-function renderTokens(
-  code: string,
-  lang: string,
-): React.ReactNode {
+function renderTokens(code: string, lang: string): React.ReactNode {
   const regex = TOKEN_RE[lang as keyof typeof TOKEN_RE] ?? TOKEN_RE.bash;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -110,10 +104,7 @@ function renderTokens(
   return <>{parts}</>;
 }
 
-export function getHighlighted(
-  code: string,
-  lang: string,
-): React.ReactNode {
+export function getHighlighted(code: string, lang: string): React.ReactNode {
   if (lang === "curl") return renderTokens(code, "bash");
   if (TOKEN_RE[lang as keyof typeof TOKEN_RE]) {
     return renderTokens(code, lang);
