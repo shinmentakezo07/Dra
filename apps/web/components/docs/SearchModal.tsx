@@ -133,7 +133,9 @@ export const SearchModal = ({
               <span className="text-[10px] font-mono text-white/25 uppercase tracking-[0.15em]">
                 {filteredNav.length} pages
               </span>
-              <span className="text-[10px] font-mono text-white/20">esc to close</span>
+              <span className="text-[10px] font-mono text-white/20">
+                esc to close
+              </span>
             </div>
           </motion.div>
         </motion.div>
