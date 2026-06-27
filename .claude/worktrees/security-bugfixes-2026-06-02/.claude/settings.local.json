@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Bash(python *)",
+      "Bash(rm -rf internal/* cmd/* pkg/*)",
+      "Bash(mkdir -p cmd/api internal/config internal/db internal/domain internal/repository internal/service internal/handler internal/middleware internal/pkg/logger internal/pkg/response internal/pkg/validator migrations)",
+      "Bash(export PATH=\"$HOME/.local/go/bin:$PATH\")",
+      "Bash(go build *)",
+      "Bash(go test *)",
+      "Bash(go vet *)",
+      "Read(//usr/local/go/**)",
+      "Read(//opt/go/**)",
+      "Read(//snap/go/current/**)",
+      "Read(//etc/**)",
+      "Read(//teamspace/studios/this_studio/**)",
+      "Bash(apt list *)",
+      "Bash(dpkg -l)"
+    ]
+  }
+}

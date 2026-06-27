@@ -2268,3 +2268,393 @@ function useCountUp(end: number, duration = 2200, decimals = 0) {
 
 
 
+
+
+## 26. Docs Enhancement + 8 New Pages + Resources Dropdown
+
+**Session**: docs-ui-enhancement-and-resource-pages
+**Date**: 2026-06-01
+
+### Why
+
+The `/docs` landing and global nav referenced a complete SaaS platform but were missing the supporting pages a real LLM gateway ships: changelog, status, blog, about, enterprise, contact, roadmap, and legal. The user asked for a UI pass on `/docs` and the navbar (existing `Header` + `DocsNavbar`) plus all of the missing pages, with the new pages reachable from in-docs via a Resources dropdown.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/web/components/shared/PageHero.tsx | L1-181 | created |
+| apps/web/components/shared/PageContainer.tsx | L1-160 | created |
+| apps/web/components/shared/SiteFooter.tsx | L1-220 | created |
+| apps/web/app/changelog/page.tsx | L1-419 | created |
+| apps/web/app/blog/page.tsx | L1-281 | created |
+| apps/web/app/status/page.tsx | L1-413 | created |
+| apps/web/app/about/page.tsx | L1-296 | created |
+| apps/web/app/enterprise/page.tsx | L1-292 | created |
+| apps/web/app/contact/page.tsx | L1-348 | created |
+| apps/web/app/roadmap/page.tsx | L1-309 | created |
+| apps/web/app/legal/page.tsx | L1-366 | created |
+| apps/web/components/docs/DocsNavbar.tsx | L1-380, 17-34, 222-330 | modified (Resources dropdown added) |
+| apps/web/app/docs/page.tsx | L33-44, 142-180, 705-787 | modified (new Resources section + 6 new icons imported) |
+
+### Before
+
+```tsx
+// apps/web/components/docs/DocsNavbar.tsx (excerpt of state + dropdown)
+const [productOpen, setProductOpen] = useState(false);
+const dropdownRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  if (!productOpen) return;
+  // click-outside handler...
+}, [productOpen]);
+
+// Only one dropdown existed: "Product" → 4 links (Models, Playground, Pricing, Dashboard)
+// The remaining 8 new pages had no entry point in the docs nav.
+```
+
+```tsx
+// apps/web/app/docs/page.tsx (excerpt)
+// 4 category sections → <BottomCTA />. No linking to /changelog, /blog, /status, etc.
+```
+
+### After
+
+```tsx
+// apps/web/components/docs/DocsNavbar.tsx
+const productLinks = [/* Models, Playground, Pricing, Dashboard */];
+const resourcesLinks = [
+  { label: "Changelog", href: "/changelog", desc: "Every release, every fix", icon: FileText },
+  { label: "Blog", href: "/blog", desc: "Engineering deep dives", icon: Newspaper },
+  { label: "Status", href: "/status", desc: "Live system availability", icon: Activity },
+  { label: "Roadmap", href: "/roadmap", desc: "What we're building next", icon: Rocket },
+  { label: "About", href: "/about", desc: "Our team, story, investors", icon: Building2 },
+  { label: "Enterprise", href: "/enterprise", desc: "Dedicated, compliant, 24/7", icon: Sparkles },
+  { label: "Contact", href: "/contact", desc: "Talk to a human", icon: Mail },
+  { label: "Legal", href: "/legal", desc: "Terms, privacy, cookies", icon: Scale },
+];
+
+// Two independent dropdowns with shared click-outside + Escape handling
+// Resources dropdown is a 2-column 420px panel with footer (page count + Star on GitHub)
+```
+
+```tsx
+// apps/web/app/docs/page.tsx (new Resources section)
+const resourceLinks = [
+  { label: "Changelog", desc: "...", icon: FileText, href: "/changelog" },
+  { label: "Blog", desc: "...", icon: Newspaper, href: "/blog" },
+  { label: "Status", desc: "...", icon: Activity, href: "/status" },
+  { label: "Roadmap", desc: "...", icon: Rocket, href: "/roadmap" },
+  { label: "Enterprise", desc: "...", icon: Building2, href: "/enterprise" },
+  { label: "About", desc: "...", icon: Users, href: "/about" },
+];
+
+// New "More from Yapapa" 3-column grid section rendered before the bottom CTA
+```
+
+### Notes
+
+- **Shared design system** — `PageHero`, `PageContainer` (`PageSection`, `FeatureCard`, `StatBlock`), and `SiteFooter` are new shared components in `apps/web/components/shared/`. They follow the existing single-indigo dark aesthetic (`bg-[#06060a]`, `text-indigo-200/95`, `border-white/[0.07]`, Instrument Serif display italic for emphasis). All 8 new pages use them.
+- **Layout integration** — new pages use the global `Header` (via `MainLayout` route) and render a custom `SiteFooter` at the bottom of each page. The `PageHero` `pt` was reduced from `pt-12 sm:pt-20` to `pt-2 sm:pt-4` and each page's wrapping `pt-24 sm:pt-32` was removed, since `MainLayout` already provides `pt-16 md:pt-20` for non-docs routes — avoids double padding stacking to ~280px.
+- **Resources dropdown** in `DocsNavbar` is a 2-column 420px panel with 8 links (icon + label + description), a footer showing `{n} pages` and `Star on GitHub`, and independent click-outside / Escape handling from the existing Product dropdown.
+- **Lucide icon gaps** — the installed `lucide-react@1.14.0` is missing `Twitter`, `Github`, and `Linkedin`. Replaced with `X` (the post-rebrand icon) and inline SVGs matching the existing GitHub SVG already used in `DocsNavbar`.
+- **Legal page** is a single `/legal` page with anchor sections (`#terms`, `#privacy`, `#cookies`, `#dpa`, `#acceptable-use`) and a sticky table-of-contents on desktop, instead of separate routes — easier to maintain one set of last-updated dates.
+- **Pre-existing smoke test failure** — `DashboardOverviewClient.tsx missing SDK import` (24 passed, 1 failed). Verified by stashing my changes and re-running: same result on `main` (24 passed, 1 failed). Not introduced by this session.
+- **Build** — `npm run build --workspace=apps/web` passes; all 8 new routes registered (`/about`, `/blog`, `/changelog`, `/contact`, `/enterprise`, `/legal`, `/roadmap`, `/status`).
+
+---
+
+## Quickstart Page UI Enhancement
+
+> **Session**: UI Enhancement (quickstart page visual overhaul), 2026-06-01
+> **Branch**: feature/platform-capabilities-v2
+> **Files changed**: 1 file modified, +335 / −113 lines (net +222)
+
+### Why
+
+The `/docs/quickstart` page had a basic visual design that didn't match the premium quality of the rest of the docs system. The steps were displayed in a flat 3-column grid with minimal visual hierarchy, the code section lacked context about the expected response, and the guarantees section was visually plain. This enhancement adds a hero banner, timeline-style steps, a response preview panel, enhanced guarantee cards with stat badges, and a CTA footer — all within the existing "Glass Atelier" design language.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| `apps/web/app/docs/quickstart/page.tsx` | 429 | modified (complete rewrite of JSX) |
+
+### Before
+
+```tsx
+// apps/web/app/docs/quickstart/page.tsx (lines 56-110)
+export default function QuickstartPage() {
+  return (
+    <motion.div ...>
+      <Section id="quickstart" icon={Zap} eyebrow="Getting Started" title="Quick" italic="start" ...>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-8">
+          {steps.map((card) => (
+            <Link key={card.step} href={card.href} className="group relative p-6 rounded-2xl ...">
+              {/* Flat card with step number + icon */}
+            </Link>
+          ))}
+        </div>
+        <h3 ...>Your first API call</h3>
+        <CodeBlock examples={{...}} />
+        <div className="mt-14">
+          <h3>What you get out of the box</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {guarantees.map((g) => (<div>...</div>))}
+          </div>
+        </div>
+        <TipBox>...</TipBox>
+      </Section>
+    </motion.div>
+  );
+}
+```
+
+### After
+
+```tsx
+// apps/web/app/docs/quickstart/page.tsx (lines 94-428)
+export default function QuickstartPage() {
+  return (
+    <motion.div ...>
+      {/* ═══════════ HERO BANNER ═══════════ */}
+      <div className="relative mb-10 rounded-3xl overflow-hidden ...">
+        {/* Animated gradient mesh, floating orbs, grid overlay */}
+        {/* "3 steps to production" and "4 languages" stat badges */}
+      </div>
+
+      <Section ...>
+        {/* ═══════════ TIMELINE STEPS ═══════════ */}
+        {/* Vertical timeline with animated connector line */}
+        {/* Each step has timeline dot, gradient card, time estimate badge */}
+
+        {/* ═══════════ YOUR FIRST API CALL ═══════════ */}
+        {/* Play icon header with POST /api/chat endpoint label */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr,300px] gap-4">
+          <CodeBlock examples={{...}} />
+          {/* Response preview panel (sticky, shows 200 OK, model, content, tokens, cost) */}
+        </div>
+
+        {/* ═══════════ GUARANTEES ═══════════ */}
+        {/* Sparkles icon header + "Zero-config infrastructure" subtitle */}
+        {/* Cards with stat badges (100+ models, 0 code changes, free in sandbox) */}
+
+        <TipBox>...</TipBox>
+
+        {/* ═══════════ CTA FOOTER ═══════════ */}
+        {/* "Ready to build?" with Chat & Streaming + API Reference buttons */}
+      </Section>
+    </motion.div>
+  );
+}
+```
+
+### Visual Enhancements Summary
+
+| Section | Enhancement |
+|---------|-------------|
+| **Hero Banner** | Gradient mesh background, animated floating orbs, grid overlay, "~3 minutes to first token" badge, "3 steps to production" and "4 languages" stat cards |
+| **Timeline Steps** | Vertical connector line with animated gradient fill, timeline dots with per-step gradient colors, time estimate badges, chevron indicators, hover glow effects |
+| **API Call Section** | Play icon header with endpoint label, 2-column grid layout (code + response preview) |
+| **Response Preview** | Sticky panel showing 200 OK status, ~320ms latency, model name, response content, token count, and cost |
+| **Guarantees** | Sparkles icon header, stat badges (100+ models, 0 code changes, free in sandbox), per-card accent colors, staggered animation |
+| **CTA Footer** | Gradient border effect, "Ready to build?" heading, two action buttons (Chat & Streaming, API Reference) |
+
+### Notes
+
+- All new UI elements follow the existing "Glass Atelier" design system — single indigo accent, `border-white/[0.07]`, `bg-gradient-to-br from-white/[0.02]`, `shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]`.
+- Response preview panel is hidden on screens smaller than `xl` (1280px) to avoid layout issues on mobile.
+- Framer Motion `animate` props used for floating orbs (infinite loop) and timeline connector line fill animation.
+- `cn()` utility used for conditional class merging throughout.
+- `&ldquo;`/`&rdquo;` HTML entities replaced with standard `"` quotes to avoid SWC parsing errors in Next.js 16.
+- Page compiles and loads successfully at `http://localhost:3000/docs/quickstart` — verified with `✓ Compiled in 254ms` in dev logs.
+
+---
+
+## 27. fix: lock down OAuth backend token mint path
+
+**Session**: security-bugfixes-2026-06-02
+**Date**: 2026-06-02 00:00
+
+### Why
+
+The removed public backend OAuth mint endpoint must stay unreachable, and the frontend must not keep calling it from NextAuth OAuth callbacks. That endpoint previously trusted arbitrary OAuth claims and minted backend JWTs, so keeping the frontend call path created a fragile dependency on an intentionally removed insecure backend route.
+
+### Files Changed
+
+| File | Lines | Change Type |
+|------|-------|-------------|
+| apps/web/auth.ts | L44-91 | modified |
+| apps/web/tests/integration/auth-flow.test.ts | L1-20 | modified |
+| apps/backend/internal/handler/handler_test.go | L95-123 | verified existing regression test |
+| UPDATE.md | Lend | modified |
+
+### Before
+
+```ts
+// apps/web/auth.ts L44-L57
+async function backendOAuth(email: string, name: string, provider: string) {
+  const res = await fetch(`${BACKEND_URL}/auth/oauth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, name, provider }),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  if (!json.success) return null;
+  return json.data as {
+    user: { id: string; name: string; email: string; role: string };
+    token: string;
+  };
+}
+```
+
+```ts
+// apps/web/auth.ts L90-L147
+async signIn({ user, account }) {
+  // For OAuth providers, verify backend accepts the sign-in
+  if (account && account.provider !== "credentials") {
+    const email = user.email;
+    if (!email) return false; // Reject OAuth with no email
+    const name = user.name || email;
+    const data = await backendOAuth(email, name, account.provider);
+    if (!data) return false;
+  }
+  return true;
+},
+async jwt({ token, user, account, profile }) {
+  // On initial sign-in (credentials or OAuth), user is present
+  if (user) {
+    token.id = user.id;
+    token.role = user.role;
+    token.backendToken = user.backendToken;
+    token.provider = account?.provider;
+  }
+
+  // For OAuth providers, sync with backend if we don't have a backend token yet
+  if (
+    account &&
+    account.provider !== "credentials" &&
+    !token.backendToken
+  ) {
+    const email = token.email as string;
+    const name =
+      (token.name as string) || (profile?.name as string) || email;
+    if (email) {
+      const data = await backendOAuth(email, name, account.provider);
+      if (data) {
+        token.id = data.user.id;
+        token.role = data.user.role;
+        token.backendToken = data.token;
+      }
+    }
+  }
+
+  // Refresh backend token if expired
+  if (token.backendToken && isTokenExpired(token.backendToken as string)) {
+    const email = token.email as string;
+    const name = (token.name as string) || email;
+    const provider = account?.provider || token.provider || "credentials";
+    if (email && provider !== "credentials") {
+      const data = await backendOAuth(email, name, provider);
+      if (data) {
+        token.id = data.user.id;
+        token.role = data.user.role;
+        token.backendToken = data.token;
+      } else {
+        // Refresh failed — clear token so user re-authenticates
+        token.backendToken = undefined;
+      }
+    } else {
+      // Credentials flow: clear expired token to force re-login
+      token.backendToken = undefined;
+    }
+  }
+
+  return token;
+},
+```
+
+### After
+
+```ts
+// apps/web/auth.ts L44-L91
+export const { auth, signIn, signOut, handlers } = NextAuth({
+  ...authConfig,
+  secret,
+  providers: [
+    GitHub,
+    Google,
+    Credentials({
+      async authorize(credentials) {
+        const parsedCredentials = z
+          .object({ email: z.string().email(), password: z.string().min(6) })
+          .safeParse(credentials);
+
+        if (parsedCredentials.success) {
+          const { email, password } = parsedCredentials.data;
+          const data = await backendLogin(email, password);
+          if (data) {
+            return {
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              role: data.user.role,
+              backendToken: data.token,
+            };
+          }
+        }
+
+        return null;
+      },
+    }),
+  ],
+  callbacks: {
+    async signIn({ user, account }) {
+      if (account && account.provider !== "credentials") {
+        return Boolean(user.email);
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.backendToken = user.backendToken;
+        token.provider = account?.provider;
+      }
+
+      if (token.backendToken && isTokenExpired(token.backendToken as string)) {
+        token.backendToken = undefined;
+      }
+
+      return token;
+    },
+```
+
+```ts
+// apps/web/tests/integration/auth-flow.test.ts L1-L20
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// ...
+
+describe("OAuth backend token handling", () => {
+  it("does not call the removed public backend OAuth mint endpoint", async () => {
+    const authPath = fileURLToPath(new URL("../../auth.ts", import.meta.url));
+    const source = await readFile(authPath, "utf8");
+
+    expect(source).not.toContain("/auth/oauth");
+    expect(source).not.toContain("backendOAuth");
+  });
+});
+```
+
+### Notes
+
+- Credentials login is unchanged and still calls `POST /auth/login` through `backendLogin()`.
+- OAuth sign-in now requires an email but does not mint a backend JWT until a secure backend-supported token exchange exists.
+- Existing backend regression coverage already exists in `apps/backend/internal/handler/handler_test.go` as `TestOAuthRouteRemoved`.
+- Verification blockers in this environment: `go` is not available in PATH, and `apps/web/node_modules` is missing, so targeted Go/Vitest commands could not complete here. Text-level invariant check confirmed `apps/web/auth.ts` no longer contains `/auth/oauth` or `backendOAuth`.
+

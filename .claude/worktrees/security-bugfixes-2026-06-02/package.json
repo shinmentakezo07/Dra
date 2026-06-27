@@ -1,0 +1,57 @@
+{
+  "name": "dra-platform",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "turbo run test",
+    "test:web": "cd apps/web && npm run test",
+    "test:backend": "cd apps/backend && make test"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
+    "drizzle-kit": "^0.31.10",
+    "prettier": "^3.2.5",
+    "tsx": "^4.21.0",
+    "turbo": "latest"
+  },
+  "packageManager": "npm@10.0.0",
+  "overrides": {
+    "dompurify": "^3.4.2",
+    "esbuild": "^0.25.12",
+    "postcss": "^8.5.10",
+    "uuid": "^14.0.0"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^3.0.176",
+    "@hookform/resolvers": "^5.2.2",
+    "@monaco-editor/react": "^4.7.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "ai": "^6.0.176",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.14.0",
+    "mermaid": "^11.14.0",
+    "next": "^16.3.0-canary.16",
+    "next-auth": "^5.0.0-beta.31",
+    "openai": "^6.36.0",
+    "prism-react-renderer": "^2.4.1",
+    "react-hook-form": "^7.74.0",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.1",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.4.3"
+  }
+}
